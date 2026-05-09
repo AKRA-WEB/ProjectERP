@@ -1,0 +1,39 @@
+{
+  "name": "wms-erp",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "migrate": "node -r dotenv/config -e \"require('./lib/db/migrate').runMigrations().then(() => process.exit(0)).catch(e => { console.error(e); process.exit(1); })\"",
+    "migrate:seed": "node -r dotenv/config lib/db/seed.js"
+  },
+  "dependencies": {
+    "@auth/core": "^0.41.2",
+    "@react-pdf/renderer": "^4.5.1",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/pg": "^8.20.0",
+    "bcryptjs": "^3.0.3",
+    "csv-stringify": "^6.7.0",
+    "dotenv": "^17.4.2",
+    "next": "15.3.2",
+    "next-auth": "^5.0.0-beta.31",
+    "pg": "^8.20.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "autoprefixer": "^10.0.1",
+    "eslint": "^9",
+    "eslint-config-next": "15.3.2",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
+  }
+}

@@ -1,0 +1,16 @@
+export const VAT_RATE = 0.07;
+export const DEFAULT_TIMEZONE = 'Asia/Bangkok';
+export const DEFAULT_LOCALE = 'th';
+export const SUPPORTED_LOCALES = ['th', 'en'] as const;
+export const DEFAULT_PAGE_SIZE = 20;
+export const MAX_PAGE_SIZE = 200;
+export const EXPORT_MAX_ROWS = 10000;
+export const BCRYPT_ROUNDS = 12;
+export const SESSION_MAX_AGE_SECONDS = 8 * 60 * 60;
+export const PR_NUMBER_PREFIX = 'PR';
+export const PO_NUMBER_PREFIX = 'PO';
+export const GRN_NUMBER_PREFIX = 'GRN';
+export const RMA_NUMBER_PREFIX = 'RMA';
+export const CLM_NUMBER_PREFIX = 'CLM';
+export const TRF_NUMBER_PREFIX = 'TRF';
+export const CC_NUMBER_PREFIX = 'CC';
