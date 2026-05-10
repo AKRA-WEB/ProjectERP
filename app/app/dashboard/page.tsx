@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { get } from '@/lib/api-client';
 import { formatCurrency, formatQty } from '@/lib/format';
 import Link from 'next/link';
@@ -11,6 +12,7 @@ interface KPIData {
   po: { sent: number; value_30_days: string | number };
   grn: { pending: number; stocked_this_month: number; qc_failed: number };
   rma: { open_rmas: number; in_review: number };
+  claims: { open_claims: number; open_claim_value: string | number };
   low_stock: Array<{
     sku: string;
     name_th: string;
@@ -24,11 +26,22 @@ interface KPIData {
     warehouse_code: string;
     entry_type: string;
     qty_change: string | number;
+    user_name: string | null;
   }>;
-  claims: { open_claims: number; open_claim_value: string | number };
+  top_received: Array<{
+    sku: string;
+    name_th: string;
+    qty_received: string | number;
+    tx_count: string | number;
+  }>;
+  warehouse_perf: Array<{
+    warehouse_name: string;
+    warehouse_code: string;
+    grn_count: string | number;
+    qty_stocked: string | number;
+  }>;
 }
 
-// Stable ID counter for SVG gradients
 let _uid = 0;
 
 function Sparkline({ data, color = '#10b981', w = 64, h = 24 }: {
@@ -111,6 +124,23 @@ const ENTRY_LABELS: Record<string, string> = {
   cycle_count_adjustment: 'ปรับนับ', po_reversal: 'ยกเลิก PO', manual_adjustment: 'ปรับมือ',
 };
 
+const AVATAR_COLORS = [
+  '#a78bfa', '#fb923c', '#22c55e', '#0ea5e9', '#f43f5e',
+  '#f59e0b', '#6366f1', '#14b8a6', '#8b5cf6', '#ec4899',
+];
+
+function avatarColor(name: string | null): string {
+  if (!name) return '#94a3b8';
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) & 0xffff;
+  return AVATAR_COLORS[h % AVATAR_COLORS.length];
+}
+
+function initials(name: string | null): string {
+  if (!name) return 'ร';
+  return name.slice(0, 2);
+}
+
 const SPARK = {
   pr:  [8,12,10,15,18,14,12,16,20,18],
   po:  [5, 8, 7,10,12, 9,11,14,12,10],
@@ -122,7 +152,15 @@ const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-[0_1px_0_rg
 const CARD_H = 'flex items-center justify-between px-5 py-[14px] border-b border-stone-100 gap-3';
 const BTN_SM = 'h-[26px] px-3 rounded-[6px] text-[12px] font-medium text-stone-600 bg-white border border-stone-200 hover:bg-stone-50 shadow-[0_1px_0_rgba(15,23,42,.03)] inline-flex items-center';
 
+function greeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return 'สวัสดีตอนเช้า';
+  if (h < 17) return 'สวัสดีตอนบ่าย';
+  return 'สวัสดีตอนเย็น';
+}
+
 export default function DashboardPage() {
+  const { data: session } = useSession();
   const [kpi, setKpi] = useState<KPIData | null>(null);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [warehouseId, setWarehouseId] = useState('');
@@ -141,6 +179,12 @@ export default function DashboardPage() {
   const d = (v: string | number | undefined | null) =>
     v === undefined || v === null ? '—' : v;
 
+  const userName = (session?.user as { name?: string } | undefined)?.name ?? '';
+
+  const maxQtyStocked = kpi?.warehouse_perf?.length
+    ? Math.max(...kpi.warehouse_perf.map((w) => Number(w.qty_stocked) || 0), 1)
+    : 1;
+
   return (
     <div className="max-w-[1440px] mx-auto pb-12 space-y-4">
 
@@ -148,7 +192,7 @@ export default function DashboardPage() {
       <div className="flex items-end justify-between gap-6 flex-wrap">
         <div>
           <h1 className="text-[26px] font-semibold tracking-tight text-stone-950 leading-tight mb-1">
-            แดชบอร์ด
+            {greeting()}{userName ? `, ${userName}` : ''} 👋
           </h1>
           <p className="text-[13.5px] text-stone-500">
             ภาพรวมคลังสินค้า ·{' '}
@@ -177,7 +221,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* KPI Grid — single card with internal dividers */}
+      {/* KPI Grid */}
       <div className={`${CARD} overflow-hidden grid grid-cols-2 lg:grid-cols-4`}>
         {/* PR */}
         <div className="p-[22px] border-r border-b lg:border-b-0 border-stone-100 flex flex-col gap-2 relative">
@@ -252,7 +296,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Trend chart + side cards */}
+      {/* Trend chart + Top received products */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
         {/* GRN Trend Chart */}
@@ -293,9 +337,91 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Side: Claims + RMA + QC */}
-        <div className="flex flex-col gap-4">
+        {/* Top received products */}
+        <div className={CARD}>
+          <div className={CARD_H}>
+            <div>
+              <div className="text-[13.5px] font-semibold text-stone-950">สินค้ารับมากสุด</div>
+              <div className="text-[12px] text-stone-500 mt-0.5">5 อันดับแรก · เดือนนี้</div>
+            </div>
+            <Link href="/app/inventory/ledger" className={BTN_SM}>ดูทั้งหมด</Link>
+          </div>
+          <div>
+            {loading ? (
+              <p className="px-5 py-4 text-[13px] text-stone-400">กำลังโหลด...</p>
+            ) : !kpi?.top_received?.length ? (
+              <p className="px-5 py-4 text-[13px] text-stone-400">ยังไม่มีข้อมูลเดือนนี้</p>
+            ) : kpi.top_received.map((p, i) => (
+              <div key={p.sku} className="flex items-start gap-3 px-5 py-3 border-b border-stone-50 last:border-0 hover:bg-stone-50/60 transition-colors">
+                <div className="w-[18px] shrink-0 pt-[3px] font-mono text-[11.5px] text-stone-400">
+                  {String(i + 1).padStart(2, '0')}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[13px] font-medium text-stone-900 truncate">{p.name_th}</div>
+                  <div className="flex items-center gap-1.5 text-[11.5px] text-stone-400 mt-0.5">
+                    <span className="font-mono">{p.sku}</span>
+                    <span>·</span>
+                    <span>รับ {formatQty(p.tx_count)} ครั้ง</span>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <div className="font-mono text-[13px] font-medium text-stone-950 tabular-nums">
+                    {formatQty(p.qty_received)}
+                  </div>
+                  <div className="text-[11px] text-stone-400 mt-0.5">หน่วย</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
 
+      {/* Warehouse performance + Claims/RMA */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+        {/* Warehouse performance */}
+        <div className={`${CARD} lg:col-span-2`}>
+          <div className={CARD_H}>
+            <div>
+              <div className="text-[13.5px] font-semibold text-stone-950">ผลงานคลังสินค้า</div>
+              <div className="text-[12px] text-stone-500 mt-0.5">ปริมาณสินค้านำเข้า · เดือนนี้</div>
+            </div>
+          </div>
+          <div className="px-5 py-4 flex flex-col gap-5">
+            {loading ? (
+              <p className="text-[13px] text-stone-400">กำลังโหลด...</p>
+            ) : !kpi?.warehouse_perf?.length ? (
+              <p className="text-[13px] text-stone-400">ไม่มีข้อมูลคลัง</p>
+            ) : kpi.warehouse_perf.map((w) => {
+              const pct = Math.min(100, (Number(w.qty_stocked) / maxQtyStocked) * 100);
+              const barColor = pct >= 80 ? 'bg-emerald-500' : pct >= 50 ? 'bg-amber-400' : 'bg-stone-300';
+              return (
+                <div key={w.warehouse_code}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[13px] font-medium text-stone-900">
+                      {w.warehouse_name}
+                      <span className="ml-1.5 font-mono text-[11px] text-stone-400">{w.warehouse_code}</span>
+                    </span>
+                    <span className="text-[12px] text-stone-500 tabular-nums font-mono">
+                      {formatQty(w.grn_count)} GRN
+                    </span>
+                  </div>
+                  <div className="h-1.5 bg-stone-100 rounded-full overflow-hidden">
+                    <div className={`h-full rounded-full transition-all ${barColor}`}
+                         style={{ width: `${pct}%` }} />
+                  </div>
+                  <div className="flex items-center justify-between mt-1.5 text-[11.5px] text-stone-400">
+                    <span className="font-mono tabular-nums">{formatQty(w.qty_stocked)} หน่วย</span>
+                    <span>{pct.toFixed(0)}%</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Claims + RMA side */}
+        <div className="flex flex-col gap-4">
           {/* Vendor Claims */}
           <div className={CARD}>
             <div className={CARD_H}>
@@ -365,7 +491,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Low stock + Recent ledger */}
+      {/* Low stock + Activity feed */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
         {/* Low stock */}
@@ -421,38 +547,36 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Recent ledger */}
+        {/* Activity feed (recent ledger with avatars) */}
         <div className={CARD}>
           <div className={CARD_H}>
             <div>
-              <div className="text-[13.5px] font-semibold text-stone-950">ความเคลื่อนไหวสต็อก</div>
-              <div className="text-[12px] text-stone-500 mt-0.5">รายการล่าสุดในระบบ</div>
+              <div className="text-[13.5px] font-semibold text-stone-950">กิจกรรมล่าสุด</div>
+              <div className="text-[12px] text-stone-500 mt-0.5">ความเคลื่อนไหวสต็อก</div>
             </div>
             <Link href="/app/inventory/ledger" className={BTN_SM}>ดูทั้งหมด</Link>
           </div>
-          <div className="px-5 py-4 flex flex-col gap-3.5">
+          <div className="px-5 py-4 flex flex-col gap-4">
             {loading ? (
               <p className="text-[13px] text-stone-400">กำลังโหลด...</p>
             ) : !kpi?.recent_ledger?.length ? (
               <p className="text-[13px] text-stone-400">ยังไม่มีรายการ</p>
             ) : kpi.recent_ledger.map((l, idx) => {
               const isPos = Number(l.qty_change) > 0;
+              const color = avatarColor(l.user_name);
+              const name = l.user_name ?? 'ระบบ';
               return (
-                <div key={idx} className="flex items-start gap-2.5">
+                <div key={idx} className="flex items-start gap-[11px]">
                   <div
-                    className="w-6 h-6 rounded-[6px] shrink-0 grid place-items-center text-[11px] font-semibold mt-0.5"
-                    style={isPos
-                      ? { background: '#ecfdf5', color: '#047857' }
-                      : { background: '#fef2f2', color: '#b91c1c' }}
+                    className="w-7 h-7 rounded-[7px] shrink-0 grid place-items-center text-[11px] font-semibold mt-0.5"
+                    style={{ background: color + '22', color }}
                   >
-                    {isPos ? '+' : '−'}
+                    {initials(name)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-[13px] leading-[1.5]">
-                      <span className="font-medium text-stone-900">
-                        {ENTRY_LABELS[l.entry_type] ?? l.entry_type.replace(/_/g, ' ')}
-                      </span>
-                      <span className="text-stone-400"> · </span>
+                      <span className="font-medium text-stone-900">{name}</span>
+                      <span className="text-stone-400"> {ENTRY_LABELS[l.entry_type] ?? l.entry_type.replace(/_/g, ' ')} </span>
                       <span
                         className="font-mono text-[12.5px] px-[5px] rounded-[4px]"
                         style={{ color: '#047857', background: '#ecfdf5' }}
@@ -465,7 +589,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <div
-                    className="shrink-0 font-mono text-[13px] font-semibold"
+                    className="shrink-0 font-mono text-[13px] font-semibold tabular-nums"
                     style={{ color: isPos ? '#047857' : '#b91c1c' }}
                   >
                     {isPos ? '+' : ''}{formatQty(l.qty_change)}

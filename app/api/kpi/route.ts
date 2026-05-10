@@ -70,13 +70,52 @@ export async function GET(req: Request) {
     whParam
   );
 
-  const recentLedger = await query<{ created_at: string; entry_type: string; qty_change: string; sku: string; name_th: string; warehouse_code: string }>(
-    `SELECT sl.created_at, sl.entry_type, sl.qty_change, p.sku, p.name_th, w.code AS warehouse_code
+  const recentLedger = await query<{
+    created_at: string; entry_type: string; qty_change: string;
+    sku: string; name_th: string; warehouse_code: string;
+    user_name: string | null;
+  }>(
+    `SELECT sl.created_at, sl.entry_type, sl.qty_change,
+            p.sku, p.name_th, w.code AS warehouse_code,
+            COALESCE(u.name_th, u.name_en) AS user_name
      FROM stock_ledger sl
      JOIN products p ON p.id = sl.product_id
      JOIN warehouses w ON w.id = sl.warehouse_id
+     LEFT JOIN users u ON u.id = sl.created_by
      WHERE 1=1 ${warehouseId ? 'AND sl.warehouse_id = $1' : ''}
      ORDER BY sl.created_at DESC LIMIT 10`,
+    whParam
+  );
+
+  const topReceived = await query<{ sku: string; name_th: string; qty_received: string; tx_count: string }>(
+    `SELECT p.sku, p.name_th,
+            SUM(sl.qty_change) AS qty_received,
+            COUNT(*) AS tx_count
+     FROM stock_ledger sl
+     JOIN products p ON p.id = sl.product_id
+     WHERE sl.entry_type = 'grn_receipt'
+       AND sl.created_at >= DATE_TRUNC('month', NOW())
+       ${warehouseId ? 'AND sl.warehouse_id = $1' : ''}
+     GROUP BY p.sku, p.name_th
+     ORDER BY qty_received DESC LIMIT 5`,
+    whParam
+  );
+
+  const warehousePerf = await query<{ warehouse_name: string; warehouse_code: string; grn_count: string; qty_stocked: string }>(
+    `SELECT w.name_th AS warehouse_name, w.code AS warehouse_code,
+            COUNT(DISTINCT g.id) AS grn_count,
+            COALESCE(SUM(sl.qty_change), 0) AS qty_stocked
+     FROM warehouses w
+     LEFT JOIN goods_receipt_notes g
+       ON g.warehouse_id = w.id AND g.status = 'stocked'
+       AND g.created_at >= DATE_TRUNC('month', NOW())
+     LEFT JOIN stock_ledger sl
+       ON sl.warehouse_id = w.id AND sl.entry_type = 'grn_receipt'
+       AND sl.created_at >= DATE_TRUNC('month', NOW())
+     WHERE w.is_active = TRUE
+       ${warehouseId ? 'AND w.id = $1' : ''}
+     GROUP BY w.id, w.name_th, w.code
+     ORDER BY qty_stocked DESC`,
     whParam
   );
 
@@ -88,5 +127,7 @@ export async function GET(req: Request) {
     claims: claimStats,
     low_stock: lowStock,
     recent_ledger: recentLedger,
+    top_received: topReceived,
+    warehouse_perf: warehousePerf,
   });
 }
