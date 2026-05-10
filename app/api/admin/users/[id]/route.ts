@@ -10,6 +10,11 @@ const updateSchema = z.object({
   name_th: z.string().max(255).nullable().optional(),
   role: z.enum(['admin', 'manager', 'staff']).optional(),
   is_active: z.boolean().optional(),
+  employee_id: z.string().max(50).nullable().optional(),
+  position: z.string().max(100).nullable().optional(),
+  department: z.string().max(100).nullable().optional(),
+  phone: z.string().max(50).nullable().optional(),
+  hired_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
 });
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -21,6 +26,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const { id } = await params;
   const user = await queryOne(
     `SELECT u.id, u.email, u.name_th, u.name_en, u.role, u.is_active, u.created_at,
+            u.employee_id, u.position, u.department, u.phone, u.hired_date,
             array_agg(uwa.warehouse_id) FILTER (WHERE uwa.warehouse_id IS NOT NULL) AS assigned_warehouse_ids
      FROM users u
      LEFT JOIN user_warehouse_assignments uwa ON uwa.user_id = u.id
@@ -45,6 +51,11 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const parsed = updateSchema.safeParse(body);
   if (!parsed.success) return apiValidationError(parsed.error);
 
+  if (parsed.data.employee_id) {
+    const existingEmp = await queryOne('SELECT id FROM users WHERE employee_id = $1 AND id != $2', [parsed.data.employee_id, id]);
+    if (existingEmp) return apiError('Employee ID already in use', 409);
+  }
+
   const updates: string[] = [];
   const vals: unknown[] = [];
   let idx = 1;
@@ -53,13 +64,18 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (parsed.data.name_th !== undefined) { updates.push(`name_th = $${idx++}`); vals.push(parsed.data.name_th); }
   if (parsed.data.role !== undefined) { updates.push(`role = $${idx++}`); vals.push(parsed.data.role); }
   if (parsed.data.is_active !== undefined) { updates.push(`is_active = $${idx++}`); vals.push(parsed.data.is_active); }
+  if (parsed.data.employee_id !== undefined) { updates.push(`employee_id = $${idx++}`); vals.push(parsed.data.employee_id); }
+  if (parsed.data.position !== undefined) { updates.push(`position = $${idx++}`); vals.push(parsed.data.position); }
+  if (parsed.data.department !== undefined) { updates.push(`department = $${idx++}`); vals.push(parsed.data.department); }
+  if (parsed.data.phone !== undefined) { updates.push(`phone = $${idx++}`); vals.push(parsed.data.phone); }
+  if (parsed.data.hired_date !== undefined) { updates.push(`hired_date = $${idx++}`); vals.push(parsed.data.hired_date); }
 
   if (!updates.length) return apiError('No fields to update', 400);
   vals.push(id);
 
   const user = await queryOne(
     `UPDATE users SET ${updates.join(', ')} WHERE id = $${idx}
-     RETURNING id, email, name_en, name_th, role, is_active, updated_at`,
+     RETURNING id, email, name_en, name_th, role, is_active, employee_id, updated_at`,
     vals
   );
   if (!user) return apiError('User not found', 404);

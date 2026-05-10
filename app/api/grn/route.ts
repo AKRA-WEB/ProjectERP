@@ -7,22 +7,28 @@ import { DEFAULT_PAGE_SIZE } from '@/lib/constants';
 import type { SessionUser } from '@/lib/authz';
 
 const lineSchema = z.object({
-  po_line_item_id: z.string().uuid(),
+  po_line_item_id: z.string().uuid().optional(),
+  inbound_order_line_id: z.string().uuid().optional(),
   product_id: z.string().uuid(),
   qty_received: z.number().positive(),
   lot_number: z.string().max(100).optional(),
   serial_number: z.string().max(100).optional(),
   expiry_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  storage_location: z.string().max(100).optional(),
   notes: z.string().optional(),
 });
 
 const createSchema = z.object({
-  po_id: z.string().uuid(),
+  po_id: z.string().uuid().optional(),
+  inbound_order_id: z.string().uuid().optional(),
   warehouse_id: z.string().uuid(),
   received_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   notes: z.string().optional(),
   lines: z.array(lineSchema).min(1),
-});
+}).refine(
+  (d) => (d.po_id != null) !== (d.inbound_order_id != null),
+  { message: 'Provide exactly one of po_id or inbound_order_id' }
+);
 
 export async function GET(req: Request) {
   const session = await auth();
@@ -80,34 +86,68 @@ export async function POST(req: Request) {
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) return apiValidationError(parsed.error);
 
-  const po = await queryOne<{ status: string; warehouse_id: string }>(
-    'SELECT status, warehouse_id FROM purchase_orders WHERE id = $1',
-    [parsed.data.po_id]
-  );
-  if (!po) return apiError('PO not found', 404);
-  if (!['sent', 'partially_received'].includes(po.status)) return apiError('PO must be in sent or partially_received status', 409);
+  if (parsed.data.po_id) {
+    const po = await queryOne<{ status: string; warehouse_id: string }>(
+      'SELECT status, warehouse_id FROM purchase_orders WHERE id = $1',
+      [parsed.data.po_id]
+    );
+    if (!po) return apiError('PO not found', 404);
+    if (!['sent', 'partially_received'].includes(po.status)) return apiError('PO must be in sent or partially_received status', 409);
 
-  // Fetch remaining qty per line for this PO
-  const poLines = await query<{
-    id: string;
-    qty_ordered: number;
-    qty_received: number;
-  }>(
-    'SELECT id, qty_ordered, qty_received FROM po_line_items WHERE po_id = $1',
-    [parsed.data.po_id]
-  );
+    // Fetch remaining qty per line for this PO
+    const poLines = await query<{
+      id: string;
+      qty_ordered: number;
+      qty_received: number;
+    }>(
+      'SELECT id, qty_ordered, qty_received FROM po_line_items WHERE po_id = $1',
+      [parsed.data.po_id]
+    );
 
-  const poLineMap = new Map(poLines.map((l) => [l.id, l]));
+    const poLineMap = new Map(poLines.map((l) => [l.id, l]));
 
-  for (const line of parsed.data.lines) {
-    const poLine = poLineMap.get(line.po_line_item_id);
-    if (!poLine) return apiError(`PO line ${line.po_line_item_id} not found`, 422);
-    const remaining = Number(poLine.qty_ordered) - Number(poLine.qty_received);
-    if (line.qty_received > remaining) {
-      return apiError(
-        `qty_received (${line.qty_received}) exceeds remaining qty (${remaining}) for line ${line.po_line_item_id}`,
-        422
-      );
+    for (const line of parsed.data.lines) {
+      if (!line.po_line_item_id) return apiError('po_line_item_id is required for PO-based GRN', 422);
+      const poLine = poLineMap.get(line.po_line_item_id);
+      if (!poLine) return apiError(`PO line ${line.po_line_item_id} not found`, 422);
+      const remaining = Number(poLine.qty_ordered) - Number(poLine.qty_received);
+      if (line.qty_received > remaining) {
+        return apiError(
+          `qty_received (${line.qty_received}) exceeds remaining qty (${remaining}) for line ${line.po_line_item_id}`,
+          422
+        );
+      }
+    }
+  } else if (parsed.data.inbound_order_id) {
+    const io = await queryOne<{ status: string; warehouse_id: string }>(
+      'SELECT status, warehouse_id FROM inbound_orders WHERE id = $1',
+      [parsed.data.inbound_order_id]
+    );
+    if (!io) return apiError('Inbound Order not found', 404);
+    if (!['open', 'receiving'].includes(io.status)) return apiError('Inbound Order must be open or receiving', 409);
+
+    const ioLines = await query<{
+      id: string;
+      qty_ordered: number;
+      qty_received: number;
+    }>(
+      'SELECT id, qty_ordered, qty_received FROM inbound_order_lines WHERE io_id = $1',
+      [parsed.data.inbound_order_id]
+    );
+
+    const ioLineMap = new Map(ioLines.map((l) => [l.id, l]));
+
+    for (const line of parsed.data.lines) {
+      if (!line.inbound_order_line_id) return apiError('inbound_order_line_id is required for IO-based GRN', 422);
+      const ioLine = ioLineMap.get(line.inbound_order_line_id);
+      if (!ioLine) return apiError(`IO line ${line.inbound_order_line_id} not found`, 422);
+      const remaining = Number(ioLine.qty_ordered) - Number(ioLine.qty_received);
+      if (line.qty_received > remaining) {
+        return apiError(
+          `qty_received (${line.qty_received}) exceeds remaining qty (${remaining}) for line ${line.inbound_order_line_id}`,
+          422
+        );
+      }
     }
   }
 
@@ -116,24 +156,47 @@ export async function POST(req: Request) {
   }
 
   const grn = await queryOne<{ id: string }>(
-    `INSERT INTO goods_receipt_notes (po_id, warehouse_id, received_by, received_date, notes)
-     VALUES ($1, $2, $3, $4, $5) RETURNING id, grn_number, status`,
-    [parsed.data.po_id, parsed.data.warehouse_id, u.id, parsed.data.received_date, parsed.data.notes ?? null]
+    `INSERT INTO goods_receipt_notes (po_id, inbound_order_id, warehouse_id, received_by, received_date, notes)
+     VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, grn_number, status`,
+    [
+      parsed.data.po_id ?? null,
+      parsed.data.inbound_order_id ?? null,
+      parsed.data.warehouse_id,
+      u.id,
+      parsed.data.received_date,
+      parsed.data.notes ?? null
+    ]
   );
   if (!grn) return apiError('Failed to create GRN', 500);
 
   const lineValues = parsed.data.lines
-    .map((_, i) => `($1, $${i * 6 + 2}, $${i * 6 + 3}, $${i * 6 + 4}, $${i * 6 + 5}, $${i * 6 + 6}, $${i * 6 + 7}, ${i + 1})`)
+    .map((_, i) => `($1, $${i * 8 + 2}, $${i * 8 + 3}, $${i * 8 + 4}, $${i * 8 + 5}, $${i * 8 + 6}, $${i * 8 + 7}, $${i * 8 + 8}, $${i * 8 + 9}, ${i + 1})`)
     .join(', ');
   const lineParams: unknown[] = [grn.id];
   for (const l of parsed.data.lines) {
-    lineParams.push(l.po_line_item_id, l.product_id, l.qty_received, l.lot_number ?? null, l.serial_number ?? null, l.expiry_date ?? null);
+    lineParams.push(
+      l.po_line_item_id ?? null,
+      l.inbound_order_line_id ?? null,
+      l.product_id,
+      l.qty_received,
+      l.lot_number ?? null,
+      l.serial_number ?? null,
+      l.expiry_date ?? null,
+      l.storage_location ?? null
+    );
   }
   await query(
-    `INSERT INTO grn_line_items (grn_id, po_line_item_id, product_id, qty_received, lot_number, serial_number, expiry_date, line_number)
+    `INSERT INTO grn_line_items (grn_id, po_line_item_id, inbound_order_line_id, product_id, qty_received, lot_number, serial_number, expiry_date, storage_location, line_number)
      VALUES ${lineValues}`,
     lineParams
   );
+
+  if (parsed.data.inbound_order_id) {
+    await query(
+      "UPDATE inbound_orders SET status = 'receiving' WHERE id = $1 AND status = 'open'",
+      [parsed.data.inbound_order_id]
+    );
+  }
 
   return apiSuccess(grn, 201);
 }

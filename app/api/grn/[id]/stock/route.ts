@@ -14,22 +14,25 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
   try {
     await client.query('BEGIN');
 
-    const grn = await client.query<{ status: string; warehouse_id: string; po_id: string }>(
-      'SELECT status, warehouse_id, po_id FROM goods_receipt_notes WHERE id = $1 FOR UPDATE',
+    const grn = await client.query<{ status: string; warehouse_id: string; po_id: string | null; inbound_order_id: string | null }>(
+      'SELECT status, warehouse_id, po_id, inbound_order_id FROM goods_receipt_notes WHERE id = $1 FOR UPDATE',
       [id]
     );
     if (!grn.rows[0]) { await client.query('ROLLBACK'); return apiError('GRN not found', 404); }
-    if (grn.rows[0].status !== 'qc_passed') { await client.query('ROLLBACK'); return apiError('GRN must be qc_passed before stocking', 409); }
+    if (!['qc_passed', 'verified'].includes(grn.rows[0].status)) {
+      await client.query('ROLLBACK');
+      return apiError('GRN must be qc_passed or verified before stocking', 409);
+    }
 
-    const { warehouse_id, po_id } = grn.rows[0];
+    const { warehouse_id, po_id, inbound_order_id } = grn.rows[0];
 
     const lines = await client.query<{
       id: string; product_id: string; lot_number: string | null; serial_number: string | null;
       expiry_date: string | null; qty_accepted: number; is_lot_tracked: boolean;
-      is_serial_tracked: boolean; po_line_item_id: string; unit_cost: number;
+      is_serial_tracked: boolean; po_line_item_id: string | null; inbound_order_line_id: string | null; unit_cost: number;
     }>(
       `SELECT li.id, li.product_id, li.lot_number, li.serial_number, li.expiry_date,
-              li.qty_accepted, li.po_line_item_id,
+              li.qty_accepted, li.po_line_item_id, li.inbound_order_line_id,
               p.is_lot_tracked, p.is_serial_tracked, p.unit_cost
        FROM grn_line_items li
        JOIN products p ON p.id = li.product_id
@@ -65,10 +68,17 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
         [warehouse_id, line.product_id, lotId, id, line.qty_accepted, qtyAfter, line.unit_cost, u.id]
       );
 
-      await client.query(
-        `UPDATE po_line_items SET qty_received = qty_received + $1 WHERE id = $2`,
-        [line.qty_accepted, line.po_line_item_id]
-      );
+      if (line.po_line_item_id) {
+        await client.query(
+          `UPDATE po_line_items SET qty_received = qty_received + $1 WHERE id = $2`,
+          [line.qty_accepted, line.po_line_item_id]
+        );
+      } else if (line.inbound_order_line_id) {
+        await client.query(
+          `UPDATE inbound_order_lines SET qty_received = qty_received + $1 WHERE id = $2`,
+          [line.qty_accepted, line.inbound_order_line_id]
+        );
+      }
     }
 
     await client.query(
@@ -76,15 +86,18 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       [u.id, id]
     );
 
-    const poLines = await client.query<{ qty_ordered: string; qty_received: string }>(
-      'SELECT qty_ordered, qty_received FROM po_line_items WHERE po_id = $1',
-      [po_id]
-    );
-    const fullyReceived = poLines.rows.every((l) => Number(l.qty_received) >= Number(l.qty_ordered));
-    const anyReceived = poLines.rows.some((l) => Number(l.qty_received) > 0);
-    const poStatus = fullyReceived ? 'fully_received' : anyReceived ? 'partially_received' : 'sent';
-
-    await client.query('UPDATE purchase_orders SET status = $1 WHERE id = $2', [poStatus, po_id]);
+    if (po_id) {
+      const poLines = await client.query<{ qty_ordered: string; qty_received: string }>(
+        'SELECT qty_ordered, qty_received FROM po_line_items WHERE po_id = $1',
+        [po_id]
+      );
+      const fullyReceived = poLines.rows.every((l) => Number(l.qty_received) >= Number(l.qty_ordered));
+      const anyReceived = poLines.rows.some((l) => Number(l.qty_received) > 0);
+      const poStatus = fullyReceived ? 'fully_received' : anyReceived ? 'partially_received' : 'sent';
+      await client.query('UPDATE purchase_orders SET status = $1 WHERE id = $2', [poStatus, po_id]);
+    } else if (inbound_order_id) {
+      // IO status stays 'verified' — user records vendor_ref separately to close it
+    }
 
     await client.query('COMMIT');
     return apiSuccess({ id, status: 'stocked' });

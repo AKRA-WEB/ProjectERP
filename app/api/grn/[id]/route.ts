@@ -8,10 +8,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
   const { id } = await params;
   const grn = await queryOne(
-    `SELECT g.*, po.po_number, w.code AS warehouse_code, w.name_th AS warehouse_name,
+    `SELECT g.*, po.po_number, io.io_number, w.code AS warehouse_code, w.name_th AS warehouse_name,
             u1.name_en AS received_by_name, u2.name_en AS qc_reviewed_by_name, u3.name_en AS stocked_by_name
      FROM goods_receipt_notes g
-     JOIN purchase_orders po ON po.id = g.po_id
+     LEFT JOIN purchase_orders po ON po.id = g.po_id
+     LEFT JOIN inbound_orders io ON io.id = g.inbound_order_id
      JOIN warehouses w ON w.id = g.warehouse_id
      JOIN users u1 ON u1.id = g.received_by
      LEFT JOIN users u2 ON u2.id = g.qc_reviewed_by

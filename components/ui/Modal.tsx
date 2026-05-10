@@ -10,10 +10,10 @@ interface ModalProps {
 }
 
 const sizeMap = {
-  sm: 'max-w-sm',
-  md: 'max-w-md',
-  lg: 'max-w-lg',
-  xl: 'max-w-2xl',
+  sm: 'sm:max-w-sm',
+  md: 'sm:max-w-md',
+  lg: 'sm:max-w-lg',
+  xl: 'sm:max-w-2xl',
 };
 
 export function Modal({ open, onClose, children, size = 'md' }: ModalProps) {
@@ -31,7 +31,8 @@ export function Modal({ open, onClose, children, size = 'md' }: ModalProps) {
       ref={dialogRef}
       onClose={onClose}
       className={cn(
-        'rounded-xl p-0 shadow-2xl backdrop:bg-black/50 open:flex flex-col w-full',
+        // Mobile: full screen; md+: centered with max-width
+        'w-full rounded-none m-0 max-h-screen sm:rounded-xl sm:m-auto sm:max-h-[90vh] p-0 shadow-2xl backdrop:bg-black/50 open:flex flex-col',
         sizeMap[size]
       )}
     >

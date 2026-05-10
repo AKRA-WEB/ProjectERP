@@ -4,9 +4,24 @@ export interface SessionUser {
   id: string;
   role: UserRole;
   assignedWarehouseIds: string[];
+  permissions: string[];
 }
 
-/** Throws 403 if user is not admin and warehouseId is not in their assignments. */
+/** Returns true if user has the permission, or if user is admin (bypass). */
+export function hasPermission(user: SessionUser, permission: string): boolean {
+  if (user.role === 'admin') return true;
+  return (user.permissions ?? []).includes(permission);
+}
+
+/** Throws 403 if user lacks the permission. */
+export function assertPermission(user: SessionUser, permission: string): void {
+  if (!hasPermission(user, permission)) {
+    throw Object.assign(new Error('Forbidden'), { status: 403 });
+  }
+}
+
+/** Throws 403 if user is not admin and warehouseId is not in their assigned list. */
+
 export function assertWarehouseAccess(user: SessionUser, warehouseId: string): void {
   if (user.role === 'admin') return;
   if (!user.assignedWarehouseIds.includes(warehouseId)) {

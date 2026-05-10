@@ -37,13 +37,17 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   if (!po) return apiError('PO not found', 404);
 
   const lines = await query(
-    `SELECT li.*, p.sku, p.name_th, p.name_en, u.code AS uom_code
+    `SELECT li.*, p.sku, p.name_th, p.name_en, u.code AS uom_code,
+            p.is_lot_tracked, p.is_serial_tracked,
+            COALESCE(sb.qty_on_hand, 0) AS qty_on_hand,
+            COALESCE(sb.qty_available, 0) AS qty_available
      FROM po_line_items li
      JOIN products p ON p.id = li.product_id
      JOIN units_of_measure u ON u.id = p.uom_id
+     LEFT JOIN stock_balances sb ON sb.product_id = li.product_id AND sb.warehouse_id = $2
      WHERE li.po_id = $1
      ORDER BY li.line_number`,
-    [id]
+    [id, (po as { warehouse_id: string }).warehouse_id]
   );
 
   const invoices = await query(

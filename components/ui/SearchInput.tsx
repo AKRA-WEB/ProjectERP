@@ -9,7 +9,7 @@ interface SearchInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, '
 
 export function SearchInput({ onSearch, debounceMs = 300, className, ...props }: SearchInputProps) {
   const [value, setValue] = useState('');
-  const timer = useRef<ReturnType<typeof setTimeout>>();
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     clearTimeout(timer.current);

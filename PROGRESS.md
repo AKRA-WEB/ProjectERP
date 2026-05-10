@@ -1,6 +1,104 @@
 # Progress Log
 
-## Session: 2026-05-10
+## Session: 2026-05-10 (Session 2 — Evening)
+
+### สิ่งที่ทำวันนี้
+
+#### 1. Dashboard Redesign (Notion/Stripe Aesthetic)
+- **`app/app/dashboard/page.tsx`** — เขียนใหม่ทั้งหมดจาก design file ที่ได้รับผ่าน Claude Design API
+- Design system: warm off-white background, hairline borders, emerald (#10b981) accent, IBM Plex Sans Thai
+- Layout: Header → KPI grid (4 cards) → 3-col (sparkline chart + side cards) → 2-col (low stock + ledger)
+- Component `Sparkline` (SVG area chart + gradient) และ `TrendChart` (30-day dual-line chart) ใน file เดียวกัน
+- KPI grid ใช้ responsive internal borders (border-r/border-b แตกต่างกันตาม breakpoint)
+- Mock sparkline data เนื่องจาก API ให้แค่ aggregate counts ไม่ใช่ time-series
+- ใช้ `useState(() => \`sp-\${++_uid}\`)` เพื่อ stable SVG ID หลีกเลี่ยง SSR mismatch
+
+#### 2. Build Errors — TypeScript/ESLint Fixes (20+ ไฟล์)
+แก้ errors ที่สะสมมาจาก Gemini implementations ก่อนหน้า:
+
+| ไฟล์ | สิ่งที่แก้ |
+|------|-----------|
+| `lib/authz.ts` | `(error as any).status` → `Object.assign(new Error(), { status: 403 })` |
+| `app/app/layout.tsx` | `session?.user as any` → typed inline interface |
+| `app/api/admin/permissions/route.ts` | import `SessionUser` จาก `@/types` ผิด → แก้เป็น `@/lib/authz` |
+| `app/api/admin/roles/[id]/route.ts` | `const vals: any[]` → `unknown[]` |
+| `app/api/inbound-orders/[id]/route.ts` | `(io as any).warehouse_id` → typed cast |
+| `app/api/purchase-orders/[id]/route.ts` | `(po as any).warehouse_id` → typed cast |
+| `lib/api-client.ts` | เพิ่ม optional `body?: unknown` ให้ `del()` |
+| `types/index.ts` | เพิ่ม `Product`, `Vendor` interfaces; เพิ่ม `line_count` ใน `InboundOrder` |
+| `auth.ts` | เพิ่ม `query` ที่ลืม import |
+| `components/ui/SearchInput.tsx` | `useRef<...>()` ต้องใส่ initial value → `useRef<...>(undefined)` |
+| `app/app/admin/users/UserRoleModal.tsx` | `onSaved` unused → ทำให้ optional |
+| `app/app/admin/users/UserFormModal.tsx` | `const payload: any` → `Record<string, unknown>` |
+| `app/app/admin/roles/page.tsx` | ลบ unused `[error, setError]` state |
+| `app/app/grn/new/page.tsx` | `useSearchParams` ต้องอยู่ใน `<Suspense>` |
+| `app/app/purchase-orders/new/page.tsx` | `useSearchParams` ต้องอยู่ใน `<Suspense>` |
+| 13 list pages | `currentPage={page}` → `page={page}` (Pagination prop name) |
+| หลายไฟล์ | `catch (e: any)` → `catch (e: unknown)` + `e instanceof Error` check |
+
+#### 3. i18n Label Fix — Thai Labels (Gemini)
+- **`components/ui/StatusBadge.tsx`** — เพิ่ม `LABEL_TH` map ครบทุก status code (30+ statuses)
+- **`app/app/inventory/ledger/page.tsx`** — เพิ่ม `ENTRY_LABELS` map สำหรับ entry type (8 types)
+- **`app/app/admin/roles/new/page.tsx`** + `[id]/page.tsx` — เพิ่ม `MODULE_LABELS` map (10 modules)
+- **`UserRoleModal.tsx`** — แก้ `toLocaleDateString()` → `formatDate()` (Thai locale, BKK TZ)
+
+#### 4. Thai Double-Encoding Fix (Gemini)
+- ค้นพบว่า Gemini CLI บันทึก 12 ไฟล์ด้วย UTF-8 BOM + TIS-620 double-encoding
+- ข้อความไทย 1 ตัวอักษร (3 bytes) กลายเป็น 3 ตัวอักษร (9 bytes) → แสดงผลเป็น เธเธณเธ...
+- Gemini รัน PowerShell reversal script เพื่อ decode กลับสู่ UTF-8 ที่ถูกต้อง
+- ไฟล์ที่แก้: claims, cycle-counts, grn, inbound-orders, inventory, ledger, products, purchase-orders, purchase-requests, rma, transfers, vendors (ทั้งหมด `/app/app/` list pages)
+
+#### 5. Route Migration: `app/(app)/` → `app/app/`
+- Gemini ย้ายทุกหน้าจาก Next.js route group `(app)` ไปเป็น `app/app/`
+- ไฟล์เก่า (32 ไฟล์) ยังอยู่ใน git index แต่ถูกลบจาก working tree แล้ว — **ยังไม่ได้ stage deletion**
+
+---
+
+### สถานะโค้ด (Stability)
+
+**✅ STABLE** — `npm run build` ผ่านสะอาด (52 หน้า compiled, warnings เท่านั้น ไม่มี errors)
+
+```
+○  /app/dashboard
+○  /app/purchase-requests
+○  /app/inbound-orders
+ƒ  /app/grn/[id]     ← dynamic
+... (52 routes total)
+```
+
+---
+
+### สิ่งที่ต้องทำครั้งหน้า
+
+1. **Stage & verify route deletion** — `git add -u` เพื่อ stage การลบ `app/(app)/` ไฟล์เก่า 32 ไฟล์
+2. **ทดสอบ UI ใน browser จริง** — ยืนยันว่าภาษาไทยแสดงผลถูกต้องหลัง encoding fix
+3. **Import vendors** — รอไฟล์ Excel จากผู้ใช้
+4. **Vendor detail page** — ยังไม่มี `/app/app/vendors/[id]`
+5. **Plan ERP module ถัดไป** — Sales / POS / Accounting / HR / BOM
+
+---
+
+### จุดเตือนพิเศษ ⚠️
+
+1. **Supabase connection:** ต้องใช้ **pooler URL** เท่านั้น
+   - ✅ `aws-1-ap-south-1.pooler.supabase.com:6543`
+   - ❌ `db.utsjzrrezhdcdtxgppsb.supabase.co` (IPv6 only — timeout)
+
+2. **Password encoding:** password มีอักษร `@` → ต้อง URL-encode เป็น `%40`
+
+3. **Gemini สร้างไฟล์ใหม่ = BOM risk** — ทุกครั้งที่ Gemini สร้างไฟล์ `.tsx` / `.ts` ใหม่ ให้ตรวจ BOM และ Thai encoding ด้วย PowerShell script ก่อน commit
+
+4. **`useSearchParams()` → ต้องอยู่ใน `<Suspense>`** — Next.js 15 บังคับ; pattern: wrap inner component
+
+5. **GRN over-receipt guard** — ถ้าเพิ่ม GRN endpoint ใหม่ต้องใส่ guard เสมอ
+
+6. **`del()` ใน api-client** — รองรับ optional body แล้วตั้งแต่ session นี้
+
+7. **ไฟล์ `.env`** — อยู่ใน `.gitignore` ✅
+
+---
+
+## Session: 2026-05-10 (Session 1 — Earlier)
 
 ### สิ่งที่ทำวันนี้
 
@@ -14,45 +112,30 @@
 - **`app/(app)/grn/new/page.tsx`** — เพิ่ม `max` attribute บน input + client-side validation ก่อน submit
 
 #### 3. Gemini UI improvements (35 ไฟล์)
-Gemini CLI ปรับปรุง UI หลายหน้าระหว่าง audit ได้แก่ dashboard, GRN, PO, PR, RMA, transfers, cycle-counts, claims, products, vendors, admin
+Gemini CLI ปรับปรุง UI หลายหน้าระหว่าง audit
 
 #### 4. Import Script สำหรับ Products
 - **`scripts/import-products.ts`** — อ่าน Excel → upsert UOMs, categories, products เข้า DB
-- **`data/imports/all_product.xlsx`** — ข้อมูลสินค้า 4,761 รายการ
 - Import สำเร็จ: 4,761 products synced, 37 UOMs, 205 categories
-- เพิ่ม `xlsx` ใน devDependencies
 
-#### 5. Conductor Tracks
-- `conductor/tracks/audit-pr-po-grn/plan.md` — Completed
-- `conductor/tracks/fix-over-receipt/plan.md` — Completed
+#### 5. Responsive Design UI (30+ ไฟล์)
+- Mobile-first Sidebar drawer + Hamburger menu
+- Stack layouts, hidden columns, responsive modals
 
----
+#### 6. GR Staff Workflow
+- `storage_location` ใน GRN lines (Migration 013)
+- Receiving Queue page
+- Real-time stock level ในหน้า GRN new
 
-### สถานะโค้ด (Stability)
+#### 7. Inbound Order Workflow (LINE-based)
+- Migration 014: `inbound_orders`, `inbound_order_lines`
+- Full CRUD + Supervisor Verification flow
+- Updated Receiving Queue (PO + IO combined)
 
-**✅ Stable** — `npm run lint` ผ่าน, BUG-001 แก้แล้ว, import ทำงานได้
+#### 8. Employee Management + RBAC
+- Migration 015: Employee fields + Permission/Role system
+- RBAC permission filtering ใน Sidebar
+- UserRoleModal สำหรับกำหนดบทบาท
 
----
-
-### สิ่งที่ต้องทำครั้งหน้า
-
-1. **Import vendors** — รอไฟล์ Excel จากผู้ใช้ → เขียน `scripts/import-vendors.ts`
-2. **Vendor detail page** — มีแค่ list page, ยังไม่มี `/app/vendors/[id]`
-3. **Plan ERP module ถัดไป** — เลือกจาก: Sales / POS / Accounting / HR / BOM
-4. **ทดสอบ import script กับ vendors** เมื่อมีไฟล์
-
----
-
-### จุดเตือนพิเศษ ⚠️
-
-1. **Supabase connection:** ต้องใช้ **pooler URL** เท่านั้น
-   - ✅ `aws-1-ap-south-1.pooler.supabase.com:6543`
-   - ❌ `db.utsjzrrezhdcdtxgppsb.supabase.co` (IPv6 only — timeout บนเครื่องนี้)
-
-2. **Password encoding:** password มีอักษร `@` → ต้อง URL-encode เป็น `%40` ในทุก connection string
-
-3. **xlsx package:** มี npm audit warnings — ใช้แค่ dev/scripts ไม่กระทบ production
-
-4. **ไฟล์ `.env`** — อยู่ใน `.gitignore` แล้ว (credentials ไม่ขึ้น git) ✅
-
-5. **GRN over-receipt:** fix แล้วทั้ง server + client ถ้าเพิ่ม GRN endpoint ใหม่ในอนาคต ต้องใส่ guard นี้ด้วยเสมอ
+#### 9. Sidebar Navigation Grouping
+- จัดกลุ่มเมนูเป็น 7 กลุ่มตามโมดูลธุรกิจ

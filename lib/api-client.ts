@@ -34,7 +34,8 @@ export const apiClient = {
     request<T>(url, { method: 'POST', body: JSON.stringify(body) }),
   patch: <T>(url: string, body: unknown) =>
     request<T>(url, { method: 'PATCH', body: JSON.stringify(body) }),
-  delete: <T>(url: string) => request<T>(url, { method: 'DELETE' }),
+  delete: <T>(url: string, body?: unknown) =>
+    request<T>(url, { method: 'DELETE', ...(body !== undefined ? { body: JSON.stringify(body) } : {}) }),
 };
 
 export const get = apiClient.get;

@@ -1,17 +1,15 @@
 import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import { z } from 'zod';
-import { queryOne } from '@/lib/db/client';
+import { query, queryOne } from '@/lib/db/client';
 import bcrypt from 'bcryptjs';
 import type { User } from '@/types';
+import { authConfig } from './auth.config';
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  ...authConfig,
   providers: [
     Credentials({
-      credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' },
-      },
       async authorize(credentials) {
         const parsed = z.object({
           email: z.string().email(),
@@ -20,7 +18,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         if (!parsed.success) return null;
 
-        const user = await queryOne<User & { password_hash: string }>(
+        const user = await queryOne<User & { password_hash: string, employee_id: string, position: string }>(
           `SELECT u.*, array_agg(uwa.warehouse_id) FILTER (WHERE uwa.warehouse_id IS NOT NULL) AS assigned_warehouse_ids
            FROM users u
            LEFT JOIN user_warehouse_assignments uwa ON uwa.user_id = u.id
@@ -34,37 +32,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const valid = await bcrypt.compare(parsed.data.password, user.password_hash);
         if (!valid) return null;
 
+        const perms = await query<{ permission_id: string }>(
+          `SELECT DISTINCT erp.permission_id
+           FROM user_role_assignments ura
+           JOIN employee_role_permissions erp ON erp.role_id = ura.role_id
+           WHERE ura.user_id = $1`,
+          [user.id]
+        );
+
         return {
           id: user.id,
           email: user.email,
           name: user.name_en,
           role: user.role,
           assignedWarehouseIds: (user as any).assigned_warehouse_ids ?? [],
+          permissions: perms.map((p) => p.permission_id),
+          employeeId: user.employee_id ?? null,
+          position: user.position ?? null,
         };
       },
     }),
   ],
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.role = (user as any).role;
-        token.assignedWarehouseIds = (user as any).assignedWarehouseIds;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      session.user.id = token.id as string;
-      (session.user as any).role = token.role;
-      (session.user as any).assignedWarehouseIds = token.assignedWarehouseIds;
-      return session;
-    },
-  },
-  pages: {
-    signIn: '/login',
-  },
-  session: {
-    strategy: 'jwt',
-    maxAge: 8 * 60 * 60,
-  },
 });
+
