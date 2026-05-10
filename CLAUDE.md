@@ -31,6 +31,28 @@ NEXTAUTH_SECRET=<random-string>
 NEXTAUTH_URL=http://localhost:3000
 ```
 
+## Claude-Gemini Collaboration Protocol
+
+**Trigger Word: `Architect: <requirement>`**
+When you see this, you must:
+1. Analyze the requirement against the codebase.
+2. Create/Update a track in `conductor/tracks/<feature-name>/`.
+3. Write `plan.md` with tasks and checkboxes.
+4. Update `conductor/index.md`.
+5. **Stop** and wait for Gemini CLI.
+
+This project uses a hybrid AI workflow:
+- **Claude (The Architect):** Responsible for high-level design, requirement analysis, and task planning.
+- **Gemini CLI (The Implementer):** Responsible for code execution, testing, and detailed implementation.
+
+**When you (Claude) receive a new requirement:**
+1. Analyze the current codebase.
+2. Create a detailed implementation plan in `conductor/tracks/<feature-name>/plan.md`.
+3. Stop and let the user know the plan is ready for Gemini CLI.
+4. Do **NOT** implement the code unless it's a very small, single-file change.
+
+Refer to `conductor/PROTOCOLS.md` for the full protocol.
+
 ## Architecture Overview
 
 **Stack:** Next.js 15 App Router · React 19 · TypeScript 5 strict · PostgreSQL (raw `pg`, no ORM) · NextAuth v5 beta · Zod · Tailwind CSS · bcryptjs
