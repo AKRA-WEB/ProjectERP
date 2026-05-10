@@ -5,17 +5,35 @@ import { useParams, useRouter } from 'next/navigation';
 import { Button, StatusBadge, Input, Select } from '@/components/ui';
 import { get, patch } from '@/lib/api-client';
 import { formatDate, formatCurrency } from '@/lib/format';
+import type { ClaimStatus, ClaimResolutionType } from '@/types';
+
+interface ClaimDetail {
+  id: string;
+  claim_number: string;
+  status: ClaimStatus;
+  vendor_code: string;
+  vendor_name: string;
+  warehouse_code: string;
+  warehouse_name: string;
+  claim_amount: string;
+  created_at: string;
+  description: string;
+  resolution_type?: ClaimResolutionType;
+  credit_note_ref?: string;
+  credit_note_amount?: string;
+  resolution_notes?: string;
+}
 
 export default function ClaimDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const [claim, setClaim] = useState<any>(null);
+  const [claim, setClaim] = useState<ClaimDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState(false);
   const [error, setError] = useState('');
   const [showResolve, setShowResolve] = useState(false);
   const [resolveForm, setResolveForm] = useState({
-    resolution_type: 'credit_note' as 'credit_note' | 'replacement_shipment' | 'both',
+    resolution_type: 'credit_note' as ClaimResolutionType | 'both',
     credit_note_ref: '',
     credit_note_amount: '',
     resolution_notes: '',
@@ -23,7 +41,7 @@ export default function ClaimDetailPage() {
 
   async function fetchClaim() {
     setLoading(true);
-    try { setClaim(await get<any>(`/api/vendor-claims/${id}`)); } finally { setLoading(false); }
+    try { setClaim(await get<ClaimDetail>(`/api/vendor-claims/${id}`)); } finally { setLoading(false); }
   }
 
   useEffect(() => { fetchClaim(); }, [id]);
@@ -35,8 +53,8 @@ export default function ClaimDetailPage() {
       await patch(`/api/vendor-claims/${id}`, body);
       await fetchClaim();
       setShowResolve(false);
-    } catch (e: any) {
-      setError(e.message ?? 'เกิดข้อผิดพลาด');
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
     } finally { setActing(false); }
   }
 

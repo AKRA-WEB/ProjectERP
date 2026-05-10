@@ -2,14 +2,40 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Button, Badge, StatusBadge, Modal, ModalHeader, ModalBody, ModalFooter, Input } from '@/components/ui';
+import { Button, StatusBadge, Modal, ModalHeader, ModalBody, ModalFooter, Input } from '@/components/ui';
 import { get, post } from '@/lib/api-client';
 import { formatDate, formatCurrency } from '@/lib/format';
+import type { PrStatus } from '@/types';
+
+interface PRLine {
+  id: string;
+  line_number: number;
+  sku: string;
+  name_th: string;
+  name_en: string;
+  qty_requested: number;
+  uom_code: string;
+  unit_cost: number;
+  notes: string | null;
+}
+
+interface PRDetail {
+  id: string;
+  pr_number: string;
+  status: PrStatus;
+  warehouse_code: string;
+  warehouse_name: string;
+  requested_by_name: string;
+  created_at: string;
+  notes: string | null;
+  rejection_reason: string | null;
+  lines: PRLine[];
+}
 
 export default function PRDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const [pr, setPr] = useState<any>(null);
+  const [pr, setPr] = useState<PRDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [showReject, setShowReject] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
@@ -18,7 +44,7 @@ export default function PRDetailPage() {
 
   async function fetchPR() {
     setLoading(true);
-    try { setPr(await get(`/api/purchase-requests/${id}`)); } finally { setLoading(false); }
+    try { setPr(await get<PRDetail>(`/api/purchase-requests/${id}`)); } finally { setLoading(false); }
   }
 
   useEffect(() => { fetchPR(); }, [id]);
@@ -29,8 +55,8 @@ export default function PRDetailPage() {
     try {
       await post(`/api/purchase-requests/${id}/${path}`, body);
       await fetchPR();
-    } catch (e: any) {
-      setError(e.message ?? 'เกิดข้อผิดพลาด');
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
     } finally {
       setActing(false);
     }
@@ -83,7 +109,7 @@ export default function PRDetailPage() {
             </tr>
           </thead>
           <tbody>
-            {pr.lines?.map((l: any) => (
+            {pr.lines?.map((l: PRLine) => (
               <tr key={l.id} className="border-t">
                 <td className="p-3 text-gray-400">{l.line_number}</td>
                 <td className="p-3 font-mono">{l.sku}</td>

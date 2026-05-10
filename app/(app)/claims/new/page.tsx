@@ -4,6 +4,14 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Input, Select } from '@/components/ui';
 import { get, post } from '@/lib/api-client';
+import type { PaginatedResponse, Warehouse } from '@/types';
+
+interface Vendor {
+  id: string;
+  code: string;
+  name_th: string;
+  name_en: string;
+}
 
 export default function NewClaimPage() {
   const router = useRouter();
@@ -22,11 +30,11 @@ export default function NewClaimPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    get<any>('/api/vendors?limit=200').then((r) =>
-      setVendors(r.data.map((v: any) => ({ value: v.id, label: `${v.code} — ${v.name_th}` })))
+    get<PaginatedResponse<Vendor>>('/api/vendors?limit=200').then((r) =>
+      setVendors(r.data.map((v) => ({ value: v.id, label: `${v.code} — ${v.name_th}` })))
     );
-    get<any[]>('/api/admin/warehouses').then((data) =>
-      setWarehouses(data.map((w: any) => ({ value: w.id, label: `${w.code} — ${w.name_th}` })))
+    get<Warehouse[]>('/api/admin/warehouses').then((data) =>
+      setWarehouses(data.map((w) => ({ value: w.id, label: `${w.code} — ${w.name_th}` })))
     );
   }, []);
 
@@ -50,8 +58,8 @@ export default function NewClaimPage() {
         rma_id: form.rma_id || undefined,
       });
       router.push(`/app/claims/${result.id}`);
-    } catch (e: any) {
-      setError(e.message ?? 'เกิดข้อผิดพลาด');
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
     } finally {
       setSaving(false);
     }

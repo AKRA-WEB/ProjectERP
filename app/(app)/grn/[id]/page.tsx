@@ -5,24 +5,59 @@ import { useParams, useRouter } from 'next/navigation';
 import { Button, StatusBadge, Badge, Input } from '@/components/ui';
 import { get, post } from '@/lib/api-client';
 import { formatDate, formatQty } from '@/lib/format';
+import type { GrnStatus } from '@/types';
+
+interface GRNLine {
+  id: string;
+  line_number: number;
+  sku: string;
+  name_th: string;
+  qty_received: number;
+  qty_accepted: number | null;
+  qty_rejected: number | null;
+  uom_code: string;
+  lot_number: string | null;
+  qc_status: string | null;
+  qc_notes: string | null;
+}
+
+interface GRNDetail {
+  id: string;
+  grn_number: string;
+  status: GrnStatus;
+  po_number: string;
+  warehouse_code: string;
+  warehouse_name: string;
+  received_by_name: string;
+  received_date: string;
+  lines: GRNLine[];
+}
+
+interface QCLineUpdate {
+  id: string;
+  qty_accepted: number;
+  qty_rejected: number;
+  qc_status: string;
+  qc_notes: string;
+}
 
 export default function GRNDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const [grn, setGrn] = useState<any>(null);
+  const [grn, setGrn] = useState<GRNDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState(false);
   const [error, setError] = useState('');
-  const [qcLines, setQcLines] = useState<any[]>([]);
+  const [qcLines, setQcLines] = useState<QCLineUpdate[]>([]);
   const [showQC, setShowQC] = useState(false);
   const [qcNotes, setQcNotes] = useState('');
 
   async function fetchGRN() {
     setLoading(true);
     try {
-      const data = await get<any>(`/api/grn/${id}`);
+      const data = await get<GRNDetail>(`/api/grn/${id}`);
       setGrn(data);
-      setQcLines(data.lines?.map((l: any) => ({
+      setQcLines(data.lines?.map((l) => ({
         id: l.id,
         qty_accepted: l.qty_accepted ?? l.qty_received,
         qty_rejected: l.qty_rejected ?? 0,
@@ -43,14 +78,15 @@ export default function GRNDetailPage() {
       await post(`/api/grn/${id}/${path}`, body);
       await fetchGRN();
       setShowQC(false);
-    } catch (e: any) {
-      setError(e.message ?? 'เกิดข้อผิดพลาด');
+    } catch (e: unknown) {
+      const err = e as { message?: string };
+      setError(err.message ?? 'เกิดข้อผิดพลาด');
     } finally {
       setActing(false);
     }
   }
 
-  function updateQcLine(i: number, key: string, val: number | string) {
+  function updateQcLine(i: number, key: keyof QCLineUpdate, val: number | string) {
     setQcLines((prev) => prev.map((l, idx) => idx === i ? { ...l, [key]: val } : l));
   }
 
@@ -96,7 +132,7 @@ export default function GRNDetailPage() {
               </tr>
             </thead>
             <tbody>
-              {grn.lines?.map((l: any, i: number) => (
+              {grn.lines?.map((l, i) => (
                 <tr key={l.id} className="border-t">
                   <td className="p-2">
                     <div className="font-mono text-xs">{l.sku}</div>
@@ -148,7 +184,7 @@ export default function GRNDetailPage() {
               </tr>
             </thead>
             <tbody>
-              {grn.lines?.map((l: any) => (
+              {grn.lines?.map((l) => (
                 <tr key={l.id} className="border-t">
                   <td className="p-3 text-gray-400">{l.line_number}</td>
                   <td className="p-3 font-mono text-xs">{l.sku}</td>

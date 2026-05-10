@@ -5,11 +5,39 @@ import { useParams, useRouter } from 'next/navigation';
 import { Button, StatusBadge, Input } from '@/components/ui';
 import { get, patch } from '@/lib/api-client';
 import { formatDate, formatQty } from '@/lib/format';
+import type { RmaStatus, RmaCondition } from '@/types';
+
+interface RMALine {
+  id: string;
+  line_number: number;
+  sku: string;
+  name_th: string;
+  name_en: string;
+  qty_returned: number;
+  uom_code: string;
+  condition: RmaCondition;
+  notes: string | null;
+}
+
+interface RMADetail {
+  id: string;
+  rma_number: string;
+  status: RmaStatus;
+  vendor_code: string;
+  vendor_name: string;
+  warehouse_code: string;
+  warehouse_name: string;
+  initiated_by_name: string;
+  created_at: string;
+  notes: string | null;
+  resolution_notes: string | null;
+  lines: RMALine[];
+}
 
 export default function RMADetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const [rma, setRma] = useState<any>(null);
+  const [rma, setRma] = useState<RMADetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState(false);
   const [error, setError] = useState('');
@@ -18,7 +46,7 @@ export default function RMADetailPage() {
 
   async function fetchRMA() {
     setLoading(true);
-    try { setRma(await get<any>(`/api/rma/${id}`)); } finally { setLoading(false); }
+    try { setRma(await get<RMADetail>(`/api/rma/${id}`)); } finally { setLoading(false); }
   }
 
   useEffect(() => { fetchRMA(); }, [id]);
@@ -30,8 +58,8 @@ export default function RMADetailPage() {
       await patch(`/api/rma/${id}`, body);
       await fetchRMA();
       setShowResolve(false);
-    } catch (e: any) {
-      setError(e.message ?? 'เกิดข้อผิดพลาด');
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
     } finally { setActing(false); }
   }
 
@@ -88,7 +116,7 @@ export default function RMADetailPage() {
             </tr>
           </thead>
           <tbody>
-            {rma.lines?.map((l: any) => (
+            {rma.lines?.map((l: RMALine) => (
               <tr key={l.id} className="border-t">
                 <td className="p-3 text-gray-400">{l.line_number}</td>
                 <td className="p-3 font-mono text-xs">{l.sku}</td>

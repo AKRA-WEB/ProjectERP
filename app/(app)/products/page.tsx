@@ -1,19 +1,24 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Button, SearchInput, Table, Thead, Tbody, Th, Td, Pagination, Badge, StatusBadge } from '@/components/ui';
+import { Button, SearchInput, Table, Thead, Tbody, Th, Td, Pagination, Badge } from '@/components/ui';
 import { get } from '@/lib/api-client';
 import { formatCurrency } from '@/lib/format';
 import type { PaginatedResponse, Product } from '@/types';
 import ProductFormModal from './ProductFormModal';
 
+interface ProductWithDetails extends Product {
+  category_name: string | null;
+  uom_code: string;
+}
+
 export default function ProductsPage() {
-  const [data, setData] = useState<PaginatedResponse<Product> | null>(null);
+  const [data, setData] = useState<PaginatedResponse<ProductWithDetails> | null>(null);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [showInactive, setShowInactive] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState<Product | null>(null);
+  const [selected, setSelected] = useState<ProductWithDetails | null>(null);
   const [showForm, setShowForm] = useState(false);
 
   const fetchProducts = useCallback(async () => {
@@ -22,7 +27,7 @@ export default function ProductsPage() {
       const params = new URLSearchParams({ page: String(page), limit: '25' });
       if (search) params.set('search', search);
       if (showInactive) params.set('show_inactive', 'true');
-      const res = await get<PaginatedResponse<Product>>(`/api/products?${params}`);
+      const res = await get<PaginatedResponse<ProductWithDetails>>(`/api/products?${params}`);
       setData(res);
     } finally {
       setLoading(false);
@@ -91,8 +96,8 @@ export default function ProductsPage() {
                     <div className="font-medium text-gray-900">{p.name_th}</div>
                     <div className="text-xs text-gray-400">{p.name_en}</div>
                   </Td>
-                  <Td className="text-sm text-gray-500">{(p as any).category_name ?? '—'}</Td>
-                  <Td className="text-sm">{(p as any).uom_code}</Td>
+                  <Td className="text-sm text-gray-500">{p.category_name ?? '—'}</Td>
+                  <Td className="text-sm">{p.uom_code}</Td>
                   <Td className="text-sm">{formatCurrency(p.unit_cost)}</Td>
                   <Td>
                     {p.is_lot_tracked && <Badge variant="blue">Lot</Badge>}

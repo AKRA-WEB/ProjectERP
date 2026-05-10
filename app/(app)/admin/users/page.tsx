@@ -7,8 +7,12 @@ import type { PaginatedResponse, User } from '@/types';
 import UserFormModal from './UserFormModal';
 import UserWarehouseModal from './UserWarehouseModal';
 
+interface UserWithStats extends User {
+  warehouse_count?: number;
+}
+
 export default function AdminUsersPage() {
-  const [data, setData] = useState<PaginatedResponse<User> | null>(null);
+  const [data, setData] = useState<PaginatedResponse<UserWithStats> | null>(null);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -21,7 +25,7 @@ export default function AdminUsersPage() {
     try {
       const params = new URLSearchParams({ page: String(page), limit: '25' });
       if (search) params.set('search', search);
-      const res = await get<PaginatedResponse<User>>(`/api/admin/users?${params}`);
+      const res = await get<PaginatedResponse<UserWithStats>>(`/api/admin/users?${params}`);
       setData(res);
     } finally {
       setLoading(false);
@@ -81,7 +85,7 @@ export default function AdminUsersPage() {
                       {roleLabels[u.role] ?? u.role}
                     </Badge>
                   </Td>
-                  <Td className="text-sm text-gray-500">{(u as any).warehouse_count ?? 0} คลัง</Td>
+                  <Td className="text-sm text-gray-500">{u.warehouse_count ?? 0} คลัง</Td>
                   <Td>
                     <Badge variant={u.is_active ? 'green' : 'gray'}>
                       {u.is_active ? 'ใช้งาน' : 'ปิด'}

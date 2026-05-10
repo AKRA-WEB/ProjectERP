@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Table, Thead, Tbody, Th, Td, Pagination, Badge, SearchInput } from '@/components/ui';
+import { Table, Thead, Tbody, Th, Td, Pagination, Badge } from '@/components/ui';
 import { get } from '@/lib/api-client';
 import { formatDatetime, formatQty } from '@/lib/format';
-import type { PaginatedResponse } from '@/types';
+import type { PaginatedResponse, Warehouse } from '@/types';
 
 interface LedgerRow {
   id: string;
@@ -25,10 +25,10 @@ export default function LedgerPage() {
   const [page, setPage] = useState(1);
   const [warehouseId, setWarehouseId] = useState('');
   const [entryType, setEntryType] = useState('');
-  const [warehouses, setWarehouses] = useState<any[]>([]);
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { get<any[]>('/api/admin/warehouses').then(setWarehouses); }, []);
+  useEffect(() => { get<Warehouse[]>('/api/admin/warehouses').then(setWarehouses); }, []);
 
   const fetchLedger = useCallback(async () => {
     setLoading(true);

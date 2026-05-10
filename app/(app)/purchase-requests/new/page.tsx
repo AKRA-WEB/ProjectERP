@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Input, Select } from '@/components/ui';
 import { get, post } from '@/lib/api-client';
-import type { Warehouse, Product } from '@/types';
+import type { Warehouse, Product, PaginatedResponse } from '@/types';
 
 interface LineItem {
   product_id: string;
@@ -26,15 +26,15 @@ export default function NewPurchaseRequestPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    get<any[]>('/api/admin/warehouses').then((data) =>
-      setWarehouses(data.map((w: any) => ({ value: w.id, label: `${w.code} — ${w.name_th}` })))
+    get<Warehouse[]>('/api/admin/warehouses').then((data) =>
+      setWarehouses(data.map((w) => ({ value: w.id, label: `${w.code} — ${w.name_th}` })))
     );
   }, []);
 
   async function searchProducts(q: string) {
     setProductSearch(q);
     if (!q) { setProductResults([]); return; }
-    const res = await get<any>(`/api/products?search=${encodeURIComponent(q)}&limit=10`);
+    const res = await get<PaginatedResponse<Product>>(`/api/products?search=${encodeURIComponent(q)}&limit=10`);
     setProductResults(res.data ?? []);
   }
 
@@ -43,7 +43,7 @@ export default function NewPurchaseRequestPage() {
       product_id: p.id,
       product_label: `${p.sku} — ${p.name_th}`,
       qty_requested: 1,
-      unit_cost: p.unit_cost ?? 0,
+      unit_cost: Number(p.unit_cost) || 0,
       notes: '',
     }]);
     setProductSearch('');
@@ -73,8 +73,9 @@ export default function NewPurchaseRequestPage() {
         await post(`/api/purchase-requests/${pr.id}/submit`, {});
       }
       router.push(`/app/purchase-requests/${pr.id}`);
-    } catch (e: any) {
-      setError(e.message ?? 'เกิดข้อผิดพลาด');
+    } catch (e: unknown) {
+      const err = e as { message?: string };
+      setError(err.message ?? 'เกิดข้อผิดพลาด');
     } finally {
       setSaving(false);
     }

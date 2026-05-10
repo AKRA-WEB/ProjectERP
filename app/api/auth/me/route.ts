@@ -1,10 +1,12 @@
 import { auth } from '@/auth';
 import { apiSuccess, apiError } from '@/lib/api-response';
 import { queryOne } from '@/lib/db/client';
+import type { SessionUser } from '@/lib/authz';
 
 export async function GET() {
   const session = await auth();
   if (!session?.user) return apiError('Unauthorized', 401);
+  const u = session.user as unknown as SessionUser;
 
   const user = await queryOne(
     `SELECT u.id, u.email, u.name_th, u.name_en, u.role, u.is_active,
@@ -15,7 +17,7 @@ export async function GET() {
      LEFT JOIN warehouses w ON w.id = uwa.warehouse_id
      WHERE u.id = $1
      GROUP BY u.id`,
-    [(session.user as any).id]
+    [u.id]
   );
 
   return apiSuccess(user);

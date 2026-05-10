@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Input, Select } from '@/components/ui';
 import { get, post } from '@/lib/api-client';
+import type { Vendor, Warehouse, Product, PaginatedResponse } from '@/types';
 
 interface RMALine {
   product_id: string;
@@ -20,16 +21,16 @@ export default function NewRMAPage() {
   const [form, setForm] = useState({ vendor_id: '', warehouse_id: '', notes: '' });
   const [lines, setLines] = useState<RMALine[]>([]);
   const [productSearch, setProductSearch] = useState('');
-  const [productResults, setProductResults] = useState<any[]>([]);
+  const [productResults, setProductResults] = useState<Product[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    get<any>('/api/vendors?limit=200').then((r) =>
-      setVendors(r.data.map((v: any) => ({ value: v.id, label: `${v.code} — ${v.name_th}` })))
+    get<PaginatedResponse<Vendor>>('/api/vendors?limit=200').then((r) =>
+      setVendors(r.data.map((v) => ({ value: v.id, label: `${v.code} — ${v.name_th}` })))
     );
-    get<any[]>('/api/admin/warehouses').then((data) =>
-      setWarehouses(data.map((w: any) => ({ value: w.id, label: `${w.code} — ${w.name_th}` })))
+    get<Warehouse[]>('/api/admin/warehouses').then((data) =>
+      setWarehouses(data.map((w) => ({ value: w.id, label: `${w.code} — ${w.name_th}` })))
     );
   }, []);
 
@@ -38,11 +39,11 @@ export default function NewRMAPage() {
   async function searchProducts(q: string) {
     setProductSearch(q);
     if (!q) { setProductResults([]); return; }
-    const res = await get<any>(`/api/products?search=${encodeURIComponent(q)}&limit=10`);
+    const res = await get<PaginatedResponse<Product>>(`/api/products?search=${encodeURIComponent(q)}&limit=10`);
     setProductResults(res.data ?? []);
   }
 
-  function addProduct(p: any) {
+  function addProduct(p: Product) {
     setLines((prev) => [...prev, {
       product_id: p.id,
       product_label: `${p.sku} — ${p.name_th}`,
@@ -76,8 +77,8 @@ export default function NewRMAPage() {
         })),
       });
       router.push(`/app/rma/${result.id}`);
-    } catch (e: any) {
-      setError(e.message ?? 'เกิดข้อผิดพลาด');
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
     } finally {
       setSaving(false);
     }

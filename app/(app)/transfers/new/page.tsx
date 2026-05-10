@@ -4,7 +4,15 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Select, Input } from '@/components/ui';
 import { get, post } from '@/lib/api-client';
-import { formatCurrency } from '@/lib/format';
+import type { Warehouse, PaginatedResponse } from '@/types';
+
+interface StockResult {
+  product_id: string;
+  sku: string;
+  name_th: string;
+  qty_available: string;
+  uom_code: string;
+}
 
 interface TransferLine { product_id: string; product_label: string; lot_id?: string; qty: number; }
 
@@ -16,24 +24,24 @@ export default function NewTransferPage() {
   const [notes, setNotes] = useState('');
   const [lines, setLines] = useState<TransferLine[]>([]);
   const [stockSearch, setStockSearch] = useState('');
-  const [stockResults, setStockResults] = useState<any[]>([]);
+  const [stockResults, setStockResults] = useState<StockResult[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    get<any[]>('/api/admin/warehouses').then((data) =>
-      setWarehouses(data.map((w: any) => ({ value: w.id, label: `${w.code} — ${w.name_th}` })))
+    get<Warehouse[]>('/api/admin/warehouses').then((data) =>
+      setWarehouses(data.map((w) => ({ value: w.id, label: `${w.code} — ${w.name_th}` })))
     );
   }, []);
 
   async function searchStock(q: string) {
     setStockSearch(q);
     if (!q || !sourceId) { setStockResults([]); return; }
-    const res = await get<any>(`/api/stock?warehouse_id=${sourceId}&search=${encodeURIComponent(q)}&limit=10`);
+    const res = await get<PaginatedResponse<StockResult>>(`/api/stock?warehouse_id=${sourceId}&search=${encodeURIComponent(q)}&limit=10`);
     setStockResults(res.data ?? []);
   }
 
-  function addLine(item: any) {
+  function addLine(item: StockResult) {
     setLines((prev) => [...prev, { product_id: item.product_id, product_label: `${item.sku} — ${item.name_th} (พร้อมโอน: ${item.qty_available})`, qty: 1 }]);
     setStockSearch('');
     setStockResults([]);
@@ -57,8 +65,8 @@ export default function NewTransferPage() {
         lines: lines.map((l) => ({ product_id: l.product_id, lot_id: l.lot_id, qty: l.qty })),
       });
       router.push(`/app/transfers/${result.id}`);
-    } catch (e: any) {
-      setError(e.message ?? 'เกิดข้อผิดพลาด');
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
     } finally {
       setSaving(false);
     }

@@ -5,21 +5,44 @@ import { get } from '@/lib/api-client';
 import { formatCurrency, formatQty } from '@/lib/format';
 import { Badge } from '@/components/ui';
 import Link from 'next/link';
+import type { Warehouse } from '@/types';
+
+interface KPIData {
+  pr: { pending_approval: number; last_30_days: number };
+  po: { sent: number; value_30_days: string | number };
+  grn: { pending: number; stocked_this_month: number; qc_failed: number };
+  rma: { open_rmas: number; in_review: number };
+  low_stock: Array<{
+    sku: string;
+    name_th: string;
+    warehouse_code: string;
+    qty_available: string | number;
+    reorder_point: number;
+  }>;
+  recent_ledger: Array<{
+    sku: string;
+    name_th: string;
+    warehouse_code: string;
+    entry_type: string;
+    qty_change: string | number;
+  }>;
+  claims: { open_claims: number; open_claim_value: string | number };
+}
 
 export default function DashboardPage() {
-  const [kpi, setKpi] = useState<any>(null);
-  const [warehouses, setWarehouses] = useState<any[]>([]);
+  const [kpi, setKpi] = useState<KPIData | null>(null);
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [warehouseId, setWarehouseId] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    get<any[]>('/api/admin/warehouses').then(setWarehouses);
+    get<Warehouse[]>('/api/admin/warehouses').then(setWarehouses);
   }, []);
 
   useEffect(() => {
     setLoading(true);
     const params = warehouseId ? `?warehouse_id=${warehouseId}` : '';
-    get<any>(`/api/kpi${params}`).then(setKpi).finally(() => setLoading(false));
+    get<KPIData>(`/api/kpi${params}`).then(setKpi).finally(() => setLoading(false));
   }, [warehouseId]);
 
   const StatCard = ({ label, value, href, sub }: { label: string; value: string | number; href?: string; sub?: string }) => (
@@ -64,7 +87,7 @@ export default function DashboardPage() {
               <p className="p-4 text-sm text-gray-400">กำลังโหลด...</p>
             ) : kpi?.low_stock?.length === 0 ? (
               <p className="p-4 text-sm text-gray-400">ไม่มีสินค้าต่ำกว่า reorder point</p>
-            ) : kpi?.low_stock?.map((s: any, i: number) => (
+            ) : kpi?.low_stock?.map((s, i) => (
               <div key={i} className="p-3 flex items-center justify-between">
                 <div>
                   <span className="font-mono text-xs font-medium">{s.sku}</span>
@@ -89,7 +112,7 @@ export default function DashboardPage() {
           <div className="divide-y">
             {loading ? (
               <p className="p-4 text-sm text-gray-400">กำลังโหลด...</p>
-            ) : kpi?.recent_ledger?.map((l: any, i: number) => (
+            ) : kpi?.recent_ledger?.map((l, i) => (
               <div key={i} className="p-3 flex items-center justify-between">
                 <div>
                   <span className="font-mono text-xs font-medium">{l.sku}</span>

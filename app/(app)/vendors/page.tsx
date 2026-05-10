@@ -86,15 +86,14 @@ export default function VendorsPage() {
         payment_terms_days: parseInt(form.payment_terms_days) || 30,
       };
       if (editing) {
-        const { code: _code, ...updatePayload } = payload;
-        await patch(`/api/vendors/${editing.id}`, updatePayload);
+        await patch(`/api/vendors/${editing.id}`, payload);
       } else {
         await post('/api/vendors', payload);
       }
       setShowModal(false);
       await fetchVendors();
-    } catch (e: any) {
-      setError(e.message ?? 'เกิดข้อผิดพลาด');
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
     } finally {
       setSaving(false);
     }
@@ -130,7 +129,7 @@ export default function VendorsPage() {
               <tr><Td colSpan={7}><div className="py-8 text-center text-gray-400">กำลังโหลด...</div></Td></tr>
             ) : data?.data.length === 0 ? (
               <tr><Td colSpan={7}><div className="py-8 text-center text-gray-400">ไม่พบข้อมูล</div></Td></tr>
-            ) : data?.data.map((v) => (
+            ) : data?.data.map((v: Vendor) => (
               <tr key={v.id} className="hover:bg-gray-50">
                 <Td className="font-mono font-medium text-sm">{v.code}</Td>
                 <Td>

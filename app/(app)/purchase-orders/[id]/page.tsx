@@ -6,18 +6,57 @@ import { Button, StatusBadge, Badge } from '@/components/ui';
 import { get, post } from '@/lib/api-client';
 import { formatDate, formatCurrency } from '@/lib/format';
 import Link from 'next/link';
+import type { PoStatus } from '@/types';
+
+interface POLine {
+  id: string;
+  line_number: number;
+  sku: string;
+  name_th: string;
+  name_en: string;
+  qty_ordered: number;
+  qty_received: number;
+  unit_price: number;
+  line_total: number;
+}
+
+interface POInvoice {
+  id: string;
+  invoice_number: string;
+  invoice_date: string;
+  due_date: string;
+  amount: number;
+  is_paid: boolean;
+}
+
+interface PODetail {
+  id: string;
+  po_number: string;
+  status: PoStatus;
+  vendor_code: string;
+  vendor_name: string;
+  warehouse_code: string;
+  warehouse_name: string;
+  expected_date: string | null;
+  created_by_name: string;
+  subtotal: number;
+  vat_amount: number;
+  total_amount: number;
+  lines: POLine[];
+  invoices: POInvoice[];
+}
 
 export default function PODetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const [po, setPo] = useState<any>(null);
+  const [po, setPo] = useState<PODetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState(false);
   const [error, setError] = useState('');
 
   async function fetchPO() {
     setLoading(true);
-    try { setPo(await get(`/api/purchase-orders/${id}`)); } finally { setLoading(false); }
+    try { setPo(await get<PODetail>(`/api/purchase-orders/${id}`)); } finally { setLoading(false); }
   }
 
   useEffect(() => { fetchPO(); }, [id]);
@@ -28,8 +67,9 @@ export default function PODetailPage() {
     try {
       await post(`/api/purchase-orders/${id}/${path}`, {});
       await fetchPO();
-    } catch (e: any) {
-      setError(e.message ?? 'เกิดข้อผิดพลาด');
+    } catch (e: unknown) {
+      const err = e as { message?: string };
+      setError(err.message ?? 'เกิดข้อผิดพลาด');
     } finally {
       setActing(false);
     }
@@ -76,7 +116,7 @@ export default function PODetailPage() {
             </tr>
           </thead>
           <tbody>
-            {po.lines?.map((l: any) => (
+            {po.lines?.map((l) => (
               <tr key={l.id} className="border-t">
                 <td className="p-3 text-gray-400">{l.line_number}</td>
                 <td className="p-3 font-mono text-xs">{l.sku}</td>
@@ -127,7 +167,7 @@ export default function PODetailPage() {
                 </tr>
               </thead>
               <tbody>
-                {po.invoices.map((inv: any) => (
+                {po.invoices.map((inv) => (
                   <tr key={inv.id} className="border-t">
                     <td className="p-3 font-mono">{inv.invoice_number}</td>
                     <td className="p-3">{formatDate(inv.invoice_date)}</td>

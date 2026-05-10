@@ -13,7 +13,7 @@ export async function GET(req: Request) {
   const whWhere = warehouseId ? 'AND warehouse_id = $1' : '';
   const whWhereAlias = (alias: string) => warehouseId ? `AND ${alias}.warehouse_id = $1` : '';
 
-  const [prStats] = await query<any>(
+  const [prStats] = await query<{ draft: string; pending_approval: string; approved: string; last_30_days: string }>(
     `SELECT
        COUNT(*) FILTER (WHERE status = 'draft') AS draft,
        COUNT(*) FILTER (WHERE status = 'submitted') AS pending_approval,
@@ -23,7 +23,7 @@ export async function GET(req: Request) {
     whParam
   );
 
-  const [poStats] = await query<any>(
+  const [poStats] = await query<{ draft: string; sent: string; in_progress: string; value_30_days: string }>(
     `SELECT
        COUNT(*) FILTER (WHERE status = 'draft') AS draft,
        COUNT(*) FILTER (WHERE status = 'sent') AS sent,
@@ -33,7 +33,7 @@ export async function GET(req: Request) {
     whParam
   );
 
-  const [grnStats] = await query<any>(
+  const [grnStats] = await query<{ stocked_this_month: string; pending: string; qc_failed: string }>(
     `SELECT
        COUNT(*) FILTER (WHERE g.status = 'stocked') AS stocked_this_month,
        COUNT(*) FILTER (WHERE g.status IN ('draft','received','qc_pending')) AS pending,
@@ -43,7 +43,7 @@ export async function GET(req: Request) {
     whParam
   );
 
-  const [rmaStats] = await query<any>(
+  const [rmaStats] = await query<{ open_rmas: string; in_review: string }>(
     `SELECT
        COUNT(*) FILTER (WHERE status = 'open') AS open_rmas,
        COUNT(*) FILTER (WHERE status = 'in_review') AS in_review
@@ -51,7 +51,7 @@ export async function GET(req: Request) {
     whParam
   );
 
-  const [claimStats] = await query<any>(
+  const [claimStats] = await query<{ open_claims: string; open_claim_value: string }>(
     `SELECT
        COUNT(*) FILTER (WHERE status IN ('open','in_review')) AS open_claims,
        COALESCE(SUM(claim_amount) FILTER (WHERE status IN ('open','in_review')), 0) AS open_claim_value
@@ -59,7 +59,7 @@ export async function GET(req: Request) {
     whParam
   );
 
-  const lowStock = await query<any>(
+  const lowStock = await query<{ sku: string; name_th: string; qty_available: string; reorder_point: number; warehouse_code: string }>(
     `SELECT p.sku, p.name_th, sb.qty_available, p.reorder_point, w.code AS warehouse_code
      FROM stock_balances sb
      JOIN products p ON p.id = sb.product_id
@@ -70,7 +70,7 @@ export async function GET(req: Request) {
     whParam
   );
 
-  const recentLedger = await query<any>(
+  const recentLedger = await query<{ created_at: string; entry_type: string; qty_change: string; sku: string; name_th: string; warehouse_code: string }>(
     `SELECT sl.created_at, sl.entry_type, sl.qty_change, p.sku, p.name_th, w.code AS warehouse_code
      FROM stock_ledger sl
      JOIN products p ON p.id = sl.product_id

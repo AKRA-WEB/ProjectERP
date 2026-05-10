@@ -87,6 +87,30 @@ export async function POST(req: Request) {
   if (!po) return apiError('PO not found', 404);
   if (!['sent', 'partially_received'].includes(po.status)) return apiError('PO must be in sent or partially_received status', 409);
 
+  // Fetch remaining qty per line for this PO
+  const poLines = await query<{
+    id: string;
+    qty_ordered: number;
+    qty_received: number;
+  }>(
+    'SELECT id, qty_ordered, qty_received FROM po_line_items WHERE po_id = $1',
+    [parsed.data.po_id]
+  );
+
+  const poLineMap = new Map(poLines.map((l) => [l.id, l]));
+
+  for (const line of parsed.data.lines) {
+    const poLine = poLineMap.get(line.po_line_item_id);
+    if (!poLine) return apiError(`PO line ${line.po_line_item_id} not found`, 422);
+    const remaining = Number(poLine.qty_ordered) - Number(poLine.qty_received);
+    if (line.qty_received > remaining) {
+      return apiError(
+        `qty_received (${line.qty_received}) exceeds remaining qty (${remaining}) for line ${line.po_line_item_id}`,
+        422
+      );
+    }
+  }
+
   if (u.role === 'staff' && !u.assignedWarehouseIds.includes(parsed.data.warehouse_id)) {
     return apiError('No access to this warehouse', 403);
   }

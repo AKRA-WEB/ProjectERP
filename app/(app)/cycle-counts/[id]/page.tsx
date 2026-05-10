@@ -2,16 +2,46 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Button, StatusBadge, Badge, Input } from '@/components/ui';
+import { Button, StatusBadge, Badge } from '@/components/ui';
 import { get, patch } from '@/lib/api-client';
 import { formatQty } from '@/lib/format';
+import type { CycleCountStatus } from '@/types';
+
+interface CycleCountLine {
+  id: string;
+  line_number: number;
+  product_id: string;
+  sku: string;
+  name_th: string;
+  uom_code: string;
+  qty_system: string | number;
+  qty_counted: string | number | null;
+  qty_variance: string | number | null;
+  notes: string | null;
+}
+
+interface CycleCount {
+  id: string;
+  count_number: string;
+  status: CycleCountStatus;
+  warehouse_code: string;
+  warehouse_name: string;
+  rejection_reason: string | null;
+  lines: CycleCountLine[];
+}
+
+interface CountedLineState {
+  id: string;
+  qty_counted: string | number;
+  notes: string;
+}
 
 export default function CycleCountDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const [cc, setCc] = useState<any>(null);
+  const [cc, setCc] = useState<CycleCount | null>(null);
   const [loading, setLoading] = useState(true);
-  const [countedLines, setCountedLines] = useState<any[]>([]);
+  const [countedLines, setCountedLines] = useState<CountedLineState[]>([]);
   const [acting, setActing] = useState(false);
   const [error, setError] = useState('');
   const [editMode, setEditMode] = useState(false);
@@ -19,9 +49,9 @@ export default function CycleCountDetailPage() {
   async function fetchCC() {
     setLoading(true);
     try {
-      const data = await get<any>(`/api/cycle-counts/${id}`);
+      const data = await get<CycleCount>(`/api/cycle-counts/${id}`);
       setCc(data);
-      setCountedLines(data.lines?.map((l: any) => ({
+      setCountedLines(data.lines?.map((l) => ({
         id: l.id,
         qty_counted: l.qty_counted ?? '',
         notes: l.notes ?? '',
@@ -38,8 +68,8 @@ export default function CycleCountDetailPage() {
       await patch(`/api/cycle-counts/${id}`, { action: actionName, ...extra });
       await fetchCC();
       setEditMode(false);
-    } catch (e: any) {
-      setError(e.message ?? 'เกิดข้อผิดพลาด');
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
     } finally { setActing(false); }
   }
 
@@ -81,7 +111,7 @@ export default function CycleCountDetailPage() {
             </tr>
           </thead>
           <tbody>
-            {cc.lines?.map((l: any, i: number) => {
+            {cc.lines?.map((l, i) => {
               const variance = l.qty_variance;
               return (
                 <tr key={l.id} className="border-t">

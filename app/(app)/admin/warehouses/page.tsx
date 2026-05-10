@@ -5,8 +5,12 @@ import { Button, Table, Thead, Tbody, Th, Td, Badge, Modal, ModalHeader, ModalBo
 import { get, post, patch } from '@/lib/api-client';
 import type { Warehouse } from '@/types';
 
+interface WarehouseWithStats extends Warehouse {
+  user_count?: number;
+}
+
 export default function AdminWarehousesPage() {
-  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [warehouses, setWarehouses] = useState<WarehouseWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [editWh, setEditWh] = useState<Warehouse | null>(null);
   const [showCreate, setShowCreate] = useState(false);
@@ -17,7 +21,7 @@ export default function AdminWarehousesPage() {
   const fetchWarehouses = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await get<Warehouse[]>('/api/admin/warehouses');
+      const data = await get<WarehouseWithStats[]>('/api/admin/warehouses');
       setWarehouses(data);
     } finally {
       setLoading(false);
@@ -33,7 +37,13 @@ export default function AdminWarehousesPage() {
   }
 
   function openEdit(wh: Warehouse) {
-    setForm({ code: wh.code, name_th: wh.name_th, name_en: wh.name_en, address_th: (wh as any).address_th ?? '', address_en: (wh as any).address_en ?? '' });
+    setForm({ 
+      code: wh.code, 
+      name_th: wh.name_th, 
+      name_en: wh.name_en, 
+      address_th: wh.address_th ?? '', 
+      address_en: wh.address_en ?? '' 
+    });
     setError('');
     setEditWh(wh);
   }
@@ -54,8 +64,8 @@ export default function AdminWarehousesPage() {
         setShowCreate(false);
       }
       fetchWarehouses();
-    } catch (e: any) {
-      setError(e.message ?? 'เกิดข้อผิดพลาด');
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
     } finally {
       setSaving(false);
     }
@@ -95,7 +105,7 @@ export default function AdminWarehousesPage() {
                   <Td className="font-mono font-medium text-sm">{w.code}</Td>
                   <Td className="text-sm">{w.name_th}</Td>
                   <Td className="text-sm text-gray-500">{w.name_en}</Td>
-                  <Td className="text-sm">{(w as any).user_count ?? 0} คน</Td>
+                  <Td className="text-sm">{w.user_count ?? 0} คน</Td>
                   <Td>
                     <Badge variant={w.is_active ? 'green' : 'gray'}>
                       {w.is_active ? 'ใช้งาน' : 'ปิด'}

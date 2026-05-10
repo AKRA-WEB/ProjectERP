@@ -19,7 +19,7 @@ export default function UserWarehouseModal({ user, onClose, onSaved }: Props) {
 
   useEffect(() => {
     get<Warehouse[]>('/api/admin/warehouses').then(setWarehouses);
-    get<any>(`/api/admin/users/${user.id}`).then((u) => {
+    get<User & { assigned_warehouse_ids?: string[] }>(`/api/admin/users/${user.id}`).then((u) => {
       if (u.assigned_warehouse_ids) {
         setSelected(new Set(u.assigned_warehouse_ids));
       }
@@ -40,8 +40,8 @@ export default function UserWarehouseModal({ user, onClose, onSaved }: Props) {
     try {
       await post(`/api/admin/users/${user.id}/warehouses`, { warehouse_ids: Array.from(selected) });
       onSaved();
-    } catch (e: any) {
-      setError(e.message ?? 'เกิดข้อผิดพลาด');
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
     } finally {
       setSaving(false);
     }

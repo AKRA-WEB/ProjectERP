@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { SearchInput, Table, Thead, Tbody, Th, Td, Pagination, Badge } from '@/components/ui';
 import { get } from '@/lib/api-client';
 import { formatQty } from '@/lib/format';
-import type { PaginatedResponse } from '@/types';
+import type { PaginatedResponse, Warehouse } from '@/types';
 
 interface StockRow {
   warehouse_id: string;
@@ -27,11 +27,11 @@ export default function InventoryPage() {
   const [search, setSearch] = useState('');
   const [warehouseId, setWarehouseId] = useState('');
   const [lowStock, setLowStock] = useState(false);
-  const [warehouses, setWarehouses] = useState<any[]>([]);
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    get<any[]>('/api/admin/warehouses').then(setWarehouses);
+    get<Warehouse[]>('/api/admin/warehouses').then(setWarehouses);
   }, []);
 
   const fetchStock = useCallback(async () => {

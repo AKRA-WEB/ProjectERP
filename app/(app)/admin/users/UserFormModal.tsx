@@ -33,15 +33,20 @@ export default function UserFormModal({ user, onClose, onSaved }: Props) {
     setSaving(true);
     try {
       if (isEdit) {
-        const payload: any = { name_th: form.name_th, name_en: form.name_en, role: form.role, is_active: form.is_active };
+        const payload = { 
+          name_th: form.name_th, 
+          name_en: form.name_en, 
+          role: form.role, 
+          is_active: form.is_active 
+        };
         await patch(`/api/admin/users/${user.id}`, payload);
       } else {
         if (!form.password) { setError('กรุณาระบุรหัสผ่าน'); setSaving(false); return; }
         await post('/api/admin/users', form);
       }
       onSaved();
-    } catch (e: any) {
-      setError(e.message ?? 'เกิดข้อผิดพลาด');
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
     } finally {
       setSaving(false);
     }

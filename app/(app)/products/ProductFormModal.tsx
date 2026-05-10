@@ -11,6 +11,17 @@ interface Props {
   onSaved: () => void;
 }
 
+interface Uom {
+  id: string;
+  code: string;
+  name_th: string;
+}
+
+interface Category {
+  id: string;
+  name_th: string;
+}
+
 export default function ProductFormModal({ product, onClose, onSaved }: Props) {
   const isEdit = !!product;
   const [form, setForm] = useState({
@@ -31,11 +42,11 @@ export default function ProductFormModal({ product, onClose, onSaved }: Props) {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    get<any[]>('/api/products/uom').then((data) =>
-      setUoms(data.map((u: any) => ({ value: u.id, label: `${u.code} — ${u.name_th}` })))
+    get<Uom[]>('/api/products/uom').then((data) =>
+      setUoms(data.map((u) => ({ value: u.id, label: `${u.code} — ${u.name_th}` })))
     );
-    get<any[]>('/api/products/categories').then((data) =>
-      setCategories(data.map((c: any) => ({ value: c.id, label: c.name_th })))
+    get<Category[]>('/api/products/categories').then((data) =>
+      setCategories(data.map((c) => ({ value: c.id, label: c.name_th })))
     );
   }, []);
 
@@ -54,14 +65,15 @@ export default function ProductFormModal({ product, onClose, onSaved }: Props) {
         unit_cost: parseFloat(form.unit_cost),
         reorder_point: parseInt(form.reorder_point),
       };
-      if (isEdit) {
+      if (isEdit && product) {
         await patch(`/api/products/${product.id}`, payload);
       } else {
         await post('/api/products', payload);
       }
       onSaved();
-    } catch (e: any) {
-      setError(e.message ?? 'เกิดข้อผิดพลาด');
+    } catch (e: unknown) {
+      const err = e as { message?: string };
+      setError(err.message ?? 'เกิดข้อผิดพลาด');
     } finally {
       setSaving(false);
     }

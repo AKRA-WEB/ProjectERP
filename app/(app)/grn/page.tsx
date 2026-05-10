@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Button, SearchInput, Table, Thead, Tbody, Th, Td, Pagination, StatusBadge } from '@/components/ui';
+import { Button, Table, Thead, Tbody, Th, Td, Pagination, StatusBadge } from '@/components/ui';
 import { get } from '@/lib/api-client';
 import { formatDate } from '@/lib/format';
 import type { PaginatedResponse } from '@/types';

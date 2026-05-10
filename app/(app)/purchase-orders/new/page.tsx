@@ -6,6 +6,7 @@ import { Button, Input, Select } from '@/components/ui';
 import { get, post } from '@/lib/api-client';
 import { formatCurrency } from '@/lib/format';
 import { VAT_RATE } from '@/lib/constants';
+import type { PaginatedResponse, Product, Warehouse } from '@/types';
 
 interface POLine {
   product_id: string;
@@ -13,6 +14,26 @@ interface POLine {
   pr_line_item_id?: string;
   qty_ordered: number;
   unit_price: number;
+}
+
+interface Vendor {
+  id: string;
+  code: string;
+  name_th: string;
+}
+
+interface PRLine {
+  id: string;
+  product_id: string;
+  sku: string;
+  name_th: string;
+  qty_requested: number;
+  unit_cost: number;
+}
+
+interface PRDetail {
+  warehouse_id: string;
+  lines: PRLine[];
 }
 
 export default function NewPurchaseOrderPage() {
@@ -25,22 +46,22 @@ export default function NewPurchaseOrderPage() {
   const [form, setForm] = useState({ vendor_id: '', warehouse_id: '', expected_date: '', payment_terms_days: '30', notes: '' });
   const [lines, setLines] = useState<POLine[]>([]);
   const [productSearch, setProductSearch] = useState('');
-  const [productResults, setProductResults] = useState<any[]>([]);
+  const [productResults, setProductResults] = useState<Product[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    get<any>('/api/vendors?limit=200').then((r) =>
-      setVendors(r.data.map((v: any) => ({ value: v.id, label: `${v.code} — ${v.name_th}` })))
+    get<PaginatedResponse<Vendor>>('/api/vendors?limit=200').then((r) =>
+      setVendors(r.data.map((v) => ({ value: v.id, label: `${v.code} — ${v.name_th}` })))
     );
-    get<any[]>('/api/admin/warehouses').then((data) =>
-      setWarehouses(data.map((w: any) => ({ value: w.id, label: `${w.code} — ${w.name_th}` })))
+    get<Warehouse[]>('/api/admin/warehouses').then((data) =>
+      setWarehouses(data.map((w) => ({ value: w.id, label: `${w.code} — ${w.name_th}` })))
     );
 
     if (prId) {
-      get<any>(`/api/purchase-requests/${prId}`).then((pr) => {
+      get<PRDetail>(`/api/purchase-requests/${prId}`).then((pr) => {
         setForm((f) => ({ ...f, warehouse_id: pr.warehouse_id }));
-        setLines(pr.lines.map((l: any) => ({
+        setLines(pr.lines.map((l) => ({
           product_id: l.product_id,
           product_label: `${l.sku} — ${l.name_th}`,
           pr_line_item_id: l.id,
@@ -56,12 +77,12 @@ export default function NewPurchaseOrderPage() {
   async function searchProducts(q: string) {
     setProductSearch(q);
     if (!q) { setProductResults([]); return; }
-    const res = await get<any>(`/api/products?search=${encodeURIComponent(q)}&limit=10`);
+    const res = await get<PaginatedResponse<Product>>(`/api/products?search=${encodeURIComponent(q)}&limit=10`);
     setProductResults(res.data ?? []);
   }
 
-  function addProduct(p: any) {
-    setLines((prev) => [...prev, { product_id: p.id, product_label: `${p.sku} — ${p.name_th}`, qty_ordered: 1, unit_price: p.unit_cost ?? 0 }]);
+  function addProduct(p: Product) {
+    setLines((prev) => [...prev, { product_id: p.id, product_label: `${p.sku} — ${p.name_th}`, qty_ordered: 1, unit_price: Number(p.unit_cost) || 0 }]);
     setProductSearch('');
     setProductResults([]);
   }
@@ -94,8 +115,9 @@ export default function NewPurchaseOrderPage() {
         await post(`/api/purchase-orders/${po.id}/send`, {});
       }
       router.push(`/app/purchase-orders/${po.id}`);
-    } catch (e: any) {
-      setError(e.message ?? 'เกิดข้อผิดพลาด');
+    } catch (e: unknown) {
+      const err = e as { message?: string };
+      setError(err.message ?? 'เกิดข้อผิดพลาด');
     } finally {
       setSaving(false);
     }

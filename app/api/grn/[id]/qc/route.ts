@@ -1,6 +1,6 @@
 import { auth } from '@/auth';
 import { apiSuccess, apiError, apiValidationError } from '@/lib/api-response';
-import { query, queryOne } from '@/lib/db/client';
+import { queryOne } from '@/lib/db/client';
 import { z } from 'zod';
 import type { SessionUser } from '@/lib/authz';
 

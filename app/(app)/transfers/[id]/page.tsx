@@ -6,15 +6,42 @@ import { StatusBadge } from '@/components/ui';
 import { get } from '@/lib/api-client';
 import { formatDate, formatQty } from '@/lib/format';
 
+import type { TransferStatus } from '@/types';
+
+interface TransferLine {
+  id: string;
+  line_number: number;
+  sku: string;
+  name_th: string;
+  name_en: string;
+  lot_number: string | null;
+  qty: number;
+  uom_code: string;
+}
+
+interface TransferDetail {
+  id: string;
+  transfer_number: string;
+  status: TransferStatus;
+  source_code: string;
+  source_name: string;
+  dest_code: string;
+  dest_name: string;
+  initiated_by_name: string;
+  created_at: string;
+  notes: string | null;
+  lines: TransferLine[];
+}
+
 export default function TransferDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const [transfer, setTransfer] = useState<any>(null);
+  const [transfer, setTransfer] = useState<TransferDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
-    get<any>(`/api/transfers/${id}`).then(setTransfer).finally(() => setLoading(false));
+    get<TransferDetail>(`/api/transfers/${id}`).then(setTransfer).finally(() => setLoading(false));
   }, [id]);
 
   if (loading) return <div className="py-16 text-center text-gray-400">กำลังโหลด...</div>;
@@ -63,7 +90,7 @@ export default function TransferDetailPage() {
             </tr>
           </thead>
           <tbody>
-            {transfer.lines?.map((l: any) => (
+            {transfer.lines?.map((l: TransferLine) => (
               <tr key={l.id} className="border-t">
                 <td className="p-3 text-gray-400">{l.line_number}</td>
                 <td className="p-3 font-mono text-xs">{l.sku}</td>

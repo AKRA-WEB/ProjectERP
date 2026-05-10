@@ -4,12 +4,21 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Input, Select } from '@/components/ui';
 import { get, post } from '@/lib/api-client';
+import type { Warehouse, PaginatedResponse } from '@/types';
 
 interface CCLine {
   product_id: string;
   product_label: string;
   lot_id?: string;
   qty_system: number;
+}
+
+interface StockSearchResult {
+  product_id: string;
+  sku: string;
+  name_th: string;
+  qty_on_hand: string | number;
+  uom_code: string;
 }
 
 export default function NewCycleCountPage() {
@@ -19,24 +28,24 @@ export default function NewCycleCountPage() {
   const [notes, setNotes] = useState('');
   const [lines, setLines] = useState<CCLine[]>([]);
   const [stockSearch, setStockSearch] = useState('');
-  const [stockResults, setStockResults] = useState<any[]>([]);
+  const [stockResults, setStockResults] = useState<StockSearchResult[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    get<any[]>('/api/admin/warehouses').then((data) =>
-      setWarehouses(data.map((w: any) => ({ value: w.id, label: `${w.code} — ${w.name_th}` })))
+    get<Warehouse[]>('/api/admin/warehouses').then((data) =>
+      setWarehouses(data.map((w) => ({ value: w.id, label: `${w.code} — ${w.name_th}` })))
     );
   }, []);
 
   async function searchStock(q: string) {
     setStockSearch(q);
     if (!q || !warehouseId) { setStockResults([]); return; }
-    const res = await get<any>(`/api/stock?warehouse_id=${warehouseId}&search=${encodeURIComponent(q)}&limit=10`);
+    const res = await get<PaginatedResponse<StockSearchResult>>(`/api/stock?warehouse_id=${warehouseId}&search=${encodeURIComponent(q)}&limit=10`);
     setStockResults(res.data ?? []);
   }
 
-  function addLine(item: any) {
+  function addLine(item: StockSearchResult) {
     if (lines.find((l) => l.product_id === item.product_id)) {
       setStockSearch('');
       setStockResults([]);
@@ -53,8 +62,8 @@ export default function NewCycleCountPage() {
 
   function addAllStock() {
     if (!warehouseId) return;
-    get<any>(`/api/stock?warehouse_id=${warehouseId}&limit=200`).then((res) => {
-      const all = (res.data ?? []).map((item: any) => ({
+    get<PaginatedResponse<StockSearchResult>>(`/api/stock?warehouse_id=${warehouseId}&limit=200`).then((res) => {
+      const all = (res.data ?? []).map((item) => ({
         product_id: item.product_id,
         product_label: `${item.sku} — ${item.name_th}`,
         qty_system: Number(item.qty_on_hand ?? 0),
@@ -83,8 +92,8 @@ export default function NewCycleCountPage() {
         })),
       });
       router.push(`/app/cycle-counts/${result.id}`);
-    } catch (e: any) {
-      setError(e.message ?? 'เกิดข้อผิดพลาด');
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
     } finally {
       setSaving(false);
     }
