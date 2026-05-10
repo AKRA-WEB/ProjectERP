@@ -1,5 +1,73 @@
 # Progress Log
 
+## Session: 2026-05-10 (Session 3 — Night / ปิดงาน)
+
+### สิ่งที่ทำวันนี้
+
+#### 1. Vendor Detail Page — สร้างใหม่ทั้งหมด
+- **`app/app/vendors/[id]/page.tsx`** — สร้างหน้า detail page ของผู้จำหน่าย ครอบคลุม:
+  - Header card: avatar สี, ชื่อ TH/EN, status badge, info grid (รหัส, Tax ID, เครดิต, วันที่เพิ่ม)
+  - Contact section: ผู้ติดต่อ, โทรศัพท์ (tel: link), อีเมล (mailto: link), ที่อยู่
+  - Catalog table: สินค้าในแคตาล็อกพร้อม vendor SKU, ราคา, lead time, preferred flag
+  - Edit modal: แก้ไข name, contact, address, เครดิต, สถานะ active
+  - Add-to-catalog modal: ค้นหาสินค้า (debounced 250ms), กรอก vendor SKU / ราคา / lead days / preferred
+  - ลบสินค้าออกจากแคตาล็อกแบบ per-row
+- **`app/app/vendors/page.tsx`** — เพิ่ม `import Link` และ chevron (→) ที่แถวผู้จำหน่ายเพื่อเข้าหน้า detail
+
+#### 2. Commit & Push ขึ้น GitHub
+- Commit: `496a8aa` — รวมงานทั้ง session 2 + session 3 ที่ยังค้างอยู่
+- ไฟล์ที่ push: 13 ไฟล์, 1,880 insertions / 431 deletions
+- Branch: `master` → `origin/master` ✅
+- ไม่ได้ commit: `.claude/settings.local.json` (local only)
+
+---
+
+### สถานะโค้ด (Stability)
+
+**✅ STABLE** — `npm run build` ผ่านสะอาด (53 หน้า compiled, ไม่มี errors)
+
+```
+○  /app/vendors          — list page
+ƒ  /app/vendors/[id]     — detail page ← ใหม่
+○  /app/dashboard
+ƒ  /app/grn/[id]
+... (53 routes total)
+```
+
+---
+
+### สิ่งที่ต้องทำครั้งหน้า
+
+1. **ทดสอบ UI ใน browser จริง** — ยืนยันภาษาไทยแสดงผลถูกต้อง, vendor detail page ทำงานครบ
+2. **Import vendors** — รอไฟล์ Excel / CSV จากผู้ใช้ (ยังไม่ได้รับ)
+3. **Vendor detail — PO History tab** — เพิ่มประวัติ PO ที่สั่งกับผู้จำหน่ายนั้นๆ ในหน้า detail
+4. **Plan ERP module ถัดไป** — Sales / POS / Accounting / HR / BOM (รอ requirement)
+5. **Stage deletion ของ `app/(app)/` เก่า** — ไฟล์ถูกลบแล้วในดิสก์แต่ยังอยู่ใน git index; รัน `git add -u` แล้ว commit แยก
+
+---
+
+### จุดเตือนพิเศษ ⚠️
+
+1. **Supabase connection:** ต้องใช้ **pooler URL** เท่านั้น
+   - ✅ `aws-1-ap-south-1.pooler.supabase.com:6543`
+   - ❌ `db.utsjzrrezhdcdtxgppsb.supabase.co` (IPv6 only — timeout)
+
+2. **Password encoding:** password มีอักษร `@` → ต้อง URL-encode เป็น `%40`
+
+3. **Gemini สร้างไฟล์ใหม่ = BOM risk** — ทุกครั้งที่ Gemini สร้างไฟล์ `.tsx` / `.ts` ใหม่ ให้ตรวจ BOM และ Thai encoding ด้วย PowerShell script ก่อน commit
+
+4. **`useSearchParams()` → ต้องอยู่ใน `<Suspense>`** — Next.js 15 บังคับ; pattern: wrap inner component
+
+5. **GRN over-receipt guard** — ถ้าเพิ่ม GRN endpoint ใหม่ต้องใส่ guard เสมอ
+
+6. **`del()` ใน api-client** — รองรับ optional body แล้ว
+
+7. **ไฟล์ `.env`** — อยู่ใน `.gitignore` ✅
+
+8. **`app/(app)/` ยังค้างใน git index** — ไฟล์ 32 ไฟล์ถูกลบจาก disk แล้ว แต่ยังไม่ได้ stage deletion; อย่า merge/rebase ก่อนทำ `git add -u` ให้เรียบร้อยก่อน
+
+---
+
 ## Session: 2026-05-10 (Session 2 — Evening)
 
 ### สิ่งที่ทำวันนี้
