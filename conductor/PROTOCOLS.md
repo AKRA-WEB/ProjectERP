@@ -8,7 +8,9 @@ This directory serves as the synchronization point between **Claude (The Archite
 |------|-------|---------|--------|
 | **1. Plan** | Claude | `Architect: <task>` | Analyzes code, creates `plan.md`, updates `index.md`. |
 | **2. Build** | Gemini CLI | `Go` | Automatically finds the active plan and executes the next task. |
-| **3. Report** | Gemini CLI | `Summary` | Generates `execution-summary.md` for Claude to review. |
+| **3. Report** | Gemini CLI | `Summary` | Generates `execution-summary.md`. |
+| **4. QA** | Billy | `QA: <track-name>` | Runs lint/build, audits code vs `plan.md`, sets index.md status. |
+| **5. Review** | Claude | — | Architectural review after Billy approves. |
 
 ## The Workflow
 
@@ -16,7 +18,9 @@ This directory serves as the synchronization point between **Claude (The Archite
 2.  **Task Planning (Claude):** Claude creates a new "Track" in `conductor/tracks/<feature-name>/plan.md`.
 3.  **Implementation (Gemini CLI):** The user directs Gemini CLI to execute the plan. Gemini reads the plan, modifies the code, runs tests, and updates the task status in the plan file.
 4.  **Verification (Gemini CLI):** Gemini CLI creates an `execution-summary.md` in the track folder.
-5.  **Review (Claude):** The user provides the summary back to Claude for a final review of the architecture and code quality.
+5.  **QA Audit (Billy):** Trigger with `QA: <track-name>`. Billy runs `npm run lint` + `npm run build`, audits all modified files against `plan.md` acceptance criteria, and updates `index.md` status to one of: `Verified` · `Rework Required` · `Optimization Suggested`. If issues found, creates `rework-plan.md`.
+6.  **Rework (Gemini CLI):** If `Rework Required`, Gemini executes `rework-plan.md` 🔴 items first, then 🟡 items. Re-triggers Billy QA after.
+7.  **Architectural Review (Claude):** Final review after Billy sets status to `Verified`.
 
 ## File Structure
 

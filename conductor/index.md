@@ -1,5 +1,8 @@
 # Project Tracks Index
 
+**Status values:** `Active` · `Completed` · `Verified` · `Rework Required` · `Optimization Suggested`
+> `Verified` = Billy QA passed. `Rework Required` / `Optimization Suggested` = see `rework-plan.md` in track folder.
+
 | Track | Status | Created | Last Updated |
 |-------|--------|---------|--------------|
 | [Collaboration Protocol](./PROTOCOLS.md) | Active | 2024-05-12 | 2024-05-12 |
