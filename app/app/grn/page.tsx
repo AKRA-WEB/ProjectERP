@@ -10,7 +10,10 @@ interface GRN {
   id: string;
   grn_number: string;
   status: string;
-  po_number: string;
+  po_number: string | null;
+  io_number?: string | null;
+  po_id?: string | null;
+  inbound_order_id?: string | null;
   warehouse_code: string;
   warehouse_name: string;
   received_by_name: string;
@@ -53,6 +56,7 @@ const TABS = [
   { id: 'qc_pending', label: 'รอ QC' },
   { id: 'qc_passed', label: 'QC ผ่าน' },
   { id: 'qc_failed', label: 'QC ไม่ผ่าน' },
+  { id: 'verified', label: 'ตรวจสอบแล้ว' },
   { id: 'stocked', label: 'นำเข้าคลัง' },
 ];
 
@@ -101,7 +105,7 @@ function GRNDetailModal({ grn, onClose }: { grn: GRNDetail; onClose: () => void 
               <Pill status={grn.status} />
             </h3>
             <div className="text-[12px] text-stone-400 mt-0.5">
-              {grn.po_number} · {grn.warehouse_name} · {formatDate(grn.received_date)}
+              {grn.io_number ?? grn.po_number ?? '—'} · {grn.warehouse_name} · {formatDate(grn.received_date)}
             </div>
           </div>
           <button
@@ -119,7 +123,7 @@ function GRNDetailModal({ grn, onClose }: { grn: GRNDetail; onClose: () => void 
           {/* Info grid */}
           <div className="grid grid-cols-3 gap-3">
             {[
-              { l: 'เลข PO', v: grn.po_number },
+              { l: grn.inbound_order_id ? 'เลข IO' : 'เลข PO', v: grn.io_number ?? grn.po_number ?? '—' },
               { l: 'คลังสินค้า', v: grn.warehouse_name },
               { l: 'ผู้รับสินค้า', v: grn.received_by_name },
             ].map((s) => (
@@ -268,7 +272,7 @@ export default function GRNPage() {
         <table className="w-full border-collapse text-[13px]">
           <thead>
             <tr>
-              {['เลข GRN', 'เลข PO', 'คลังสินค้า', 'ผู้รับ', 'วันที่รับ', 'รายการ', 'สถานะ', ''].map((h, i) => (
+              {['เลข GRN', 'เอกสารอ้างอิง / Ref.', 'คลังสินค้า', 'ผู้รับ', 'วันที่รับ', 'รายการ', 'สถานะ', ''].map((h, i) => (
                 <th key={i} className={`text-left py-2.5 px-3.5 text-[11.5px] font-medium tracking-[.04em] uppercase text-stone-400 bg-stone-50 border-b border-y border-stone-200 first:pl-5 last:pr-5 ${i === 5 ? 'text-center' : ''} ${[2,3,4,5].includes(i) ? 'hidden lg:table-cell' : ''}`}>
                   {h}
                 </th>
@@ -289,7 +293,11 @@ export default function GRNPage() {
                 <td className="py-0 h-11 px-3.5 pl-5 font-mono text-[12.5px] text-stone-700 font-medium">{g.grn_number}</td>
                 <td className="py-0 h-11 px-3.5 font-mono text-[12.5px] text-blue-600 hidden lg:table-cell">
                   <span onClick={(e) => e.stopPropagation()}>
-                    <Link href={`/app/purchase-orders/${g.id}`} className="hover:underline">{g.po_number}</Link>
+                    {g.po_id ? (
+                      <Link href={`/app/purchase-orders/${g.po_id}`} className="hover:underline">{g.po_number}</Link>
+                    ) : g.io_number ? (
+                      <Link href={`/app/inbound-orders/${g.inbound_order_id}`} className="hover:underline">{g.io_number}</Link>
+                    ) : '—'}
                   </span>
                 </td>
                 <td className="py-0 h-11 px-3.5 text-stone-500 hidden lg:table-cell">{g.warehouse_code}</td>

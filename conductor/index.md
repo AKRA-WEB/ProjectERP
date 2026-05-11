@@ -13,3 +13,8 @@
 | [Sidebar Navigation Grouping](./tracks/sidebar-grouping/plan.md) | Completed | 2026-05-10 | 2026-05-10 |
 | [i18n Label Fix — Thai Status/Entry Labels](./tracks/i18n-label-fix/plan.md) | Completed | 2026-05-10 | 2026-05-10 |
 | [Thai Double-Encoding Fix (TIS-620 re-encode)](./tracks/encoding-fix/plan.md) | Completed | 2026-05-10 | 2026-05-10 |
+| [POS Module (Point of Sale)](./tracks/pos-module/plan.md) | Completed | 2026-05-11 | 2026-05-11 |
+| [Sales Module (SQ→SO→DO→SI→SR)](./tracks/sales-module/plan.md) | Completed | 2026-05-11 | 2026-05-11 |
+| [Accounting Module (CoA→JE→Reports)](./tracks/accounting-module/plan.md) | Completed | 2026-05-11 | 2026-05-11 |
+| [Bug Hunt & Polish — WMS Core](./tracks/bug-hunt-wms-polish/plan.md) | Completed | 2026-05-11 | 2026-05-11 |
+| [Fix Select options.map Crash](./tracks/debug-select-options-crash/plan.md) | Completed | 2026-05-11 | 2026-05-11 |

@@ -36,6 +36,7 @@ const navGroups: NavGroup[] = [
     label: 'รับสินค้า / Receiving',
     items: [
       { href: '/app/grn', label: 'Goods Receive', icon: '📥', permission: 'grn:view' },
+      { href: '/app/grn/receiving-queue', label: 'คิวรับสินค้า / Queue', icon: '📋', permission: 'grn:view' },
     ],
   },
   {
@@ -58,6 +59,37 @@ const navGroups: NavGroup[] = [
     items: [
       { href: '/app/products', label: 'Products', icon: '📦', permission: 'products:view' },
       { href: '/app/vendors', label: 'Vendors', icon: '🏭', permission: 'vendors:view' },
+    ],
+  },
+  {
+    label: 'ขาย / Sales',
+    items: [
+      { href: '/app/customers',         label: 'ลูกค้า / Customers',       icon: '👤', permission: 'customers:view' },
+      { href: '/app/sales-quotations',  label: 'ใบเสนอราคา / Quotations',  icon: '📝', permission: 'sq:view' },
+      { href: '/app/sales-orders',      label: 'ใบสั่งขาย / Sales Orders', icon: '🧾', permission: 'so:view' },
+      { href: '/app/delivery-orders',   label: 'ใบส่งสินค้า / Deliveries', icon: '🚚', permission: 'do:view' },
+      { href: '/app/sales-invoices',    label: 'ใบแจ้งหนี้ / Invoices',    icon: '💳', permission: 'si:view' },
+      { href: '/app/sales-returns',     label: 'รับคืน / Returns',          icon: '↩️', permission: 'sr:view' },
+    ],
+  },
+  {
+    label: 'ขายหน้าร้าน / POS',
+    items: [
+      { href: '/app/pos',          label: 'POS Terminal',      icon: '🛍️', permission: 'pos:cashier' },
+      { href: '/app/pos/sessions', label: 'Session History',   icon: '📑', permission: 'pos:view' },
+    ],
+  },
+  {
+    label: 'การบัญชี / Accounting',
+    items: [
+      { href: '/app/accounting/chart-of-accounts', label: 'ผังบัญชี / CoA',      icon: '📊', permission: 'accounts:view' },
+      { href: '/app/accounting/fiscal-periods',    label: 'รอบบัญชี / Periods', icon: '📅', permission: 'fiscal_periods:view' },
+      { href: '/app/accounting/journal-entries',   label: 'สมุดรายวัน / Journal', icon: '📔', permission: 'accounting:view' },
+      { href: '/app/accounting/reports/trial-balance', label: 'งบทดลอง / Trial Balance', icon: '⚖️', permission: 'reports:accounting' },
+      { href: '/app/accounting/reports/profit-loss',    label: 'กำไรขาดทุน / P&L',     icon: '📉', permission: 'reports:accounting' },
+      { href: '/app/accounting/reports/balance-sheet',  label: 'งบดุล / Balance Sheet', icon: '🏛️', permission: 'reports:accounting' },
+      { href: '/app/accounting/reports/ar-aging',      label: 'ลูกหนี้ / AR Aging',     icon: '⏳', permission: 'reports:accounting' },
+      { href: '/app/accounting/reports/ap-aging',      label: 'เจ้าหนี้ / AP Aging',    icon: '💸', permission: 'reports:accounting' },
     ],
   },
   {
@@ -106,7 +138,7 @@ export function Sidebar({ open, onClose, userRole, permissions }: SidebarProps) 
       )}
     >
       <div className="flex h-16 items-center justify-between border-b border-gray-200 px-6">
-        <span className="text-lg font-bold text-gray-900">WMS</span>
+        <span className="text-lg font-bold text-gray-900">ERP</span>
         {/* Close button — mobile only */}
         <button
           onClick={onClose}

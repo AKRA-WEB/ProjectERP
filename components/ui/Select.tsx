@@ -11,12 +11,12 @@ interface SelectOption {
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
   error?: string;
-  options: SelectOption[];
+  options?: SelectOption[];
   placeholder?: string;
 }
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
-  ({ label, error, options, placeholder, className, id, ...props }, ref) => {
+  ({ label, error, options, placeholder, className, id, children, ...props }, ref) => {
     const selectId = id ?? label?.toLowerCase().replace(/\s+/g, '-');
     return (
       <div className="flex flex-col gap-1">
@@ -37,12 +37,18 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           aria-invalid={!!error}
           {...props}
         >
-          {placeholder && <option value="">{placeholder}</option>}
-          {options.map((opt) => (
-            <option key={opt.value} value={opt.value} disabled={opt.disabled}>
-              {opt.label}
-            </option>
-          ))}
+          {options != null ? (
+            <>
+              {placeholder && <option value="">{placeholder}</option>}
+              {options.map((opt) => (
+                <option key={opt.value} value={opt.value} disabled={opt.disabled}>
+                  {opt.label}
+                </option>
+              ))}
+            </>
+          ) : (
+            children
+          )}
         </select>
         {error && <p className="text-xs text-red-600">{error}</p>}
       </div>

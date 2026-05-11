@@ -9,7 +9,251 @@ export type GrnStatus = 'draft' | 'received' | 'verified' | 'qc_pending' | 'qc_p
 export type PrStatus = 'draft' | 'submitted' | 'manager_approved' | 'admin_approved' | 'rejected' | 'converted_to_po';
 export type PoStatus = 'draft' | 'sent' | 'partially_received' | 'fully_received' | 'invoiced' | 'paid' | 'closed' | 'cancelled';
 export type CycleCountStatus = 'open' | 'counting' | 'pending_approval' | 'approved' | 'closed';
-export type LedgerEntryType = 'grn_receipt' | 'grn_qc_reject' | 'rma_return' | 'rma_vendor_return' | 'transfer_out' | 'transfer_in' | 'cycle_count_adjustment' | 'po_reversal' | 'manual_adjustment';
+export type LedgerEntryType = 'grn_receipt' | 'grn_qc_reject' | 'rma_return' | 'rma_vendor_return' | 'transfer_out' | 'transfer_in' | 'cycle_count_adjustment' | 'po_reversal' | 'manual_adjustment' | 'pos_sale' | 'pos_void';
+
+export type PosSessionStatus = 'open' | 'closed';
+export type PosTransactionStatus = 'completed' | 'voided';
+export type PosPaymentMethod = 'cash' | 'card' | 'mixed';
+
+export interface PosSession {
+  id: string;
+  session_number: string;
+  warehouse_id: string;
+  warehouse_name_th: string;
+  warehouse_name_en: string;
+  opened_by: string;
+  opened_by_name: string;
+  closed_by: string | null;
+  status: PosSessionStatus;
+  opening_float: number;
+  closing_float: number | null;
+  opened_at: string;
+  closed_at: string | null;
+  notes: string | null;
+  transaction_count?: number;
+  total_sales?: number;
+  created_at: string;
+}
+
+export interface PosTransactionLine {
+  id: string;
+  product_id: string;
+  sku: string;
+  barcode: string | null;
+  name_th: string;
+  name_en: string;
+  qty: number;
+  unit_price: number;
+  discount_amount: number;
+  line_total: number;
+}
+
+export interface PosTransaction {
+  id: string;
+  receipt_number: string;
+  session_id: string;
+  warehouse_id: string;
+  subtotal: number;
+  discount_amount: number;
+  vat_amount: number;
+  total: number;
+  payment_method: PosPaymentMethod;
+  cash_tendered: number | null;
+  card_amount: number | null;
+  change_given: number;
+  status: PosTransactionStatus;
+  voided_by: string | null;
+  voided_at: string | null;
+  void_reason: string | null;
+  created_by: string;
+  cashier_name: string;
+  lines?: PosTransactionLine[];
+  created_at: string;
+}
+
+export type SqStatus = 'draft' | 'sent' | 'accepted' | 'converted_to_so' | 'rejected' | 'expired';
+export type SoStatus = 'draft' | 'confirmed' | 'partially_delivered' | 'fully_delivered' | 'invoiced' | 'paid' | 'closed' | 'cancelled';
+export type DoStatus = 'draft' | 'ready' | 'shipped' | 'delivered' | 'cancelled';
+export type SiStatus = 'draft' | 'issued' | 'paid' | 'void';
+export type SrStatus = 'open' | 'received' | 'restocked' | 'disposed';
+
+export interface Customer {
+  id: string;
+  code: string;
+  name_th: string;
+  name_en: string | null;
+  contact_name: string | null;
+  phone: string | null;
+  email: string | null;
+  address_th: string | null;
+  tax_id: string | null;
+  payment_terms_days: number;
+  credit_limit: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SqLineItem {
+  id: string;
+  product_id: string;
+  sku: string;
+  name_th: string;
+  name_en: string;
+  qty: number;
+  unit_price: number;
+  discount_amount: number;
+  line_total: number;
+  line_number: number;
+}
+
+export interface SalesQuotation {
+  id: string;
+  sq_number: string;
+  customer_id: string;
+  customer_name_th: string;
+  warehouse_id: string;
+  warehouse_name_th: string;
+  status: SqStatus;
+  valid_until: string | null;
+  subtotal: number;
+  vat_amount: number;
+  total_amount: number;
+  notes: string | null;
+  sent_at: string | null;
+  accepted_at: string | null;
+  created_by: string;
+  created_by_name: string;
+  lines?: SqLineItem[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SoLineItem {
+  id: string;
+  product_id: string;
+  sku: string;
+  name_th: string;
+  name_en: string;
+  qty_ordered: number;
+  qty_delivered: number;
+  unit_price: number;
+  discount_amount: number;
+  line_total: number;
+  line_number: number;
+}
+
+export interface SalesOrder {
+  id: string;
+  so_number: string;
+  customer_id: string;
+  customer_name_th: string;
+  warehouse_id: string;
+  warehouse_name_th: string;
+  status: SoStatus;
+  expected_delivery: string | null;
+  payment_terms_days: number;
+  subtotal: number;
+  vat_amount: number;
+  total_amount: number;
+  notes: string | null;
+  confirmed_by: string | null;
+  confirmed_at: string | null;
+  cancelled_by: string | null;
+  cancellation_reason: string | null;
+  credit_limit_warning?: boolean;
+  lines?: SoLineItem[];
+  created_by: string;
+  created_by_name: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DoLineItem {
+  id: string;
+  so_line_item_id: string;
+  product_id: string;
+  sku: string;
+  name_th: string;
+  name_en: string;
+  qty_to_deliver: number;
+  unit_price: number;
+  line_total: number;
+  line_number: number;
+}
+
+export interface DeliveryOrder {
+  id: string;
+  do_number: string;
+  so_id: string;
+  so_number: string;
+  customer_name_th: string;
+  warehouse_id: string;
+  warehouse_name_th: string;
+  status: DoStatus;
+  shipping_address: string | null;
+  shipped_at: string | null;
+  delivered_at: string | null;
+  notes: string | null;
+  lines?: DoLineItem[];
+  created_by: string;
+  created_by_name: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SalesInvoice {
+  id: string;
+  si_number: string;
+  so_id: string;
+  so_number: string;
+  delivery_order_id: string | null;
+  do_number: string | null;
+  customer_id: string;
+  customer_name_th: string;
+  status: SiStatus;
+  invoice_date: string;
+  due_date: string;
+  subtotal: number;
+  vat_amount: number;
+  total_amount: number;
+  paid_at: string | null;
+  voided_at: string | null;
+  void_reason: string | null;
+  notes: string | null;
+  created_by: string;
+  created_by_name: string;
+  created_at: string;
+}
+
+export interface SrLineItem {
+  id: string;
+  product_id: string;
+  sku: string;
+  name_th: string;
+  qty_returned: number;
+  unit_price: number;
+  line_number: number;
+}
+
+export interface SalesReturn {
+  id: string;
+  sr_number: string;
+  so_id: string | null;
+  so_number: string | null;
+  customer_id: string;
+  customer_name_th: string;
+  warehouse_id: string;
+  warehouse_name_th: string;
+  status: SrStatus;
+  reason: string | null;
+  received_at: string | null;
+  restocked_at: string | null;
+  notes: string | null;
+  lines?: SrLineItem[];
+  created_by: string;
+  created_at: string;
+}
 
 export interface Permission {
   id: string;
@@ -128,4 +372,115 @@ export interface InboundOrder {
   created_by_name: string;
   created_at: string;
   updated_at: string;
+}
+
+export type AccountType = 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
+export type NormalBalanceType = 'debit' | 'credit';
+export type FiscalPeriodStatus = 'open' | 'closed' | 'locked';
+export type JournalEntryStatus = 'draft' | 'posted' | 'void';
+export type JournalEntryType = 'manual' | 'ap_payment' | 'ar_receipt' | 'pos_sale' | 'so_delivery' | 'grn_receipt' | 'inventory_adjustment' | 'opening_balance';
+
+export interface Account {
+  id: string;
+  account_code: string;
+  name_th: string;
+  name_en: string;
+  account_type: AccountType;
+  normal_balance: NormalBalanceType;
+  parent_id: string | null;
+  parent_code?: string | null;
+  parent_name_th?: string | null;
+  allows_direct_posting: boolean;
+  is_active: boolean;
+  description: string | null;
+  created_at: string;
+}
+
+export interface FiscalPeriod {
+  id: string;
+  name: string;
+  year: number;
+  month: number;
+  start_date: string;
+  end_date: string;
+  status: FiscalPeriodStatus;
+  closed_at: string | null;
+  locked_at: string | null;
+  entry_count?: number;
+  created_at: string;
+}
+
+export interface JournalEntryLine {
+  id: string;
+  account_id: string;
+  account_code: string;
+  account_name_th: string;
+  account_name_en: string;
+  description: string | null;
+  debit_amount: number;
+  credit_amount: number;
+  line_number: number;
+}
+
+export interface JournalEntry {
+  id: string;
+  entry_number: string;
+  fiscal_period_id: string;
+  period_name?: string;
+  entry_date: string;
+  entry_type: JournalEntryType;
+  reference_type: string | null;
+  reference_id: string | null;
+  description: string;
+  status: JournalEntryStatus;
+  total_debit: number;
+  total_credit: number;
+  posted_by: string | null;
+  posted_at: string | null;
+  voided_by: string | null;
+  void_reason: string | null;
+  created_by: string;
+  created_by_name: string;
+  lines?: JournalEntryLine[];
+  created_at: string;
+}
+
+export interface TrialBalanceRow {
+  account_code: string;
+  account_name_th: string;
+  account_name_en: string;
+  account_type: AccountType;
+  total_debit: number;
+  total_credit: number;
+  balance: number;
+  normal_balance: NormalBalanceType;
+}
+
+export interface GeneralLedgerRow {
+  entry_number: string;
+  entry_date: string;
+  description: string;
+  debit_amount: number;
+  credit_amount: number;
+  running_balance: number;
+}
+
+export interface ArAgingRow {
+  customer_name_th: string;
+  si_number: string;
+  invoice_date: string;
+  due_date: string;
+  total_amount: number;
+  days_overdue: number;
+  bucket: 'current' | '1-30' | '31-60' | '61-90' | '90+';
+}
+
+export interface ApAgingRow {
+  vendor_name_th: string;
+  invoice_number: string;
+  invoice_date: string;
+  due_date: string;
+  amount: number;
+  days_overdue: number;
+  bucket: 'current' | '1-30' | '31-60' | '61-90' | '90+';
 }

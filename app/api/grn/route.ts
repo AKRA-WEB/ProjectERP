@@ -59,15 +59,20 @@ export async function GET(req: Request) {
 
   const rows = await query(
     `SELECT g.id, g.grn_number, g.status, g.received_date, g.created_at,
-            po.po_number, w.code AS warehouse_code, w.name_th AS warehouse_name,
+            po.po_number,
+            io.io_number,
+            g.po_id,
+            g.inbound_order_id,
+            w.code AS warehouse_code, w.name_th AS warehouse_name,
             u.name_en AS received_by_name, COUNT(li.id) AS line_count
      FROM goods_receipt_notes g
-     JOIN purchase_orders po ON po.id = g.po_id
+     LEFT JOIN purchase_orders po ON po.id = g.po_id
+     LEFT JOIN inbound_orders io ON io.id = g.inbound_order_id
      JOIN warehouses w ON w.id = g.warehouse_id
      JOIN users u ON u.id = g.received_by
      LEFT JOIN grn_line_items li ON li.grn_id = g.id
      ${where}
-     GROUP BY g.id, po.po_number, w.code, w.name_th, u.name_en
+     GROUP BY g.id, po.po_number, io.io_number, w.code, w.name_th, u.name_en
      ORDER BY g.created_at DESC
      LIMIT $${idx++} OFFSET $${idx++}`,
     [...params, limit, offset]

@@ -1,6 +1,6 @@
 import { auth } from '@/auth';
 import { apiSuccess, apiError, apiValidationError } from '@/lib/api-response';
-import { assertRole, buildWarehouseScopeClause } from '@/lib/authz';
+import { assertRole } from '@/lib/authz';
 import { query } from '@/lib/db/client';
 import pool from '@/lib/db/client';
 import { z } from 'zod';
@@ -37,8 +37,15 @@ export async function GET(req: Request) {
   const params: unknown[] = [];
   let idx = 1;
 
-  const scope = buildWarehouseScopeClause(u, 't.source_warehouse_id', idx);
-  if (scope) { conditions.push(scope.clause); params.push(...scope.params); idx += scope.params.length; }
+  if (u.role !== 'admin') {
+    if (!u.assignedWarehouseIds.length) {
+      conditions.push('FALSE');
+    } else {
+      conditions.push(`(t.source_warehouse_id = ANY($${idx}::uuid[]) OR t.dest_warehouse_id = ANY($${idx}::uuid[]))`);
+      params.push(u.assignedWarehouseIds);
+      idx += 1;
+    }
+  }
   if (status) { conditions.push(`t.status = $${idx++}`); params.push(status); }
 
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
@@ -82,7 +89,7 @@ export async function POST(req: Request) {
 
     for (const line of parsed.data.lines) {
       const balance = await client.query<{ qty_available: string }>(
-        'SELECT qty_available FROM stock_balances WHERE warehouse_id = $1 AND product_id = $2',
+        'SELECT qty_available FROM stock_balances WHERE warehouse_id = $1 AND product_id = $2 FOR UPDATE',
         [parsed.data.source_warehouse_id, line.product_id]
       );
       if (!balance.rows[0] || Number(balance.rows[0].qty_available) < line.qty) {

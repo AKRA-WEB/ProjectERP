@@ -58,7 +58,7 @@ export default function GRNDetailPage() {
   const [showQC, setShowQC] = useState(false);
   const [showVerify, setShowVerify] = useState(false);
   const [qcNotes, setQcNotes] = useState('');
-  const [verifyNotes, setVerifyVerifyNotes] = useState('');
+  const [verifyNotes, setVerifyNotes] = useState('');
 
   async function fetchGRN() {
     setLoading(true);
@@ -252,7 +252,7 @@ export default function GRNDetailPage() {
           <ModalBody>
             <div className="space-y-4">
               <p className="text-sm text-gray-600">กรุณายืนยันว่ารายการสินค้าและจำนวนที่รับเข้ามา ถูกต้องตามใบส่งของ (Delivery Bill) ของผู้จำหน่าย</p>
-              <Input label="หมายเหตุการตรวจสอบ (ไม่บังคับ)" value={verifyNotes} onChange={(e) => setVerifyVerifyNotes(e.target.value)} placeholder="เช่น ตรวจสอบแล้วตรงตามบิล..." />
+              <Input label="หมายเหตุการตรวจสอบ (ไม่บังคับ)" value={verifyNotes} onChange={(e) => setVerifyNotes(e.target.value)} placeholder="เช่น ตรวจสอบแล้วตรงตามบิล..." />
             </div>
           </ModalBody>
           <ModalFooter>

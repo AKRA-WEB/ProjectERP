@@ -1,6 +1,6 @@
 import { auth } from '@/auth';
 import { apiSuccess, apiError, apiValidationError } from '@/lib/api-response';
-import { queryOne } from '@/lib/db/client';
+import { query, queryOne } from '@/lib/db/client';
 import { z } from 'zod';
 import type { SessionUser } from '@/lib/authz';
 
@@ -29,6 +29,24 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (!body) return apiError('Invalid JSON', 400);
   const parsed = schema.safeParse(body);
   if (!parsed.success) return apiValidationError(parsed.error);
+
+  const lineIds = parsed.data.lines.map((l) => l.id);
+  const existingLines = await query<{ id: string; qty_received: string }>(
+    'SELECT id, qty_received FROM grn_line_items WHERE grn_id = $1 AND id = ANY($2::uuid[])',
+    [id, lineIds]
+  );
+  const lineMap = new Map(existingLines.map((l) => [l.id, l]));
+
+  for (const line of parsed.data.lines) {
+    const existing = lineMap.get(line.id);
+    if (!existing) return apiError(`Line ${line.id} not found`, 422);
+    if (line.qty_accepted + line.qty_rejected > Number(existing.qty_received)) {
+      return apiError(
+        `Line ${line.id}: qty_accepted (${line.qty_accepted}) + qty_rejected (${line.qty_rejected}) exceeds qty_received (${existing.qty_received})`,
+        422
+      );
+    }
+  }
 
   for (const line of parsed.data.lines) {
     await queryOne(

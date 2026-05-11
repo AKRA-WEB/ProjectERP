@@ -34,7 +34,13 @@ This directory serves as the synchronization point between **Claude (The Archite
 
 ## Guidance for Gemini CLI (The Implementer)
 
-- **Read** the entire plan before starting.
-- **Execute** tasks surgically.
-- **Update** checkboxes as you finish tasks.
-- **Summarize** your work in `execution-summary.md` including any deviations or test results.
+- **Read & Understand** Thoroughly read the entire Plan and understand the context before starting the first Task.
+- **Surgical Execution** Execute tasks precisely. Strictly do not modify files or Refactor code unrelated to the current Task.
+- **Zero Assumptions (HALT Rule)** If the plan is ambiguous, contradictory, or contains unspecified variables/dependencies, HALT immediately and report the issue. Never guess or make design decisions on your own.
+- **Strict Code Preservation** When editing files, do not delete existing comments or unrelated code. Do not use // ... existing code ... in a way that causes code loss or file breakage.
+- **No Architecture Changes** Do not change the Library, Framework, or core Logic established by the Planner. If a Test fails, fix the specific bug; do not overhaul the system to solve the problem.
+- **Progress Tracking** Update the checkbox [x] immediately as each Task is completed (process one Task at a time, do not bundle).
+- **Execution Summary** Upon completion, summarize the results in execution-summary.md by specifying:
+    - Completed tasks
+    - Test results (if any)
+    - Issues encountered or necessary deviations from the plan (always provide technical justifications)
