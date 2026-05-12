@@ -93,6 +93,16 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
+    label: 'ทรัพยากรบุคคล / HR',
+    items: [
+      { href: '/app/hr/employees',      label: 'พนักงาน / Employees',     icon: '👥', permission: 'hr:employees:view' },
+      { href: '/app/hr/departments',    label: 'แผนก / Departments',      icon: '🏢', permission: 'hr:departments:view' },
+      { href: '/app/hr/leave-requests', label: 'วันลา / Leave',           icon: '📅', permission: 'hr:leave:view' },
+      { href: '/app/hr/attendance/my',  label: 'เข้างาน / Attendance',    icon: '⏰', permission: 'hr:attendance:view' },
+      { href: '/app/hr/payroll',        label: 'เงินเดือน / Payroll',     icon: '💰', permission: 'hr:payroll:view' },
+    ],
+  },
+  {
     label: 'ผู้ดูแลระบบ / Admin',
     items: [
       { href: '/app/admin/users', label: 'พนักงาน / Employees', icon: '👥', roles: ['admin'] },
