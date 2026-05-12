@@ -620,3 +620,52 @@ export interface WorkSchedule {
   is_default: boolean;
   is_active: boolean;
 }
+
+export type PayrollRunStatus = 'draft' | 'processing' | 'approved' | 'paid' | 'void';
+
+export interface PayrollAllowance {
+  name_th: string;
+  name_en: string;
+  amount: number;
+}
+
+export interface PayrollLine {
+  id: string;
+  run_id: string;
+  employee_id: string;
+  employee_name: string;
+  employee_id_code: string | null;
+  base_salary: number;
+  allowances: PayrollAllowance[];
+  ot_pay: number;
+  absence_deduction: number;
+  gross_pay: number;
+  sso_employee: number;
+  sso_employer: number;
+  taxable_income: number;
+  income_tax: number;
+  total_deductions: number;
+  net_pay: number;
+  slip_url: string | null;
+}
+
+export interface PayrollRun {
+  id: string;
+  run_number: string;
+  period_month: number;
+  period_year: number;
+  status: PayrollRunStatus;
+  total_gross: number;
+  total_net: number;
+  total_sso_emp: number;
+  total_sso_co: number;
+  total_tax: number;
+  approved_by: string | null;
+  approved_by_name: string | null;
+  approved_at: string | null;
+  journal_entry_id: string | null;
+  created_by: string;
+  created_by_name: string;
+  created_at: string;
+  lines?: PayrollLine[];
+}
