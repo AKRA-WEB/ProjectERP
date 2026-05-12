@@ -548,3 +548,48 @@ export interface HrEmployee {
   phone: string | null;
   created_at: string;
 }
+
+export type LeaveRequestStatus = 'draft' | 'submitted' | 'approved' | 'rejected' | 'cancelled';
+
+export interface LeaveType {
+  id: string;
+  code: string;
+  name_th: string;
+  name_en: string;
+  days_per_year: number;
+  is_paid: boolean;
+  carry_over: boolean;
+  is_active: boolean;
+}
+
+export interface LeaveBalance {
+  id: string;
+  employee_id: string;
+  leave_type_id: string;
+  leave_type_name_th: string;
+  leave_type_name_en: string;
+  year: number;
+  days_entitled: number;
+  days_used: number;
+  days_remaining: number;
+}
+
+export interface LeaveRequest {
+  id: string;
+  request_number: string;
+  employee_id: string;
+  employee_name: string;
+  leave_type_id: string;
+  leave_type_name_th: string;
+  leave_type_name_en: string;
+  start_date: string;
+  end_date: string;
+  days_requested: number;
+  status: LeaveRequestStatus;
+  approved_by: string | null;
+  approved_by_name: string | null;
+  approved_at: string | null;
+  notes: string | null;
+  reject_reason: string | null;
+  created_at: string;
+}
