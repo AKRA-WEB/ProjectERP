@@ -484,3 +484,67 @@ export interface ApAgingRow {
   days_overdue: number;
   bucket: 'current' | '1-30' | '31-60' | '61-90' | '90+';
 }
+
+export type EmploymentType = 'full_time' | 'part_time' | 'contract';
+export type EmployeeStatus = 'active' | 'inactive' | 'resigned';
+
+export interface Department {
+  id: string;
+  code: string;
+  name_th: string;
+  name_en: string;
+  parent_id: string | null;
+  manager_id: string | null;
+  manager_name?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Position {
+  id: string;
+  code: string;
+  name_th: string;
+  name_en: string;
+  department_id: string | null;
+  department_name_th?: string;
+  salary_grade_id: string | null;
+  salary_grade_name?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SalaryGrade {
+  id: string;
+  code: string;
+  name_th: string;
+  name_en: string;
+  base_salary_min: number;
+  base_salary_max: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface HrEmployee {
+  id: string;
+  employee_id: string | null;
+  name: string;
+  email: string;
+  role: string;
+  department_id: string | null;
+  department_name_th: string | null;
+  department_name_en: string | null;
+  position_id: string | null;
+  position_name_th: string | null;
+  position_name_en: string | null;
+  salary_grade_id: string | null;
+  salary_grade_name: string | null;
+  base_salary: number | null;
+  employment_type: EmploymentType;
+  employee_status: EmployeeStatus;
+  hired_date: string | null;
+  resignation_date: string | null;
+  phone: string | null;
+  created_at: string;
+}
