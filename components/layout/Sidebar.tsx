@@ -100,6 +100,7 @@ const navGroups: NavGroup[] = [
       { href: '/app/hr/leave-requests', label: 'วันลา / Leave',           icon: '📅', permission: 'hr:leave:view' },
       { href: '/app/hr/attendance/my',  label: 'เข้างาน / Attendance',    icon: '⏰', permission: 'hr:attendance:view' },
       { href: '/app/hr/payroll',        label: 'เงินเดือน / Payroll',     icon: '💰', permission: 'hr:payroll:view' },
+      { href: '/app/hr/payroll/settings', label: 'ตั้งค่า Payroll',       icon: '⚙️', permission: 'admin' },
     ],
   },
   {

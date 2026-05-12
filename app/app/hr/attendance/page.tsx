@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { get, patch } from '@/lib/api-client';
+import { get } from '@/lib/api-client';
 import type { AttendanceRecord, HrEmployee } from '@/types';
-import { CARD } from '@/components/ui';
 
 export default function AdminAttendancePage() {
   const [history, setHistory] = useState<AttendanceRecord[]>([]);

@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { get, post } from '@/lib/api-client';
 import type { AttendanceRecord } from '@/types';
-import { Button } from '@/components/ui';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-[0_1px_0_rgba(15,23,42,.03),0_1px_2px_rgba(15,23,42,.04)]';
 
@@ -14,15 +13,15 @@ export default function MyAttendancePage() {
   const [acting, setActing] = useState(false);
   const [month, setMonth] = useState(new Date().toISOString().slice(0, 7));
 
-  async function fetchToday() {
+  const fetchToday = useCallback(async () => {
     const res = await get<AttendanceRecord | null>('/api/hr/attendance/today');
     setTodayRecord(res);
-  }
+  }, []);
 
-  async function fetchHistory() {
+  const fetchHistory = useCallback(async () => {
     const res = await get<AttendanceRecord[]>(`/api/hr/attendance?month=${month}`);
     setHistory(res);
-  }
+  }, [month]);
 
   useEffect(() => {
     async function init() {
@@ -31,7 +30,7 @@ export default function MyAttendancePage() {
       setLoading(false);
     }
     init();
-  }, [month]);
+  }, [fetchToday, fetchHistory]);
 
   async function handleClockIn() {
     setActing(true);
@@ -39,8 +38,8 @@ export default function MyAttendancePage() {
       await post('/api/hr/attendance/clock-in', {});
       await fetchToday();
       await fetchHistory();
-    } catch (e: any) {
-      alert(e.message || 'เกิดข้อผิดพลาด');
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
     } finally { setActing(false); }
   }
 
@@ -50,8 +49,8 @@ export default function MyAttendancePage() {
       await post('/api/hr/attendance/clock-out', {});
       await fetchToday();
       await fetchHistory();
-    } catch (e: any) {
-      alert(e.message || 'เกิดข้อผิดพลาด');
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
     } finally { setActing(false); }
   }
 

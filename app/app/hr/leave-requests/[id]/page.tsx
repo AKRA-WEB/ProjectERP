@@ -3,15 +3,13 @@
 import { useState, useEffect, use } from 'react';
 import { get, patch } from '@/lib/api-client';
 import type { LeaveRequest, LeaveBalance } from '@/types';
-import { useRouter } from 'next/navigation';
-import { Button, StatusBadge, Modal, ModalHeader, ModalBody, ModalFooter, Input } from '@/components/ui';
+import { Button, StatusBadge, Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/ui';
 import { useSession } from 'next-auth/react';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-[0_1px_0_rgba(15,23,42,.03),0_1px_2px_rgba(15,23,42,.04)]';
 
 export default function LeaveRequestDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const router = useRouter();
   const { data: session } = useSession();
   const [request, setRequest] = useState<LeaveRequest | null>(null);
   const [balance, setBalance] = useState<LeaveBalance | null>(null);
@@ -20,9 +18,9 @@ export default function LeaveRequestDetailPage({ params }: { params: Promise<{ i
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
 
-  const user = session?.user as any;
+  const user = session?.user as { id: string; role: string } | undefined;
   const isOwner = user?.id === request?.employee_id;
-  const isAdmin = ['admin', 'manager'].includes(user?.role);
+  const isAdmin = user && ['admin', 'manager'].includes(user.role);
 
   useEffect(() => {
     async function init() {
@@ -44,8 +42,8 @@ export default function LeaveRequestDetailPage({ params }: { params: Promise<{ i
       const updated = await get<LeaveRequest>(`/api/hr/leave-requests/${id}`);
       setRequest(updated);
       setShowRejectModal(false);
-    } catch (e: any) {
-      alert(e.message || 'เกิดข้อผิดพลาด');
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
     } finally { setActing(false); }
   }
 

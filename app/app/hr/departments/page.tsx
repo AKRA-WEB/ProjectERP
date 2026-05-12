@@ -72,8 +72,8 @@ export default function HrDepartmentsPage() {
         setShowCreate(false);
       }
       fetchData();
-    } catch (e: any) {
-      setError(e.message || 'เกิดข้อผิดพลาด');
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
     } finally {
       setSaving(false);
     }

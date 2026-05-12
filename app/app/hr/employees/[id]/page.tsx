@@ -21,7 +21,8 @@ export default function EmployeeDetailPage({ params }: { params: Promise<{ id: s
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
-  const canEdit = session?.user && ['admin', 'manager'].includes((session.user as any).role);
+  const user = session?.user as { role: string } | undefined;
+  const canEdit = user && ['admin', 'manager'].includes(user.role);
 
   useEffect(() => {
     async function init() {
@@ -52,8 +53,8 @@ export default function EmployeeDetailPage({ params }: { params: Promise<{ id: s
       setEmployee(updated);
       setForm(updated);
       setIsEditing(false);
-    } catch (e: any) {
-      setError(e.message || 'เกิดข้อผิดพลาด');
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
     } finally { setSaving(false); }
   }
 
@@ -99,7 +100,7 @@ export default function EmployeeDetailPage({ params }: { params: Promise<{ id: s
         ].map((t) => (
           <button
             key={t.id}
-            onClick={() => setTab(t.id as any)}
+            onClick={() => setTab(t.id as 'info' | 'leave' | 'attendance' | 'payroll')}
             className={`pb-3 text-[14px] font-medium transition-colors relative ${
               tab === t.id ? 'text-stone-950' : 'text-stone-400 hover:text-stone-600'
             }`}
@@ -178,7 +179,7 @@ export default function EmployeeDetailPage({ params }: { params: Promise<{ id: s
                   <InfoRow label="ประเภทการจ้าง" value={employee.employment_type.replace('_', ' ')} uppercase
                     editing={isEditing}
                     content={
-                      <select className="w-full border rounded px-2 py-1" value={form.employment_type} onChange={e => setForm({...form, employment_type: e.target.value as any})}>
+                      <select className="w-full border rounded px-2 py-1" value={form.employment_type} onChange={e => setForm({...form, employment_type: e.target.value as HrEmployee['employment_type']})}>
                         <option value="full_time">Full Time</option>
                         <option value="part_time">Part Time</option>
                         <option value="contract">Contract</option>
@@ -188,7 +189,7 @@ export default function EmployeeDetailPage({ params }: { params: Promise<{ id: s
                   <InfoRow label="สถานะพนักงาน" value={employee.employee_status} uppercase
                     editing={isEditing}
                     content={
-                      <select className="w-full border rounded px-2 py-1" value={form.employee_status} onChange={e => setForm({...form, employee_status: e.target.value as any})}>
+                      <select className="w-full border rounded px-2 py-1" value={form.employee_status} onChange={e => setForm({...form, employee_status: e.target.value as HrEmployee['employee_status']})}>
                         <option value="active">Active</option>
                         <option value="inactive">Inactive</option>
                         <option value="resigned">Resigned</option>

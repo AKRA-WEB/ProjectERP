@@ -101,9 +101,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       await client.query(`UPDATE payroll_runs SET status = 'paid', journal_entry_id = $1 WHERE id = $2`, [jeId, id]);
       
       await client.query('COMMIT');
-    } catch (e: any) {
+    } catch (e: unknown) {
       await client.query('ROLLBACK');
-      return apiError(e.message, 500);
+      const msg = e instanceof Error ? e.message : 'Unknown error';
+      return apiError(msg, 500);
     } finally {
       client.release();
     }

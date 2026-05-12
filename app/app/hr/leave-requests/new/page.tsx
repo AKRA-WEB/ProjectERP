@@ -35,7 +35,8 @@ export default function NewLeaveRequestPage() {
         setLeaveTypes(types);
 
         if (session?.user) {
-          const bals = await get<LeaveBalance[]>(`/api/hr/leave-balances?employee_id=${(session.user as any).id}`);
+          const user = session.user as { id: string };
+          const bals = await get<LeaveBalance[]>(`/api/hr/leave-balances?employee_id=${user.id}`);
           setLeaveBalances(bals);
         }
       } finally { setLoading(false); }
@@ -64,8 +65,8 @@ export default function NewLeaveRequestPage() {
     try {
       await post('/api/hr/leave-requests', form);
       router.push('/app/hr/leave-requests');
-    } catch (e: any) {
-      setError(e.message || 'เกิดข้อผิดพลาด');
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
     } finally { setSaving(false); }
   }
 

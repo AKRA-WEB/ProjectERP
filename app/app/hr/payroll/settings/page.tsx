@@ -27,7 +27,7 @@ export default function PayrollSettingsPage() {
       try {
         const [accs, settings] = await Promise.all([
           get<Account[]>('/api/accounting/accounts'),
-          get<any>('/api/hr/payroll-accounts'),
+          get<{ salary_expense_account_id?: string; sso_expense_account_id?: string; salary_payable_account_id?: string; sso_payable_account_id?: string; tax_payable_account_id?: string }>('/api/hr/payroll-accounts'),
         ]);
         setAccounts(accs);
         if (settings.salary_expense_account_id) {
@@ -49,8 +49,8 @@ export default function PayrollSettingsPage() {
     try {
       await patch('/api/hr/payroll-accounts', form);
       router.push('/app/hr/payroll');
-    } catch (e: any) {
-      alert(e.message || 'เกิดข้อผิดพลาด');
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
     } finally { setSaving(false); }
   }
 

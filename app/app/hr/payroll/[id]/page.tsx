@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import { get, patch } from '@/lib/api-client';
-import type { PayrollRun, PayrollLine } from '@/types';
+import type { PayrollRun } from '@/types';
 import { Button, StatusBadge } from '@/components/ui';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden';
@@ -30,8 +30,8 @@ export default function PayrollRunDetailPage({ params }: { params: Promise<{ id:
       await patch(`/api/hr/payroll-runs/${id}`, { action });
       const updated = await get<PayrollRun>(`/api/hr/payroll-runs/${id}`);
       setRun(updated);
-    } catch (e: any) {
-      alert(e.message || 'เกิดข้อผิดพลาด');
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
     } finally { setActing(false); }
   }
 

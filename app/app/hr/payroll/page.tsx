@@ -31,8 +31,8 @@ export default function PayrollRunsPage() {
       await post('/api/hr/payroll-runs', form);
       setShowCreate(false);
       fetchRuns();
-    } catch (e: any) {
-      alert(e.message || 'เกิดข้อผิดพลาด');
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
     } finally { setSaving(false); }
   }
 
