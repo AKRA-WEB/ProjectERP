@@ -593,3 +593,30 @@ export interface LeaveRequest {
   reject_reason: string | null;
   created_at: string;
 }
+
+export type AttendanceStatus = 'present' | 'absent' | 'late' | 'half_day' | 'holiday';
+
+export interface AttendanceRecord {
+  id: string;
+  employee_id: string;
+  employee_name?: string;
+  work_date: string;
+  clock_in: string | null;
+  clock_out: string | null;
+  status: AttendanceStatus;
+  ot_hours: number;
+  note: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WorkSchedule {
+  id: string;
+  name_th: string;
+  name_en: string;
+  shift_start: string;
+  shift_end: string;
+  days_of_week: number[];
+  is_default: boolean;
+  is_active: boolean;
+}
