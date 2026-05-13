@@ -2,6 +2,10 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **⚠️ Gemini: Tasks 1 and 2 are already committed. Start at Task 3.**
+> - Task 1 done: commit `24767e3` — departments API u.name fix
+> - Task 2 done: commit `7df1f3d` — payroll slip u.name fix
+
 **Goal:** Fix 9 remaining bugs in the HR module — 3 broken SQL `u.name` aliases, 1 stale `Department` type, 2 wrong import sources, and 3 locale-formatting violations.
 
 **Architecture:** Surgical edits to existing files only. No migrations, no new components, no new utilities. All changes are in `app/api/hr/`, `app/app/hr/`, and `types/index.ts`.
@@ -28,7 +32,7 @@
 
 ---
 
-## Task 1: Fix `u.name` in departments API
+## ~~Task 1: Fix `u.name` in departments API~~ ✅ DONE (commit 24767e3)
 
 **Root cause:** `users` table has no `name` column. Both department endpoints use `u.name AS manager_name` in their JOIN — this throws a PostgreSQL "column does not exist" error on every request.
 
@@ -91,7 +95,7 @@ git commit -m "fix(hr): departments API — u.name → name_th/name_en"
 
 ---
 
-## Task 2: Fix `u.name` in payroll slip PDF
+## ~~Task 2: Fix `u.name` in payroll slip PDF~~ ✅ DONE (commit 7df1f3d)
 
 **Root cause:** Slip PDF route selects `u.name AS employee_name`. Column `name` does not exist — any PDF generation request fails at the SQL level.
 
