@@ -25,5 +25,5 @@
 | [UI Design System — อรุณ](./tracks/ui-design-system/plan.md) | Completed | 2026-05-12 | 2026-05-13 |
 | [BOM Module — สูตรการผลิต + Multi-UOM](./tracks/bom-module/plan.md) | Completed | 2026-05-12 | 2026-05-13 |
 | [Main Menu — Module Hub Page](./tracks/main-menu/plan.md) | Completed | 2026-05-13 | 2026-05-13 |
-| [Dynamic Sidebar — Module-Scoped Navigation](./tracks/dynamic-sidebar/plan.md) | Active | 2026-05-13 | 2026-05-13 |
+| [Dynamic Sidebar — Module-Scoped Navigation](./tracks/dynamic-sidebar/plan.md) | Completed | 2026-05-13 | 2026-05-13 |
 | [UI Redesign — อรุณ Design System v2](./tracks/ui-redesign/plan.md) | Active | 2026-05-13 | 2026-05-13 |
