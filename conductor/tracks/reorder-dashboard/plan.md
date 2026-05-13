@@ -330,7 +330,7 @@ export default function ReorderDashboardPage() {
 
 ### Task 3 — Add Sidebar Link
 
-- [ ] In `components/layout/Sidebar.tsx`, inside the `คลังสินค้า / Inventory` group add after `cycle-counts`:
+- [x] In `components/layout/Sidebar.tsx`, inside the `คลังสินค้า / Inventory` group add after `cycle-counts`:
 
 ```typescript
 { href: '/app/inventory/reorder', label: 'Reorder Dashboard', icon: AlertTriangle, permission: 'inventory:view' },
@@ -338,5 +338,5 @@ export default function ReorderDashboardPage() {
 
 Note: `AlertTriangle` is already imported in the file (used in Claims nav item). Verify with `grep "AlertTriangle" components/layout/Sidebar.tsx` before adding.
 
-- [ ] Start `npm run dev`, verify sidebar shows new link under Inventory group
-- [ ] Commit: `feat(inventory): add Reorder Dashboard to sidebar`
+- [x] Start `npm run dev`, verify sidebar shows new link under Inventory group
+- [x] Commit: `feat(inventory): add Reorder Dashboard to sidebar`

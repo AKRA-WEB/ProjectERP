@@ -72,6 +72,7 @@ const MODULE_NAV: Record<ModuleKey, NavGroup[]> = {
       label: 'คลังสินค้า / Inventory',
       items: [
         { href: '/app/inventory',    label: 'Inventory',     icon: Archive, permission: 'inventory:view' },
+        { href: '/app/inventory/reorder', label: 'Reorder Dashboard', icon: AlertTriangle, permission: 'inventory:view' },
         { href: '/app/transfers',    label: 'Transfers',     icon: ArrowLeftRight, permission: 'transfers:view' },
         { href: '/app/cycle-counts', label: 'Cycle Counts',  icon: Hash, permission: 'cycle_counts:view' },
       ],
@@ -178,7 +179,7 @@ function detectModule(pathname: string): ModuleKey | null {
     '/app/dashboard', '/app/purchase-requests', '/app/purchase-orders',
     '/app/inbound-orders', '/app/grn', '/app/rma', '/app/claims',
     '/app/transfers', '/app/cycle-counts', '/app/inventory',
-    '/app/products', '/app/vendors', '/app/bom',
+    '/app/products', '/app/vendors', '/app/bom', '/app/inventory/reorder',
   ];
 
   if (WMS_PREFIXES.some(p => pathname === p || pathname.startsWith(p + '/'))) return 'wms';
@@ -275,7 +276,7 @@ export function Sidebar({ open, onClose, userRole, permissions, collapsed, onTog
         'flex h-16 items-center border-b border-line-soft transition-all duration-300 shrink-0',
         collapsed ? 'justify-center px-0' : 'justify-between px-6'
       )}>
-        {!collapsed && <span className="text-[18px] font-bold tracking-tight text-ink font-sans">อรุณ · ERP</span>}
+        {!collapsed && <span className="text-[18px] font-bold tracking-tight text-ink font-sans">BUYMORE · ERP</span>}
         {collapsed && <span className="text-[20px] font-bold text-accent">อ</span>}
         
         {/* Close button — mobile only */}
