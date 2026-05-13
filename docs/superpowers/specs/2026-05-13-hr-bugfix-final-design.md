@@ -99,7 +99,7 @@ with:
 
 ### C1 — `app/app/hr/attendance/my/page.tsx`
 
-Add import: `import { formatDate } from '@/lib/format';`
+`formatDate` already imported at line 5 — no new import needed.
 
 Line 76: replace:
 ```tsx
@@ -136,7 +136,11 @@ formatNumber(data?.total ?? 0)
 
 ### C3 — `app/app/hr/leave-requests/page.tsx`
 
-Add import: `import { formatNumber } from '@/lib/format';` (if not already imported)
+**Import fix required:** Line 8 currently has `import { formatDate } from '@/lib/utils'` — wrong source.
+`lib/utils.ts` only exports `cn()`. Replace line 8 with:
+```ts
+import { formatDate, formatNumber } from '@/lib/format';
+```
 
 Line 59: replace:
 ```tsx
@@ -148,6 +152,12 @@ formatNumber(data?.total ?? 0)
 ```
 
 ### C4 — `app/app/hr/payroll/page.tsx`
+
+**Import fix required:** Line 8 currently has `import { formatCurrency } from '@/lib/utils'` — wrong source.
+`lib/utils.ts` only exports `cn()`. Replace line 8 with:
+```ts
+import { formatCurrency } from '@/lib/format';
+```
 
 Add constant near top of component (before return):
 ```ts
@@ -186,3 +196,8 @@ THAI_MONTHS[m - 1]
 - `toLocaleTimeString` for clock-in/out times — no `formatTime` utility exists, leave unchanged
 - No new migrations
 - No new components
+
+## Chen Review Notes (2026-05-13)
+
+- `attendance/page.tsx`, `leave-requests/new/page.tsx`, `leave-requests/[id]/page.tsx`, `payroll-runs/[id]/page.tsx` — verified by full grep, no `toLocaleDateString`/`toLocaleString` present. Out of scope confirmed.
+- `leave-requests/page.tsx` and `payroll/page.tsx` import from `@/lib/utils` (wrong) — fixed in C3/C4 above.
