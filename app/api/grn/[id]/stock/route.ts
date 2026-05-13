@@ -28,20 +28,44 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
 
     const lines = await client.query<{
       id: string; product_id: string; lot_number: string | null; serial_number: string | null;
-      expiry_date: string | null; qty_accepted: number; is_lot_tracked: boolean;
-      is_serial_tracked: boolean; po_line_item_id: string | null; inbound_order_line_id: string | null; unit_cost: number;
+      expiry_date: string | null; qty_accepted: number; base_qty: number | null;
+      is_lot_tracked: boolean; is_serial_tracked: boolean;
+      po_line_item_id: string | null; inbound_order_line_id: string | null;
+      unit_cost: number; transaction_uom_id: string | null; po_unit_price: number | null;
     }>(
       `SELECT li.id, li.product_id, li.lot_number, li.serial_number, li.expiry_date,
-              li.qty_accepted, li.po_line_item_id, li.inbound_order_line_id,
-              p.is_lot_tracked, p.is_serial_tracked, p.unit_cost
+              li.qty_accepted, li.base_qty, li.transaction_uom_id,
+              li.po_line_item_id, li.inbound_order_line_id,
+              p.is_lot_tracked, p.is_serial_tracked, p.unit_cost,
+              pol.unit_price AS po_unit_price
        FROM grn_line_items li
        JOIN products p ON p.id = li.product_id
+       LEFT JOIN po_line_items pol ON pol.id = li.po_line_item_id
        WHERE li.grn_id = $1 AND li.qty_accepted > 0`,
       [id]
     );
 
     for (const line of lines.rows) {
       let lotId: string | null = null;
+
+      // Compute cost per base unit from PO line price + UoM conversion
+      let costPerBaseUnit = line.unit_cost; // default: use existing product cost
+      if (line.transaction_uom_id && line.po_unit_price != null) {
+        const convRow = await client.query<{ factor: string }>(
+          'SELECT factor FROM uom_conversions WHERE uom_id = $1',
+          [line.transaction_uom_id]
+        );
+        const factor = convRow.rows[0] ? Number(convRow.rows[0].factor) : 1;
+        costPerBaseUnit = Number(line.po_unit_price) / factor;
+        // Sync product's unit_cost to new cost per base unit
+        await client.query(
+          'UPDATE products SET unit_cost = $1, updated_at = NOW() WHERE id = $2',
+          [costPerBaseUnit, line.product_id]
+        );
+      }
+
+      // Use effective qty: base_qty if set (multi-UoM), else qty_accepted (legacy)
+      const effectiveQty = line.base_qty != null ? Number(line.base_qty) : Number(line.qty_accepted);
 
       if (line.is_lot_tracked && line.lot_number) {
         const lot = await client.query<{ id: string }>(
@@ -50,7 +74,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
            ON CONFLICT (product_id, warehouse_id, lot_number)
            DO UPDATE SET qty_on_hand = lots.qty_on_hand + EXCLUDED.qty_on_hand, expiry_date = COALESCE(EXCLUDED.expiry_date, lots.expiry_date)
            RETURNING id`,
-          [line.product_id, warehouse_id, line.lot_number, line.serial_number ?? null, line.expiry_date ?? null, line.qty_accepted]
+          [line.product_id, warehouse_id, line.lot_number, line.serial_number ?? null, line.expiry_date ?? null, effectiveQty]
         );
         lotId = lot.rows[0]?.id ?? null;
       }
@@ -60,23 +84,23 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
         [warehouse_id, line.product_id]
       );
       const currentQty = Number(balanceRes.rows[0]?.qty_on_hand ?? 0);
-      const qtyAfter = currentQty + Number(line.qty_accepted);
+      const qtyAfter = currentQty + effectiveQty;
 
       await client.query(
         `INSERT INTO stock_ledger (warehouse_id, product_id, lot_id, entry_type, reference_type, reference_id, qty_change, qty_after, unit_cost, created_by)
          VALUES ($1, $2, $3, 'grn_receipt', 'grn', $4, $5, $6, $7, $8)`,
-        [warehouse_id, line.product_id, lotId, id, line.qty_accepted, qtyAfter, line.unit_cost, u.id]
+        [warehouse_id, line.product_id, lotId, id, effectiveQty, qtyAfter, costPerBaseUnit, u.id]
       );
 
       if (line.po_line_item_id) {
         await client.query(
           `UPDATE po_line_items SET qty_received = qty_received + $1 WHERE id = $2`,
-          [line.qty_accepted, line.po_line_item_id]
+          [effectiveQty, line.po_line_item_id]
         );
       } else if (line.inbound_order_line_id) {
         await client.query(
           `UPDATE inbound_order_lines SET qty_received = qty_received + $1 WHERE id = $2`,
-          [line.qty_accepted, line.inbound_order_line_id]
+          [effectiveQty, line.inbound_order_line_id]
         );
       }
     }
