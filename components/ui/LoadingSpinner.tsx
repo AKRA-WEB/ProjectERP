@@ -1,9 +1,20 @@
 import { cn } from '@/lib/utils';
 
-export function LoadingSpinner({ className }: { className?: string }) {
+interface LoadingSpinnerProps {
+  className?: string;
+  size?: 'sm' | 'md' | 'lg';
+}
+
+const sizeClasses = {
+  sm: 'h-4 w-4',
+  md: 'h-5 w-5',
+  lg: 'h-8 w-8',
+};
+
+export function LoadingSpinner({ className, size = 'md' }: LoadingSpinnerProps) {
   return (
     <svg
-      className={cn('h-5 w-5 animate-spin text-blue-600', className)}
+      className={cn('animate-spin text-accent', sizeClasses[size], className)}
       viewBox="0 0 24 24"
       fill="none"
       aria-label="Loading"
@@ -15,13 +26,14 @@ export function LoadingSpinner({ className }: { className?: string }) {
 }
 
 export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn('animate-pulse rounded bg-gray-200', className)} />;
+  return <div className={cn('animate-pulse rounded bg-surface-sunken', className)} />;
 }
 
 export function PageLoader() {
   return (
     <div className="flex h-64 items-center justify-center">
-      <LoadingSpinner className="h-8 w-8" />
+      <LoadingSpinner size="lg" />
     </div>
   );
 }
+

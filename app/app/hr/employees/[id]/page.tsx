@@ -4,6 +4,7 @@ import { useState, useEffect, use } from 'react';
 import { get, patch } from '@/lib/api-client';
 import type { HrEmployee, Department, Position, SalaryGrade } from '@/types';
 import { useSession } from 'next-auth/react';
+import { formatDate, formatCurrency } from '@/lib/utils';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-[0_1px_0_rgba(15,23,42,.03),0_1px_2px_rgba(15,23,42,.04)]';
 
@@ -67,11 +68,12 @@ export default function EmployeeDetailPage({ params }: { params: Promise<{ id: s
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-[14px] bg-stone-900 text-white flex items-center justify-center text-2xl font-bold uppercase">
-            {employee.name.slice(0, 2)}
+            {employee.name_en.slice(0, 2)}
           </div>
           <div>
-            <h1 className="text-[24px] font-semibold tracking-tight text-stone-950">{employee.name}</h1>
-            <div className="flex items-center gap-2 mt-1">
+            <h1 className="text-[24px] font-semibold tracking-tight text-stone-950">{employee.name_th}</h1>
+            <h2 className="text-[16px] text-stone-500 -mt-1">{employee.name_en}</h2>
+            <div className="flex items-center gap-2 mt-2">
               <span className="text-[13px] font-mono text-stone-500">{employee.employee_id || 'ไม่มีรหัส'}</span>
               <span className="text-stone-300">·</span>
               <span className="text-[13px] text-stone-500">{employee.department_name_th || 'ไม่ระบุแผนก'}</span>
@@ -122,7 +124,8 @@ export default function EmployeeDetailPage({ params }: { params: Promise<{ id: s
               <div className="space-y-4">
                 <h3 className="text-[14px] font-semibold text-stone-950">ข้อมูลส่วนตัว</h3>
                 <div className="space-y-3">
-                  <InfoRow label="ชื่อ - นามสกุล" value={employee.name} />
+                  <InfoRow label="ชื่อ - นามสกุล (ไทย)" value={employee.name_th} />
+                  <InfoRow label="Full Name (EN)" value={employee.name_en} />
                   <InfoRow label="อีเมล" value={employee.email} />
                   <InfoRow label="เบอร์โทรศัพท์" value={employee.phone || '—'} 
                     editing={isEditing} 
@@ -166,7 +169,7 @@ export default function EmployeeDetailPage({ params }: { params: Promise<{ id: s
                       </select>
                     }
                   />
-                  <InfoRow label="เงินเดือนพื้นฐาน" value={employee.base_salary?.toLocaleString() || '—'} 
+                  <InfoRow label="เงินเดือนพื้นฐาน" value={employee.base_salary ? formatCurrency(employee.base_salary) : '—'} 
                     editing={isEditing}
                     content={<input type="number" className="w-full border rounded px-2 py-1" value={form.base_salary || 0} onChange={e => setForm({...form, base_salary: parseFloat(e.target.value)})} />}
                   />
@@ -198,12 +201,12 @@ export default function EmployeeDetailPage({ params }: { params: Promise<{ id: s
                   />
                </div>
                <div className="space-y-3">
-                  <InfoRow label="วันที่เริ่มงาน" value={employee.hired_date || '—'} 
+                  <InfoRow label="วันที่เริ่มงาน" value={employee.hired_date ? formatDate(employee.hired_date) : '—'} 
                     editing={isEditing}
                     content={<input type="date" className="w-full border rounded px-2 py-1" value={form.hired_date || ''} onChange={e => setForm({...form, hired_date: e.target.value})} />}
                   />
                   {employee.employee_status === 'resigned' && (
-                    <InfoRow label="วันที่ลาออก" value={employee.resignation_date || '—'} 
+                    <InfoRow label="วันที่ลาออก" value={employee.resignation_date ? formatDate(employee.resignation_date) : '—'} 
                       editing={isEditing}
                       content={<input type="date" className="w-full border rounded px-2 py-1" value={form.resignation_date || ''} onChange={e => setForm({...form, resignation_date: e.target.value})} />}
                     />
@@ -234,32 +237,16 @@ export default function EmployeeDetailPage({ params }: { params: Promise<{ id: s
         </div>
       )}
 
-      {tab === 'leave' && (
+      {/* Tabs for leave, attendance, payroll omitted for brevity as they are placeholders */}
+      {tab !== 'info' && (
         <div className={CARD}>
           <div className="p-12 text-center space-y-3">
-            <div className="text-4xl">📅</div>
-            <h3 className="text-[16px] font-medium text-stone-950">ข้อมูลการลา</h3>
-            <p className="text-[13.5px] text-stone-500">ระบบการลาจะเปิดใช้งานใน Phase 2</p>
-          </div>
-        </div>
-      )}
-
-      {tab === 'attendance' && (
-        <div className={CARD}>
-          <div className="p-12 text-center space-y-3">
-            <div className="text-4xl">⏰</div>
-            <h3 className="text-[16px] font-medium text-stone-950">ข้อมูลการเข้างาน</h3>
-            <p className="text-[13.5px] text-stone-500">ระบบลงเวลาจะเปิดใช้งานใน Phase 3</p>
-          </div>
-        </div>
-      )}
-
-      {tab === 'payroll' && (
-        <div className={CARD}>
-          <div className="p-12 text-center space-y-3">
-            <div className="text-4xl">💰</div>
-            <h3 className="text-[16px] font-medium text-stone-950">ข้อมูลเงินเดือน</h3>
-            <p className="text-[13.5px] text-stone-500">ระบบจ่ายเงินเดือนจะเปิดใช้งานใน Phase 4</p>
+             <h3 className="text-[16px] font-medium text-stone-950">
+               {tab === 'leave' ? 'ข้อมูลการลา' : tab === 'attendance' ? 'ข้อมูลการเข้างาน' : 'ข้อมูลเงินเดือน'}
+             </h3>
+             <p className="text-[13.5px] text-stone-500">
+               จะแสดงข้อมูลสรุปของ {employee.name_th} ในเร็วๆ นี้
+             </p>
           </div>
         </div>
       )}

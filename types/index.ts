@@ -35,6 +35,16 @@ export interface PosSession {
   created_at: string;
 }
 
+export interface PosProduct {
+  id: string;
+  sku: string;
+  barcode: string | null;
+  name_th: string;
+  name_en: string | null;
+  selling_price: number;
+  qty_available: number;
+}
+
 export interface PosTransactionLine {
   id: string;
   product_id: string;
@@ -63,6 +73,7 @@ export interface PosTransaction {
   change_given: number;
   status: PosTransactionStatus;
   voided_by: string | null;
+  voided_by_name?: string | null;
   voided_at: string | null;
   void_reason: string | null;
   created_by: string;
@@ -529,7 +540,8 @@ export interface SalaryGrade {
 export interface HrEmployee {
   id: string;
   employee_id: string | null;
-  name: string;
+  name_th: string;
+  name_en: string;
   email: string;
   role: string;
   department_id: string | null;
@@ -578,7 +590,8 @@ export interface LeaveRequest {
   id: string;
   request_number: string;
   employee_id: string;
-  employee_name: string;
+  employee_name_th: string;
+  employee_name_en: string;
   leave_type_id: string;
   leave_type_name_th: string;
   leave_type_name_en: string;
@@ -587,7 +600,8 @@ export interface LeaveRequest {
   days_requested: number;
   status: LeaveRequestStatus;
   approved_by: string | null;
-  approved_by_name: string | null;
+  approved_by_name_th: string | null;
+  approved_by_name_en: string | null;
   approved_at: string | null;
   notes: string | null;
   reject_reason: string | null;
@@ -599,7 +613,9 @@ export type AttendanceStatus = 'present' | 'absent' | 'late' | 'half_day' | 'hol
 export interface AttendanceRecord {
   id: string;
   employee_id: string;
-  employee_name?: string;
+  employee_name_th?: string;
+  employee_name_en?: string;
+  employee_code?: string;
   work_date: string;
   clock_in: string | null;
   clock_out: string | null;
@@ -633,7 +649,8 @@ export interface PayrollLine {
   id: string;
   run_id: string;
   employee_id: string;
-  employee_name: string;
+  employee_name_th: string;
+  employee_name_en: string;
   employee_id_code: string | null;
   base_salary: number;
   allowances: PayrollAllowance[];
@@ -661,11 +678,69 @@ export interface PayrollRun {
   total_sso_co: number;
   total_tax: number;
   approved_by: string | null;
-  approved_by_name: string | null;
+  approved_by_name_th: string | null;
+  approved_by_name_en: string | null;
   approved_at: string | null;
   journal_entry_id: string | null;
   created_by: string;
-  created_by_name: string;
+  created_by_name_th: string | null;
+  created_by_name_en: string | null;
   created_at: string;
   lines?: PayrollLine[];
 }
+
+export type BomType = 'manufacturing' | 'kit';
+export type ProductUomType = 'purchase' | 'sales' | 'other';
+
+export interface ProductUom {
+  id: string;
+  product_id: string;
+  uom_id: string;
+  uom_code: string;
+  uom_name_th: string;
+  uom_name_en: string;
+  conversion_factor: number;
+  uom_type: ProductUomType;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface BomLine {
+  id: string;
+  bom_id: string;
+  line_number: number;
+  component_id: string;
+  component_sku: string;
+  component_name_th: string;
+  component_name_en: string;
+  uom_id: string;
+  uom_code: string;
+  uom_name_th: string;
+  qty_required: number;
+  scrap_pct: number;
+  qty_effective: number; // computed: qty_required / (1 - scrap_pct/100)
+  notes: string | null;
+}
+
+export interface BomHeader {
+  id: string;
+  bom_number: string;
+  product_id: string;
+  product_sku: string;
+  product_name_th: string;
+  product_name_en: string;
+  uom_id: string;
+  uom_code: string;
+  output_qty: number;
+  bom_type: BomType;
+  version: number;
+  is_active: boolean;
+  notes: string | null;
+  line_count?: number;
+  lines?: BomLine[];
+  created_by: string;
+  created_by_name: string;
+  created_at: string;
+  updated_at: string;
+}
+

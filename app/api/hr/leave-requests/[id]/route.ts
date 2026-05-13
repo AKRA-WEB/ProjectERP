@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { auth } from '@/auth';
-import { pool, queryOne } from '@/lib/db/client';
+import pool, { queryOne } from '@/lib/db/client';
 import { apiSuccess, apiError } from '@/lib/api-response';
 import { z } from 'zod';
 import type { SessionUser } from '@/lib/authz';
@@ -18,9 +18,10 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
   const { id } = await params;
 
   const row = await queryOne(`
-    SELECT lr.*, u.name AS employee_name,
+    SELECT lr.*, 
+      u.name_th AS employee_name_th, u.name_en AS employee_name_en,
       lt.name_th AS leave_type_name_th, lt.name_en AS leave_type_name_en,
-      a.name AS approved_by_name
+      a.name_th AS approved_by_name_th, a.name_en AS approved_by_name_en
     FROM leave_requests lr
     JOIN users u ON u.id = lr.employee_id
     JOIN leave_types lt ON lt.id = lr.leave_type_id
@@ -56,6 +57,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (action === 'approve') {
     if (!['admin','manager'].includes(u.role)) return apiError('Forbidden', 403);
     if (lr.status !== 'submitted') return apiError('Can only approve submitted requests', 400);
+    if (lr.employee_id === u.id) return apiError('Cannot approve own leave request', 403);
 
     const year = new Date(lr.start_date).getFullYear();
     const client = await pool.connect();

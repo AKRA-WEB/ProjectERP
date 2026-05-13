@@ -1,7 +1,30 @@
+import { SSO_RATE, SSO_WAGE_CAP } from '../constants';
+
+/**
+ * Validates that all attendance records belong to the specified employee and period.
+ * Requirement S-1 from Rework Plan.
+ */
+export function validateAttendanceRecords(
+  records: Array<{ employee_id: string; work_date: string | Date }>,
+  employeeId: string,
+  month: number,
+  year: number
+): void {
+  for (const r of records) {
+    if (r.employee_id !== employeeId) {
+      throw new Error(`Employee ID mismatch: expected ${employeeId}, found ${r.employee_id}`);
+    }
+    const date = typeof r.work_date === 'string' ? new Date(r.work_date) : r.work_date;
+    if (date.getUTCMonth() + 1 !== month || date.getUTCFullYear() !== year) {
+      throw new Error(`Period mismatch for record ${r.work_date}: expected ${month}/${year}`);
+    }
+  }
+}
+
 // Thai Social Security: 5% of min(gross, 15000), max 750 THB
 export function calcSSO(grossPay: number): number {
-  const base = Math.min(grossPay, 15000);
-  return Math.round(base * 0.05 * 100) / 100;
+  const base = Math.min(grossPay, SSO_WAGE_CAP);
+  return Math.round(base * SSO_RATE * 100) / 100;
 }
 
 // Thai progressive income tax (annual)

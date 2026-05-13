@@ -24,13 +24,15 @@ INSERT INTO tax_brackets (income_from, income_to, rate) VALUES
 ON CONFLICT DO NOTHING;
 
 -- Payroll account mapping (singleton)
+-- Note: FKs to 'accounts' are deferred to ensure HR module can be deployed independently
+-- if the accounting module is not yet present in all environments.
 CREATE TABLE IF NOT EXISTS hr_payroll_accounts (
   id                        INT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
-  salary_expense_account_id UUID REFERENCES accounts(id),
-  sso_expense_account_id    UUID REFERENCES accounts(id),
-  salary_payable_account_id UUID REFERENCES accounts(id),
-  sso_payable_account_id    UUID REFERENCES accounts(id),
-  tax_payable_account_id    UUID REFERENCES accounts(id),
+  salary_expense_account_id UUID, -- references accounts(id)
+  sso_expense_account_id    UUID, -- references accounts(id)
+  salary_payable_account_id UUID, -- references accounts(id)
+  sso_payable_account_id    UUID, -- references accounts(id)
+  tax_payable_account_id    UUID, -- references accounts(id)
   updated_at                TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -48,7 +50,7 @@ CREATE TABLE IF NOT EXISTS payroll_runs (
   total_tax       NUMERIC(15,2) NOT NULL DEFAULT 0,
   approved_by     UUID REFERENCES users(id),
   approved_at     TIMESTAMPTZ,
-  journal_entry_id UUID REFERENCES journal_entries(id),
+  journal_entry_id UUID, -- references journal_entries(id)
   created_by      UUID NOT NULL REFERENCES users(id),
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),

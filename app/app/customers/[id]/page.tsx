@@ -52,7 +52,7 @@ export default function CustomerDetailPage() {
         tax_id: formData.tax_id,
         payment_terms_days: Number(formData.payment_terms_days),
         credit_limit: Number(formData.credit_limit),
-        is_active: formData.is_active === 'true' || formData.is_active === true,
+        is_active: formData.is_active === true || (formData.is_active as unknown) === 'true',
       });
       setCustomer(res);
       alert('บันทึกสำเร็จ / Saved successfully');

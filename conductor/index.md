@@ -21,6 +21,9 @@
 | [Accounting Module (CoA→JE→Reports)](./tracks/accounting-module/plan.md) | Completed | 2026-05-11 | 2026-05-11 |
 | [Bug Hunt & Polish — WMS Core](./tracks/bug-hunt-wms-polish/plan.md) | Completed | 2026-05-11 | 2026-05-11 |
 | [Fix Select options.map Crash](./tracks/debug-select-options-crash/plan.md) | Completed | 2026-05-11 | 2026-05-11 |
-| [HR Module (Employees→Leave→Attendance→Payroll)](./tracks/hr-module/plan.md) | Completed | 2026-05-12 | 2026-05-12 |
-| [UI Design System — อรุณ](./tracks/ui-design-system/plan.md) | Active | 2026-05-12 | 2026-05-12 |
-| [BOM Module — สูตรการผลิต + Multi-UOM](./tracks/bom-module/plan.md) | Active | 2026-05-12 | 2026-05-12 |
+| [HR Module (Employees→Leave→Attendance→Payroll)](./tracks/hr-module/plan.md) | Completed | 2026-05-12 | 2026-05-13 |
+| [UI Design System — อรุณ](./tracks/ui-design-system/plan.md) | Completed | 2026-05-12 | 2026-05-13 |
+| [BOM Module — สูตรการผลิต + Multi-UOM](./tracks/bom-module/plan.md) | Completed | 2026-05-12 | 2026-05-13 |
+| [Main Menu — Module Hub Page](./tracks/main-menu/plan.md) | Completed | 2026-05-13 | 2026-05-13 |
+| [Dynamic Sidebar — Module-Scoped Navigation](./tracks/dynamic-sidebar/plan.md) | Active | 2026-05-13 | 2026-05-13 |
+| [UI Redesign — อรุณ Design System v2](./tracks/ui-redesign/plan.md) | Active | 2026-05-13 | 2026-05-13 |

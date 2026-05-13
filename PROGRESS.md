@@ -2,6 +2,82 @@
 
 ---
 
+## Session: 2026-05-13 (Session 5 — UI Design System "อรุณ" + Conductor Protocol)
+
+### สิ่งที่ทำวันนี้
+
+#### 1. Conductor Protocol Skill — ✅ เสร็จสมบูรณ์
+
+**ไฟล์:** `conductor/conductor-protocol-skill.md`
+- สร้างชุดทักษะ (Skill) ใหม่เพื่อควบคุมระเบียบการทำงานร่วมกันระหว่าง Claude (Architect) และ Gemini (Implementer)
+- **Mandates:**
+  - **Surgical Execution:** ห้ามแก้ไขไฟล์หรือ refactor นอกเหนือจาก Task ที่ได้รับมอบหมายเด็ดขาด
+  - **Zero Assumptions (HALT Rule):** หากแผนงานกำกวม ให้หยุด (HALT) และถามทันที ห้ามเดา logic เอง
+  - **Step-by-Step Updates:** อัพเดท checkbox ใน `plan.md` ทันทีที่จบ 1 Task ห้ามรวบยอด
+- **Integration:** อัพเดท `GEMINI.md` ใน root เพื่อยกระดับกฎเหล่านี้เป็น Foundational Mandates ของโปรเจกต์
+
+---
+
+#### 2. UI Design System — อรุณ (Aroon) — ✅ เสร็จสมบูรณ์
+
+**การปรับปรุงระดับโครงสร้าง:**
+- **Typography:** เปลี่ยนมาใช้ **IBM Plex Sans Thai** (สำหรับภาษาไทย/อังกฤษ) และ **IBM Plex Mono** (สำหรับตัวเลข/รหัส) ผ่าน `next/font/google` เพื่อประสิทธิภาพที่ดีขึ้น
+- **Design Tokens:** กำหนดชุดสีและระยะห่างแบบ Semantic (Ink, Line, Surface, Accent) ใน `tailwind.config.ts` และ `app/globals.css` โดยใช้ Notion/Stripe aesthetic เป็นต้นแบบ
+
+**Core UI Components (Refactored):**
+- `Button`: ปรับปรุงสี ink primary และ emerald accent พร้อม shadow แบบละเอียด
+- `Badge` & `StatusBadge`: เปลี่ยนเป็นดีไซน์แบบ Pill พร้อมจุด Indicator สีตามสถานะ
+- `Input` & `Select`: ปรับปรุง Focus ring (emerald soft glow) และ Typography
+- `Modal`: เพิ่ม Backdrop blur และ Pop-in animation
+
+**New UI Components:**
+- `Card`: ระบบ Card แบบ Modular (Header, Body, Footer, Flush layout)
+- `KpiCard` & `KpiGrid`: สำหรับแสดงผลตัวเลขสถิติบน Dashboard พร้อมรองรับ Sparkline และ Loading state
+- `Table` (Enhanced): พัฒนาเป็น Dual-mode รองรับทั้งการส่ง headers/loading (High-level) และการเขียนแถวอิสระ (Low-level) แก้ปัญหา Type mismatch ในโมดูลบัญชี
+
+**Shell Components:**
+- `Sidebar`: เปลี่ยนเป็นแบบ Collapsible (พับเก็บได้เหลือ 64px) พร้อมระบบ Tooltip และ Brand Logo "อรุณ"
+- `TopBar`: ดีไซน์แบบ Glassmorphism (Backdrop blur) พร้อมระบบ **Dynamic Breadcrumbs** ที่สร้างจาก path อัตโนมัติ
+
+---
+
+### สถานะโค้ด (Code Stability)
+
+**✅ STABLE** — ผ่าน `npm run lint` และ `npm run build` (UI Component testing)
+
+| ระบบ | สถานะ |
+|------|-------|
+| UI System (Aroon) | ✅ Completed & Integrated |
+| Collaboration Protocol | ✅ Documented & Mandated |
+| Dashboard | ✅ Migrated to new KPI system |
+
+---
+
+### สิ่งที่ต้องทำครั้งหน้า
+
+**ลำดับความสำคัญสูง:**
+1. **Rework HR Module** — ปัจจุบันสถานะเป็น `Rework Required` ต้องตรวจสอบ `rework-plan.md` และปรับปรุงระบบ Payroll/Slip ให้เสถียร
+2. **BOM Module Implementation** — เริ่มต้น Track สูตรการผลิตและ Multi-UOM ตามแผนงาน
+
+**ลำดับความสำคัญกลาง:**
+3. **Audit Trail UI** — ใช้ `Card` และ `Table` ใหม่ในการสร้างหน้าประวัติการแก้ไขข้อมูล (Audit triggers)
+4. **Mobile Polish** — ตรวจสอบ Responsive ของหน้าจอที่สร้างใหม่ทั้งหมดโดยใช้ Sidebar แบบพับ
+
+---
+
+### จุดเตือนพิเศษ ⚠️
+
+**1. ห้ามแก้ไขไฟล์นอก Task Scope**
+ต้องปฏิบัติตาม **Conductor Protocol** อย่างเคร่งครัด หากเห็นจุดที่ควรแก้ (เช่น typo ในไฟล์อื่น) ให้โน้ตไว้ใน Summary หรือสร้าง Task ใหม่ ห้ามแก้ทันที
+
+**2. การใช้ Font ในตัวเลข**
+ในตารางหรือส่วนที่แสดงตัวเลขจำนวนเงิน/สต็อก ให้ใช้ class `font-mono tabular-nums` เสมอเพื่อให้ตัวเลขตรงกันสวยงาม
+
+**3. Dual-mode Table**
+ห้ามตัด logic การรับ `children` ออกจาก `Table.tsx` เพราะหน้าจอเก่าหลายหน้ายังใช้การเขียน `<tr>` และ `<td>` เองอยู่
+
+---
+
 ## Session: 2026-05-11 (Session 4 — Full ERP Expansion + Bug Hunt / ปิดงาน)
 
 ### สิ่งที่ทำวันนี้

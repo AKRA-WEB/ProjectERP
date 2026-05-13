@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { get } from '@/lib/api-client';
 import type { HrEmployee, Department, EmployeeStatus } from '@/types';
 import Link from 'next/link';
+import { Pagination } from '@/components/ui/Pagination';
+
 
 const AVATAR_COLORS = [
   '#a78bfa', '#fb923c', '#22c55e', '#0ea5e9', '#f43f5e',
@@ -19,7 +21,7 @@ function avatarColor(name: string): string {
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-[0_1px_0_rgba(15,23,42,.03),0_1px_2px_rgba(15,23,42,.04)]';
 
 interface PaginatedEmployees {
-  employees: HrEmployee[];
+  data: HrEmployee[];
   total: number;
   page: number;
   limit: number;
@@ -29,6 +31,7 @@ export default function EmployeesPage() {
   const [data, setData] = useState<PaginatedEmployees | null>(null);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   const [search, setSearch] = useState('');
   const [deptFilter, setDeptFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState<EmployeeStatus | ''>('');
@@ -37,7 +40,10 @@ export default function EmployeesPage() {
   const fetchEmployees = useCallback(async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({ page: String(page) });
+      const params = new URLSearchParams({ 
+        page: String(page),
+        pageSize: String(pageSize)
+      });
       if (search) params.set('search', search);
       if (deptFilter) params.set('department_id', deptFilter);
       if (statusFilter) params.set('employee_status', statusFilter);
@@ -45,7 +51,7 @@ export default function EmployeesPage() {
       const res = await get<PaginatedEmployees>(`/api/hr/employees?${params}`);
       setData(res);
     } finally { setLoading(false); }
-  }, [page, search, deptFilter, statusFilter]);
+  }, [page, pageSize, search, deptFilter, statusFilter]);
 
   const fetchDepts = async () => {
     const res = await get<Department[]>('/api/hr/departments');
@@ -137,10 +143,10 @@ export default function EmployeesPage() {
             <tbody>
               {loading ? (
                 <tr><td colSpan={7} className="py-12 text-center text-[13px] text-stone-400">กำลังโหลด...</td></tr>
-              ) : data?.employees.length === 0 ? (
+              ) : data?.data.length === 0 ? (
                 <tr><td colSpan={7} className="py-12 text-center text-[13px] text-stone-400">ไม่พบข้อมูลพนักงาน</td></tr>
-              ) : data?.employees.map((v: HrEmployee) => {
-                const color = avatarColor(v.name);
+              ) : data?.data.map((v: HrEmployee) => {
+                const color = avatarColor(v.name_en);
                 return (
                   <tr key={v.id} className="border-b border-stone-50 last:border-0 hover:bg-stone-50/60 cursor-default transition-colors">
                     <td className="py-0 h-12 px-3.5 pl-5">
@@ -149,11 +155,11 @@ export default function EmployeesPage() {
                           className="w-6 h-6 rounded-[6px] shrink-0 grid place-items-center text-[11px] font-semibold uppercase"
                           style={{ background: color + '22', color }}
                         >
-                          {v.name.slice(0, 2)}
+                          {v.name_en.slice(0, 2)}
                         </div>
                         <div>
-                          <div className="font-medium text-stone-900">{v.name}</div>
-                          <div className="text-[11.5px] text-stone-400">{v.email}</div>
+                          <div className="font-medium text-stone-900">{v.name_th}</div>
+                          <div className="text-[11.5px] text-stone-400">{v.name_en}</div>
                         </div>
                       </div>
                     </td>
@@ -183,20 +189,14 @@ export default function EmployeesPage() {
       </div>
 
       {/* Pagination */}
-      {data && totalPages > 1 && (
-        <div className="flex items-center justify-between text-[13px] text-stone-500">
-          <span>หน้า {page} จาก {totalPages}</span>
-          <div className="flex gap-1">
-            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
-              className="h-8 px-3 rounded-[7px] border border-stone-200 bg-white hover:bg-stone-50 disabled:opacity-40 disabled:pointer-events-none text-[13px]">
-              ← ก่อนหน้า
-            </button>
-            <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-              className="h-8 px-3 rounded-[7px] border border-stone-200 bg-white hover:bg-stone-50 disabled:opacity-40 disabled:pointer-events-none text-[13px]">
-              ถัดไป →
-            </button>
-          </div>
-        </div>
+      {data && (
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          limit={pageSize}
+          onLimitChange={setPageSize}
+        />
       )}
     </div>
   );

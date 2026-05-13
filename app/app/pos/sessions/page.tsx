@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { get } from '@/lib/api-client';
+import { formatCurrency } from '@/lib/format';
 import { Button } from '@/components/ui/Button';
 import { Table } from '@/components/ui/Table';
 import { Pagination } from '@/components/ui/Pagination';

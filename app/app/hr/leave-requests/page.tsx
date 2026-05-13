@@ -5,11 +5,13 @@ import { get } from '@/lib/api-client';
 import type { LeaveRequest, LeaveRequestStatus } from '@/types';
 import Link from 'next/link';
 import { StatusBadge } from '@/components/ui';
+import { formatDate } from '@/lib/utils';
+import { Pagination } from '@/components/ui/Pagination';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-[0_1px_0_rgba(15,23,42,.03),0_1px_2px_rgba(15,23,42,.04)]';
 
 interface PaginatedRequests {
-  requests: LeaveRequest[];
+  data: LeaveRequest[];
   total: number;
   page: number;
   limit: number;
@@ -18,18 +20,22 @@ interface PaginatedRequests {
 export default function LeaveRequestsPage() {
   const [data, setData] = useState<PaginatedRequests | null>(null);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   const [statusFilter, setStatusFilter] = useState<LeaveRequestStatus | ''>('');
   const [loading, setLoading] = useState(true);
 
   const fetchRequests = useCallback(async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({ page: String(page) });
+      const params = new URLSearchParams({ 
+        page: String(page),
+        pageSize: String(pageSize)
+      });
       if (statusFilter) params.set('status', statusFilter);
       const res = await get<PaginatedRequests>(`/api/hr/leave-requests?${params}`);
       setData(res);
     } finally { setLoading(false); }
-  }, [page, statusFilter]);
+  }, [page, pageSize, statusFilter]);
 
   useEffect(() => { fetchRequests(); }, [fetchRequests]);
 
@@ -98,17 +104,20 @@ export default function LeaveRequestsPage() {
             <tbody>
               {loading ? (
                 <tr><td colSpan={7} className="py-12 text-center text-stone-400">กำลังโหลด...</td></tr>
-              ) : data?.requests.length === 0 ? (
+              ) : !data || data.data.length === 0 ? (
                 <tr><td colSpan={7} className="py-12 text-center text-stone-400">ไม่พบรายการลา</td></tr>
-              ) : data?.requests.map((r) => (
+              ) : data.data.map((r) => (
                 <tr key={r.id} className="border-b border-stone-50 last:border-0 hover:bg-stone-50/60 cursor-default transition-colors">
                   <td className="py-0 h-12 px-3.5 pl-5 font-mono text-stone-600">{r.request_number}</td>
-                  <td className="py-0 h-12 px-3.5 font-medium text-stone-900">{r.employee_name}</td>
+                  <td className="py-0 h-12 px-3.5 font-medium text-stone-900">
+                    <div>{r.employee_name_th}</div>
+                    <div className="text-[11px] text-stone-400 font-normal">{r.employee_name_en}</div>
+                  </td>
                   <td className="py-0 h-12 px-3.5 text-stone-600">{r.leave_type_name_th}</td>
                   <td className="py-0 h-12 px-3.5 text-stone-500 whitespace-nowrap">
-                    {new Date(r.start_date).toLocaleDateString('th-TH')} - {new Date(r.end_date).toLocaleDateString('th-TH')}
+                    {formatDate(r.start_date)} - {formatDate(r.end_date)}
                   </td>
-                  <td className="py-0 h-12 px-3.5 text-stone-600 hidden lg:table-cell">{r.days_requested} วัน</td>
+                  <td className="py-0 h-12 px-3.5 text-stone-600 hidden lg:table-cell">{Number(r.days_requested).toFixed(1)} วัน</td>
                   <td className="py-0 h-12 px-3.5">
                     <StatusBadge status={r.status} />
                   </td>
@@ -124,20 +133,14 @@ export default function LeaveRequestsPage() {
         </div>
       </div>
 
-      {data && totalPages > 1 && (
-        <div className="flex items-center justify-between text-[13px] text-stone-500">
-          <span>หน้า {page} จาก {totalPages}</span>
-          <div className="flex gap-1">
-            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
-              className="h-8 px-3 rounded-[7px] border border-stone-200 bg-white hover:bg-stone-50 disabled:opacity-40 disabled:pointer-events-none text-[13px]">
-              ← ก่อนหน้า
-            </button>
-            <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-              className="h-8 px-3 rounded-[7px] border border-stone-200 bg-white hover:bg-stone-50 disabled:opacity-40 disabled:pointer-events-none text-[13px]">
-              ถัดไป →
-            </button>
-          </div>
-        </div>
+      {data && (
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          limit={pageSize}
+          onLimitChange={setPageSize}
+        />
       )}
     </div>
   );

@@ -1,5 +1,5 @@
 import { auth } from '@/auth';
-import { pool, queryOne } from '@/lib/db/client';
+import pool, { queryOne } from '@/lib/db/client';
 import { apiSuccess, apiError } from '@/lib/api-response';
 import type { SessionUser } from '@/lib/authz';
 

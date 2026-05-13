@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { auth } from '@/auth';
-import { query, queryOne, pool } from '@/lib/db/client';
+import pool, { query, queryOne } from '@/lib/db/client';
 import { apiSuccess, apiError } from '@/lib/api-response';
 import type { SessionUser } from '@/lib/authz';
 
@@ -10,7 +10,9 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
   const { id } = await params;
 
   const run = await queryOne(`
-    SELECT pr.*, u.name AS created_by_name, a.name AS approved_by_name
+    SELECT pr.*, 
+      u.name_th AS created_by_name_th, u.name_en AS created_by_name_en, 
+      a.name_th AS approved_by_name_th, a.name_en AS approved_by_name_en
     FROM payroll_runs pr
     JOIN users u ON u.id = pr.created_by
     LEFT JOIN users a ON a.id = pr.approved_by
@@ -19,11 +21,13 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
   if (!run) return apiError('Not found', 404);
 
   const lines = await query(`
-    SELECT pl.*, u.name AS employee_name, u.employee_id AS employee_id_code
+    SELECT pl.*, 
+      u.name_th AS employee_name_th, u.name_en AS employee_name_en, 
+      u.employee_id AS employee_id_code
     FROM payroll_lines pl
     JOIN users u ON u.id = pl.employee_id
     WHERE pl.run_id = $1
-    ORDER BY u.name
+    ORDER BY u.name_en
   `, [id]);
 
   return apiSuccess({ ...run, lines });
@@ -46,7 +50,18 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   if (action === 'approve') {
     if (run.status !== 'draft') return apiError('Not in draft', 400);
-    await queryOne(`UPDATE payroll_runs SET status = 'approved', approved_by = $1, approved_at = NOW() WHERE id = $2`, [u.id, id]);
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query(`UPDATE payroll_runs SET status = 'approved', approved_by = $1, approved_at = NOW() WHERE id = $2`, [u.id, id]);
+      await client.query('COMMIT');
+    } catch (e) {
+      await client.query('ROLLBACK');
+      const msg = e instanceof Error ? e.message : 'Failed to approve';
+      return apiError(msg, 500);
+    } finally {
+      client.release();
+    }
   }
 
   if (action === 'post_to_accounting') {

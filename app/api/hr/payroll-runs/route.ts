@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { auth } from '@/auth';
-import { query, pool } from '@/lib/db/client';
+import pool, { query } from '@/lib/db/client';
 import { apiSuccess, apiError } from '@/lib/api-response';
 import { z } from 'zod';
 import type { SessionUser } from '@/lib/authz';
@@ -14,17 +14,46 @@ const CreateSchema = z.object({
 export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session?.user) return apiError('Unauthorized', 401);
+  const u = session.user as unknown as SessionUser;
   const { searchParams } = new URL(req.url);
   const year = searchParams.get('year') ?? String(new Date().getFullYear());
+  const page = parseInt(searchParams.get('page') ?? '1');
+  const limit = parseInt(searchParams.get('pageSize') ?? '20');
+  const offset = (page - 1) * limit;
+
+  const conditions = [`pr.period_year = $1`];
+  const params: unknown[] = [year];
+  let idx = 2;
+
+  const scope = buildWarehouseScopeClause(u, 'uwa.warehouse_id', idx);
+  if (scope) {
+    // Scope by creator's warehouse or any employee in the run? 
+    // Plan suggested "via employee subquery", let's use EXISTS on payroll_lines
+    conditions.push(`EXISTS (
+      SELECT 1 FROM payroll_lines pl 
+      JOIN user_warehouse_assignments uwa ON uwa.user_id = pl.employee_id 
+      WHERE pl.run_id = pr.id AND ${scope.clause}
+    )`);
+    params.push(...scope.params);
+    idx += scope.params.length;
+  }
+
+  const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
   const rows = await query(`
-    SELECT pr.*, u.name AS created_by_name
+    SELECT pr.*, u.name_th AS created_by_name_th, u.name_en AS created_by_name_en
     FROM payroll_runs pr
     JOIN users u ON u.id = pr.created_by
-    WHERE pr.period_year = $1
-    ORDER BY pr.period_month DESC
-  `, [year]);
-  return apiSuccess(rows);
+    ${where}
+    ORDER BY pr.period_year DESC, pr.period_month DESC
+    LIMIT $${idx} OFFSET $${idx + 1}
+  `, [...params, limit, offset]);
+
+  const [{ count }] = await query<{ count: string }>(`
+    SELECT COUNT(*) FROM payroll_runs pr ${where}
+  `, params);
+
+  return apiSuccess({ data: rows, total: parseInt(count), page, limit });
 }
 
 export async function POST(req: NextRequest) {

@@ -5,6 +5,7 @@ import { get, patch } from '@/lib/api-client';
 import type { LeaveRequest, LeaveBalance } from '@/types';
 import { Button, StatusBadge, Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/ui';
 import { useSession } from 'next-auth/react';
+import { formatDate } from '@/lib/utils';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-[0_1px_0_rgba(15,23,42,.03),0_1px_2px_rgba(15,23,42,.04)]';
 
@@ -65,12 +66,12 @@ export default function LeaveRequestDetailPage({ params }: { params: Promise<{ i
           <div className={CARD}>
             <div className="p-6 space-y-6">
               <div className="grid grid-cols-2 gap-y-6">
-                <InfoRow label="พนักงาน" value={request.employee_name} />
+                <InfoRow label="พนักงาน" value={`${request.employee_name_th} (${request.employee_name_en})`} />
                 <InfoRow label="ประเภทการลา" value={request.leave_type_name_th} />
-                <InfoRow label="วันที่เริ่มลา" value={new Date(request.start_date).toLocaleDateString('th-TH')} />
-                <InfoRow label="สิ้นสุดวันที่" value={new Date(request.end_date).toLocaleDateString('th-TH')} />
-                <InfoRow label="จำนวนวัน" value={`${request.days_requested} วัน`} />
-                <InfoRow label="วันที่ยื่น" value={new Date(request.created_at).toLocaleString('th-TH')} />
+                <InfoRow label="วันที่เริ่มลา" value={formatDate(request.start_date)} />
+                <InfoRow label="สิ้นสุดวันที่" value={formatDate(request.end_date)} />
+                <InfoRow label="จำนวนวัน" value={`${Number(request.days_requested).toFixed(1)} วัน`} />
+                <InfoRow label="วันที่ยื่น" value={formatDate(request.created_at)} />
               </div>
               <div className="pt-6 border-t border-stone-100">
                 <InfoRow label="เหตุผล / หมายเหตุ" value={request.notes || '—'} />

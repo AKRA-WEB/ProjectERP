@@ -21,6 +21,7 @@ const navGroups: NavGroup[] = [
   {
     label: 'ภาพรวม',
     items: [
+      { href: '/app/menu', label: 'เมนูหลัก / Main Menu', icon: '🏠', permission: 'dashboard:view' },
       { href: '/app/dashboard', label: 'Dashboard', icon: '📊', permission: 'dashboard:view' },
     ],
   },
@@ -57,8 +58,9 @@ const navGroups: NavGroup[] = [
   {
     label: 'ข้อมูลหลัก / Master Data',
     items: [
-      { href: '/app/products', label: 'Products', icon: '📦', permission: 'products:view' },
-      { href: '/app/vendors', label: 'Vendors', icon: '🏭', permission: 'vendors:view' },
+      { href: '/app/products', label: 'สินค้า / Products', icon: '📦', permission: 'products:view' },
+      { href: '/app/bom',      label: 'สูตรการผลิต / BOM', icon: '📜', permission: 'products:view' },
+      { href: '/app/vendors',  label: 'ผู้ขาย / Vendors',  icon: '🏭', permission: 'vendors:view' },
     ],
   },
   {
@@ -95,6 +97,7 @@ const navGroups: NavGroup[] = [
   {
     label: 'ทรัพยากรบุคคล / HR',
     items: [
+      { href: '/app/hr',               label: 'ภาพรวม / Dashboard',      icon: '📊', permission: 'hr:employees:view' },
       { href: '/app/hr/employees',      label: 'พนักงาน / Employees',     icon: '👥', permission: 'hr:employees:view' },
       { href: '/app/hr/departments',    label: 'แผนก / Departments',      icon: '🏢', permission: 'hr:departments:view' },
       { href: '/app/hr/leave-requests', label: 'วันลา / Leave',           icon: '📅', permission: 'hr:leave:view' },

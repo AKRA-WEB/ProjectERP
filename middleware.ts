@@ -20,13 +20,13 @@ export default auth((req) => {
   }
 
   if (isAuthenticated && isAuthPage) {
-    return NextResponse.redirect(new URL('/app/dashboard', req.url));
+    return NextResponse.redirect(new URL('/app/menu', req.url));
   }
 
   const role = (req.auth?.user as any)?.role;
 
   if (isAppPage && pathname.startsWith('/app/admin') && role !== 'admin') {
-    return NextResponse.redirect(new URL('/app/dashboard', req.url));
+    return NextResponse.redirect(new URL('/app/menu', req.url));
   }
 
   return NextResponse.next();

@@ -4,6 +4,7 @@ import { useState, useEffect, use } from 'react';
 import { get, patch } from '@/lib/api-client';
 import type { PayrollRun } from '@/types';
 import { Button, StatusBadge } from '@/components/ui';
+import { formatCurrency } from '@/lib/utils';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden';
 
@@ -39,7 +40,7 @@ export default function PayrollRunDetailPage({ params }: { params: Promise<{ id:
   if (!run) return <div className="py-12 text-center text-stone-400">ไม่พบข้อมูล</div>;
 
   return (
-    <div className="max-w-[1400px] mx-auto pb-12 space-y-6">
+    <div className="max-w-[1440px] mx-auto pb-12 space-y-6">
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-center gap-3">
@@ -92,15 +93,15 @@ export default function PayrollRunDetailPage({ params }: { params: Promise<{ id:
               {run.lines?.map((l) => (
                 <tr key={l.id} className="border-b border-stone-50 last:border-0 hover:bg-stone-50/50">
                   <td className="py-3 px-4">
-                    <div className="font-medium text-stone-900">{l.employee_name}</div>
-                    <div className="text-[10px] text-stone-400 font-mono">{l.employee_id_code}</div>
+                    <div className="font-medium text-stone-900">{l.employee_name_th}</div>
+                    <div className="text-[10px] text-stone-400 font-mono">{l.employee_name_en} ({l.employee_id_code})</div>
                   </td>
-                  <td className="py-3 px-4 text-right font-mono">{l.base_salary.toLocaleString()}</td>
-                  <td className="py-3 px-4 text-right font-mono">{l.ot_pay > 0 ? l.ot_pay.toLocaleString() : '—'}</td>
-                  <td className="py-3 px-4 text-right font-mono font-medium text-emerald-700">{l.gross_pay.toLocaleString()}</td>
-                  <td className="py-3 px-4 text-right font-mono text-red-600">{l.sso_employee.toLocaleString()}</td>
-                  <td className="py-3 px-4 text-right font-mono text-red-600">{l.income_tax > 0 ? l.income_tax.toLocaleString() : '—'}</td>
-                  <td className="py-3 px-4 text-right font-mono font-bold text-stone-950">{l.net_pay.toLocaleString()}</td>
+                  <td className="py-3 px-4 text-right font-mono">{formatCurrency(l.base_salary)}</td>
+                  <td className="py-3 px-4 text-right font-mono">{l.ot_pay > 0 ? formatCurrency(l.ot_pay) : '—'}</td>
+                  <td className="py-3 px-4 text-right font-mono font-medium text-emerald-700">{formatCurrency(l.gross_pay)}</td>
+                  <td className="py-3 px-4 text-right font-mono text-red-600">{formatCurrency(l.sso_employee)}</td>
+                  <td className="py-3 px-4 text-right font-mono text-red-600">{l.income_tax > 0 ? formatCurrency(l.income_tax) : '—'}</td>
+                  <td className="py-3 px-4 text-right font-mono font-bold text-stone-950">{formatCurrency(l.net_pay)}</td>
                 </tr>
               ))}
             </tbody>
@@ -115,7 +116,7 @@ function StatCard({ label, value }: { label: string, value: number }) {
   return (
     <div className="bg-white border border-stone-200 p-4 rounded-[10px]">
       <p className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider">{label}</p>
-      <p className="text-[20px] font-bold text-stone-950 mt-1">{value.toLocaleString()}</p>
+      <p className="text-[20px] font-bold text-stone-950 mt-1">{formatCurrency(value)}</p>
     </div>
   );
 }

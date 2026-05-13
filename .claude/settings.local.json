@@ -3,7 +3,8 @@
     "allow": [
       "PowerShell(Resolve-DnsName *)",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(dir C:\\\\Users\\\\AKRA-Panich-Front\\\\OneDrive\\\\Desktop\\\\projectERP\\\\docs\\\\design\\\\ERP *)"
     ]
   }
 }

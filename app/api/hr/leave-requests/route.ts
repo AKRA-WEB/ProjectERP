@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
   const status = searchParams.get('status') ?? '';
   const empId = searchParams.get('employee_id') ?? '';
   const page = parseInt(searchParams.get('page') ?? '1');
-  const limit = 20;
+  const limit = parseInt(searchParams.get('pageSize') ?? '20');
   const offset = (page - 1) * limit;
 
   const conditions: string[] = [];
@@ -36,12 +36,20 @@ export async function GET(req: NextRequest) {
   }
   if (status) { conditions.push(`lr.status = $${idx++}`); params.push(status); }
 
+  const scope = buildWarehouseScopeClause(u, 'uwa.warehouse_id', idx);
+  if (scope) {
+    conditions.push(`EXISTS (SELECT 1 FROM user_warehouse_assignments uwa WHERE uwa.user_id = lr.employee_id AND ${scope.clause})`);
+    params.push(...scope.params);
+    idx += scope.params.length;
+  }
+
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
   const rows = await query(`
-    SELECT lr.*, u.name AS employee_name,
+    SELECT lr.*, 
+      u.name_th AS employee_name_th, u.name_en AS employee_name_en,
       lt.name_th AS leave_type_name_th, lt.name_en AS leave_type_name_en,
-      a.name AS approved_by_name
+      a.name_th AS approved_by_name_th, a.name_en AS approved_by_name_en
     FROM leave_requests lr
     JOIN users u ON u.id = lr.employee_id
     JOIN leave_types lt ON lt.id = lr.leave_type_id
@@ -55,7 +63,7 @@ export async function GET(req: NextRequest) {
     SELECT COUNT(*) FROM leave_requests lr ${where}
   `, params);
 
-  return apiSuccess({ requests: rows, total: parseInt(count), page, limit });
+  return apiSuccess({ data: rows, total: parseInt(count), page, limit });
 }
 
 export async function POST(req: NextRequest) {

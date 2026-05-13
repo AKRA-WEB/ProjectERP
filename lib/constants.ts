@@ -14,3 +14,5 @@ export const RMA_NUMBER_PREFIX = 'RMA';
 export const CLM_NUMBER_PREFIX = 'CLM';
 export const TRF_NUMBER_PREFIX = 'TRF';
 export const CC_NUMBER_PREFIX = 'CC';
+export const SSO_WAGE_CAP = 15000;
+export const SSO_RATE = 0.05;

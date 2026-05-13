@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>อรุณ · POS Terminal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body { background: var(--bg-sunken); }
+    .pos-app { min-height: 100vh; display: flex; flex-direction: column; }
+    .pos-topbar { background: white; border-bottom: 1px solid var(--line); padding: 10px 18px; display: flex; align-items: center; gap: 14px; }
+    .pos-topbar .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+    .pos-topbar .brand-logo { width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(135deg, #10b981, #059669); color: white; display: grid; place-items: center; font-weight: 700; font-family: var(--font-display); }
+    .pos-topbar .spacer { flex: 1; }
+    .pos-topbar a.back { font-size: 13px; color: var(--ink-3); display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+    .pos-topbar a.back:hover { color: var(--ink); }
+    .pos-app .pos-shell { padding: 14px 18px; flex: 1; min-height: 0; }
+  </style>
+</head>
+<body>
+  <div class="pos-app">
+    <header class="pos-topbar">
+      <div class="brand"><div class="brand-logo">อ</div> <span>POS Terminal</span><span class="muted" style="font-weight:400;font-size:12px;">· สาขาสยาม · เครื่อง #02</span></div>
+      <div class="spacer"></div>
+      <a class="back" href="main-menu.html">← เมนูหลัก</a>
+    </header>
+    <div id="root"></div>
+  </div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script type="text/babel" src="icons.jsx"></script>
+  <script type="text/babel" src="data.jsx"></script>
+  <script type="text/babel" src="components.jsx"></script>
+  <script type="text/babel" src="pos.jsx"></script>
+  <script type="text/babel">
+    ReactDOM.createRoot(document.getElementById("root")).render(<window.POSView />);
+  </script>
+</body>
+</html>
