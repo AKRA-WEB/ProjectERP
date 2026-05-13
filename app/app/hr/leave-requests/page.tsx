@@ -5,7 +5,7 @@ import { get } from '@/lib/api-client';
 import type { LeaveRequest, LeaveRequestStatus } from '@/types';
 import Link from 'next/link';
 import { StatusBadge } from '@/components/ui';
-import { formatDate } from '@/lib/utils';
+import { formatDate, formatNumber } from '@/lib/format';
 import { Pagination } from '@/components/ui/Pagination';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-[0_1px_0_rgba(15,23,42,.03),0_1px_2px_rgba(15,23,42,.04)]';
@@ -56,7 +56,7 @@ export default function LeaveRequestsPage() {
             รายการลา / Leave Requests
           </h1>
           <p className="text-[13.5px] text-stone-500">
-            {loading ? '—' : (data?.total ?? 0).toLocaleString('th-TH')} รายการ
+            {loading ? '—' : formatNumber(data?.total ?? 0)} รายการ
           </p>
         </div>
         <Link href="/app/hr/leave-requests/new" className="inline-flex items-center gap-1.5 h-8 px-3 rounded-[7px] bg-stone-950 text-white text-[13px] font-medium shadow-sm hover:bg-stone-800 transition-colors">
