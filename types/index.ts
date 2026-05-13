@@ -700,9 +700,38 @@ export interface ProductUom {
   uom_code: string;
   uom_name_th: string;
   uom_name_en: string;
-  conversion_factor: number;
-  uom_type: ProductUomType;
+  uom_type: 'purchase' | 'sales' | 'other';
+  barcode_label: string | null;
   is_active: boolean;
+  is_base_unit?: boolean;
+  // joined from uom_conversions
+  factor: number | null;
+  base_uom_code: string | null;
+}
+
+export interface UnitOfMeasure {
+  id: string;
+  code: string;
+  name_th: string;
+  name_en: string;
+  is_base_unit: boolean;
+  is_integer_unit: boolean;
+  barcode_label: string | null;
+  sort_order: number;
+  // joined from uom_conversions (present in admin API responses)
+  factor?: number | null;
+  base_uom_id?: string | null;
+  base_uom_code?: string | null;
+}
+
+export interface UomConversion {
+  id: string;
+  uom_id: string;
+  uom_code: string;
+  base_uom_id: string;
+  base_uom_code: string;
+  factor: number;
+  notes: string | null;
   created_at: string;
 }
 
