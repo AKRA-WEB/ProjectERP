@@ -21,7 +21,7 @@ units_of_measure: id, code
 
 ### Task 1 — API: GET /api/inventory/reorder
 
-- [ ] Create `app/api/inventory/reorder/route.ts`:
+- [x] Create `app/api/inventory/reorder/route.ts`:
 
 ```typescript
 import { auth } from '@/auth';
@@ -77,8 +77,8 @@ export async function GET(req: Request) {
 }
 ```
 
-- [ ] Run `npm run lint` → no errors
-- [ ] Commit: `feat(inventory): GET /api/inventory/reorder — products below reorder_point per warehouse`
+- [x] Run `npm run lint` → no errors
+- [x] Commit: `feat(inventory): GET /api/inventory/reorder — products below reorder_point per warehouse`
 
 ---
 
