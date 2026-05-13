@@ -250,7 +250,7 @@ export default function ProductDetailPage() {
 
 **Goal:** When a vendor is selected on the PO create form and a product is added, prefill `unit_price` from `vendor_products.unit_price` for that vendor (fall back to `unit_cost` if no link exists).
 
-- [ ] In `app/app/purchase-orders/new/page.tsx`:
+- [x] In `app/app/purchase-orders/new/page.tsx`:
 
   **Step 1 — Add state for vendor catalog:**
   After the existing `const [productResults, setProductResults]` line, add:
@@ -310,11 +310,11 @@ export default function ProductDetailPage() {
   **Step 5 — Also update PR-prefilled lines to use vendor price when vendor already selected:**
   In the `useEffect` for `prId`, the lines are set from PR data. These prefill before a vendor is typically chosen so no change needed — vendor catalog effect will not retroactively change existing lines, which is correct (user may have already edited prices).
 
-- [ ] Run `npm run lint` → no errors
-- [ ] Test: create a PO, select a vendor that has catalog entries, add a product that is in their catalog → `unit_price` field should prefill with the vendor's price, not `unit_cost`
-- [ ] Test: add a product NOT in vendor's catalog → falls back to `unit_cost`
-- [ ] Test: change vendor → catalog clears, next product add uses new vendor's prices
-- [ ] Commit: `feat(pos): PO creation prefills unit_price from vendor catalog`
+- [x] Run `npm run lint` → no errors
+- [x] Test: create a PO, select a vendor that has catalog entries, add a product that is in their catalog → `unit_price` field should prefill with the vendor's price, not `unit_cost`
+- [x] Test: add a product NOT in vendor's catalog → falls back to `unit_cost`
+- [x] Test: change vendor → catalog clears, next product add uses new vendor's prices
+- [x] Commit: `feat(pos): PO creation prefills unit_price from vendor catalog`
 
 ---
 

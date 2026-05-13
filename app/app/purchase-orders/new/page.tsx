@@ -47,8 +47,20 @@ function NewPurchaseOrderPageInner() {
   const [lines, setLines] = useState<POLine[]>([]);
   const [productSearch, setProductSearch] = useState('');
   const [productResults, setProductResults] = useState<Product[]>([]);
+  const [vendorCatalog, setVendorCatalog] = useState<Record<string, number>>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!form.vendor_id) { setVendorCatalog({}); return; }
+    get<{ product_id: string; unit_price: number }[]>(`/api/vendors/${form.vendor_id}/catalog`)
+      .then((rows) => {
+        const map: Record<string, number> = {};
+        rows.forEach((r) => { map[r.product_id] = r.unit_price; });
+        setVendorCatalog(map);
+      })
+      .catch(() => setVendorCatalog({}));
+  }, [form.vendor_id]);
 
   useEffect(() => {
     get<PaginatedResponse<Vendor>>('/api/vendors?limit=200').then((r) =>
@@ -82,7 +94,9 @@ function NewPurchaseOrderPageInner() {
   }
 
   function addProduct(p: Product) {
-    setLines((prev) => [...prev, { product_id: p.id, product_label: `${p.sku} — ${p.name_th}`, qty_ordered: 1, unit_price: Number(p.unit_cost) || 0 }]);
+    const vendorPrice = vendorCatalog[p.id];
+    const unit_price = vendorPrice !== undefined ? vendorPrice : (Number(p.unit_cost) || 0);
+    setLines((prev) => [...prev, { product_id: p.id, product_label: `${p.sku} — ${p.name_th}`, qty_ordered: 1, unit_price }]);
     setProductSearch('');
     setProductResults([]);
   }
