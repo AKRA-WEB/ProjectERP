@@ -52,7 +52,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
 ### Task 2 — Product Detail Page with Suppliers Tab
 
-- [x] Create `app/app/products/[id]/page.tsx`:
+- [ ] Create `app/app/products/[id]/page.tsx`:
 
 ```typescript
 'use client';
@@ -239,10 +239,10 @@ export default function ProductDetailPage() {
 }
 ```
 
-- [x] In `app/app/products/page.tsx` — find the product row render and wrap SKU/name in a link to `/app/products/${p.id}` so users can navigate to detail page
-- [x] Run `npm run lint` → no errors
-- [x] Start `npm run dev`, open `/app/products`, click a product → detail page loads with Info tab and Suppliers tab
-- [x] Commit: `feat(products): product detail page with suppliers tab`
+- [ ] In `app/app/products/page.tsx` — find the product row render and wrap SKU/name in a link to `/app/products/${p.id}` so users can navigate to detail page
+- [ ] Run `npm run lint` → no errors
+- [ ] Start `npm run dev`, open `/app/products`, click a product → detail page loads with Info tab and Suppliers tab
+- [ ] Commit: `feat(products): product detail page with suppliers tab`
 
 ---
 
@@ -250,7 +250,7 @@ export default function ProductDetailPage() {
 
 **Goal:** When a vendor is selected on the PO create form and a product is added, prefill `unit_price` from `vendor_products.unit_price` for that vendor (fall back to `unit_cost` if no link exists).
 
-- [x] In `app/app/purchase-orders/new/page.tsx`:
+- [ ] In `app/app/purchase-orders/new/page.tsx`:
 
   **Step 1 — Add state for vendor catalog:**
   After the existing `const [productResults, setProductResults]` line, add:
@@ -310,18 +310,18 @@ export default function ProductDetailPage() {
   **Step 5 — Also update PR-prefilled lines to use vendor price when vendor already selected:**
   In the `useEffect` for `prId`, the lines are set from PR data. These prefill before a vendor is typically chosen so no change needed — vendor catalog effect will not retroactively change existing lines, which is correct (user may have already edited prices).
 
-- [x] Run `npm run lint` → no errors
-- [x] Test: create a PO, select a vendor that has catalog entries, add a product that is in their catalog → `unit_price` field should prefill with the vendor's price, not `unit_cost`
-- [x] Test: add a product NOT in vendor's catalog → falls back to `unit_cost`
-- [x] Test: change vendor → catalog clears, next product add uses new vendor's prices
-- [x] Commit: `feat(pos): PO creation prefills unit_price from vendor catalog`
+- [ ] Run `npm run lint` → no errors
+- [ ] Test: create a PO, select a vendor that has catalog entries, add a product that is in their catalog → `unit_price` field should prefill with the vendor's price, not `unit_cost`
+- [ ] Test: add a product NOT in vendor's catalog → falls back to `unit_cost`
+- [ ] Test: change vendor → catalog clears, next product add uses new vendor's prices
+- [ ] Commit: `feat(pos): PO creation prefills unit_price from vendor catalog`
 
 ---
 
 ### Task 4 — Update conductor/index.md and Commit
 
-- [x] Add entry to `conductor/index.md`:
+- [ ] Add entry to `conductor/index.md`:
   ```
   | [Vendor-Product Links (data completeness)](./tracks/vendor-product-links/plan.md) | Completed | 2026-05-13 | 2026-05-13 |
   ```
-- [x] Commit: `chore: conductor — vendor-product-links track`
+- [ ] Commit: `chore: conductor — vendor-product-links track`
