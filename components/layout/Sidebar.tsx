@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -165,6 +165,7 @@ const MODULE_NAV: Record<ModuleKey, NavGroup[]> = {
         { href: '/app/admin/users',      label: 'พนักงาน / Employees', icon: Users, roles: ['admin'] },
         { href: '/app/admin/roles',      label: 'บทบาท / Roles',       icon: KeyRound, roles: ['admin'] },
         { href: '/app/admin/warehouses', label: 'Warehouses',           icon: Warehouse, roles: ['admin'] },
+        { href: '/app/admin/uom',        label: 'หน่วยนับ / UoM',       icon: Scale,    roles: ['admin'] },
       ],
     },
   ],
