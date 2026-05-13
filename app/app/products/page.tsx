@@ -5,6 +5,7 @@ import { get } from '@/lib/api-client';
 import { formatCurrency } from '@/lib/format';
 import type { PaginatedResponse, Product } from '@/types';
 import ProductFormModal from './ProductFormModal';
+import Link from 'next/link';
 
 interface ProductWithDetails extends Product {
   category_name: string | null;
@@ -165,9 +166,15 @@ export default function ProductsPage() {
               <tr><td colSpan={8} className="py-12 text-center text-[13px] text-stone-400">ไม่พบสินค้า</td></tr>
             ) : data?.data.map((p) => (
               <tr key={p.id} className="border-b border-stone-50 last:border-0 hover:bg-stone-50/60 cursor-default transition-colors">
-                <td className="py-0 h-11 px-3.5 pl-5 font-mono text-[12.5px] font-medium text-stone-700">{p.sku}</td>
+                <td className="py-0 h-11 px-3.5 pl-5">
+                  <Link href={`/app/products/${p.id}`} className="font-mono text-[12.5px] font-medium text-emerald-700 hover:underline">
+                    {p.sku}
+                  </Link>
+                </td>
                 <td className="py-0 h-11 px-3.5">
-                  <div className="font-medium text-stone-900 truncate max-w-[200px]">{p.name_th}</div>
+                  <Link href={`/app/products/${p.id}`} className="font-medium text-stone-900 truncate max-w-[200px] hover:text-emerald-700 block transition-colors">
+                    {p.name_th}
+                  </Link>
                   {p.name_en && <div className="text-[11.5px] text-stone-400 truncate max-w-[200px]">{p.name_en}</div>}
                 </td>
                 <td className="py-0 h-11 px-3.5 text-stone-500 hidden lg:table-cell">{p.category_name ?? '—'}</td>

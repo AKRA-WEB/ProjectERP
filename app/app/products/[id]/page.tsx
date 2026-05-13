@@ -1,65 +1,8 @@
-# Vendor-Product Links — Data Completeness
-
-**What already exists (no work needed):**
-- `vendor_products` table: fully defined with `vendor_id`, `product_id`, `vendor_sku`, `unit_price`, `lead_days`, `is_preferred`
-- `POST /api/vendors/[id]/products` — upsert vendor catalog entry
-- `DELETE /api/vendors/[id]/products?product_id=` — remove entry
-- `GET /api/vendors/[id]` — returns vendor + full catalog via `json_agg`
-- `/app/vendors/[id]/page.tsx` — vendor detail with AddCatalogModal, remove button — all working
-
-**Gaps this track closes:**
-1. No `GET /api/products/[id]/vendors` — product cannot list its suppliers
-2. No product detail page — no UI to see/manage a product's suppliers
-3. PO creation uses `p.unit_cost` — ignores vendor-negotiated `vendor_products.unit_price`
-
----
-
-## Tasks
-
-### Task 1 — API: GET /api/products/[id]/vendors
-
-- [x] Create `app/api/products/[id]/vendors/route.ts`:
-
-```typescript
-import { auth } from '@/auth';
-import { apiSuccess, apiError } from '@/lib/api-response';
-import { query } from '@/lib/db/client';
-
-export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth();
-  if (!session?.user) return apiError('Unauthorized', 401);
-
-  const { id } = await params;
-  const rows = await query(
-    `SELECT vp.id, vp.vendor_id, vp.vendor_sku, vp.unit_price, vp.lead_days,
-            vp.is_preferred, vp.updated_at,
-            v.code AS vendor_code, v.name_th AS vendor_name_th, v.name_en AS vendor_name_en,
-            v.payment_terms_days
-     FROM vendor_products vp
-     JOIN vendors v ON v.id = vp.vendor_id
-     WHERE vp.product_id = $1
-     ORDER BY vp.is_preferred DESC, v.code`,
-    [id]
-  );
-  return apiSuccess(rows);
-}
-```
-
-- [x] Run `npm run lint` → no errors
-- [x] Commit: `feat(products): GET /api/products/[id]/vendors — list suppliers for a product`
-
----
-
-### Task 2 — Product Detail Page with Suppliers Tab
-
-- [x] Create `app/app/products/[id]/page.tsx`:
-
-```typescript
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { get, patch } from '@/lib/api-client';
+import { useParams } from 'next/navigation';
+import { get } from '@/lib/api-client';
 import { formatCurrency, formatDate } from '@/lib/format';
 import Link from 'next/link';
 
@@ -93,12 +36,10 @@ interface VendorLink {
 }
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-[0_1px_0_rgba(15,23,42,.03),0_1px_2px_rgba(15,23,42,.04)]';
-const FIELD_CLS = 'bg-white border border-stone-200 rounded-[7px] px-3 py-[7px] text-[13px] text-stone-900 outline-none transition-all focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 disabled:opacity-50 disabled:bg-stone-50 w-full';
 const LABEL_CLS = 'text-[12px] font-medium text-stone-600 mb-1.5 block';
 
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const router = useRouter();
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [vendors, setVendors] = useState<VendorLink[]>([]);
   const [tab, setTab] = useState<'info' | 'suppliers'>('info');
@@ -237,91 +178,3 @@ export default function ProductDetailPage() {
     </div>
   );
 }
-```
-
-- [x] In `app/app/products/page.tsx` — find the product row render and wrap SKU/name in a link to `/app/products/${p.id}` so users can navigate to detail page
-- [x] Run `npm run lint` → no errors
-- [x] Start `npm run dev`, open `/app/products`, click a product → detail page loads with Info tab and Suppliers tab
-- [x] Commit: `feat(products): product detail page with suppliers tab`
-
----
-
-### Task 3 — PO Creation: Vendor-Aware Price Prefill
-
-**Goal:** When a vendor is selected on the PO create form and a product is added, prefill `unit_price` from `vendor_products.unit_price` for that vendor (fall back to `unit_cost` if no link exists).
-
-- [ ] In `app/app/purchase-orders/new/page.tsx`:
-
-  **Step 1 — Add state for vendor catalog:**
-  After the existing `const [productResults, setProductResults]` line, add:
-  ```typescript
-  const [vendorCatalog, setVendorCatalog] = useState<Record<string, number>>({});
-  ```
-  This is a map of `product_id → unit_price` from vendor_products for the selected vendor.
-
-  **Step 2 — Fetch catalog when vendor changes:**
-  Add a `useEffect` watching `form.vendor_id`:
-  ```typescript
-  useEffect(() => {
-    if (!form.vendor_id) { setVendorCatalog({}); return; }
-    get<{ product_id: string; unit_price: number }[]>(`/api/vendors/${form.vendor_id}/catalog`)
-      .then((rows) => {
-        const map: Record<string, number> = {};
-        rows.forEach((r) => { map[r.product_id] = r.unit_price; });
-        setVendorCatalog(map);
-      })
-      .catch(() => setVendorCatalog({}));
-  }, [form.vendor_id]);
-  ```
-
-  **Step 3 — New API endpoint `GET /api/vendors/[id]/catalog`:**
-  Create `app/api/vendors/[id]/catalog/route.ts`:
-  ```typescript
-  import { auth } from '@/auth';
-  import { apiSuccess, apiError } from '@/lib/api-response';
-  import { query } from '@/lib/db/client';
-
-  export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-    const session = await auth();
-    if (!session?.user) return apiError('Unauthorized', 401);
-
-    const { id } = await params;
-    const rows = await query(
-      `SELECT product_id, unit_price, lead_days, is_preferred, vendor_sku
-       FROM vendor_products WHERE vendor_id = $1`,
-      [id]
-    );
-    return apiSuccess(rows);
-  }
-  ```
-
-  **Step 4 — Use catalog price in `addProduct`:**
-  Replace the existing `addProduct` function body:
-  ```typescript
-  function addProduct(p: Product) {
-    const vendorPrice = vendorCatalog[p.id];
-    const unit_price = vendorPrice !== undefined ? vendorPrice : (Number(p.unit_cost) || 0);
-    setLines((prev) => [...prev, { product_id: p.id, product_label: `${p.sku} — ${p.name_th}`, qty_ordered: 1, unit_price }]);
-    setProductSearch('');
-    setProductResults([]);
-  }
-  ```
-
-  **Step 5 — Also update PR-prefilled lines to use vendor price when vendor already selected:**
-  In the `useEffect` for `prId`, the lines are set from PR data. These prefill before a vendor is typically chosen so no change needed — vendor catalog effect will not retroactively change existing lines, which is correct (user may have already edited prices).
-
-- [ ] Run `npm run lint` → no errors
-- [ ] Test: create a PO, select a vendor that has catalog entries, add a product that is in their catalog → `unit_price` field should prefill with the vendor's price, not `unit_cost`
-- [ ] Test: add a product NOT in vendor's catalog → falls back to `unit_cost`
-- [ ] Test: change vendor → catalog clears, next product add uses new vendor's prices
-- [ ] Commit: `feat(pos): PO creation prefills unit_price from vendor catalog`
-
----
-
-### Task 4 — Update conductor/index.md and Commit
-
-- [ ] Add entry to `conductor/index.md`:
-  ```
-  | [Vendor-Product Links (data completeness)](./tracks/vendor-product-links/plan.md) | Completed | 2026-05-13 | 2026-05-13 |
-  ```
-- [ ] Commit: `chore: conductor — vendor-product-links track`
