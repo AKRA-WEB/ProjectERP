@@ -27,9 +27,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const vals: unknown[] = [];
     let idx = 1;
 
-    if (d.conversion_factor !== undefined) { sets.push(`conversion_factor = $${idx++}`); vals.push(d.conversion_factor); }
-    if (d.uom_type !== undefined) { sets.push(`uom_type = $${idx++}`); vals.push(d.uom_type); }
-    if (d.is_active !== undefined) { sets.push(`is_active = $${idx++}`); vals.push(d.is_active); }
+    if (d.uom_type !== undefined)     { sets.push(`uom_type = $${idx++}`);     vals.push(d.uom_type); }
+    if (d.is_active !== undefined)    { sets.push(`is_active = $${idx++}`);    vals.push(d.is_active); }
+    if (d.barcode_label !== undefined){ sets.push(`barcode_label = $${idx++}`); vals.push(d.barcode_label); }
 
     if (sets.length === 0) return apiError('No fields to update', 400);
 

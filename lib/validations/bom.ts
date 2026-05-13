@@ -49,12 +49,12 @@ export const PatchBomSchema = z.discriminatedUnion('action', [
 
 export const CreateProductUomSchema = z.object({
   uom_id: z.string().uuid(),
-  conversion_factor: z.number().positive(),
   uom_type: z.enum(['purchase', 'sales', 'other']).default('other'),
+  barcode_label: z.string().max(100).nullable().optional(),
 });
 
 export const PatchProductUomSchema = z.object({
-  conversion_factor: z.number().positive().optional(),
   uom_type: z.enum(['purchase', 'sales', 'other']).optional(),
   is_active: z.boolean().optional(),
+  barcode_label: z.string().max(100).nullable().optional(),
 });
