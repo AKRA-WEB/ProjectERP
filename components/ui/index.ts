@@ -12,3 +12,4 @@ export { ConfirmDialog } from './ConfirmDialog';
 export { SearchInput } from './SearchInput';
 export { DateRangePicker } from './DateRangePicker';
 export { ErrorBoundary } from './ErrorBoundary';
+export { Card, CardHeader, CardBody, CardFooter } from './Card';
