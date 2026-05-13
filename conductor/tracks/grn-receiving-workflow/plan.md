@@ -7,7 +7,7 @@
 | Step | User's workflow | Current system |
 |---|---|---|
 | 1 | จัดซื้อสั่งสินค้าจาก Vendor | PR → PO (already matches) |
-| 2 | Admin เปิด "การ์ดงาน" จาก PO | GRN must be created WITH quantities — mismatch |
+| 2 | Admin เปิดคำสั่งซื้อ: Vendor + คลัง + รายการสินค้า + จำนวน | PO และ GRN ต้องสร้างแยกกัน 2 ขั้น — mismatch |
 | 3 | ขนส่งมาส่ง | — (no tracking) |
 | 4 | พนักงานกรอก: วันส่ง, รายการ, จำนวน, โลเคชั่น, ผู้รับ | quantities entered at GRN creation — too early |
 | 5 | พนักงาน "รับลงสินค้า" | receive route (no quantity entry) |
@@ -89,25 +89,37 @@ CREATE INDEX IF NOT EXISTS idx_grn_split ON goods_receipt_notes(split_from_grn_i
 
 ---
 
-### Task 2 — API: Create GRN Template from PO
+### Task 2 — API: สร้างคำสั่งซื้อ + การ์ดงาน (Combined PO + GRN template in one call)
 
-New endpoint that creates a "work card" GRN from a PO with qty_received=0 lines pre-populated.
+Admin fills ONE form: Vendor + Warehouse + product lines. API atomically creates:
+1. Purchase Order (PO)
+2. GRN work card template (qty_received=0, ready for staff)
+3. Upserts `vendor_products` — records that each product is supplied by this vendor with the given unit_price
 
-- [ ] Create `app/api/grn/template/route.ts`:
+- [ ] Create `app/api/receiving/order/route.ts`:
 
 ```typescript
 import { auth } from '@/auth';
 import { apiSuccess, apiError, apiValidationError } from '@/lib/api-response';
 import { assertRole } from '@/lib/authz';
-import { query, queryOne } from '@/lib/db/client';
+import { queryOne } from '@/lib/db/client';
 import pool from '@/lib/db/client';
 import { z } from 'zod';
+import { VAT_RATE } from '@/lib/constants';
 import type { SessionUser } from '@/lib/authz';
 
+const lineSchema = z.object({
+  product_id: z.string().uuid(),
+  qty_ordered: z.number().positive(),
+  unit_price: z.number().nonnegative(),
+});
+
 const schema = z.object({
-  po_id: z.string().uuid(),
+  vendor_id:   z.string().uuid(),
   warehouse_id: z.string().uuid(),
-  notes: z.string().optional(),
+  expected_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  notes:       z.string().optional(),
+  lines:       z.array(lineSchema).min(1),
 });
 
 export async function POST(req: Request) {
@@ -121,69 +133,87 @@ export async function POST(req: Request) {
   const parsed = schema.safeParse(body);
   if (!parsed.success) return apiValidationError(parsed.error);
 
-  // Fetch PO + remaining undelivered line quantities
-  const po = await queryOne<{ id: string; status: string; warehouse_id: string }>(
-    `SELECT id, status, warehouse_id FROM purchase_orders WHERE id = $1`,
-    [parsed.data.po_id]
-  );
-  if (!po) return apiError('PO not found', 404);
-  if (['cancelled', 'closed', 'fully_received'].includes(po.status)) {
-    return apiError(`PO status '${po.status}' cannot receive more goods`, 409);
-  }
+  const vendor = await queryOne('SELECT id FROM vendors WHERE id = $1 AND is_active = TRUE', [parsed.data.vendor_id]);
+  if (!vendor) return apiError('Vendor not found', 404);
 
-  // Get PO lines with remaining qty (ordered - already received)
-  const poLines = await query<{
-    id: string;
-    product_id: string;
-    qty_ordered: number;
-    qty_received: number;
-    unit_price: number;
-  }>(
-    `SELECT pol.id, pol.product_id,
-            pol.qty_ordered,
-            COALESCE(pol.qty_received, 0) AS qty_received,
-            pol.unit_price
-     FROM po_line_items pol
-     WHERE pol.po_id = $1
-       AND pol.qty_ordered > COALESCE(pol.qty_received, 0)
-     ORDER BY pol.line_number`,
-    [parsed.data.po_id]
-  );
-
-  if (poLines.length === 0) {
-    return apiError('All PO lines are fully received', 409);
-  }
+  const subtotal = parsed.data.lines.reduce((s, l) => s + l.qty_ordered * l.unit_price, 0);
+  const vat      = Math.round(subtotal * VAT_RATE * 100) / 100;
+  const total    = Math.round((subtotal + vat) * 100) / 100;
 
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
 
-    const grn = await client.query<{ id: string; grn_number: string }>(
-      `INSERT INTO goods_receipt_notes
-         (po_id, warehouse_id, received_by, notes, status)
-       VALUES ($1, $2, $3, $4, 'draft')
-       RETURNING id, grn_number`,
-      [parsed.data.po_id, parsed.data.warehouse_id, u.id, parsed.data.notes ?? null]
+    // 1. Create PO
+    const poRes = await client.query<{ id: string; po_number: string }>(
+      `INSERT INTO purchase_orders
+         (vendor_id, warehouse_id, expected_date, payment_terms_days, notes,
+          subtotal, vat_amount, total_amount, status, created_by)
+       VALUES ($1,$2,$3,30,$4,$5,$6,$7,'sent',$8)
+       RETURNING id, po_number`,
+      [
+        parsed.data.vendor_id, parsed.data.warehouse_id,
+        parsed.data.expected_date ?? null, parsed.data.notes ?? null,
+        subtotal, vat, total, u.id,
+      ]
     );
-    const grnId = grn.rows[0].id;
+    const poId = poRes.rows[0].id;
 
-    for (let i = 0; i < poLines.length; i++) {
-      const line = poLines[i];
-      const qtyExpected = Number(line.qty_ordered) - Number(line.qty_received);
+    // 2. Create PO lines + collect po_line ids for GRN
+    const poLineIds: { poLineId: string; productId: string; qty: number }[] = [];
+    for (let i = 0; i < parsed.data.lines.length; i++) {
+      const l = parsed.data.lines[i];
+      const poLine = await client.query<{ id: string }>(
+        `INSERT INTO po_line_items (po_id, product_id, qty_ordered, unit_price, line_number)
+         VALUES ($1,$2,$3,$4,$5)
+         RETURNING id`,
+        [poId, l.product_id, l.qty_ordered, l.unit_price, i + 1]
+      );
+      poLineIds.push({ poLineId: poLine.rows[0].id, productId: l.product_id, qty: l.qty_ordered });
+    }
+
+    // 3. Upsert vendor_products — record which vendor supplies each product
+    for (const l of parsed.data.lines) {
+      await client.query(
+        `INSERT INTO vendor_products (vendor_id, product_id, unit_price)
+         VALUES ($1,$2,$3)
+         ON CONFLICT (vendor_id, product_id) DO UPDATE SET
+           unit_price = EXCLUDED.unit_price,
+           updated_at = NOW()`,
+        [parsed.data.vendor_id, l.product_id, l.unit_price]
+      );
+    }
+
+    // 4. Create GRN work card template (qty_received = 0 per line)
+    const grnRes = await client.query<{ id: string; grn_number: string }>(
+      `INSERT INTO goods_receipt_notes (po_id, warehouse_id, received_by, notes, status)
+       VALUES ($1,$2,$3,$4,'draft')
+       RETURNING id, grn_number`,
+      [poId, parsed.data.warehouse_id, u.id, parsed.data.notes ?? null]
+    );
+    const grnId = grnRes.rows[0].id;
+
+    for (let i = 0; i < poLineIds.length; i++) {
+      const pl = poLineIds[i];
       await client.query(
         `INSERT INTO grn_line_items
            (grn_id, po_line_item_id, product_id, qty_received, qty_expected, line_number)
-         VALUES ($1, $2, $3, 0, $4, $5)`,
-        [grnId, line.id, line.product_id, qtyExpected, i + 1]
+         VALUES ($1,$2,$3,0,$4,$5)`,
+        [grnId, pl.poLineId, pl.productId, pl.qty, i + 1]
       );
     }
 
     await client.query('COMMIT');
-    return apiSuccess({ id: grnId, grn_number: grn.rows[0].grn_number }, 201);
+    return apiSuccess({
+      po_id: poId,
+      po_number: poRes.rows[0].po_number,
+      grn_id: grnId,
+      grn_number: grnRes.rows[0].grn_number,
+    }, 201);
   } catch (err) {
     await client.query('ROLLBACK');
     console.error(err);
-    return apiError('Failed to create GRN template', 500);
+    return apiError('Failed to create receiving order', 500);
   } finally {
     client.release();
   }
@@ -191,7 +221,279 @@ export async function POST(req: Request) {
 ```
 
 - [ ] Run `npm run lint` → no errors
-- [ ] Commit: `feat(grn): POST /api/grn/template — create work card from PO with zero qty lines`
+- [ ] Commit: `feat(receiving): POST /api/receiving/order — create PO + GRN template + upsert vendor_products`
+
+---
+
+### Task 2B — UI: สร้างคำสั่งซื้อ (Admin "Open Work Card" form)
+
+- [ ] Create `app/app/receiving/new/page.tsx`:
+
+```typescript
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { get, post } from '@/lib/api-client';
+import { formatCurrency } from '@/lib/format';
+import { VAT_RATE } from '@/lib/constants';
+import type { PaginatedResponse, Product, Warehouse } from '@/types';
+
+interface Vendor { id: string; code: string; name_th: string; }
+interface OrderLine {
+  product_id: string;
+  product_label: string;
+  qty_ordered: number;
+  unit_price: number;
+}
+
+const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-[0_1px_0_rgba(15,23,42,.03),0_1px_2px_rgba(15,23,42,.04)]';
+const FIELD_CLS = 'bg-white border border-stone-200 rounded-[7px] px-3 py-[7px] text-[13px] text-stone-900 outline-none transition-all focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 disabled:opacity-50 disabled:bg-stone-50 w-full';
+const LABEL_CLS = 'text-[12px] font-medium text-stone-600 mb-1.5 block';
+const BTN_PRIMARY = 'h-9 px-4 rounded-[8px] text-[13px] font-medium bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-40 inline-flex items-center gap-1.5 transition-colors';
+
+export default function NewReceivingOrderPage() {
+  const router = useRouter();
+  const [vendors, setVendors]       = useState<Vendor[]>([]);
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [vendorId, setVendorId]     = useState('');
+  const [warehouseId, setWarehouseId] = useState('');
+  const [expectedDate, setExpectedDate] = useState('');
+  const [notes, setNotes]           = useState('');
+  const [lines, setLines]           = useState<OrderLine[]>([]);
+  const [search, setSearch]         = useState('');
+  const [results, setResults]       = useState<Product[]>([]);
+  const [saving, setSaving]         = useState(false);
+  const [error, setError]           = useState('');
+
+  useEffect(() => {
+    get<PaginatedResponse<Vendor>>('/api/vendors?limit=500').then((r) =>
+      setVendors(r.data)
+    );
+    get<Warehouse[]>('/api/admin/warehouses').then((d) =>
+      setWarehouses(d.filter((w) => w.is_active))
+    );
+  }, []);
+
+  async function searchProducts(q: string) {
+    setSearch(q);
+    if (!q) { setResults([]); return; }
+    const res = await get<PaginatedResponse<Product>>(`/api/products?search=${encodeURIComponent(q)}&limit=10`);
+    setResults(res.data ?? []);
+  }
+
+  function addLine(p: Product) {
+    // If vendor already has a price for this product (from vendor_products), auto-fill
+    setLines((prev) => [...prev, {
+      product_id: p.id,
+      product_label: `${p.sku} — ${p.name_th}`,
+      qty_ordered: 1,
+      unit_price: Number(p.unit_cost) || 0,
+    }]);
+    setSearch('');
+    setResults([]);
+  }
+
+  function updateLine(i: number, key: 'qty_ordered' | 'unit_price', val: number) {
+    setLines((prev) => prev.map((l, idx) => idx === i ? { ...l, [key]: val } : l));
+  }
+
+  function removeLine(i: number) {
+    setLines((prev) => prev.filter((_, idx) => idx !== i));
+  }
+
+  const subtotal = lines.reduce((s, l) => s + l.qty_ordered * l.unit_price, 0);
+  const vat      = subtotal * VAT_RATE;
+  const total    = subtotal + vat;
+
+  async function handleSubmit() {
+    if (!vendorId)    { setError('กรุณาเลือกผู้จำหน่าย'); return; }
+    if (!warehouseId) { setError('กรุณาเลือกคลังสินค้า'); return; }
+    if (lines.length === 0) { setError('กรุณาเพิ่มรายการสินค้า'); return; }
+    setError('');
+    setSaving(true);
+    try {
+      const result = await post<{ po_id: string; grn_id: string; grn_number: string }>(
+        '/api/receiving/order',
+        {
+          vendor_id: vendorId,
+          warehouse_id: warehouseId,
+          expected_date: expectedDate || undefined,
+          notes: notes || undefined,
+          lines: lines.map((l) => ({
+            product_id: l.product_id,
+            qty_ordered: l.qty_ordered,
+            unit_price: l.unit_price,
+          })),
+        }
+      );
+      // Navigate to the GRN work card (staff will fill when delivery arrives)
+      router.push(`/app/grn/${result.grn_id}`);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="max-w-4xl space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-stone-900">เปิดคำสั่งซื้อ</h1>
+          <p className="text-sm text-stone-500 mt-0.5">สร้างคำสั่งซื้อ + การ์ดงานรับสินค้า ในขั้นตอนเดียว</p>
+        </div>
+        <button onClick={() => router.back()} className="text-sm text-stone-400 hover:text-stone-700">← ย้อนกลับ</button>
+      </div>
+
+      {error && (
+        <div className="p-3 rounded-[8px] bg-red-50 border border-red-200 text-sm text-red-700">{error}</div>
+      )}
+
+      {/* Header fields */}
+      <div className={`${CARD} p-6 grid grid-cols-2 gap-4`}>
+        <div>
+          <label className={LABEL_CLS}>ผู้จำหน่าย / Vendor *</label>
+          <select value={vendorId} onChange={(e) => setVendorId(e.target.value)} className={FIELD_CLS}>
+            <option value="">-- เลือกผู้จำหน่าย --</option>
+            {vendors.map((v) => (
+              <option key={v.id} value={v.id}>{v.code} — {v.name_th}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className={LABEL_CLS}>คลังสินค้า *</label>
+          <select value={warehouseId} onChange={(e) => setWarehouseId(e.target.value)} className={FIELD_CLS}>
+            <option value="">-- เลือกคลัง --</option>
+            {warehouses.map((w) => (
+              <option key={w.id} value={w.id}>{w.code} — {w.name_th}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className={LABEL_CLS}>วันที่คาดว่าจะส่ง</label>
+          <input type="date" value={expectedDate} onChange={(e) => setExpectedDate(e.target.value)} className={FIELD_CLS} />
+        </div>
+        <div>
+          <label className={LABEL_CLS}>หมายเหตุ</label>
+          <input type="text" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="หมายเหตุเพิ่มเติม" className={FIELD_CLS} />
+        </div>
+      </div>
+
+      {/* Product search */}
+      <div className={`${CARD} p-6`}>
+        <h2 className="text-[14px] font-semibold text-stone-800 mb-3">รายการสินค้า</h2>
+
+        {/* Search box */}
+        <div className="relative mb-4">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => searchProducts(e.target.value)}
+            placeholder="ค้นหาสินค้า (SKU / ชื่อ)..."
+            className={FIELD_CLS}
+          />
+          {results.length > 0 && (
+            <div className="absolute z-10 top-full left-0 right-0 bg-white border border-stone-200 rounded-[8px] shadow-lg mt-1 max-h-52 overflow-y-auto">
+              {results.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => addLine(p)}
+                  className="w-full text-left px-4 py-2.5 text-[13px] hover:bg-stone-50 flex items-center gap-3"
+                >
+                  <span className="font-mono text-stone-500 text-[12px] w-24 shrink-0">{p.sku}</span>
+                  <span className="text-stone-900">{p.name_th}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {lines.length === 0 ? (
+          <p className="text-sm text-stone-400 text-center py-4">ยังไม่มีรายการสินค้า</p>
+        ) : (
+          <table className="w-full text-[13px] mb-4">
+            <thead className="border-b border-stone-200">
+              <tr>
+                <th className="pb-2 text-left font-medium text-stone-600">สินค้า</th>
+                <th className="pb-2 text-right font-medium text-stone-600 w-28">จำนวน</th>
+                <th className="pb-2 text-right font-medium text-stone-600 w-32">ราคา/หน่วย (฿)</th>
+                <th className="pb-2 text-right font-medium text-stone-600 w-28">รวม</th>
+                <th className="pb-2 w-8"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {lines.map((l, i) => (
+                <tr key={i} className="border-b border-stone-100">
+                  <td className="py-2 pr-3 text-stone-800">{l.product_label}</td>
+                  <td className="py-2 pr-2">
+                    <input
+                      type="number" min="1" value={l.qty_ordered}
+                      onChange={(e) => updateLine(i, 'qty_ordered', Number(e.target.value) || 1)}
+                      className="w-full border border-stone-200 rounded-[6px] px-2 py-1 text-[13px] text-right outline-none focus:border-emerald-400 tabular-nums"
+                    />
+                  </td>
+                  <td className="py-2 pr-2">
+                    <input
+                      type="number" min="0" step="0.01" value={l.unit_price}
+                      onChange={(e) => updateLine(i, 'unit_price', Number(e.target.value) || 0)}
+                      className="w-full border border-stone-200 rounded-[6px] px-2 py-1 text-[13px] text-right outline-none focus:border-emerald-400 tabular-nums"
+                    />
+                  </td>
+                  <td className="py-2 text-right tabular-nums text-stone-700 font-medium">
+                    {formatCurrency(l.qty_ordered * l.unit_price)}
+                  </td>
+                  <td className="py-2 text-center">
+                    <button onClick={() => removeLine(i)} className="text-stone-300 hover:text-red-500 text-[16px] leading-none">×</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+
+        {/* Totals */}
+        {lines.length > 0 && (
+          <div className="flex justify-end">
+            <div className="w-56 space-y-1 text-[13px]">
+              <div className="flex justify-between text-stone-600"><span>ราคาก่อน VAT</span><span className="tabular-nums">{formatCurrency(subtotal)}</span></div>
+              <div className="flex justify-between text-stone-600"><span>VAT 7%</span><span className="tabular-nums">{formatCurrency(vat)}</span></div>
+              <div className="flex justify-between font-semibold text-stone-900 border-t border-stone-200 pt-1 mt-1"><span>รวมทั้งสิ้น</span><span className="tabular-nums">{formatCurrency(total)}</span></div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Submit */}
+      <div className="flex justify-end">
+        <button onClick={handleSubmit} disabled={saving} className={BTN_PRIMARY}>
+          {saving ? 'กำลังสร้าง…' : 'สร้างคำสั่งซื้อ + การ์ดงาน'}
+        </button>
+      </div>
+    </div>
+  );
+}
+```
+
+- [ ] Run `npm run lint` → no errors
+- [ ] Start `npm run dev`, open `/app/receiving/new`
+- [ ] Test: select vendor, select warehouse, add 3 products, set prices → submit
+- [ ] Verify: redirects to GRN work card (status=draft), check DB: PO created with status=`sent`, GRN lines have qty_received=0 and qty_expected filled, `vendor_products` has upserted records for each product+vendor
+- [ ] Commit: `feat(receiving): new receiving order form — vendor + warehouse + lines → PO + GRN template`
+
+---
+
+### Task 2C — Sidebar Link for "เปิดคำสั่งซื้อ"
+
+- [ ] In `components/layout/Sidebar.tsx`, inside the `จัดซื้อ / Procurement` nav group (where PR/PO links are), add:
+
+```typescript
+{ href: '/app/receiving/new', label: 'เปิดคำสั่งซื้อ', icon: PackagePlus, permission: 'grn:create' },
+```
+
+Check if `PackagePlus` is imported from lucide-react: `grep "PackagePlus" components/layout/Sidebar.tsx`. If not, add to the import line.
+
+- [ ] Verify sidebar shows new link
+- [ ] Commit: `feat(receiving): sidebar link — เปิดคำสั่งซื้อ`
 
 ---
 
