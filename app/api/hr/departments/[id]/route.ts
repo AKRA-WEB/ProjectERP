@@ -19,7 +19,7 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
   const { id } = await params;
 
   const row = await queryOne<object>(`
-    SELECT d.*, u.name AS manager_name
+    SELECT d.*, u.name_th AS manager_name_th, u.name_en AS manager_name_en
     FROM departments d
     LEFT JOIN users u ON u.id = d.manager_id
     WHERE d.id = $1

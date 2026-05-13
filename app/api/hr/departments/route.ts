@@ -19,10 +19,11 @@ export async function GET() {
 
   const rows = await query<{
     id: string; code: string; name_th: string; name_en: string;
-    parent_id: string | null; manager_id: string | null; manager_name: string | null;
+    parent_id: string | null; manager_id: string | null;
+    manager_name_th: string | null; manager_name_en: string | null;
     is_active: boolean; created_at: string; updated_at: string;
   }>(`
-    SELECT d.*, u.name AS manager_name
+    SELECT d.*, u.name_th AS manager_name_th, u.name_en AS manager_name_en
     FROM departments d
     LEFT JOIN users u ON u.id = d.manager_id
     WHERE d.is_active = TRUE
