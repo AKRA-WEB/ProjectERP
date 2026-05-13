@@ -1,37 +1,44 @@
 import { Badge } from './Badge';
 
-type BadgeVariant = 'gray' | 'blue' | 'green' | 'yellow' | 'red' | 'purple' | 'orange';
+// Old → New: gray→muted, blue→info, green→ok, yellow→warn, red→danger, orange→warn, purple→purple
+type BadgeVariant = 'ok' | 'warn' | 'danger' | 'info' | 'muted' | 'purple';
 
 const STATUS_CONFIG: Record<string, { variant: BadgeVariant }> = {
-  draft: { variant: 'gray' },
-  submitted: { variant: 'blue' },
-  manager_approved: { variant: 'purple' },
-  admin_approved: { variant: 'green' },
-  rejected: { variant: 'red' },
-  converted_to_po: { variant: 'orange' },
-  sent: { variant: 'blue' },
-  partially_received: { variant: 'yellow' },
-  fully_received: { variant: 'green' },
-  invoiced: { variant: 'purple' },
-  paid: { variant: 'green' },
-  closed: { variant: 'gray' },
-  cancelled: { variant: 'red' },
-  received: { variant: 'blue' },
-  verified: { variant: 'green' },
-  receiving: { variant: 'yellow' },
-  pending_verification: { variant: 'orange' },
-  qc_pending: { variant: 'yellow' },
-  qc_passed: { variant: 'green' },
-  qc_failed: { variant: 'red' },
-  stocked: { variant: 'green' },
-  pending: { variant: 'yellow' },
-  completed: { variant: 'green' },
-  open: { variant: 'blue' },
-  in_review: { variant: 'yellow' },
-  resolved: { variant: 'green' },
-  approved: { variant: 'green' },
-  counting: { variant: 'blue' },
-  pending_approval: { variant: 'yellow' },
+  draft:               { variant: 'muted' },
+  submitted:           { variant: 'info' },
+  manager_approved:    { variant: 'purple' },
+  admin_approved:      { variant: 'ok' },
+  rejected:            { variant: 'danger' },
+  converted_to_po:     { variant: 'warn' },
+  sent:                { variant: 'info' },
+  partially_received:  { variant: 'warn' },
+  fully_received:      { variant: 'ok' },
+  invoiced:            { variant: 'purple' },
+  paid:                { variant: 'ok' },
+  closed:              { variant: 'muted' },
+  cancelled:           { variant: 'danger' },
+  received:            { variant: 'info' },
+  verified:            { variant: 'ok' },
+  receiving:           { variant: 'warn' },
+  pending_verification:{ variant: 'warn' },
+  qc_pending:          { variant: 'warn' },
+  qc_passed:           { variant: 'ok' },
+  qc_failed:           { variant: 'danger' },
+  stocked:             { variant: 'ok' },
+  pending:             { variant: 'warn' },
+  completed:           { variant: 'ok' },
+  open:                { variant: 'info' },
+  in_review:           { variant: 'warn' },
+  resolved:            { variant: 'ok' },
+  approved:            { variant: 'ok' },
+  counting:            { variant: 'info' },
+  pending_approval:    { variant: 'warn' },
+  // HR statuses
+  active:              { variant: 'ok' },
+  inactive:            { variant: 'muted' },
+  resigned:            { variant: 'muted' },
+  processing:          { variant: 'info' },
+  void:                { variant: 'danger' },
 };
 
 const LABEL_TH: Record<string, string> = {
@@ -64,6 +71,11 @@ const LABEL_TH: Record<string, string> = {
   approved: 'อนุมัติแล้ว',
   counting: 'กำลังนับ',
   pending_approval: 'รออนุมัติ',
+  active: 'ปกติ (Active)',
+  inactive: 'ระงับ (Inactive)',
+  resigned: 'ลาออก (Resigned)',
+  processing: 'กำลังดำเนินการ',
+  void: 'ยกเลิก (Void)',
 };
 
 interface StatusBadgeProps {
@@ -72,10 +84,11 @@ interface StatusBadgeProps {
 }
 
 export function StatusBadge({ status, labelOverride }: StatusBadgeProps) {
-  const config = STATUS_CONFIG[status] ?? { variant: 'gray' as BadgeVariant };
+  const config = STATUS_CONFIG[status] ?? { variant: 'muted' as BadgeVariant };
   return (
     <Badge variant={config.variant}>
       {labelOverride ?? LABEL_TH[status] ?? status.replace(/_/g, ' ')}
     </Badge>
   );
 }
+
