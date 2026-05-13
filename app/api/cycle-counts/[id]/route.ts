@@ -7,9 +7,11 @@ import type { SessionUser } from '@/lib/authz';
 
 const countSchema = z.object({
   lines: z.array(z.object({
-    id: z.string().uuid(),
-    qty_counted: z.number().nonnegative(),
-    notes: z.string().optional(),
+    id:                  z.string().uuid(),
+    qty_counted:         z.number().nonnegative().optional(),
+    counting_uom_id:     z.string().uuid().optional(),
+    counting_qty_input:  z.number().nonnegative().optional(),
+    notes:               z.string().optional(),
   })).min(1),
 });
 
@@ -31,7 +33,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   if (!cc) return apiError('Cycle count not found', 404);
 
   const lines = await query(
-    `SELECT ccl.*, p.sku, p.name_th, p.name_en, u.code AS uom_code
+    `SELECT ccl.*,
+            p.sku, p.name_th, p.name_en,
+            u.code AS uom_code,
+            u.id   AS base_uom_id
      FROM cycle_count_lines ccl
      JOIN products p ON p.id = ccl.product_id
      JOIN units_of_measure u ON u.id = p.uom_id
@@ -61,10 +66,26 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     if (!parsed.success) return apiValidationError(parsed.error);
 
     for (const line of parsed.data.lines) {
+      // If counting_uom_id + counting_qty_input provided, DB trigger auto-fills qty_counted
+      // Otherwise use qty_counted directly
       await queryOne(
-        `UPDATE cycle_count_lines SET qty_counted = $1, notes = $2, counted_by = $3, counted_at = NOW()
-         WHERE id = $4 AND cycle_count_id = $5`,
-        [line.qty_counted, line.notes ?? null, u.id, line.id, id]
+        `UPDATE cycle_count_lines
+         SET qty_counted         = COALESCE($1, qty_counted),
+             counting_uom_id     = $2,
+             counting_qty_input  = $3,
+             notes               = $4,
+             counted_by          = $5,
+             counted_at          = NOW()
+         WHERE id = $6 AND cycle_count_id = $7`,
+        [
+          line.qty_counted ?? null,
+          line.counting_uom_id ?? null,
+          line.counting_qty_input ?? null,
+          line.notes ?? null,
+          u.id,
+          line.id,
+          id,
+        ]
       );
     }
     await queryOne(`UPDATE cycle_counts SET status = 'counting' WHERE id = $1`, [id]);

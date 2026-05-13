@@ -14,8 +14,11 @@ interface CycleCountLine {
   sku: string;
   name_th: string;
   uom_code: string;
+  base_uom_id: string;
   qty_system: string | number;
   qty_counted: string | number | null;
+  counting_uom_id: string | null;
+  counting_qty_input: string | number | null;
   qty_variance: string | number | null;
   notes: string | null;
 }
@@ -33,6 +36,8 @@ interface CycleCount {
 interface CountedLineState {
   id: string;
   qty_counted: string | number;
+  counting_uom_id: string;
+  counting_qty_input: string | number;
   notes: string;
 }
 
@@ -42,6 +47,7 @@ export default function CycleCountDetailPage() {
   const [cc, setCc] = useState<CycleCount | null>(null);
   const [loading, setLoading] = useState(true);
   const [countedLines, setCountedLines] = useState<CountedLineState[]>([]);
+  const [productUoms, setProductUoms] = useState<Record<string, Array<{ uom_id: string; uom_code: string; factor: number | null; base_uom_code: string | null }>>>({});
   const [acting, setActing] = useState(false);
   const [error, setError] = useState('');
   const [editMode, setEditMode] = useState(false);
@@ -51,15 +57,48 @@ export default function CycleCountDetailPage() {
     try {
       const data = await get<CycleCount>(`/api/cycle-counts/${id}`);
       setCc(data);
+
+      const uniqueProductIds = [...new Set(data.lines?.map((l) => l.product_id) ?? [])];
+      const uomMap: Record<string, Array<{ uom_id: string; uom_code: string; factor: number | null; base_uom_code: string | null }>> = {};
+      await Promise.all(uniqueProductIds.map(async (pid) => {
+        try {
+          const rows = await get<Array<{ uom_id: string; uom_code: string; factor: number | null; base_uom_code: string | null }>>(`/api/products/${pid}/uom`);
+          uomMap[pid] = rows.filter(r => (r as unknown as { is_active?: boolean }).is_active !== false);
+        } catch { uomMap[pid] = []; }
+      }));
+      setProductUoms(uomMap);
+
       setCountedLines(data.lines?.map((l) => ({
         id: l.id,
         qty_counted: l.qty_counted ?? '',
+        counting_uom_id: l.counting_uom_id ?? '',
+        counting_qty_input: l.counting_qty_input ?? '',
         notes: l.notes ?? '',
       })) ?? []);
     } finally { setLoading(false); }
   }
 
   useEffect(() => { fetchCC(); }, [id]);
+
+  async function submitCounts() {
+    await action('submit_counts', {
+      lines: countedLines.map((l) => {
+        if (l.counting_uom_id && l.counting_qty_input !== '') {
+          return {
+            id: l.id,
+            counting_uom_id: l.counting_uom_id,
+            counting_qty_input: Number(l.counting_qty_input),
+            notes: l.notes,
+          };
+        }
+        return {
+          id: l.id,
+          qty_counted: Number(l.qty_counted),
+          notes: l.notes,
+        };
+      }),
+    });
+  }
 
   async function action(actionName: string, extra: object = {}) {
     setError('');
@@ -121,10 +160,59 @@ export default function CycleCountDetailPage() {
                   <td className="p-3 text-right">{formatQty(l.qty_system)} {l.uom_code}</td>
                   <td className="p-3">
                     {editMode ? (
-                      <input type="number" min="0" step="any"
-                        value={countedLines[i]?.qty_counted ?? ''}
-                        onChange={(e) => updateLine(i, 'qty_counted', parseFloat(e.target.value))}
-                        className="w-24 text-right rounded border px-2 py-1 ml-auto block" />
+                      <div className="flex flex-col items-end gap-1">
+                        <input type="number" min="0" step="any"
+                          disabled={!!countedLines[i]?.counting_uom_id}
+                          value={countedLines[i]?.qty_counted ?? ''}
+                          onChange={(e) => updateLine(i, 'qty_counted', e.target.value)}
+                          className="w-24 text-right rounded border px-2 py-1 block disabled:bg-gray-50 disabled:text-gray-400" />
+                        
+                        {(productUoms[l.product_id] ?? []).length > 0 && (
+                          <div className="flex items-center gap-2">
+                            <select
+                              className="rounded border border-gray-300 px-2 py-1 text-xs"
+                              value={countedLines[i]?.counting_uom_id ?? ''}
+                              onChange={(e) => {
+                                updateLine(i, 'counting_uom_id', e.target.value);
+                                updateLine(i, 'counting_qty_input', '');
+                                updateLine(i, 'qty_counted', '');
+                              }}
+                            >
+                              <option value="">ฐาน ({l.uom_code})</option>
+                              {(productUoms[l.product_id] ?? [])
+                                .filter(u => u.uom_id !== l.base_uom_id)
+                                .map(u => (
+                                  <option key={u.uom_id} value={u.uom_id}>
+                                    {u.uom_code} (×{u.factor})
+                                  </option>
+                                ))}
+                            </select>
+
+                            {countedLines[i]?.counting_uom_id && (
+                              <input
+                                type="number"
+                                min="0"
+                                className="w-16 rounded border border-gray-300 px-2 py-1 text-xs"
+                                value={countedLines[i]?.counting_qty_input ?? ''}
+                                onChange={(e) => updateLine(i, 'counting_qty_input', e.target.value)}
+                                placeholder="จำนวน"
+                              />
+                            )}
+                          </div>
+                        )}
+
+                        {/* Conversion preview */}
+                        {countedLines[i]?.counting_uom_id && countedLines[i]?.counting_qty_input !== '' && (() => {
+                          const uomData = (productUoms[l.product_id] ?? []).find(u => u.uom_id === countedLines[i].counting_uom_id);
+                          const factor = uomData?.factor ?? 1;
+                          const baseQty = Math.floor(Number(countedLines[i].counting_qty_input) * factor);
+                          return (
+                            <span className="text-[10px] text-blue-600 font-medium">
+                              = {baseQty} {l.uom_code}
+                            </span>
+                          );
+                        })()}
+                      </div>
                     ) : (
                       <span className="float-right">{l.qty_counted != null ? formatQty(l.qty_counted) : '—'}</span>
                     )}
@@ -157,11 +245,7 @@ export default function CycleCountDetailPage() {
         {editMode && (
           <>
             <Button variant="ghost" onClick={() => setEditMode(false)}>ยกเลิก</Button>
-            <Button onClick={() => action('submit_counts', {
-              lines: countedLines.filter((l) => l.qty_counted !== '').map((l) => ({
-                id: l.id, qty_counted: Number(l.qty_counted), notes: l.notes || undefined,
-              })),
-            })} loading={acting}>บันทึก</Button>
+            <Button onClick={submitCounts} loading={acting}>บันทึก</Button>
           </>
         )}
         {cc.status === 'counting' && !editMode && (
