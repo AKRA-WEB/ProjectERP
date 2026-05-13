@@ -19,9 +19,9 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
   ({ label, error, options, placeholder, className, id, children, ...props }, ref) => {
     const selectId = id ?? label?.toLowerCase().replace(/\s+/g, '-');
     return (
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col">
         {label && (
-          <label htmlFor={selectId} className="text-sm font-medium text-gray-700">
+          <label htmlFor={selectId} className="text-[13px] font-medium text-ink-2 mb-1.5">
             {label}
           </label>
         )}
@@ -29,9 +29,10 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           ref={ref}
           id={selectId}
           className={cn(
-            'rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500',
-            error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300',
-            props.disabled && 'cursor-not-allowed bg-gray-50',
+            'bg-white border border-line rounded-[8px] h-9 px-3 text-[13.5px] text-ink-1 transition-all appearance-none',
+            'focus:outline-none focus:border-accent focus:ring-0 focus:shadow-[0_0_0_3px_rgba(16,185,129,0.14)]',
+            error ? 'border-danger focus:border-danger focus:shadow-[0_0_0_3px_rgba(220,38,38,0.14)]' : '',
+            props.disabled && 'cursor-not-allowed bg-surface-sunken text-ink-3',
             className
           )}
           aria-invalid={!!error}
@@ -50,7 +51,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             children
           )}
         </select>
-        {error && <p className="text-xs text-red-600">{error}</p>}
+        {error && <p className="mt-1 text-[12px] text-danger">{error}</p>}
       </div>
     );
   }
