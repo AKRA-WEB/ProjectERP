@@ -115,7 +115,7 @@ export default function HrDepartmentsPage() {
                   <Td className="font-mono font-medium text-sm text-stone-600">{d.code}</Td>
                   <Td className="text-sm font-medium text-stone-900">{d.name_th}</Td>
                   <Td className="text-sm text-stone-500 hidden md:table-cell">{d.name_en}</Td>
-                  <Td className="text-sm text-stone-600 hidden md:table-cell">{d.manager_name || '—'}</Td>
+                  <Td className="text-sm text-stone-600 hidden md:table-cell">{d.manager_name_th || d.manager_name_en || '—'}</Td>
                   <Td>
                     <Badge variant={d.is_active ? 'green' : 'gray'}>
                       {d.is_active ? 'ใช้งาน' : 'ปิด'}

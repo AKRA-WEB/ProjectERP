@@ -506,7 +506,8 @@ export interface Department {
   name_en: string;
   parent_id: string | null;
   manager_id: string | null;
-  manager_name?: string;
+  manager_name_th?: string;
+  manager_name_en?: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;
