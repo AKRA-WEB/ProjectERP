@@ -5,7 +5,7 @@ import { get, post } from '@/lib/api-client';
 import type { PayrollRun } from '@/types';
 import Link from 'next/link';
 import { Button, StatusBadge, Modal, ModalHeader, ModalBody, ModalFooter, Input } from '@/components/ui';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency } from '@/lib/format';
 import { Pagination } from '@/components/ui/Pagination';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden';
@@ -53,6 +53,7 @@ export default function PayrollRunsPage() {
   }
 
   const totalPages = data ? Math.ceil(data.total / data.limit) : 0;
+  const THAI_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 
   return (
     <div className="max-w-[1200px] mx-auto pb-12 space-y-6">
@@ -131,7 +132,7 @@ export default function PayrollRunsPage() {
                   onChange={e => setForm({...form, period_month: parseInt(e.target.value)})}
                 >
                   {Array.from({length: 12}, (_, i) => i + 1).map(m => (
-                    <option key={m} value={m}>{new Date(2024, m-1).toLocaleString('th-TH', {month: 'long'})}</option>
+                    <option key={m} value={m}>{THAI_MONTHS[m - 1]}</option>
                   ))}
                 </select>
               </div>
