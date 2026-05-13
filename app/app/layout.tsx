@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { data: session } = useSession();
 
   const user = session?.user as { role?: string; permissions?: string[]; name?: string } | undefined;
@@ -13,11 +14,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const permissions = user?.permissions ?? [];
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
       {/* Mobile backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-20 bg-black/40 md:hidden"
+          className="fixed inset-0 z-40 bg-black/40 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -28,6 +29,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         onClose={() => setSidebarOpen(false)}
         userRole={userRole}
         permissions={permissions}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
       />
 
       <div className="flex flex-1 flex-col overflow-hidden min-w-0">
@@ -36,7 +39,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           userName={user?.name}
           userRole={userRole}
         />
-        <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
+        <main className="flex-1 overflow-auto p-4 md:p-6 bg-surface-sunken/40">{children}</main>
       </div>
     </div>
   );
