@@ -28,4 +28,5 @@
 | [Dynamic Sidebar — Module-Scoped Navigation](./tracks/dynamic-sidebar/plan.md) | Completed | 2026-05-13 | 2026-05-13 |
 | [UI Redesign — อรุณ Design System v2](./tracks/ui-redesign/plan.md) | Completed | 2026-05-13 | 2026-05-13 |
 | [HR Bugfix Final — u.name + import sources + formatDate](./tracks/hr-bugfix-final/plan.md) | Completed | 2026-05-13 | 2026-05-13 |
-| [POS Bugfix — session close auth + formatDatetime + VAT constant](./tracks/pos-bugfix/plan.md) | Active | 2026-05-13 | 2026-05-13 |
+| [POS Bugfix — session close auth + formatDatetime + VAT constant](./tracks/pos-bugfix/plan.md) | Completed | 2026-05-13 | 2026-05-13 |
+| [UoM Framework — global conversions, multi-UoM line fields, admin UI](./tracks/uom-framework/plan.md) | Active | 2026-05-13 | 2026-05-13 |
