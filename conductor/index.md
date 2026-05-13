@@ -35,3 +35,4 @@
 | [Reorder Point Dashboard + Auto-PR](./tracks/reorder-dashboard/plan.md) | Active | 2026-05-13 | 2026-05-13 |
 | [UoM Phase 2 — Transaction Form Selectors](./tracks/uom-phase2-form-selectors/plan.md) | Active | 2026-05-13 | 2026-05-13 |
 | [Inventory Valuation Report](./tracks/inventory-valuation-report/plan.md) | Active | 2026-05-13 | 2026-05-13 |
+| [GRN Receiving Workflow — Staff Work Card](./tracks/grn-receiving-workflow/plan.md) | Active | 2026-05-13 | 2026-05-13 |
