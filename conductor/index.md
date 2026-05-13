@@ -27,3 +27,4 @@
 | [Main Menu — Module Hub Page](./tracks/main-menu/plan.md) | Completed | 2026-05-13 | 2026-05-13 |
 | [Dynamic Sidebar — Module-Scoped Navigation](./tracks/dynamic-sidebar/plan.md) | Completed | 2026-05-13 | 2026-05-13 |
 | [UI Redesign — อรุณ Design System v2](./tracks/ui-redesign/plan.md) | Completed | 2026-05-13 | 2026-05-13 |
+| [HR Bugfix Final — u.name + import sources + formatDate](./tracks/hr-bugfix-final/plan.md) | Active | 2026-05-13 | 2026-05-13 |
