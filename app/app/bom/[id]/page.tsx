@@ -4,7 +4,7 @@ import { useState, useEffect, use, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, StatusBadge, Modal, ModalHeader, ModalBody, ModalFooter, Input, SearchInput, Select } from '@/components/ui';
 import { get, patch, del } from '@/lib/api-client';
-import { formatDate } from '@/lib/utils';
+import { formatDate } from '@/lib/format';
 import type { BomHeader, Product, PaginatedResponse, UnitOfMeasure } from '@/types';
 import { useSession } from 'next-auth/react';
 
