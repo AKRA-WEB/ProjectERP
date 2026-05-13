@@ -4,7 +4,7 @@ import { useState, useEffect, use } from 'react';
 import { get, patch } from '@/lib/api-client';
 import type { PayrollRun } from '@/types';
 import { Button, StatusBadge } from '@/components/ui';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency } from '@/lib/format';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden';
 

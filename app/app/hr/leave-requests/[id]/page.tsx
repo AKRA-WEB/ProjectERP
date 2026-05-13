@@ -5,7 +5,7 @@ import { get, patch } from '@/lib/api-client';
 import type { LeaveRequest, LeaveBalance } from '@/types';
 import { Button, StatusBadge, Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/ui';
 import { useSession } from 'next-auth/react';
-import { formatDate } from '@/lib/utils';
+import { formatDate } from '@/lib/format';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-[0_1px_0_rgba(15,23,42,.03),0_1px_2px_rgba(15,23,42,.04)]';
 

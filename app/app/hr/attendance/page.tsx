@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { get } from '@/lib/api-client';
 import type { AttendanceRecord, HrEmployee } from '@/types';
-import { formatDate } from '@/lib/utils';
+import { formatDate } from '@/lib/format';
 import { Pagination } from '@/components/ui/Pagination';
 
 interface PaginatedAttendance {

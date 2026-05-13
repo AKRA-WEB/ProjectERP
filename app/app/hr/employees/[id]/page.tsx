@@ -4,7 +4,7 @@ import { useState, useEffect, use } from 'react';
 import { get, patch } from '@/lib/api-client';
 import type { HrEmployee, Department, Position, SalaryGrade } from '@/types';
 import { useSession } from 'next-auth/react';
-import { formatDate, formatCurrency } from '@/lib/utils';
+import { formatDate, formatCurrency } from '@/lib/format';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-[0_1px_0_rgba(15,23,42,.03),0_1px_2px_rgba(15,23,42,.04)]';
 
