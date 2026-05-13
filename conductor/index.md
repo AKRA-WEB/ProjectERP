@@ -32,3 +32,6 @@
 | [UoM Framework — global conversions, multi-UoM line fields, admin UI](./tracks/uom-framework/plan.md) | Completed | 2026-05-13 | 2026-05-13 |
 | [Import Vendors from Excel](./tracks/import-vendors/plan.md) | Completed | 2026-05-13 | 2026-05-13 |
 | [Vendor-Product Links (data completeness)](./tracks/vendor-product-links/plan.md) | Completed | 2026-05-13 | 2026-05-13 |
+| [Reorder Point Dashboard + Auto-PR](./tracks/reorder-dashboard/plan.md) | Active | 2026-05-13 | 2026-05-13 |
+| [UoM Phase 2 — Transaction Form Selectors](./tracks/uom-phase2-form-selectors/plan.md) | Active | 2026-05-13 | 2026-05-13 |
+| [Inventory Valuation Report](./tracks/inventory-valuation-report/plan.md) | Active | 2026-05-13 | 2026-05-13 |
