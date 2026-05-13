@@ -29,12 +29,12 @@ export async function GET(
   if (u.role === 'staff' && u.id !== employee_id) return apiError('Forbidden', 403);
 
   const line = await queryOne<{
-    employee_name: string; employee_id_code: string | null;
+    employee_name_th: string; employee_name_en: string; employee_id_code: string | null;
     base_salary: string; allowances: string; ot_pay: string;
     absence_deduction: string; gross_pay: string; sso_employee: string;
     income_tax: string; net_pay: string;
   }>(`
-    SELECT pl.*, u.name AS employee_name, u.employee_id AS employee_id_code
+    SELECT pl.*, u.name_th AS employee_name_th, u.name_en AS employee_name_en, u.employee_id AS employee_id_code
     FROM payroll_lines pl
     JOIN users u ON u.id = pl.employee_id
     WHERE pl.run_id = $1 AND pl.employee_id = $2
@@ -59,7 +59,7 @@ export async function GET(
         </View>
 
         <View style={styles.section}>
-          <View style={styles.row}><Text style={styles.label}>พนักงาน / Employee</Text><Text>{line.employee_name}</Text></View>
+          <View style={styles.row}><Text style={styles.label}>พนักงาน / Employee</Text><Text>{line.employee_name_th || line.employee_name_en}</Text></View>
           {line.employee_id_code && <View style={styles.row}><Text style={styles.label}>รหัสพนักงาน</Text><Text>{line.employee_id_code}</Text></View>}
         </View>
 
@@ -89,7 +89,7 @@ export async function GET(
   return new NextResponse(new Uint8Array(buffer), {
     headers: {
       'Content-Type': 'application/pdf',
-      'Content-Disposition': `inline; filename="slip-${line.employee_name}-${run.period_year}-${String(run.period_month).padStart(2,'0')}.pdf"`,
+      'Content-Disposition': `inline; filename="slip-${(line.employee_name_en || line.employee_name_th).replace(/\s+/g, '_')}-${run.period_year}-${String(run.period_month).padStart(2,'0')}.pdf"`,
     },
   });
 }
