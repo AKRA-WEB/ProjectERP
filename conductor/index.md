@@ -31,3 +31,4 @@
 | [POS Bugfix — session close auth + formatDatetime + VAT constant](./tracks/pos-bugfix/plan.md) | Completed | 2026-05-13 | 2026-05-13 |
 | [UoM Framework — global conversions, multi-UoM line fields, admin UI](./tracks/uom-framework/plan.md) | Completed | 2026-05-13 | 2026-05-13 |
 | [Import Vendors from Excel](./tracks/import-vendors/plan.md) | Completed | 2026-05-13 | 2026-05-13 |
+| [Vendor-Product Links (data completeness)](./tracks/vendor-product-links/plan.md) | Active | 2026-05-13 | 2026-05-13 |
