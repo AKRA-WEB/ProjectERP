@@ -1,92 +1,3 @@
-# Reorder Point Dashboard + Auto-PR
-
-**Goal:** Show all products with `qty_available <= reorder_point` per warehouse, let users select items and create a PR in one click.
-
-**No migrations required.** Data already exists: `stock_balances.qty_available`, `products.reorder_point`.
-
----
-
-## Schema Reference
-
-```
-products: id, sku, name_th, name_en, reorder_point, unit_cost, uom_id, is_active
-stock_balances: (warehouse_id, product_id) PK, qty_on_hand, qty_available (GENERATED)
-warehouses: id, code, name_th
-units_of_measure: id, code
-```
-
----
-
-## Tasks
-
-### Task 1 — API: GET /api/inventory/reorder
-
-- [x] Create `app/api/inventory/reorder/route.ts`:
-
-```typescript
-import { auth } from '@/auth';
-import { apiSuccess, apiError } from '@/lib/api-response';
-import { query } from '@/lib/db/client';
-import { buildWarehouseScopeClause } from '@/lib/authz';
-import type { SessionUser } from '@/lib/authz';
-
-export async function GET(req: Request) {
-  const session = await auth();
-  if (!session?.user) return apiError('Unauthorized', 401);
-  const u = session.user as unknown as SessionUser;
-
-  const { searchParams } = new URL(req.url);
-  const warehouseId = searchParams.get('warehouse_id');
-
-  const conditions: string[] = ['p.is_active = TRUE', 'sb.qty_available <= p.reorder_point'];
-  const params: unknown[] = [];
-  let idx = 1;
-
-  const scope = buildWarehouseScopeClause(u, 'sb.warehouse_id', idx);
-  if (scope) { conditions.push(scope.clause); params.push(...scope.params); idx += scope.params.length; }
-
-  if (warehouseId) { conditions.push(`sb.warehouse_id = $${idx++}`); params.push(warehouseId); }
-
-  const where = `WHERE ${conditions.join(' AND ')}`;
-
-  const rows = await query(
-    `SELECT
-       p.id            AS product_id,
-       p.sku,
-       p.name_th,
-       p.name_en,
-       p.unit_cost,
-       p.reorder_point,
-       u.code          AS uom_code,
-       w.id            AS warehouse_id,
-       w.code          AS warehouse_code,
-       w.name_th       AS warehouse_name,
-       sb.qty_on_hand,
-       sb.qty_available,
-       (p.reorder_point - sb.qty_available) AS qty_deficit
-     FROM stock_balances sb
-     JOIN products p         ON p.id = sb.product_id
-     JOIN units_of_measure u ON u.id = p.uom_id
-     JOIN warehouses w       ON w.id = sb.warehouse_id
-     ${where}
-     ORDER BY qty_deficit DESC, p.sku`,
-    params
-  );
-
-  return apiSuccess(rows);
-}
-```
-
-- [x] Run `npm run lint` → no errors
-- [x] Commit: `feat(inventory): GET /api/inventory/reorder — products below reorder_point per warehouse`
-
----
-
-### Task 2 — Reorder Dashboard Page
-
-- [x] Create `app/app/inventory/reorder/page.tsx`:
-
-```typescript
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -115,7 +26,7 @@ const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-[0_1px_0_rg
 const BTN_PRIMARY = 'h-9 px-4 rounded-[8px] text-[13px] font-medium bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-40 inline-flex items-center gap-1.5 transition-colors';
 const BTN_OUTLINE = 'h-9 px-4 rounded-[8px] text-[13px] font-medium text-stone-700 bg-white border border-stone-200 hover:bg-stone-50 shadow-[0_1px_0_rgba(15,23,42,.03)] inline-flex items-center gap-1.5';
 
-function SeverityBadge({ qty, reorderPoint }: { qty: number; reorderPoint: number }) {
+function SeverityBadge({ qty }: { qty: number }) {
   if (qty <= 0) return (
     <span className="px-2 py-[2px] rounded-full text-[11px] font-medium bg-red-50 text-red-700 border border-red-200">หมดสต็อก</span>
   );
@@ -154,7 +65,8 @@ export default function ReorderDashboardPage() {
   function toggleItem(key: string) {
     setSelected((prev) => {
       const next = new Set(prev);
-      next.has(key) ? next.delete(key) : next.add(key);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       return next;
     });
   }
@@ -306,7 +218,7 @@ export default function ReorderDashboardPage() {
                     <td className="px-4 py-3 text-right tabular-nums text-red-600 font-medium">{Number(item.qty_deficit).toFixed(0)} {item.uom_code}</td>
                     <td className="px-4 py-3 text-right tabular-nums">{formatCurrency(item.unit_cost)}</td>
                     <td className="px-4 py-3 text-center">
-                      <SeverityBadge qty={Number(item.qty_available)} reorderPoint={item.reorder_point} />
+                      <SeverityBadge qty={Number(item.qty_available)} />
                     </td>
                   </tr>
                 );
@@ -318,25 +230,3 @@ export default function ReorderDashboardPage() {
     </div>
   );
 }
-```
-
-- [x] Run `npm run lint` → no errors
-- [x] Start `npm run dev`, open `/app/inventory/reorder`
-- [x] Verify table loads, summary cards show counts, warehouse filter works
-- [x] Verify: select items → "สร้าง PR (N รายการ)" button appears → click → redirects to new PR
-- [x] Commit: `feat(inventory): reorder dashboard page with auto-PR creation`
-
----
-
-### Task 3 — Add Sidebar Link
-
-- [ ] In `components/layout/Sidebar.tsx`, inside the `คลังสินค้า / Inventory` group add after `cycle-counts`:
-
-```typescript
-{ href: '/app/inventory/reorder', label: 'Reorder Dashboard', icon: AlertTriangle, permission: 'inventory:view' },
-```
-
-Note: `AlertTriangle` is already imported in the file (used in Claims nav item). Verify with `grep "AlertTriangle" components/layout/Sidebar.tsx` before adding.
-
-- [ ] Start `npm run dev`, verify sidebar shows new link under Inventory group
-- [ ] Commit: `feat(inventory): add Reorder Dashboard to sidebar`
