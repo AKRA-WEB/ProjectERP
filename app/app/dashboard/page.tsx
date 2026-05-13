@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { get } from '@/lib/api-client';
 import { formatCurrency, formatQty } from '@/lib/format';
+import { KpiCard, KpiGrid } from '@/components/ui';
 import Link from 'next/link';
 import type { Warehouse } from '@/types';
 
@@ -222,79 +223,41 @@ export default function DashboardPage() {
       </div>
 
       {/* KPI Grid */}
-      <div className={`${CARD} overflow-hidden grid grid-cols-2 lg:grid-cols-4`}>
-        {/* PR */}
-        <div className="p-[22px] border-r border-b lg:border-b-0 border-stone-100 flex flex-col gap-2 relative">
-          <div className="text-[12px] text-stone-500 font-medium">PR รอนุมัติ</div>
-          <div className="text-[28px] font-semibold tracking-tight text-stone-950 leading-[1.1] tabular-nums">
-            {loading ? '—' : d(kpi?.pr?.pending_approval)}
-          </div>
-          <div className="text-[11.5px] text-stone-400">
-            สร้าง 30 วัน: <span className="font-mono">{loading ? '—' : d(kpi?.pr?.last_30_days)}</span>
-          </div>
-          <div className="absolute right-4 top-[18px] opacity-90 pointer-events-none">
-            <Sparkline data={SPARK.pr} color="#94a3b8" />
-          </div>
-          <Link href="/app/purchase-requests?status=submitted"
-                className="text-[11.5px] text-emerald-700 hover:underline mt-auto">
-            ดูทั้งหมด →
-          </Link>
-        </div>
-
-        {/* PO */}
-        <div className="p-[22px] border-b lg:border-b-0 lg:border-r border-stone-100 flex flex-col gap-2 relative">
-          <div className="text-[12px] text-stone-500 font-medium">PO ส่งแล้ว</div>
-          <div className="text-[28px] font-semibold tracking-tight text-stone-950 leading-[1.1] tabular-nums">
-            {loading ? '—' : d(kpi?.po?.sent)}
-          </div>
-          <div className="text-[11.5px] text-stone-400">
-            มูลค่า 30 วัน:{' '}
-            <span className="font-mono text-[10.5px]">
-              {loading ? '—' : (kpi?.po?.value_30_days ? formatCurrency(kpi.po.value_30_days) : '—')}
-            </span>
-          </div>
-          <div className="absolute right-4 top-[18px] opacity-90 pointer-events-none">
-            <Sparkline data={SPARK.po} color="#10b981" />
-          </div>
-          <Link href="/app/purchase-orders?status=sent"
-                className="text-[11.5px] text-emerald-700 hover:underline mt-auto">
-            ดูทั้งหมด →
-          </Link>
-        </div>
-
-        {/* GRN */}
-        <div className="p-[22px] border-r border-stone-100 flex flex-col gap-2 relative">
-          <div className="text-[12px] text-stone-500 font-medium">GRN รอดำเนินการ</div>
-          <div className="text-[28px] font-semibold tracking-tight text-stone-950 leading-[1.1] tabular-nums">
-            {loading ? '—' : d(kpi?.grn?.pending)}
-          </div>
-          <div className="text-[11.5px] text-stone-400">
-            นำเข้าเดือนนี้: <span className="font-mono">{loading ? '—' : d(kpi?.grn?.stocked_this_month)}</span>
-          </div>
-          <div className="absolute right-4 top-[18px] opacity-90 pointer-events-none">
-            <Sparkline data={SPARK.grn} color="#10b981" />
-          </div>
-          <Link href="/app/grn" className="text-[11.5px] text-emerald-700 hover:underline mt-auto">
-            ดูทั้งหมด →
-          </Link>
-        </div>
-
-        {/* Low stock */}
-        <div className="p-[22px] flex flex-col gap-2 relative">
-          <div className="text-[12px] text-stone-500 font-medium">สินค้าใกล้หมด</div>
-          <div className="text-[28px] font-semibold tracking-tight text-amber-600 leading-[1.1] tabular-nums">
-            {loading ? '—' : d(kpi?.low_stock?.length)}
-          </div>
-          <div className="text-[11.5px] text-stone-400">ต่ำกว่า reorder point</div>
-          <div className="absolute right-4 top-[18px] opacity-90 pointer-events-none">
-            <Sparkline data={SPARK.low} color="#d97706" />
-          </div>
-          <Link href="/app/inventory?low_stock=true"
-                className="text-[11.5px] text-emerald-700 hover:underline mt-auto">
-            ดูทั้งหมด →
-          </Link>
-        </div>
-      </div>
+      <KpiGrid>
+        <KpiCard
+          label="PR รอนุมัติ"
+          value={d(kpi?.pr?.pending_approval)}
+          subValue={<>สร้าง 30 วัน: <span className="font-mono">{d(kpi?.pr?.last_30_days)}</span></>}
+          sparkline={<Sparkline data={SPARK.pr} color="#94a3b8" />}
+          href="/app/purchase-requests?status=submitted"
+          loading={loading}
+        />
+        <KpiCard
+          label="PO ส่งแล้ว"
+          value={d(kpi?.po?.sent)}
+          subValue={<>มูลค่า 30 วัน: <span className="font-mono text-[10.5px]">{kpi?.po?.value_30_days ? formatCurrency(kpi.po.value_30_days) : '—'}</span></>}
+          sparkline={<Sparkline data={SPARK.po} color="#10b981" />}
+          href="/app/purchase-orders?status=sent"
+          loading={loading}
+        />
+        <KpiCard
+          label="GRN รอดำเนินการ"
+          value={d(kpi?.grn?.pending)}
+          subValue={<>นำเข้าเดือนนี้: <span className="font-mono">{d(kpi?.grn?.stocked_this_month)}</span></>}
+          sparkline={<Sparkline data={SPARK.grn} color="#10b981" />}
+          href="/app/grn"
+          loading={loading}
+        />
+        <KpiCard
+          label="สินค้าใกล้หมด"
+          value={d(kpi?.low_stock?.length)}
+          subValue="ต่ำกว่า reorder point"
+          sparkline={<Sparkline data={SPARK.low} color="#d97706" />}
+          href="/app/inventory?low_stock=true"
+          loading={loading}
+          className="[&_.text-ink]:text-amber-600"
+        />
+      </KpiGrid>
 
       {/* Trend chart + Top received products */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
