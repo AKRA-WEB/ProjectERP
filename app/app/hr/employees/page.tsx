@@ -5,6 +5,7 @@ import { get } from '@/lib/api-client';
 import type { HrEmployee, Department, EmployeeStatus } from '@/types';
 import Link from 'next/link';
 import { Pagination } from '@/components/ui/Pagination';
+import { formatNumber } from '@/lib/format';
 
 
 const AVATAR_COLORS = [
@@ -73,7 +74,7 @@ export default function EmployeesPage() {
             พนักงาน / Employees
           </h1>
           <p className="text-[13.5px] text-stone-500">
-            {loading ? '—' : (data?.total ?? 0).toLocaleString('th-TH')} คน
+            {loading ? '—' : formatNumber(data?.total ?? 0)} คน
           </p>
         </div>
       </div>
