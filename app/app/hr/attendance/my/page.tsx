@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { get, post } from '@/lib/api-client';
+import { formatDate } from '@/lib/format';
 import type { AttendanceRecord } from '@/types';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-[0_1px_0_rgba(15,23,42,.03),0_1px_2px_rgba(15,23,42,.04)]';
@@ -73,7 +74,7 @@ export default function MyAttendancePage() {
         <div className="p-8 text-center space-y-6">
           <div className="space-y-1">
             <p className="text-[14px] text-stone-500 uppercase tracking-widest">วันนี้ / Today</p>
-            <p className="text-[32px] font-bold text-stone-950">{new Date().toLocaleDateString('th-TH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+            <p className="text-[32px] font-bold text-stone-950">{formatDate(new Date())}</p>
           </div>
 
           <div className="flex justify-center gap-12">
@@ -136,7 +137,7 @@ export default function MyAttendancePage() {
               <tbody>
                 {history.map((r) => (
                   <tr key={r.id} className="border-t border-stone-50">
-                    <td className="py-3 px-3 font-medium text-stone-900">{new Date(r.work_date).toLocaleDateString('th-TH', { day: '2-digit', month: 'short' })}</td>
+                    <td className="py-3 px-3 font-medium text-stone-900">{formatDate(r.work_date)}</td>
                     <td className="py-3 px-3 font-mono text-stone-600">{r.clock_in ? new Date(r.clock_in).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) : '--:--'}</td>
                     <td className="py-3 px-3 font-mono text-stone-600">{r.clock_out ? new Date(r.clock_out).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) : '--:--'}</td>
                     <td className="py-3 px-3 text-right text-stone-600 font-mono">{r.ot_hours > 0 ? r.ot_hours.toFixed(1) : '—'}</td>
