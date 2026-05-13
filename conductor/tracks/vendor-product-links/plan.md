@@ -320,8 +320,8 @@ export default function ProductDetailPage() {
 
 ### Task 4 — Update conductor/index.md and Commit
 
-- [ ] Add entry to `conductor/index.md`:
+- [x] Add entry to `conductor/index.md`:
   ```
   | [Vendor-Product Links (data completeness)](./tracks/vendor-product-links/plan.md) | Completed | 2026-05-13 | 2026-05-13 |
   ```
-- [ ] Commit: `chore: conductor — vendor-product-links track`
+- [x] Commit: `chore: conductor — vendor-product-links track`
