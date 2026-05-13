@@ -99,7 +99,7 @@ with:
 
 ### C1 — `app/app/hr/attendance/my/page.tsx`
 
-`formatDate` already imported at line 5 — no new import needed.
+Add import: `import { formatDate } from '@/lib/format';` (file has no format imports currently).
 
 Line 76: replace:
 ```tsx
@@ -199,5 +199,11 @@ THAI_MONTHS[m - 1]
 
 ## Chen Review Notes (2026-05-13)
 
-- `attendance/page.tsx`, `leave-requests/new/page.tsx`, `leave-requests/[id]/page.tsx`, `payroll-runs/[id]/page.tsx` — verified by full grep, no `toLocaleDateString`/`toLocaleString` present. Out of scope confirmed.
-- `leave-requests/page.tsx` and `payroll/page.tsx` import from `@/lib/utils` (wrong) — fixed in C3/C4 above.
+All HR pages live in `app/app/hr/` — NOT `app/(app)/hr/` (that directory has no HR module).
+
+Verified by full grep against real files:
+- `leave-requests/page.tsx` already uses `employee_name_th/en` — no `employee_name` issue
+- `payroll/page.tsx` only uses `formatCurrency` — no `employee_name`/`manager_name`/`formatDate` without import
+- `attendance/my/page.tsx` has NO existing format imports — C1 must ADD import
+- `attendance/page.tsx`, `leave-requests/new/page.tsx`, `leave-requests/[id]/page.tsx`, `payroll-runs/[id]/page.tsx` — confirmed no `toLocaleDateString`/`toLocaleString` — out of scope
+- `leave-requests/page.tsx` and `payroll/page.tsx` import from `@/lib/utils` (wrong source) — fixed in C3/C4
