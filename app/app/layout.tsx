@@ -3,15 +3,27 @@ import { useState } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { useSession } from 'next-auth/react';
+import { usePathname } from 'next/navigation';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { data: session } = useSession();
+  const pathname = usePathname();
+
+  const isMenuPage = pathname === '/app/menu';
 
   const user = session?.user as { role?: string; permissions?: string[]; name?: string } | undefined;
   const userRole = user?.role;
   const permissions = user?.permissions ?? [];
+
+  if (isMenuPage) {
+    return (
+      <div className="min-h-screen bg-[#f6f4ef] flex flex-col items-center justify-center px-6 py-14">
+        {children}
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">

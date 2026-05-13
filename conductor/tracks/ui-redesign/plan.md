@@ -304,32 +304,19 @@ Merge into this track — see `dynamic-sidebar/plan.md` Phase 1.6 for module hea
 
 ### 4.1 Global search bar (center)
 
-- [ ] **4.1a** Add search input between breadcrumbs and right section:
-  ```tsx
-  <div className="flex-1 max-w-[480px] mx-auto flex items-center gap-2 bg-surface-sunken border border-line rounded-lg px-2.5 py-1.5 text-ink-3 text-[13px] cursor-text hover:border-line-strong transition-colors">
-    <Search className="w-[14px] h-[14px] shrink-0" />
-    <span className="flex-1">ค้นหา...</span>
-    <kbd className="font-mono text-[10.5px] px-[5px] py-px border border-line rounded bg-white text-ink-3">⌘K</kbd>
-  </div>
-  ```
-- [ ] **4.1b** `onClick` → open search modal (modal shows "Coming soon" or empty state for now)
-- [ ] **4.1c** `useEffect` — register `⌘K` / `Ctrl+K` keyboard shortcut to open modal
+- [x] **4.1a** Add search input between breadcrumbs and right section
+- [x] **4.1b** `onClick` → open search modal (modal shows "Coming soon" or empty state for now)
+- [x] **4.1c** `useEffect` — register `⌘K` / `Ctrl+K` keyboard shortcut to open modal
 
 ### 4.2 Notification bell + dot badge
 
-- [ ] **4.2a** Add notification bell button before user section:
-  ```tsx
-  <button className="relative w-8 h-8 rounded-[7px] grid place-items-center text-ink-2 hover:bg-surface-sunken hover:text-ink transition-colors">
-    <Bell className="w-[18px] h-[18px]" strokeWidth={1.6} />
-    <span className="absolute top-[7px] right-[8px] w-1.5 h-1.5 rounded-full bg-accent border-[1.5px] border-white" />
-  </button>
-  ```
-- [ ] **4.2b** Bell click → show placeholder notification panel (empty state for now)
+- [x] **4.2a** Add notification bell button before user section
+- [x] **4.2b** Bell click → show placeholder notification panel (empty state for now)
 
 ### 4.3 TopBar breadcrumb home link
 
-- [ ] **4.3a** Change home SVG → `<Home className="w-3.5 h-3.5" />` from lucide-react
-- [ ] **4.3b** Link to `/app/menu`
+- [x] **4.3a** Change home SVG → `<Home className="w-3.5 h-3.5" />` from lucide-react
+- [x] **4.3b** Link to `/app/menu`
 
 ---
 
@@ -337,24 +324,11 @@ Merge into this track — see `dynamic-sidebar/plan.md` Phase 1.6 for module hea
 
 ### 5.1 Update `components/ui/KpiGrid.tsx` and `KpiCard.tsx`
 
-- [ ] **5.1a** `KpiGrid` — change from `gap-4` grid → joined bar:
-  ```tsx
-  <div className="flex bg-white border border-line rounded-[var(--r-lg)] shadow-1 overflow-hidden divide-x divide-line-soft">
-    {children}
-  </div>
-  ```
-- [ ] **5.1b** `KpiCard` — each cell: `flex-1 p-[var(--kpi-pad)] flex flex-col gap-2 relative`
-- [ ] **5.1c** Add optional `delta` prop (`{ value: number; direction: 'up' | 'down' }`):
-  ```tsx
-  {delta && (
-    <div className={`inline-flex items-center gap-1 text-[12px] font-medium tabular-nums ${delta.direction === 'up' ? 'text-accent-ink' : 'text-danger'}`}>
-      {delta.direction === 'up' ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-      {Math.abs(delta.value)}%
-    </div>
-  )}
-  ```
-- [ ] **5.1d** KPI value: font-display, 28px, weight 600, tracking -0.02em, tabular-nums
-- [ ] **5.1e** Sparkline position: `absolute right-4 top-[18px]` (unchanged)
+- [x] **5.1a** `KpiGrid` — change from `gap-4` grid → joined bar
+- [x] **5.1b** `KpiCard` — each cell: `flex-1 p-[var(--kpi-pad)] flex flex-col gap-2 relative`
+- [x] **5.1c** Add optional `delta` prop (`{ value: number; direction: 'up' | 'down' }`)
+- [x] **5.1d** KPI value: font-display, 28px, weight 600, tracking -0.02em, tabular-nums
+- [x] **5.1e** Sparkline position: `absolute right-4 top-[18px]` (unchanged)
 
 ---
 
@@ -362,103 +336,36 @@ Merge into this track — see `dynamic-sidebar/plan.md` Phase 1.6 for module hea
 
 ### 6.1 `SegControl` component — `components/ui/SegControl.tsx`
 
-```typescript
-interface SegControlProps {
-  options: { value: string; label: string }[];
-  value: string;
-  onChange: (v: string) => void;
-}
-```
-
-Render:
-```tsx
-<div className="inline-flex bg-surface-sunken border border-line rounded-lg p-0.5 gap-0.5">
-  {options.map(opt => (
-    <button key={opt.value}
-      className={`h-[26px] px-[11px] rounded-md text-[12.5px] font-medium transition-all ${
-        value === opt.value
-          ? 'bg-white text-ink shadow-1'
-          : 'text-ink-3 hover:text-ink-1'
-      }`}
-      onClick={() => onChange(opt.value)}
-    >{opt.label}</button>
-  ))}
-</div>
-```
-
-- [ ] **6.1a** Create `SegControl` component
-- [ ] **6.1b** Export from `components/ui/index.ts`
+- [x] **6.1a** Create `SegControl` component
+- [x] **6.1b** Export from `components/ui/index.ts`
 
 ### 6.2 `Tabs` / `Tab` components — `components/ui/Tabs.tsx`
 
-```typescript
-interface TabsProps { children: React.ReactNode; }
-interface TabProps {
-  active?: boolean;
-  onClick?: () => void;
-  count?: number;
-  children: React.ReactNode;
-}
-```
-
-Render:
-```tsx
-// Tabs wrapper
-<div className="flex border-b border-line mb-[var(--gap-section)]">{children}</div>
-
-// Tab item
-<button className={`px-3.5 py-2.5 text-[13.5px] font-medium border-b-2 -mb-px inline-flex items-center gap-1.5 transition-colors ${
-  active ? 'text-ink border-ink' : 'text-ink-3 border-transparent hover:text-ink-1'
-}`}>
-  {children}
-  {count !== undefined && (
-    <span className="font-mono text-[10.5px] px-[5px] py-px bg-surface-sunken text-ink-3 rounded-full">{count}</span>
-  )}
-</button>
-```
-
-- [ ] **6.2a** Create `Tabs` and `Tab` components
-- [ ] **6.2b** Export from `components/ui/index.ts`
+- [x] **6.2a** Create `Tabs` and `Tab` components
+- [x] **6.2b** Export from `components/ui/index.ts`
 
 ### 6.3 Update `StatusBadge` → pill style
 
-Current `StatusBadge` uses basic badge. Update to pill pattern from design:
-
-```tsx
-// Base: pill with ::before dot
-className="inline-flex items-center gap-[5px] px-2 py-[2px] text-[11.5px] font-medium rounded-full border leading-[1.5] bg-white"
-
-// Before dot (pseudo → real element in React):
-<span className="w-1.5 h-1.5 rounded-full bg-current" />
-
-// Variants:
-ok:     "text-accent-ink border-accent-line bg-accent-soft"
-warn:   "text-amber-700 border-yellow-300 bg-amber-50"
-danger: "text-red-700 border-red-200 bg-red-50"
-info:   "text-blue-700 border-blue-200 bg-blue-50"
-muted:  "text-ink-2 border-line bg-surface-sunken"
-```
-
-- [ ] **6.3a** Update `components/ui/StatusBadge.tsx` to use pill style
-- [ ] **6.3b** Map existing status strings → pill variants (use existing status mapping)
+- [x] **6.3a** Update `components/ui/StatusBadge.tsx` to use pill style
+- [x] **6.3b** Map existing status strings → pill variants (use existing status mapping)
 
 ---
 
 ## Acceptance Criteria
 
-- [ ] IBM Plex Sans Thai renders in browser (verify: Thai text shows with serif-like quality)
-- [ ] `/app/menu` renders standalone (no sidebar, no topbar), paper background `#f6f4ef`
-- [ ] Main Menu shows 5 module cards with SVG icons, role-filtered
-- [ ] Sidebar shows Lucide icons (no emoji visible)
-- [ ] Sidebar shows user avatar/name/role at bottom
-- [ ] "จัดการเมนู" toggles edit mode; hidden items persist on refresh
-- [ ] TopBar shows search bar (center) + bell icon (right)
-- [ ] `⌘K` / `Ctrl+K` opens search modal (even if empty)
-- [ ] KPI grid renders as joined bar (no individual card gaps)
-- [ ] `<SegControl>` renders and toggles correctly
-- [ ] `<Tabs>/<Tab>` renders with active underline + count pill
-- [ ] `<StatusBadge>` shows dot pill style
-- [ ] `npm run lint` passes
+- [x] IBM Plex Sans Thai renders in browser (verify: Thai text shows with serif-like quality)
+- [x] `/app/menu` renders standalone (no sidebar, no topbar), paper background `#f6f4ef`
+- [x] Main Menu shows 5 module cards with SVG icons, role-filtered
+- [x] Sidebar shows Lucide icons (no emoji visible)
+- [x] Sidebar shows user avatar/name/role at bottom
+- [x] "จัดการเมนู" toggles edit mode; hidden items persist on refresh
+- [x] TopBar shows search bar (center) + bell icon (right)
+- [x] `⌘K` / `Ctrl+K` opens search modal (even if empty)
+- [x] KPI grid renders as joined bar (no individual card gaps)
+- [x] `<SegControl>` renders and toggles correctly
+- [x] `<Tabs>/<Tab>` renders with active underline + count pill
+- [x] `<StatusBadge>` shows dot pill style
+- [x] `npm run lint` passes
 
 ---
 

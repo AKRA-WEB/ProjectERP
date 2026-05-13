@@ -1,7 +1,14 @@
-import { Badge } from './Badge';
-
 // Old → New: gray→muted, blue→info, green→ok, yellow→warn, red→danger, orange→warn, purple→purple
 type BadgeVariant = 'ok' | 'warn' | 'danger' | 'info' | 'muted' | 'purple';
+
+const VARIANT_CLASSES: Record<BadgeVariant, string> = {
+  ok: 'text-accent-ink border-accent-line bg-accent-soft',
+  warn: 'text-amber-700 border-yellow-300 bg-amber-50',
+  danger: 'text-red-700 border-red-200 bg-red-50',
+  info: 'text-blue-700 border-blue-200 bg-blue-50',
+  muted: 'text-ink-2 border-line bg-surface-sunken',
+  purple: 'text-purple-700 border-purple-200 bg-purple-50',
+};
 
 const STATUS_CONFIG: Record<string, { variant: BadgeVariant }> = {
   draft:               { variant: 'muted' },
@@ -85,10 +92,14 @@ interface StatusBadgeProps {
 
 export function StatusBadge({ status, labelOverride }: StatusBadgeProps) {
   const config = STATUS_CONFIG[status] ?? { variant: 'muted' as BadgeVariant };
+  const variantClass = VARIANT_CLASSES[config.variant];
+  const label = labelOverride ?? LABEL_TH[status] ?? status.replace(/_/g, ' ');
+
   return (
-    <Badge variant={config.variant}>
-      {labelOverride ?? LABEL_TH[status] ?? status.replace(/_/g, ' ')}
-    </Badge>
+    <span className={`inline-flex items-center gap-[5px] px-2 py-[2px] text-[11.5px] font-medium rounded-full border leading-[1.5] bg-white ${variantClass}`}>
+      <span className="w-1.5 h-1.5 rounded-full bg-current" />
+      {label}
+    </span>
   );
 }
 

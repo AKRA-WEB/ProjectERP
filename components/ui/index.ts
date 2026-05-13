@@ -14,3 +14,6 @@ export { DateRangePicker } from './DateRangePicker';
 export { ErrorBoundary } from './ErrorBoundary';
 export { Card, CardHeader, CardBody, CardFooter } from './Card';
 export { KpiCard, KpiGrid } from './KpiCard';
+export { SegControl } from './SegControl';
+export { Tabs, Tab } from './Tabs';
+

@@ -3,6 +3,7 @@
 import { ReactNode } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 
 interface KpiCardProps {
   label: string;
@@ -13,6 +14,7 @@ interface KpiCardProps {
   hrefLabel?: string;
   className?: string;
   loading?: boolean;
+  delta?: { value: number; direction: 'up' | 'down' };
 }
 
 export function KpiCard({
@@ -24,20 +26,33 @@ export function KpiCard({
   hrefLabel = 'ดูทั้งหมด →',
   className,
   loading = false,
+  delta,
 }: KpiCardProps) {
   return (
     <div className={cn(
-      'p-[22px] flex flex-col gap-2 relative min-h-[140px]',
+      'flex-1 p-[22px] flex flex-col gap-2 relative min-h-[140px]',
       className
     )}>
       <div className="text-[12px] text-ink-3 font-medium uppercase tracking-wider">{label}</div>
       
       <div className="flex-1">
-        <div className="text-[28px] font-semibold tracking-tight text-ink leading-[1.1] tabular-nums">
-          {loading ? (
-            <div className="h-8 w-24 bg-surface-sunken animate-pulse rounded" />
-          ) : (
-            value ?? '—'
+        <div className="flex items-center gap-2">
+          <div className="text-[28px] font-semibold tracking-[-0.02em] text-ink leading-[1.1] tabular-nums font-sans">
+            {loading ? (
+              <div className="h-8 w-24 bg-surface-sunken animate-pulse rounded" />
+            ) : (
+              value ?? '—'
+            )}
+          </div>
+          
+          {!loading && delta && (
+            <div className={cn(
+              "inline-flex items-center gap-1 text-[12px] font-medium tabular-nums",
+              delta.direction === 'up' ? 'text-accent-ink' : 'text-danger'
+            )}>
+              {delta.direction === 'up' ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+              {Math.abs(delta.value)}%
+            </div>
           )}
         </div>
         
@@ -59,7 +74,7 @@ export function KpiCard({
       {!loading && href && (
         <Link 
           href={href}
-          className="text-[11.5px] font-medium text-accent-ink hover:underline mt-auto pt-2"
+          className="text-[11.5px] font-medium text-accent-ink hover:underline mt-auto pt-2 inline-block"
         >
           {hrefLabel}
         </Link>
@@ -71,7 +86,7 @@ export function KpiCard({
 export function KpiGrid({ children, className }: { children: ReactNode; className?: string }) {
   return (
     <div className={cn(
-      'bg-white border border-line rounded-lg shadow-1 overflow-hidden grid grid-cols-2 lg:grid-cols-4 divide-x divide-y lg:divide-y-0 divide-line-soft',
+      'flex flex-col md:flex-row bg-white border border-line rounded-[var(--r-lg)] shadow-1 overflow-hidden md:divide-x divide-y md:divide-y-0 divide-line-soft',
       className
     )}>
       {children}
