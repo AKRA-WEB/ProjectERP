@@ -8,7 +8,7 @@ import {
   LayoutDashboard, ClipboardList, ShoppingCart, PackageCheck, PackagePlus,
   Archive, ArrowLeftRight, Hash, Undo2, AlertTriangle, Package, Layers,
   Building2, UserCircle, FileText, Receipt, Truck, CreditCard, ShoppingBag,
-  History, BarChart3, Calendar, BookOpen, Scale, TrendingDown, Landmark,
+  History, BarChart3, BarChart2, Calendar, BookOpen, Scale, TrendingDown, Landmark,
   Clock, Banknote, Users, Building, Timer, Wallet, Settings, KeyRound,
   Warehouse, ChevronLeft, CheckSquare, Square
 } from 'lucide-react';
@@ -56,6 +56,7 @@ const MODULE_NAV: Record<ModuleKey, NavGroup[]> = {
     {
       label: 'จัดซื้อ / Purchasing',
       items: [
+        { href: '/app/receiving/new', label: 'เปิดคำสั่งซื้อ', icon: PackagePlus, permission: 'grn:create' },
         { href: '/app/purchase-requests', label: 'Purchase Requests', icon: ClipboardList, permission: 'pr:view' },
         { href: '/app/purchase-orders',   label: 'Purchase Orders',   icon: ShoppingCart, permission: 'po:view' },
         { href: '/app/inbound-orders',    label: 'Inbound Orders',    icon: PackageCheck, permission: 'inbound_orders:view' },
@@ -69,10 +70,18 @@ const MODULE_NAV: Record<ModuleKey, NavGroup[]> = {
       ],
     },
     {
+      label: 'งานหยิบและจัดส่ง / Outbound',
+      items: [
+        { href: '/app/picking',   label: 'รายการหยิบสินค้า', icon: ClipboardList, permission: 'inventory:view' },
+        { href: '/app/shipments', label: 'รายการจัดส่งสินค้า', icon: Truck,         permission: 'inventory:view' },
+      ],
+    },
+    {
       label: 'คลังสินค้า / Inventory',
       items: [
         { href: '/app/inventory',    label: 'Inventory',     icon: Archive, permission: 'inventory:view' },
         { href: '/app/inventory/reorder', label: 'Reorder Dashboard', icon: AlertTriangle, permission: 'inventory:view' },
+        { href: '/app/inventory/valuation', label: 'Inventory Valuation', icon: BarChart2, permission: 'inventory:view' },
         { href: '/app/transfers',    label: 'Transfers',     icon: ArrowLeftRight, permission: 'transfers:view' },
         { href: '/app/cycle-counts', label: 'Cycle Counts',  icon: Hash, permission: 'cycle_counts:view' },
       ],
@@ -100,6 +109,8 @@ const MODULE_NAV: Record<ModuleKey, NavGroup[]> = {
       items: [
         { href: '/app/pos',          label: 'POS Terminal',    icon: ShoppingBag, permission: 'pos:cashier' },
         { href: '/app/pos/sessions', label: 'Session History', icon: History, permission: 'pos:view' },
+        { href: '/app/pos/members',  label: 'สมาชิก / Members', icon: Users, permission: 'pos:members' },
+        { href: '/app/pos/shifts',   label: 'รายงานกะ / Shifts', icon: FileText, permission: 'pos:view' },
       ],
     },
   ],
@@ -180,6 +191,7 @@ function detectModule(pathname: string): ModuleKey | null {
     '/app/inbound-orders', '/app/grn', '/app/rma', '/app/claims',
     '/app/transfers', '/app/cycle-counts', '/app/inventory',
     '/app/products', '/app/vendors', '/app/bom', '/app/inventory/reorder',
+    '/app/picking', '/app/shipments',
   ];
 
   if (WMS_PREFIXES.some(p => pathname === p || pathname.startsWith(p + '/'))) return 'wms';

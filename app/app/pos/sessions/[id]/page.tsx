@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { get, patch } from '@/lib/api-client';
-import { formatCurrency, formatQty } from '@/lib/format';
+import { formatCurrency, formatDatetime, formatQty } from '@/lib/format';
 import { Button } from '@/components/ui/Button';
 import { Table } from '@/components/ui/Table';
 import { StatusBadge } from '@/components/ui/StatusBadge';
@@ -122,14 +122,20 @@ export default function SessionDetailPage() {
               <span className="text-stone-500">แคชเชียร์:</span>
               <span className="font-medium">{sessionData.opened_by_name}</span>
             </div>
+            {sessionData.shift_name_th && (
+              <div className="flex justify-between">
+                <span className="text-stone-500">กะ / Shift:</span>
+                <span className="font-bold text-emerald-700">{sessionData.shift_name_th}</span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span className="text-stone-500">เวลาเปิด:</span>
-              <span className="font-medium">{new Date(sessionData.opened_at).toLocaleString('th-TH')}</span>
+              <span className="font-medium">{formatDatetime(sessionData.opened_at)}</span>
             </div>
             {sessionData.closed_at && (
               <div className="flex justify-between">
                 <span className="text-stone-500">เวลาปิด:</span>
-                <span className="font-medium">{new Date(sessionData.closed_at).toLocaleString('th-TH')}</span>
+                <span className="font-medium">{formatDatetime(sessionData.closed_at)}</span>
               </div>
             )}
           </div>
@@ -279,7 +285,7 @@ export default function SessionDetailPage() {
                           <div className="mt-4 p-3 bg-red-50 border border-red-100 rounded text-red-700 text-xs">
                             <span className="font-bold uppercase tracking-wider">Voided Info:</span> {t.void_reason} 
                             <span className="ml-2 italic opacity-75">
-                              by {t.voided_by_name} at {t.voided_at ? new Date(t.voided_at).toLocaleString('th-TH') : ''}
+                              by {t.voided_by_name} at {formatDatetime(t.voided_at)}
                             </span>
                           </div>
                         )}

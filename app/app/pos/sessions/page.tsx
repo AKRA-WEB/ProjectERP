@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { get } from '@/lib/api-client';
-import { formatCurrency } from '@/lib/format';
+import { formatCurrency, formatDatetime } from '@/lib/format';
 import { Button } from '@/components/ui/Button';
 import { Table } from '@/components/ui/Table';
 import { Pagination } from '@/components/ui/Pagination';
@@ -109,10 +109,10 @@ export default function SessionHistoryPage() {
               <td className="px-5 py-4 text-stone-600">{s.opened_by_name}</td>
               <td className="px-5 py-4"><StatusBadge status={s.status} /></td>
               <td className="px-5 py-4 text-xs text-stone-500">
-                {new Date(s.opened_at).toLocaleString('th-TH')}
+                {formatDatetime(s.opened_at)}
               </td>
               <td className="px-5 py-4 text-xs text-stone-500">
-                {s.closed_at ? new Date(s.closed_at).toLocaleString('th-TH') : '—'}
+                {formatDatetime(s.closed_at)}
               </td>
               <td className="px-5 py-4 font-mono font-bold text-emerald-600 text-right">
                 {formatCurrency(s.total_sales ?? 0)}

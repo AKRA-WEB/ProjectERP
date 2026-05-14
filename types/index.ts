@@ -9,7 +9,7 @@ export type GrnStatus = 'draft' | 'received' | 'verified' | 'qc_pending' | 'qc_p
 export type PrStatus = 'draft' | 'submitted' | 'manager_approved' | 'admin_approved' | 'rejected' | 'converted_to_po';
 export type PoStatus = 'draft' | 'sent' | 'partially_received' | 'fully_received' | 'invoiced' | 'paid' | 'closed' | 'cancelled';
 export type CycleCountStatus = 'open' | 'counting' | 'pending_approval' | 'approved' | 'closed';
-export type LedgerEntryType = 'grn_receipt' | 'grn_qc_reject' | 'rma_return' | 'rma_vendor_return' | 'transfer_out' | 'transfer_in' | 'cycle_count_adjustment' | 'po_reversal' | 'manual_adjustment' | 'pos_sale' | 'pos_void';
+export type LedgerEntryType = 'grn_receipt' | 'grn_qc_reject' | 'rma_return' | 'rma_vendor_return' | 'transfer_out' | 'transfer_in' | 'cycle_count_adjustment' | 'po_reversal' | 'manual_adjustment' | 'pos_sale' | 'pos_void' | 'pick_dispatch';
 
 export type PosSessionStatus = 'open' | 'closed';
 export type PosTransactionStatus = 'completed' | 'voided';
@@ -27,12 +27,61 @@ export interface PosSession {
   status: PosSessionStatus;
   opening_float: number;
   closing_float: number | null;
+  shift_id?: string | null;
+  shift_name_th?: string | null;
+  shift_name_en?: string | null;
   opened_at: string;
   closed_at: string | null;
   notes: string | null;
   transaction_count?: number;
   total_sales?: number;
   created_at: string;
+}
+
+export interface PosShift {
+  id: string;
+  name_th: string;
+  name_en: string;
+  start_time: string;
+  end_time: string;
+  is_active: boolean;
+}
+
+export interface PosMember {
+  id: string;
+  member_number: string;
+  name_th: string;
+  phone: string;
+  email: string | null;
+  tier: string;
+  discount_rate: number;
+  point_balance: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PosHeldCart {
+  id: string;
+  hold_number: string;
+  session_id: string;
+  warehouse_id: string;
+  note: string | null;
+  created_by: string;
+  created_at: string;
+  line_count?: number;
+}
+
+export interface PosHeldCartLine {
+  id: string;
+  held_cart_id: string;
+  product_id: string;
+  qty: number;
+  unit_price: number;
+  discount_amount: number;
+  name_th?: string;
+  sku?: string;
+  image_url?: string;
 }
 
 export interface PosProduct {
@@ -43,6 +92,9 @@ export interface PosProduct {
   name_en: string | null;
   selling_price: number;
   qty_available: number;
+  image_url?: string | null;
+  reorder_point?: number;
+  category_id?: string | null;
 }
 
 export interface PosTransactionLine {
@@ -76,6 +128,9 @@ export interface PosTransaction {
   voided_by_name?: string | null;
   voided_at: string | null;
   void_reason: string | null;
+  member_id?: string | null;
+  member_discount?: number;
+  points_earned?: number;
   created_by: string;
   cashier_name: string;
   lines?: PosTransactionLine[];
@@ -343,6 +398,13 @@ export interface Product {
   is_lot_tracked: boolean;
   is_serial_tracked: boolean;
   created_at: string;
+}
+
+export interface ProductCategory {
+  id: string;
+  code: string;
+  name_th: string;
+  name_en: string;
 }
 
 export interface StockBalance {
@@ -772,5 +834,62 @@ export interface BomHeader {
   created_by_name: string;
   created_at: string;
   updated_at: string;
+}
+
+export type PickListStatus = 'draft' | 'open' | 'picking' | 'completed' | 'cancelled';
+export type PickLineStatus = 'pending' | 'picked' | 'short_picked';
+export type ShipmentStatus = 'pending' | 'shipped' | 'delivered';
+
+export interface PickList {
+  id: string;
+  pick_number: string;
+  sales_order_id: string | null;
+  so_number?: string | null;
+  warehouse_id: string;
+  warehouse_name?: string;
+  status: PickListStatus;
+  assigned_to: string | null;
+  assigned_to_name?: string | null;
+  created_by: string;
+  created_by_name?: string;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  lines?: PickListLine[];
+}
+
+export interface PickListLine {
+  id: string;
+  pick_list_id: string;
+  product_id: string;
+  product_name?: string;
+  product_sku?: string;
+  qty_requested: number;
+  qty_picked: number;
+  storage_location: string | null;
+  status: PickLineStatus;
+  qty_available?: number;
+  qty_on_hand?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Shipment {
+  id: string;
+  shipment_number: string;
+  pick_list_id: string;
+  pick_number?: string;
+  warehouse_id: string;
+  warehouse_name?: string;
+  shipped_by: string | null;
+  shipped_by_name?: string | null;
+  ship_date: string | null;
+  carrier: string | null;
+  tracking_number: string | null;
+  notes: string | null;
+  status: ShipmentStatus;
+  created_at: string;
+  updated_at: string;
+  lines?: PickListLine[];
 }
 

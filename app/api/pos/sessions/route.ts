@@ -10,6 +10,7 @@ const createSchema = z.object({
   warehouse_id: z.string().uuid(),
   opening_float: z.number().min(0),
   notes: z.string().optional(),
+  shift_id: z.string().uuid().optional().nullable(),
 });
 
 export async function GET(req: Request) {
@@ -25,6 +26,8 @@ export async function GET(req: Request) {
   const offset = (page - 1) * limit;
   const status = searchParams.get('status');
   const warehouseId = searchParams.get('warehouse_id');
+  const from = searchParams.get('from');
+  const to = searchParams.get('to');
 
   const conditions: string[] = [];
   const params: unknown[] = [];
@@ -45,6 +48,14 @@ export async function GET(req: Request) {
     conditions.push(`s.warehouse_id = $${idx++}`);
     params.push(warehouseId);
   }
+  if (from) {
+    conditions.push(`s.opened_at >= $${idx++}`);
+    params.push(from);
+  }
+  if (to) {
+    conditions.push(`s.opened_at <= $${idx++}`);
+    params.push(`${to} 23:59:59`);
+  }
 
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
   const [total] = await query<{ count: string }>(`SELECT COUNT(*) FROM pos_sessions s ${where}`, params);
@@ -53,11 +64,13 @@ export async function GET(req: Request) {
     `SELECT s.*, 
             w.name_th AS warehouse_name_th, w.name_en AS warehouse_name_en,
             u_open.name_en AS opened_by_name,
+            ps.name_th AS shift_name_th, ps.name_en AS shift_name_en,
             (SELECT COUNT(*) FROM pos_transactions t WHERE t.session_id = s.id) AS transaction_count,
             (SELECT COALESCE(SUM(total), 0) FROM pos_transactions t WHERE t.session_id = s.id AND t.status = 'completed') AS total_sales
      FROM pos_sessions s
      JOIN warehouses w ON w.id = s.warehouse_id
      JOIN users u_open ON u_open.id = s.opened_by
+     LEFT JOIN pos_shifts ps ON ps.id = s.shift_id
      ${where}
      ORDER BY s.opened_at DESC
      LIMIT $${idx++} OFFSET $${idx++}`,
@@ -95,10 +108,10 @@ export async function POST(req: Request) {
   if (existing) return apiError('You already have an open session for this warehouse', 409);
 
   const newSession = await queryOne(
-    `INSERT INTO pos_sessions (warehouse_id, opened_by, opening_float, notes)
-     VALUES ($1, $2, $3, $4)
+    `INSERT INTO pos_sessions (warehouse_id, opened_by, opening_float, notes, shift_id)
+     VALUES ($1, $2, $3, $4, $5)
      RETURNING *`,
-    [parsed.data.warehouse_id, u.id, parsed.data.opening_float, parsed.data.notes ?? null]
+    [parsed.data.warehouse_id, u.id, parsed.data.opening_float, parsed.data.notes ?? null, parsed.data.shift_id ?? null]
   );
 
   return apiSuccess(newSession, 201);
