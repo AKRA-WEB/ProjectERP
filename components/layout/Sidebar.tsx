@@ -287,7 +287,7 @@ export function Sidebar({ open, onClose, userRole, permissions, collapsed, onTog
     <aside
       style={{ viewTransitionName: 'site-sidebar' }}
       className={cn(
-        'fixed inset-y-0 left-0 z-30 flex h-full flex-col border-r border-line-soft bg-surface-soft transition-all duration-300 ease-in-out md:static md:translate-x-0 md:z-auto',
+        'fixed inset-y-0 left-0 z-50 flex h-full flex-col border-r border-line-soft bg-surface-soft transition-all duration-300 ease-in-out md:static md:translate-x-0 md:z-auto',
         open ? 'translate-x-0' : '-translate-x-full',
         collapsed ? 'w-[64px]' : 'w-64'
       )}

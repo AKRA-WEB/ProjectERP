@@ -117,3 +117,9 @@ import { formatDatetime } from '@/lib/format';
 ```
 **Found in:** task [R-004] of track [ui-improvement-dashboard] (2026-05-16)
 
+## ❌ Trap — Mobile Sidebar Z-Index Layering
+**Symptom:** Hamburger menu opens sidebar, but nothing inside (links, close button) is clickable.
+**Root cause:** The dark backdrop overlay has a higher `z-index` than the sidebar drawer itself (e.g., Backdrop `z-40` vs Sidebar `z-30`). The invisible area of the backdrop sits "on top" of the sidebar, intercepting all clicks.
+**Fix:** Ensure the Sidebar has a strictly higher `z-index` than its backdrop (e.g., Sidebar `z-50` and Backdrop `z-40`).
+**Found in:** task [T-01] of track [hamburger-zindex-fix] (2026-05-16)
+

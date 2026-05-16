@@ -1,6 +1,6 @@
 ---
 track: hamburger-zindex-fix
-status: Active
+status: Completed
 owner: puka
 module: Core
 updated: 2026-05-16
@@ -20,7 +20,7 @@ updated: 2026-05-16
 
 ## Tasks
 
-### T-01 — Raise sidebar z-index
+### T-01 — Raise sidebar z-index [x]
 
 **File:** `components/layout/Sidebar.tsx:289`
 
@@ -33,7 +33,7 @@ Change `z-30` → `z-50` on the `<aside>` opening tag.
 
 Sidebar (`z-50`) now sits above backdrop (`z-40`). Backdrop still visible and clickable around the sidebar.
 
-### T-02 — Verify backdrop unchanged (read-only check)
+### T-02 — Verify backdrop unchanged (read-only check) [x]
 
 **File:** `app/app/layout.tsx:31-36`
 
