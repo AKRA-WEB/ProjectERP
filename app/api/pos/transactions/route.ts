@@ -3,7 +3,7 @@ import { apiSuccess, apiError, apiValidationError } from '@/lib/api-response';
 import { assertPermission, assertWarehouseAccess, buildWarehouseScopeClause } from '@/lib/authz';
 import pool, { query } from '@/lib/db/client';
 import { z } from 'zod';
-import { DEFAULT_PAGE_SIZE } from '@/lib/constants';
+import { DEFAULT_PAGE_SIZE, VAT_RATE } from '@/lib/constants';
 import type { SessionUser } from '@/lib/authz';
 
 const createSchema = z.object({
@@ -18,6 +18,7 @@ const createSchema = z.object({
   cash_tendered: z.number().min(0).optional(),
   card_amount: z.number().min(0).optional(),
   discount_amount: z.number().min(0).default(0), // order-level discount
+  member_id: z.string().uuid().optional().nullable(),
 });
 
 export async function GET(req: Request) {
@@ -53,9 +54,10 @@ export async function GET(req: Request) {
   const [totalRes] = await query<{ count: string }>(`SELECT COUNT(*) FROM pos_transactions t ${where}`, params);
 
   const transactions = await query(
-    `SELECT t.*, u.name_en AS cashier_name
+    `SELECT t.*, u.name_en AS cashier_name, m.name_th AS member_name
      FROM pos_transactions t
      JOIN users u ON u.id = t.created_by
+     LEFT JOIN pos_members m ON m.id = t.member_id
      ${where}
      ORDER BY t.created_at DESC
      LIMIT $${idx++} OFFSET $${idx++}`,
@@ -83,7 +85,7 @@ export async function POST(req: Request) {
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) return apiValidationError(parsed.error);
 
-  const { session_id, lines, payment_method, cash_tendered = 0, card_amount = 0, discount_amount: orderDiscount = 0 } = parsed.data;
+  const { session_id, lines, payment_method, cash_tendered = 0, card_amount = 0, discount_amount: orderDiscount = 0, member_id } = parsed.data;
 
   const client = await pool.connect();
   try {
@@ -122,8 +124,11 @@ export async function POST(req: Request) {
     }
 
     const total = subtotalBeforeOrderDiscount - orderDiscount;
-    const vatAmount = Math.round(total * 7 / 107 * 100) / 100;
-    const subtotal = total; // Plan says total is subtotal because price is VAT-inclusive
+    const vatAmount = Math.round(total * VAT_RATE / (1 + VAT_RATE) * 100) / 100;
+    const subtotal = total; 
+
+    // Points logic: 1 point per 20 baht
+    const pointsEarned = Math.floor(total / 20);
 
     // 3. Validate payment
     if (payment_method === 'cash' && cash_tendered < total) { await client.query('ROLLBACK'); return apiError('Cash tendered is less than total', 422); }
@@ -134,12 +139,20 @@ export async function POST(req: Request) {
 
     // 4. Create transaction
     const txn = await client.query<{ id: string; receipt_number: string }>(
-      `INSERT INTO pos_transactions (session_id, warehouse_id, subtotal, discount_amount, vat_amount, total, payment_method, cash_tendered, card_amount, change_given, created_by)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      `INSERT INTO pos_transactions (session_id, warehouse_id, subtotal, discount_amount, vat_amount, total, payment_method, cash_tendered, card_amount, change_given, member_id, points_earned, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
        RETURNING id, receipt_number`,
-      [session_id, warehouse_id, subtotal, orderDiscount, vatAmount, total, payment_method, cash_tendered || null, card_amount || null, changeGiven, u.id]
+      [session_id, warehouse_id, subtotal, orderDiscount, vatAmount, total, payment_method, cash_tendered || null, card_amount || null, changeGiven, member_id ?? null, pointsEarned, u.id]
     );
     const txnId = txn.rows[0].id;
+
+    // Update member points if applicable
+    if (member_id) {
+      await client.query(
+        'UPDATE pos_members SET point_balance = point_balance + $1 WHERE id = $2',
+        [pointsEarned, member_id]
+      );
+    }
 
     // 5. Create lines and ledger entries
     for (const line of lineData) {

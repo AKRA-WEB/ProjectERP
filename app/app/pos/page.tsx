@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { get, post } from '@/lib/api-client';
-import { formatCurrency } from '@/lib/format';
+import { formatCurrency, formatDatetime } from '@/lib/format';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
@@ -10,7 +10,7 @@ import { Select } from '@/components/ui/Select';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import Link from 'next/link';
-import type { PosSession, Warehouse } from '@/types';
+import type { PosSession, Warehouse, PosShift } from '@/types';
 import { useRouter } from 'next/navigation';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden';
@@ -18,6 +18,7 @@ const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-sm overflow
 export default function PosHomePage() {
   const [sessions, setSessions] = useState<PosSession[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [shifts, setShifts] = useState<PosShift[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -26,6 +27,7 @@ export default function PosHomePage() {
   // Form state
   const [warehouseId, setWarehouseId] = useState('');
   const [openingFloat, setOpeningFloat] = useState('0');
+  const [shiftId, setShiftId] = useState('');
   const [notes, setNotes] = useState('');
 
   useEffect(() => {
@@ -35,12 +37,14 @@ export default function PosHomePage() {
   async function fetchData() {
     setLoading(true);
     try {
-      const [sessionsRes, warehousesRes] = await Promise.all([
+      const [sessionsRes, warehousesRes, shiftsRes] = await Promise.all([
         get<{ data: PosSession[] }>('/api/pos/sessions?status=open'),
         get<Warehouse[]>('/api/admin/warehouses'),
+        get<PosShift[]>('/api/pos/shifts'),
       ]);
       setSessions(sessionsRes.data);
       setWarehouses(warehousesRes.filter(w => w.is_active));
+      setShifts(shiftsRes);
       if (warehousesRes.length > 0) setWarehouseId(warehousesRes[0].id);
     } catch (error) {
       console.error('Failed to fetch POS data:', error);
@@ -56,6 +60,7 @@ export default function PosHomePage() {
       const res = await post<PosSession>('/api/pos/sessions', {
         warehouse_id: warehouseId,
         opening_float: parseFloat(openingFloat),
+        shift_id: shiftId || undefined,
         notes: notes || undefined,
       });
       router.push(`/app/pos/session/${res.id}`);
@@ -113,9 +118,10 @@ export default function PosHomePage() {
                       </div>
                       <p className="text-sm text-stone-600">
                         คลัง: <span className="font-medium text-stone-900">{s.warehouse_name_th}</span>
+                        {s.shift_name_th && <span className="ml-2 text-emerald-600">| กะ: <span className="font-bold">{s.shift_name_th}</span></span>}
                       </p>
                       <p className="text-xs text-stone-400">
-                        เปิดเมื่อ: {new Date(s.opened_at).toLocaleString('th-TH')} โดย {s.opened_by_name}
+                        เปิดเมื่อ: {formatDatetime(s.opened_at)} โดย {s.opened_by_name}
                       </p>
                     </div>
                     <div className="text-right space-y-2">
@@ -151,6 +157,19 @@ export default function PosHomePage() {
             {warehouses.map((w) => (
               <option key={w.id} value={w.id}>
                 {w.code} — {w.name_th}
+              </option>
+            ))}
+          </Select>
+
+          <Select
+            label="เลือกกะการทำงาน / Shift (Optional)"
+            value={shiftId}
+            onChange={(e) => setShiftId(e.target.value)}
+          >
+            <option value="">-- ไม่ระบุกะ --</option>
+            {shifts.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name_th} ({s.start_time} - {s.end_time})
               </option>
             ))}
           </Select>
