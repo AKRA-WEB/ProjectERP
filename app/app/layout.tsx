@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { useSession } from 'next-auth/react';
@@ -10,6 +10,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { data: session } = useSession();
   const pathname = usePathname();
+
+  const handleCloseSidebar = useCallback(() => setSidebarOpen(false), []);
+  const handleMenuToggle = useCallback(() => setSidebarOpen((v) => !v), []);
+  const handleToggleCollapse = useCallback(() => setSidebarCollapsed((v) => !v), []);
 
   const isMenuPage = pathname === '/app/menu';
 
@@ -38,16 +42,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Sidebar: drawer on mobile, static on md+ */}
       <Sidebar
         open={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
+        onClose={handleCloseSidebar}
         userRole={userRole}
         permissions={permissions}
         collapsed={sidebarCollapsed}
-        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+        onToggleCollapse={handleToggleCollapse}
       />
 
       <div className="flex flex-1 flex-col overflow-hidden min-w-0">
         <TopBar
-          onMenuToggle={() => setSidebarOpen((v) => !v)}
+          onMenuToggle={handleMenuToggle}
           userName={user?.name}
           userRole={userRole}
         />
