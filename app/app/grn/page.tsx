@@ -198,6 +198,7 @@ function GRNDetailModal({ grn, onClose }: { grn: GRNDetail; onClose: () => void 
 }
 
 // ---- Main Page ----
+
 export default function GRNPage() {
   const [data, setData] = useState<PaginatedResponse<GRN> | null>(null);
   const [page, setPage] = useState(1);
@@ -205,6 +206,13 @@ export default function GRNPage() {
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<GRNDetail | null>(null);
   const [modalLoading, setModalLoading] = useState(false);
+  const [queueCounts, setQueueCounts] = useState<{ io: number; po: number }>({ io: 0, po: 0 });
+
+  useEffect(() => {
+    get<{ inbound_orders: unknown[]; pending_pos: unknown[] }>('/api/grn/receiving-queue')
+      .then((r) => setQueueCounts({ io: r.inbound_orders.length, po: r.pending_pos.length }))
+      .catch(() => {});
+  }, []);
 
   const fetchGRNs = useCallback(async () => {
     setLoading(true);
@@ -242,6 +250,11 @@ export default function GRNPage() {
           <div className="flex items-center gap-2">
             <Link href="/app/grn/receiving-queue" transitionTypes={['nav-forward']} className={BTN_SM}>
               รายการรอรับ
+              {(queueCounts.io + queueCounts.po) > 0 && (
+                <span className="ml-1.5 text-[10px] font-bold text-amber-700 border border-amber-300 bg-amber-50 rounded-full px-1.5 py-0.5">
+                  {queueCounts.io > 0 ? `${queueCounts.io} IO` : ''}{queueCounts.io > 0 && queueCounts.po > 0 ? ' · ' : ''}{queueCounts.po > 0 ? `${queueCounts.po} PO` : ''}
+                </span>
+              )}
             </Link>
             <Link
               href="/app/grn/new"
@@ -294,13 +307,19 @@ export default function GRNPage() {
                   className="border-b border-stone-50 last:border-0 hover:bg-stone-50/60 cursor-default transition-colors"
                 >
                   <td className="py-0 h-11 px-3.5 pl-5 font-mono text-[12.5px] text-stone-700 font-medium">{g.grn_number}</td>
-                  <td className="py-0 h-11 px-3.5 font-mono text-[12.5px] text-blue-600 hidden lg:table-cell">
-                    <span onClick={(e) => e.stopPropagation()}>
+                  <td className="py-0 h-11 px-3.5 font-mono text-[12.5px] hidden lg:table-cell">
+                    <span onClick={(e) => e.stopPropagation()} className="flex items-center gap-1.5">
                       {g.po_id ? (
-                        <Link href={`/app/purchase-orders/${g.po_id}`} transitionTypes={['nav-forward']} className="hover:underline">{g.po_number}</Link>
+                        <>
+                          <span className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
+                          <Link href={`/app/purchase-orders/${g.po_id}`} transitionTypes={['nav-forward']} className="text-blue-600 hover:underline">{g.po_number}</Link>
+                        </>
                       ) : g.io_number ? (
-                        <Link href={`/app/inbound-orders/${g.inbound_order_id}`} transitionTypes={['nav-forward']} className="hover:underline">{g.io_number}</Link>
-                      ) : '—'}
+                        <>
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
+                          <Link href={`/app/inbound-orders/${g.inbound_order_id}`} transitionTypes={['nav-forward']} className="text-emerald-700 hover:underline">{g.io_number}</Link>
+                        </>
+                      ) : <span className="text-stone-300">—</span>}
                     </span>
                   </td>
                   <td className="py-0 h-11 px-3.5 text-stone-500 hidden lg:table-cell">{g.warehouse_code}</td>

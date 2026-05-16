@@ -2,6 +2,22 @@
 
 ---
 
+## Session: 2026-05-16 (Session 9 — Dashboard ReferenceError Fix)
+
+### สิ่งที่ทำวันนี้
+
+#### 1. Dashboard Crash Fix — ✅ เสร็จสมบูรณ์
+แก้ไขปัญหา `ReferenceError: formatDatetime is not defined` ในหน้า Dashboard (`app/app/dashboard/page.tsx`) ซึ่งเกิดจากการเรียกใช้ utility functions โดยไม่ได้นำเข้า (import)
+
+**สิ่งที่ทำ:**
+- เพิ่มการนำเข้า `formatDatetime` และ `formatNumber` จาก `@/lib/format`
+- ตรวจสอบการใช้งาน `format` functions ทั้งหมดใน Dashboard page ให้ตรงกับ utility ที่มีอยู่
+- ตรวจสอบไฟล์อื่นๆ ในโปรเจกต์ (POS, Inventory) เพื่อป้องกันปัญหาในลักษณะเดียวกัน
+
+**ผลลัพธ์:** Dashboard กลับมาใช้งานได้ปกติ แสดงผล Activity Feed และ Top Products ได้ถูกต้อง
+
+---
+
 ## Session: 2026-05-15 (Session 8 — AP System Plan + Obsidian Setup + Workflow Upgrade)
 
 ### สิ่งที่ทำวันนี้

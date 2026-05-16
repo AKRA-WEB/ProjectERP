@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { ViewTransition } from '@/lib/react-vts';
 import { useSession } from 'next-auth/react';
 import { get } from '@/lib/api-client';
-import { formatCurrency, formatQty } from '@/lib/format';
+import { formatCurrency, formatQty, formatDatetime, formatNumber } from '@/lib/format';
 import { KpiCard, KpiGrid } from '@/components/ui';
 import Link from 'next/link';
 import type { Warehouse } from '@/types';
