@@ -2,6 +2,34 @@
 
 ---
 
+## Session: 2026-05-16 (Session 10 — Project Health Check + UI Bug Fixes)
+
+### สิ่งที่ทำวันนี้
+
+#### 1. Project Health Check & Cleanup — ✅ เสร็จสมบูรณ์
+- ตรวจ worktree / conductor index / memory ทั้งหมด
+- Commit ของค้าง: `run-migrate.ts`, `package.json` (tsx migrate runner), `settings.local.json`, `puka.agent.md`
+- Conductor index: "Active Now" ว่าง, Dashboard track → Completed
+- Memory `project_state.md`: แก้ข้อมูล stale — POS เป็น Verified, migration อยู่ที่ 031
+
+#### 2. Bug Fix: Hamburger Menu Mobile — ✅ เสร็จสมบูรณ์
+**Root cause:** `layout.tsx` ส่ง `onClose` เป็น inline arrow function → new ref ทุก render → Sidebar `useEffect([pathname, onClose])` fire ทันทีหลัง `setSidebarOpen(true)` ทำให้ sidebar ปิดก่อนเปิดได้
+
+**Fix:** `useCallback` stabilize 3 callbacks ใน `layout.tsx`:
+- `handleCloseSidebar`
+- `handleMenuToggle`
+- `handleToggleCollapse`
+
+#### 3. Bug Fix: Sign Out Button — ✅ เสร็จสมบูรณ์
+**Root cause:** `onSignOut` prop ไม่ถูกส่งให้ `TopBar` เลย — button `onClick={onSignOut}` = `undefined`
+
+**Fix:** import `signOut` จาก `next-auth/react` + wire `handleSignOut({ callbackUrl: '/login' })` ผ่าน `useCallback`
+
+### สถานะ
+✅ STABLE — TSC clean, lint pass, ไม่มี active track ค้าง
+
+---
+
 ## Session: 2026-05-16 (Session 9 — Dashboard ReferenceError Fix)
 
 ### สิ่งที่ทำวันนี้
