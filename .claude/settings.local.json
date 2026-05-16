@@ -24,7 +24,12 @@
       "Bash(node *)",
       "Bash(Remove-Item -Recurse -Force .next -ErrorAction SilentlyContinue)",
       "Bash(Test-Path *)",
-      "Bash(not exist *)"
+      "Bash(not exist *)",
+      "Bash(node_modules/.bin/tsc --noEmit)",
+      "Bash(npx tsc *)",
+      "Bash(Get-ChildItem \"C:\\\\Users\\\\AKRA-Panich-Front\\\\OneDrive\\\\Desktop\\\\projectERP\\\\app\" -MaxDepth 1)",
+      "Bash(Select-Object Name, LastWriteTime)",
+      "Bash(Format-Table)"
     ]
   },
   "hooks": {

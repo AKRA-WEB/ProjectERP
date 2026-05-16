@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "migrate": "node -r dotenv/config -e \"require('./lib/db/migrate').runMigrations().then(() => process.exit(0)).catch(e => { console.error(e); process.exit(1); })\"",
+    "migrate": "tsx --env-file=.env lib/db/run-migrate.ts",
     "migrate:seed": "node -r dotenv/config lib/db/seed.js"
   },
   "dependencies": {
