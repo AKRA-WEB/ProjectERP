@@ -17,5 +17,6 @@
   "newFileLocation": "folder",
   "newFileFolderPath": "_notes",
   "useMarkdownLinks": false,
-  "promptDelete": true
+  "promptDelete": true,
+  "useCommunityPlugins": true
 }
