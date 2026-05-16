@@ -58,3 +58,4 @@
 | [UI Improvement — WMS Ops (GRN Tabs · QC KPIs · Receiving Queue)](./tracks/ui-improvement-wms-ops/plan.md) | Completed | 2026-05-15 | 2026-05-15 |
 | [Security Fixes — Pre-Vercel Auth Guards · Warehouse Scope · Perf](./tracks/security-fixes/plan.md) | Verified | 2026-05-15 | 2026-05-16 |
 | [View Transitions — App-wide Implementation](./tracks/view-transitions/plan.md) | Completed | 2026-05-15 | 2026-05-15 |
+| [UI Redesign — POS Terminal · Inventory · GRN Mobile](./tracks/ui-redesign-pos-inventory-grn/plan.md) | Verified | 2026-05-16 | 2026-05-16 |

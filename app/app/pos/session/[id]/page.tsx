@@ -1,1045 +1,782 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import { get, post, patch, del } from '@/lib/api-client';
-import { formatCurrency, formatQty } from '@/lib/format';
-import { VAT_RATE } from '@/lib/constants';
-import { Button } from '@/components/ui/Button';
-import { Modal } from '@/components/ui/Modal';
-import { Input } from '@/components/ui/Input';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { StatusBadge } from '@/components/ui/StatusBadge';
-import type { PosSession, PosProduct, PosTransaction, PosPaymentMethod, ProductCategory, PosMember, PosHeldCart, PosHeldCartLine, SessionUser } from '@/types';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import { formatCurrency } from '@/lib/format';
+import {
+  ArrowLeft,
+  MoreHorizontal,
+  Search,
+  ScanLine,
+  ShoppingCart,
+  X,
+  Box,
+} from 'lucide-react';
 
-const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden';
+// ─── Constants ───────────────────────────────────────────────────────────────
 
-interface CartItem extends PosProduct {
+const VAT_INCLUSIVE_RATE = 7 / 107;
+
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+interface POSSession {
+  id: string;
+  session_number: string;
+  warehouse_code: string;
+  warehouse_name: string;
+  shift_name: string;
+  cashier_name: string;
+  status: 'open' | 'closed';
+  opened_at: string;
+}
+
+interface Product {
+  id: string;
+  sku: string;
+  name_th: string;
+  name_en: string;
+  price: number;
+  category: string;
+  stock_qty: number;
+  reorder_point: number;
+  image_url: string | null;
+}
+
+interface CartItem {
+  product_id: string;
+  sku: string;
+  name_th: string;
+  price: number;
   qty: number;
 }
 
-export default function PosTerminalPage() {
-  const { id } = useParams() as { id: string };
+interface HeldCart {
+  id: string;
+  label: string;
+  items: CartItem[];
+}
+
+interface Member {
+  id: string;
+  phone: string;
+  name: string;
+  tier: string;
+  points: number;
+}
+
+type PaymentMethod = 'cash' | 'card' | 'mixed';
+type MobileTab = 'products' | 'cart';
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function StockBadge({ product }: { product: Product }) {
+  if (product.stock_qty <= 0)
+    return (
+      <span className="absolute top-1.5 right-1.5 text-[9px] font-bold bg-red-500 text-white rounded-full px-1.5 py-0.5 leading-none">
+        หมด
+      </span>
+    );
+  if (product.stock_qty <= product.reorder_point)
+    return (
+      <span className="absolute top-1.5 right-1.5 text-[9px] font-bold bg-amber-400 text-white rounded-full px-1.5 py-0.5 leading-none">
+        สต็อกต่ำ
+      </span>
+    );
+  return (
+    <span className="absolute top-1.5 right-1.5 text-[9px] font-bold bg-white/80 border border-stone-200 text-stone-600 rounded-full px-1.5 py-0.5 leading-none font-mono tabular-nums">
+      {product.stock_qty}
+    </span>
+  );
+}
+
+function productCardCls(product: Product) {
+  if (product.stock_qty <= 0) return 'border-red-200 bg-red-50/30';
+  if (product.stock_qty <= product.reorder_point) return 'border-amber-200 bg-amber-50/20';
+  return 'border-stone-200 bg-white';
+}
+
+function productImgCls(product: Product) {
+  if (product.stock_qty <= 0) return 'bg-red-100';
+  if (product.stock_qty <= product.reorder_point) return 'bg-amber-100';
+  return 'bg-stone-100';
+}
+
+// ─── Product card ─────────────────────────────────────────────────────────────
+
+function ProductCard({ product, onAdd }: { product: Product; onAdd: (p: Product) => void }) {
+  return (
+    <button
+      onClick={() => product.stock_qty > 0 && onAdd(product)}
+      disabled={product.stock_qty <= 0}
+      className={`relative rounded-xl border overflow-hidden text-left transition-all active:scale-[0.97] disabled:opacity-60 disabled:cursor-not-allowed ${productCardCls(product)}`}
+    >
+      <div className={`aspect-square flex items-center justify-center relative ${productImgCls(product)}`}>
+        {product.image_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={product.image_url} alt={product.name_th} className="w-full h-full object-cover" />
+        ) : (
+          <Box className="w-8 h-8 text-stone-300" />
+        )}
+        <StockBadge product={product} />
+      </div>
+      <div className="p-2">
+        <p className="text-xs text-stone-800 font-medium line-clamp-2 leading-tight">{product.name_th}</p>
+        <p className="text-emerald-600 font-bold text-[13px] mt-1">{formatCurrency(product.price)}</p>
+        <p className="text-[10px] font-mono text-stone-400 tabular-nums">{product.sku}</p>
+      </div>
+    </button>
+  );
+}
+
+// ─── Cart item row ────────────────────────────────────────────────────────────
+
+function CartItemRow({
+  item,
+  onQtyChange,
+  onRemove,
+}: {
+  item: CartItem;
+  onQtyChange: (pid: string, qty: number) => void;
+  onRemove: (pid: string) => void;
+}) {
+  return (
+    <div className="py-3 px-4 space-y-2">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <p className="text-[13px] font-medium text-stone-800 truncate">{item.name_th}</p>
+          <p className="text-[10px] font-mono text-stone-400 tabular-nums">{item.sku}</p>
+        </div>
+        <button
+          onClick={() => onRemove(item.product_id)}
+          className="w-6 h-6 flex items-center justify-center text-stone-300 hover:text-red-500 transition-colors flex-shrink-0"
+          aria-label="ลบ"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => onQtyChange(item.product_id, item.qty - 1)}
+            className="w-7 h-7 rounded-lg border border-stone-200 flex items-center justify-center text-stone-600 hover:bg-stone-100 font-bold text-sm"
+          >
+            −
+          </button>
+          <span className="w-8 text-center font-mono tabular-nums text-sm">{item.qty}</span>
+          <button
+            onClick={() => onQtyChange(item.product_id, item.qty + 1)}
+            className="w-7 h-7 rounded-lg border border-stone-200 flex items-center justify-center text-stone-600 hover:bg-stone-100 font-bold text-sm"
+          >
+            +
+          </button>
+          <span className="ml-1 text-stone-400 text-[12px]">× {formatCurrency(item.price)}</span>
+        </div>
+        <span className="font-mono font-bold text-[15px] tabular-nums">{formatCurrency(item.price * item.qty)}</span>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
+
+export default function POSSessionPage() {
   const router = useRouter();
-  const { data: authSession } = useSession();
-  const currentUser = authSession?.user as unknown as SessionUser;
+  const params = useParams<{ id: string }>();
+  const sessionId = params.id;
 
-  const [session, setSession] = useState<PosSession | null>(null);
+  const [session, setSession] = useState<POSSession | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  
-  // Search state
+  const [activeCategory, setActiveCategory] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [searching, setSearching] = useState(false);
-  const searchInputRef = useRef<HTMLInputElement>(null);
-
-  // Product grid state
-  const [allProducts, setAllProducts] = useState<PosProduct[]>([]);
-  const [categories, setCategories] = useState<ProductCategory[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-
-  // Cart state
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [orderDiscount, setOrderDiscount] = useState(0);
-
-  // Member state
-  const [member, setMember] = useState<PosMember | null>(null);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [heldCarts, setHeldCarts] = useState<HeldCart[]>([]);
+  const [member, setMember] = useState<Member | null>(null);
   const [memberPhone, setMemberPhone] = useState('');
-  const [searchingMember, setSearchingMember] = useState(false);
+  const [discount, setDiscount] = useState(0);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
+  const [cashTendered, setCashTendered] = useState(0);
+  const [checkingOut, setCheckingOut] = useState(false);
+  const [currentTime, setCurrentTime] = useState(() => new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }));
+  const [mobileTab, setMobileTab] = useState<MobileTab>('products');
+  const [desktopTab, setDesktopTab] = useState<'products' | 'history'>('products');
+  const searchRef = useRef<HTMLInputElement>(null);
 
-  // Held carts state
-  const [heldCarts, setHeldCarts] = useState<PosHeldCart[]>([]);
-  const [loadingHeld, setLoadingHeld] = useState(false);
+  // ── Clock ──
+  useEffect(() => {
+    const iv = setInterval(() => {
+      setCurrentTime(new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }));
+    }, 60_000);
+    return () => clearInterval(iv);
+  }, []);
 
-  // Tabs state
-  const [activeTab, setActiveTab] = useState<'products' | 'history'>('products');
-  const [sessionTransactions, setSessionTransactions] = useState<PosTransaction[]>([]);
-  const [loadingHistory, setLoadingHistory] = useState(false);
-
-  // Scanner state
-  const [scannerFlash, setScannerFlash] = useState(false);
-  const barcodeBuffer = useRef<string>('');
-  const lastKeystrokeTime = useRef<number>(0);
-
-  // Payment state
-  const [paymentMethod, setPaymentMethod] = useState<PosPaymentMethod>('cash');
-  const [cashTendered, setCashTendered] = useState<string>('');
-  const [cardAmount, setCardAmount] = useState<string>('');
-  const [submitting, setSubmitting] = useState(false);
-
-  // Receipt modal state
-  const [lastTransaction, setLastTransaction] = useState<PosTransaction | null>(null);
-  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
-
-  // Close session modal
-  const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
-  const [closingFloat, setClosingFloat] = useState('');
-  const [closing, setClosing] = useState(false);
-
-  const fetchSession = useCallback(async () => {
+  // ── Load session + products ──
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await get<PosSession>(`/api/pos/sessions/${id}`);
-      if (res.status === 'closed') {
-        router.push('/app/pos');
-        return;
+      const [sessionRes, productsRes] = await Promise.all([
+        fetch(`/api/pos/sessions/${sessionId}`),
+        fetch(`/api/pos/sessions/${sessionId}/products`),
+      ]);
+      if (sessionRes.ok) {
+        const sj = await sessionRes.json();
+        setSession(sj.data ?? sj);
       }
-      setSession(res);
-    } catch (error) {
-      console.error('Failed to fetch session:', error);
-      router.push('/app/pos');
+      if (productsRes.ok) {
+        const pj = await productsRes.json();
+        const prods: Product[] = pj.data ?? pj;
+        setProducts(prods);
+        const cats = Array.from(new Set(prods.map((p) => p.category).filter(Boolean)));
+        setCategories(cats);
+      }
+    } catch {
+      // silent fail — page still renders
     } finally {
       setLoading(false);
     }
-  }, [id, router]);
-
-  const fetchProducts = useCallback(async () => {
-    if (!session) return;
-    try {
-      const results = await get<PosProduct[]>(`/api/pos/products?warehouse_id=${session.warehouse_id}&limit=100`);
-      setAllProducts(results);
-    } catch {
-      // Ignore
-    }
-  }, [session]);
-
-  const fetchCategories = useCallback(async () => {
-    try {
-      const results = await get<ProductCategory[]>('/api/product-categories');
-      setCategories(results);
-    } catch (error) {
-      console.error('Failed to fetch categories:', error);
-    }
-  }, []);
-
-  const fetchHeldCarts = useCallback(async () => {
-    if (!session) return;
-    setLoadingHeld(true);
-    try {
-      const res = await get<PosHeldCart[]>(`/api/pos/held-carts?session_id=${id}`);
-      setHeldCarts(res);
-    } catch (error) {
-      console.error('Failed to fetch held carts:', error);
-    } finally {
-      setLoadingHeld(false);
-    }
-  }, [id, session]);
-
-  const fetchSessionTransactions = useCallback(async () => {
-    if (!session) return;
-    setLoadingHistory(true);
-    try {
-      const res = await get<{ data: PosTransaction[] }>(`/api/pos/transactions?session_id=${id}`);
-      setSessionTransactions(res.data);
-    } catch (error) {
-      console.error('Failed to fetch session history:', error);
-    } finally {
-      setLoadingHistory(false);
-    }
-  }, [id, session]);
+  }, [sessionId]);
 
   useEffect(() => {
-    fetchSession();
-    fetchCategories();
-    // Focus search input on mount
-    searchInputRef.current?.focus();
-  }, [fetchSession, fetchCategories]);
+    fetchData();
+  }, [fetchData]);
 
-  useEffect(() => {
-    if (session) {
-      fetchProducts();
-      fetchHeldCarts();
-    }
-  }, [session, fetchProducts, fetchHeldCarts]);
+  // ── Cart helpers ──
+  const cartTotal = cartItems.reduce((s, i) => s + i.price * i.qty, 0);
+  const subtotal = cartTotal;
+  const discountAmt = discount;
+  const afterDiscount = Math.max(0, subtotal - discountAmt);
+  const vatAmt = afterDiscount * VAT_INCLUSIVE_RATE;
+  const preVat = afterDiscount - vatAmt;
+  const total = afterDiscount;
+  const change = Math.max(0, cashTendered - total);
+  const cartCount = cartItems.reduce((s, i) => s + i.qty, 0);
 
-  useEffect(() => {
-    if (activeTab === 'history' && session) {
-      fetchSessionTransactions();
-      const interval = setInterval(fetchSessionTransactions, 30000);
-      return () => clearInterval(interval);
-    }
-  }, [activeTab, session, fetchSessionTransactions]);
-
-  async function handleVoidTransaction(txnId: string) {
-    const reason = prompt('ระบุเหตุผลการยกเลิก / Void Reason:');
-    if (!reason) return;
-    
-    try {
-      await patch(`/api/pos/transactions/${txnId}`, {
-        action: 'void',
-        void_reason: reason
-      });
-      fetchSessionTransactions();
-      fetchProducts(); // Refresh stock
-    } catch (error) {
-      alert(error instanceof Error ? error.message : 'Void failed');
-    }
-  }
-
-  const addToCart = useCallback((product: PosProduct) => {
-    setCart(prev => {
-      const existing = prev.find(item => item.id === product.id);
-      if (existing) {
-        return prev.map(item => item.id === product.id ? { ...item, qty: item.qty + 1 } : item);
-      }
-      return [...prev, { ...product, qty: 1 }];
+  function addToCart(product: Product) {
+    setCartItems((prev) => {
+      const existing = prev.find((i) => i.product_id === product.id);
+      if (existing) return prev.map((i) => i.product_id === product.id ? { ...i, qty: i.qty + 1 } : i);
+      return [...prev, { product_id: product.id, sku: product.sku, name_th: product.name_th, price: product.price, qty: 1 }];
     });
-  }, []);
-
-  // Scanner Listener
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if focus is in an input or textarea, unless it's the search input
-      const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
-        if (target !== searchInputRef.current) return;
-      }
-
-      const now = Date.now();
-      const diff = now - lastKeystrokeTime.current;
-      lastKeystrokeTime.current = now;
-
-      if (e.key === 'Enter') {
-        const barcode = barcodeBuffer.current.trim();
-        if (barcode.length >= 3) {
-          const found = allProducts.find(p => p.barcode === barcode || p.sku === barcode);
-          if (found) {
-            addToCart(found);
-            setScannerFlash(true);
-            setTimeout(() => setScannerFlash(false), 300);
-            barcodeBuffer.current = '';
-            e.preventDefault();
-            return;
-          }
-        }
-        barcodeBuffer.current = '';
-      } else if (e.key.length === 1) {
-        // If time since last key > 50ms, it's likely human typing, restart buffer
-        if (diff > 50) {
-          barcodeBuffer.current = e.key;
-        } else {
-          barcodeBuffer.current += e.key;
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [allProducts, addToCart]);
-
-  const searchProducts = useCallback(async () => {
-    if (!session) return;
-    setSearching(true);
-    try {
-      const results = await get<PosProduct[]>(`/api/pos/products?warehouse_id=${session.warehouse_id}&q=${encodeURIComponent(searchQuery)}`);
-      
-      // If exactly 1 result with exact barcode/sku match, add to cart immediately and clear search
-      if (results.length === 1 && (results[0].barcode === searchQuery || results[0].sku === searchQuery)) {
-        addToCart(results[0]);
-        setSearchQuery('');
-      }
-    } catch (error) {
-      console.error('Search failed:', error);
-    } finally {
-      setSearching(false);
-    }
-  }, [session, searchQuery, addToCart]);
-
-  useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      if (searchQuery.trim().length >= 2) {
-        searchProducts();
-      } else {
-      
-      }
-    }, 300);
-
-    return () => clearTimeout(delayDebounceFn);
-  }, [searchQuery, searchProducts]);
-
-  function updateQty(productId: string, qty: number) {
-    if (qty <= 0) {
-      removeFromCart(productId);
-      return;
-    }
-    setCart(prev => prev.map(item => item.id === productId ? { ...item, qty } : item));
   }
 
-  function removeFromCart(productId: string) {
-    setCart(prev => prev.filter(item => item.id !== productId));
+  function changeQty(pid: string, qty: number) {
+    if (qty <= 0) removeItem(pid);
+    else setCartItems((prev) => prev.map((i) => i.product_id === pid ? { ...i, qty } : i));
   }
 
-  const displayedProducts = useMemo(() => {
-    let filtered = allProducts;
-    if (selectedCategory) {
-      filtered = filtered.filter(p => p.category_id === selectedCategory);
-    }
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      filtered = filtered.filter(p => 
-        p.name_th.toLowerCase().includes(q) || 
-        p.sku.toLowerCase().includes(q) || 
-        (p.barcode && p.barcode.includes(q))
-      );
-    }
-    return filtered;
-  }, [allProducts, selectedCategory, searchQuery]);
+  function removeItem(pid: string) {
+    setCartItems((prev) => prev.filter((i) => i.product_id !== pid));
+  }
 
-  const searchMember = useCallback(async () => {
-    if (!memberPhone || memberPhone.length < 9) return;
-    setSearchingMember(true);
+  function holdCart() {
+    if (cartItems.length === 0) return;
+    const id = `held-${Date.now()}`;
+    setHeldCarts((prev) => [...prev, { id, label: `บิล ${prev.length + 1}`, items: cartItems }]);
+    setCartItems([]);
+  }
+
+  function restoreHeld(hc: HeldCart) {
+    if (cartItems.length > 0) holdCart();
+    setCartItems(hc.items);
+    setHeldCarts((prev) => prev.filter((h) => h.id !== hc.id));
+  }
+
+  // ── Member search ──
+  async function searchMember() {
+    if (!memberPhone.trim()) return;
     try {
-      const res = await get<PosMember[]>(`/api/pos/members?q=${memberPhone}`);
-      if (res.length > 0) {
-        setMember(res[0]);
-      } else {
-        alert('ไม่พบสมาชิก / Member not found');
+      const res = await fetch(`/api/pos/members?phone=${memberPhone}`);
+      if (res.ok) {
+        const j = await res.json();
+        setMember(j.data ?? j);
       }
-    } catch (error) {
-      console.error('Member lookup failed:', error);
-    } finally {
-      setSearchingMember(false);
-    }
-  }, [memberPhone]);
-
-  // Totals
-  const totals = useMemo(() => {
-    const subtotalBeforeOrderDiscount = cart.reduce((sum, item) => sum + (item.selling_price * item.qty), 0);
-    
-    // Member discount
-    const memberDiscount = member ? Math.round(subtotalBeforeOrderDiscount * member.discount_rate * 100) / 100 : 0;
-    
-    const total = Math.max(0, subtotalBeforeOrderDiscount - memberDiscount - orderDiscount);
-    const vatAmount = Math.round(total * VAT_RATE / (1 + VAT_RATE) * 100) / 100;
-    const subtotalExclVat = total - vatAmount;
-    
-    return {
-      subtotalBeforeOrderDiscount,
-      memberDiscount,
-      total,
-      vatAmount,
-      subtotalExclVat
-    };
-  }, [cart, orderDiscount, member]);
-
-  const changeGiven = useMemo(() => {
-    const tendered = parseFloat(cashTendered || '0') + parseFloat(cardAmount || '0');
-    return Math.max(0, tendered - totals.total);
-  }, [cashTendered, cardAmount, totals.total]);
-
-  async function handleHoldBill() {
-    if (cart.length === 0 || !session) return;
-    try {
-      await post('/api/pos/held-carts', {
-        session_id: id,
-        warehouse_id: session.warehouse_id,
-        lines: cart.map(item => ({
-          product_id: item.id,
-          qty: item.qty,
-          unit_price: item.selling_price,
-          discount_amount: 0,
-        })),
-      });
-      setCart([]);
-      setMember(null);
-      setMemberPhone('');
-      fetchHeldCarts();
-    } catch {
-      alert('Failed to hold bill');
-    }
+    } catch { /* silent */ }
   }
 
-  async function handleResumeCart(heldCartId: string) {
-    try {
-      const fullHeld = await get<PosHeldCart & { lines: PosHeldCartLine[] }>(`/api/pos/held-carts/${heldCartId}`);
-      if (cart.length > 0 && !confirm('การดึงบิลที่พักไว้จะเขียนทับตะกร้าปัจจุบัน ยืนยันหรือไม่?\nResuming will replace current cart. Continue?')) return;
-      
-      const newCart: CartItem[] = fullHeld.lines.map(line => ({
-        id: line.product_id,
-        sku: line.sku!,
-        name_th: line.name_th!,
-        selling_price: line.unit_price,
-        qty: line.qty,
-        qty_available: 0, 
-        barcode: null,
-        name_en: null,
-      }));
-      setCart(newCart);
-      
-      await del(`/api/pos/held-carts/${heldCartId}`);
-      fetchHeldCarts();
-    } catch {
-      alert('Failed to resume bill');
-    }
-  }
-
+  // ── Checkout ──
   async function handleCheckout() {
-    if (cart.length === 0) return;
-    setSubmitting(true);
+    if (cartItems.length === 0 || checkingOut) return;
+    setCheckingOut(true);
     try {
-      const res = await post<{ id: string; receipt_number: string }>('/api/pos/transactions', {
-        session_id: id,
-        lines: cart.map(item => ({
-          product_id: item.id,
-          qty: item.qty,
-          unit_price: item.selling_price,
-          discount_amount: 0, // line discount not yet implemented in UI
-        })),
+      const body = {
+        session_id: sessionId,
+        items: cartItems,
+        discount: discountAmt,
         payment_method: paymentMethod,
-        cash_tendered: paymentMethod !== 'card' ? parseFloat(cashTendered || '0') : 0,
-        card_amount: paymentMethod !== 'cash' ? parseFloat(cardAmount || '0') : 0,
-        discount_amount: orderDiscount + totals.memberDiscount,
-        member_id: member?.id || null,
-      });
-
-      // Fetch full transaction details for receipt
-      const fullTxn = await get<PosTransaction>(`/api/pos/transactions/${res.id}`);
-      setLastTransaction(fullTxn);
-      setIsReceiptModalOpen(true);
-      
-      // Clear cart
-      setCart([]);
-      setOrderDiscount(0);
+        cash_tendered: paymentMethod === 'cash' || paymentMethod === 'mixed' ? cashTendered : null,
+        member_id: member?.id ?? null,
+      };
+      const res = await fetch('/api/pos/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      if (!res.ok) throw new Error('Checkout failed');
+      setCartItems([]);
+      setDiscount(0);
+      setCashTendered(0);
       setMember(null);
       setMemberPhone('');
-      setCashTendered('');
-      setCardAmount('');
-      setSearchQuery('');
-    } catch (error) {
-      alert(error instanceof Error ? error.message : 'Checkout failed');
-    } finally {
-      setSubmitting(false);
+    } catch { /* silent */ } finally {
+      setCheckingOut(false);
     }
   }
 
+  // ── Close session ──
   async function handleCloseSession() {
-    setClosing(true);
     try {
-      await patch(`/api/pos/sessions/${id}`, {
-        action: 'close_session',
-        closing_float: parseFloat(closingFloat || '0'),
-      });
+      await fetch(`/api/pos/sessions/${sessionId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'close' }) });
       router.push('/app/pos');
-    } catch (error) {
-      alert(error instanceof Error ? error.message : 'Failed to close session');
-    } finally {
-      setClosing(false);
-    }
+    } catch { /* silent */ }
   }
 
-  if (loading) return <div className="flex justify-center py-24"><LoadingSpinner /></div>;
-  if (!session) return <div className="text-center py-24">Session not found</div>;
+  // ── Filtered products ──
+  const filteredProducts = products.filter((p) => {
+    const matchCat = !activeCategory || p.category === activeCategory;
+    const q = searchQuery.toLowerCase();
+    const matchQ = !q || p.name_th.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
 
-  return (
-    <div className="flex flex-col h-[calc(100vh-120px)] gap-4">
-      {/* Status Bar */}
-      <div className={`${CARD} px-5 py-3 flex items-center justify-between shrink-0`}>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-stone-400 font-medium uppercase tracking-wider">รอบการขาย</span>
-            <span className="font-mono font-bold text-stone-900">{session.session_number}</span>
-            <StatusBadge status={session.status} />
-          </div>
-          <div className="h-4 w-px bg-stone-200" />
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-stone-400 font-medium uppercase tracking-wider">คลัง</span>
-            <span className="text-sm font-medium text-stone-700">{session.warehouse_name_th}</span>
-          </div>
-          <div className="h-4 w-px bg-stone-200" />
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-stone-400 font-medium uppercase tracking-wider">กะ / Shift</span>
-            <span className="text-sm font-bold text-emerald-700">{session.shift_name_th || 'ไม่ระบุ'}</span>
-          </div>
-          <div className="h-4 w-px bg-stone-200" />
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-stone-400 font-medium uppercase tracking-wider">แคชเชียร์</span>
-            <span className="text-sm font-medium text-stone-700">{session.opened_by_name}</span>
-          </div>
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-stone-50">
+        <div className="text-stone-400 text-sm">กำลังโหลด...</div>
+      </div>
+    );
+  }
+
+  // ════════════════════════════════════════
+  // SHARED: Products panel content
+  // ════════════════════════════════════════
+  const ProductsContent = (
+    <div className="flex flex-col h-full">
+      {/* Search */}
+      <div className="flex gap-2 mb-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+          <input
+            ref={searchRef}
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="ค้นหาสินค้า..."
+            className="w-full h-11 pl-9 pr-14 border border-stone-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-stone-300"
+          />
+          <kbd className="hidden md:flex absolute right-3 top-1/2 -translate-y-1/2 items-center gap-0.5 text-[10px] font-mono text-stone-400 border border-stone-200 rounded px-1 py-0.5">
+            F2
+          </kbd>
         </div>
-        <Button variant="outline" className="text-red-600 hover:text-red-700" onClick={() => setIsCloseModalOpen(true)}>
-          ปิดรอบ / Close
-        </Button>
+        <button className="hidden md:flex w-11 h-11 items-center justify-center bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex-shrink-0">
+          <ScanLine className="w-4.5 h-4.5" />
+        </button>
+        {/* Mobile scan button */}
+        <button className="flex md:hidden w-11 h-11 items-center justify-center bg-stone-950 text-white rounded-lg flex-shrink-0">
+          <ScanLine className="w-4 h-4" />
+        </button>
       </div>
 
-      <div className="flex flex-1 gap-4 min-h-0">
-        {/* Left: Search & Products Grid / History */}
-        <div className="flex-[3] flex flex-col gap-4 min-w-0">
-          {/* Tabs */}
-          <div className="flex items-center gap-2 px-1 shrink-0">
-            <button
-              onClick={() => setActiveTab('products')}
-              className={`px-4 py-2 rounded-t-lg font-bold text-sm transition-all ${activeTab === 'products' ? 'bg-white border-x border-t border-stone-200 text-emerald-600' : 'text-stone-400 hover:text-stone-600'}`}
-            >
-              สินค้า / Products
-            </button>
-            <button
-              onClick={() => setActiveTab('history')}
-              className={`px-4 py-2 rounded-t-lg font-bold text-sm transition-all ${activeTab === 'history' ? 'bg-white border-x border-t border-stone-200 text-emerald-600' : 'text-stone-400 hover:text-stone-600'}`}
-            >
-              ประวัติ / History
-            </button>
-            <div className="ml-auto flex items-center gap-4">
-              <div className="flex items-center gap-1">
-                <span className="text-xs text-stone-400 font-medium">บิลที่พัก:</span>
-                <span className="text-xs font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100">{heldCarts.length}</span>
-              </div>
-            </div>
-          </div>
+      {/* Category chips */}
+      <div className="flex gap-1.5 overflow-x-auto pb-2 mb-3 flex-shrink-0">
+        <button
+          onClick={() => setActiveCategory('')}
+          className={`px-3 py-1 rounded-full text-[11px] font-bold whitespace-nowrap flex-shrink-0 ${
+            activeCategory === '' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-stone-100 text-stone-600'
+          }`}
+        >
+          ทั้งหมด
+        </button>
+        {categories.map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setActiveCategory(cat)}
+            className={`px-3 py-1 rounded-full text-[11px] font-bold whitespace-nowrap flex-shrink-0 ${
+              activeCategory === cat ? 'bg-emerald-600 text-white shadow-sm' : 'bg-stone-100 text-stone-600'
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
 
-          {activeTab === 'products' ? (
-            <>
-              {/* Category Tabs & Search */}
-              <div className={`${CARD} p-4 shrink-0 space-y-4`}>
-                {/* Search */}
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg">🔍</span>
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    placeholder="ค้นหาสินค้าด้วย ชื่อ, SKU หรือ สแกนบาร์โค้ด..."
-                    className={`w-full pl-10 pr-4 py-3 bg-stone-50 border border-stone-200 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all ${scannerFlash ? 'ring-2 ring-emerald-500' : ''}`}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                  {searching && (
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <LoadingSpinner size="sm" />
-                    </div>
-                  )}
-                </div>
+      {/* Product grid — 4 cols desktop, 2 cols mobile */}
+      <div className="overflow-y-auto flex-1">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 md:gap-3">
+          {filteredProducts.map((p) => (
+            <ProductCard key={p.id} product={p} onAdd={addToCart} />
+          ))}
+        </div>
+        {filteredProducts.length === 0 && (
+          <div className="text-center py-12 text-stone-400 text-sm">ไม่พบสินค้า</div>
+        )}
+      </div>
+    </div>
+  );
 
-                {/* Categories */}
-                <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                  <button
-                    onClick={() => setSelectedCategory(null)}
-                    className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${!selectedCategory ? 'bg-emerald-600 text-white shadow-sm' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}
-                  >
-                    ทั้งหมด / All
-                  </button>
-                  {categories.map(cat => (
-                    <button
-                      key={cat.id}
-                      onClick={() => setSelectedCategory(cat.id)}
-                      className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${selectedCategory === cat.id ? 'bg-emerald-600 text-white shadow-sm' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}
-                    >
-                      {cat.name_th}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Product Grid */}
-              <div className="flex-1 overflow-y-auto min-h-0 pr-1">
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 pb-4">
-                  {displayedProducts.map(p => (
-                    <button
-                      key={p.id}
-                      onClick={() => addToCart(p)}
-                      className={`group relative flex flex-col bg-white border rounded-xl overflow-hidden hover:shadow-md transition-all text-left ${
-                        p.qty_available <= 0 ? 'border-red-200' : 
-                        p.qty_available <= (p.reorder_point || 0) ? 'border-amber-200' : 'border-stone-200'
-                      }`}
-                    >
-                      <div className="relative aspect-square w-full bg-stone-50 overflow-hidden">
-                        <img 
-                          src={p.image_url || '/placeholder-product.png'} 
-                          alt={p.name_th}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder-product.png'; }}
-                        />
-                        {/* Stock Badge */}
-                        <div className="absolute top-2 right-2">
-                          {p.qty_available <= 0 ? (
-                            <span className="px-2 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full shadow-sm">หมด</span>
-                          ) : p.qty_available <= (p.reorder_point || 0) ? (
-                            <span className="px-2 py-0.5 bg-amber-500 text-white text-[10px] font-bold rounded-full shadow-sm">สต็อกต่ำ</span>
-                          ) : (
-                            <span className="px-2 py-0.5 bg-white/90 text-stone-600 text-[10px] font-bold rounded-full shadow-sm backdrop-blur-sm border border-stone-100">
-                              {formatQty(p.qty_available)}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="p-3 space-y-1 flex-1 flex flex-col">
-                        <h4 className="text-[13px] font-medium text-stone-900 line-clamp-2 leading-tight h-8">{p.name_th}</h4>
-                        <div className="flex items-center justify-between mt-auto pt-2">
-                          <span className="text-sm font-bold text-emerald-600">{formatCurrency(p.selling_price)}</span>
-                          <span className="text-[10px] text-stone-400 font-mono">{p.sku}</span>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </>
-          ) : (
-            <div className="flex-1 flex flex-col gap-4 min-h-0">
-              {/* Held Carts Section */}
-              <div className={`${CARD} flex-1 flex flex-col min-h-0`}>
-                <div className="px-5 py-3 border-b border-stone-100 bg-stone-50/50 flex items-center justify-between">
-                  <h3 className="font-semibold text-stone-900">บิลที่พักไว้ / Held Carts</h3>
-                  {loadingHeld && <LoadingSpinner size="sm" />}
-                </div>
-                <div className="flex-1 overflow-y-auto">
-                  {heldCarts.length === 0 ? (
-                    <div className="h-full flex flex-col items-center justify-center text-stone-300 p-8">
-                      <span className="text-4xl mb-2">📄</span>
-                      <p className="text-sm">ไม่มีบิลที่พักไว้</p>
-                    </div>
-                  ) : (
-                    <div className="divide-y divide-stone-50">
-                      {heldCarts.map((hc) => (
-                        <div key={hc.id} className="p-4 hover:bg-stone-50/50 flex items-center justify-between group transition-colors">
-                          <div className="flex flex-col">
-                            <span className="text-sm font-bold text-stone-900">{hc.hold_number}</span>
-                            <span className="text-[11px] text-stone-400">
-                              {new Date(hc.created_at).toLocaleTimeString('th-TH')} • {hc.line_count} รายการ
-                            </span>
-                            {hc.note && <span className="text-xs text-amber-600 mt-1">📝 {hc.note}</span>}
-                          </div>
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm" onClick={() => handleResumeCart(hc.id)}>ดึงข้อมูล / Resume</Button>
-                            <Button variant="outline" size="sm" className="text-red-500 hover:bg-red-50" onClick={async () => {
-                              if (confirm('ลบบิลที่พักไว้?')) {
-                                await del(`/api/pos/held-carts/${hc.id}`);
-                                fetchHeldCarts();
-                              }
-                            }}>ลบ</Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* History Section */}
-              <div className={`${CARD} flex-1 flex flex-col min-h-0`}>
-                <div className="px-5 py-3 border-b border-stone-100 bg-stone-50/50 flex items-center justify-between">
-                  <h3 className="font-semibold text-stone-900">รายการขายในรอบนี้ / Session History</h3>
-                  {loadingHistory && <LoadingSpinner size="sm" />}
-                </div>
-                <div className="flex-1 overflow-y-auto text-left">
-                  {sessionTransactions.length === 0 ? (
-                    <div className="h-full flex flex-col items-center justify-center text-stone-300 p-8">
-                      <span className="text-4xl mb-2">💰</span>
-                      <p className="text-sm">ยังไม่มีรายการขาย</p>
-                    </div>
-                  ) : (
-                    <table className="w-full text-left">
-                      <thead className="sticky top-0 bg-white border-b border-stone-100 shadow-sm z-10">
-                        <tr className="text-[11px] font-bold text-stone-400 uppercase tracking-wider">
-                          <th className="px-5 py-3">เลขที่ / Receipt</th>
-                          <th className="px-5 py-3">เวลา / Time</th>
-                          <th className="px-5 py-3">สมาชิก / Member</th>
-                          <th className="px-5 py-3 text-right">ยอดรวม / Total</th>
-                          <th className="px-5 py-3 text-center">วิธีชำระ / Payment</th>
-                          <th className="px-5 py-3 text-center">สถานะ / Status</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-stone-50">
-                        {sessionTransactions.map((txn) => (
-                          <tr key={txn.id} className="hover:bg-stone-50/50 transition-colors">
-                            <td className="px-5 py-3 font-mono text-sm font-bold text-stone-900">{txn.receipt_number}</td>
-                            <td className="px-5 py-3 text-xs text-stone-500">{new Date(txn.created_at).toLocaleTimeString('th-TH')}</td>
-                            <td className="px-5 py-3 text-sm">
-                              {txn.member_name ? (
-                                <div className="flex flex-col">
-                                  <span className="font-medium text-stone-700">{txn.member_name}</span>
-                                  <span className="text-[10px] text-emerald-600">+{txn.points_earned} pts</span>
-                                </div>
-                              ) : (
-                                <span className="text-stone-300">-</span>
-                              )}
-                            </td>
-                            <td className="px-5 py-3 text-right font-mono font-bold">{formatCurrency(txn.total)}</td>
-                            <td className="px-5 py-3 text-center text-xs uppercase font-medium">{txn.payment_method}</td>
-                            <td className="px-5 py-3 text-center">
-                              <div className="flex items-center justify-center gap-2">
-                                <StatusBadge status={txn.status} />
-                                {txn.status === 'completed' && (currentUser?.role === 'admin' || currentUser?.role === 'manager') && (
-                                  <button 
-                                    onClick={() => handleVoidTransaction(txn.id)}
-                                    className="text-[10px] font-bold text-red-500 hover:text-red-700 underline"
-                                  >
-                                    VOID
-                                  </button>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
-                </div>
-              </div>
-            </div>
+  // ════════════════════════════════════════
+  // SHARED: Cart panel content
+  // ════════════════════════════════════════
+  const CartContent = (
+    <div className="flex flex-col h-full">
+      {/* Cart header */}
+      <div className="flex items-center justify-between mb-3 flex-shrink-0">
+        <div className="flex items-center gap-2">
+          <span className="text-[13px] font-semibold text-stone-800">รายการสินค้า / Cart</span>
+          {cartCount > 0 && (
+            <span className="bg-stone-100 text-stone-600 text-xs px-1.5 py-0.5 rounded-full font-mono tabular-nums">{cartCount}</span>
           )}
         </div>
+        <button
+          onClick={holdCart}
+          disabled={cartItems.length === 0}
+          className="flex items-center gap-1 text-[12px] font-semibold text-amber-700 border border-amber-300 bg-amber-50 rounded-lg px-2.5 py-1.5 hover:bg-amber-100 disabled:opacity-40"
+        >
+          ⏸ พักบิล
+        </button>
+      </div>
 
-        {/* Right: Cart & Payment */}
-        <div className="flex-[2] flex flex-col gap-4 min-w-0">
-          {/* Cart Table */}
-          <div className={`${CARD} flex-1 flex flex-col min-h-0`}>
-            <div className="px-5 py-3 border-b border-stone-100 flex items-center justify-between bg-stone-50/50 shrink-0">
-              <div className="flex items-center gap-3">
-                <h3 className="font-semibold text-stone-900">รายการสินค้า / Cart</h3>
-                <span className="text-xs font-medium text-stone-500 bg-stone-200/50 px-2 py-0.5 rounded-full">{cart.length}</span>
-              </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="h-8 text-amber-600 border-amber-200 hover:bg-amber-50"
-                onClick={handleHoldBill}
-                disabled={cart.length === 0}
-              >
-                ⏸ พักบิล / Hold
-              </Button>
-            </div>
-            <div className="flex-1 overflow-y-auto">
-              {cart.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-stone-300 gap-2">
-                  <span className="text-5xl">🛒</span>
-                  <p className="text-sm">ตะกร้าว่างเปล่า</p>
-                </div>
-              ) : (
-                <table className="w-full text-left">
-                  <thead className="sticky top-0 bg-white border-b border-stone-100 shadow-sm z-10">
-                    <tr className="text-[11px] font-bold text-stone-400 uppercase tracking-wider">
-                      <th className="px-5 py-3">สินค้า / Product</th>
-                      <th className="px-5 py-3 text-center w-32">จำนวน / Qty</th>
-                      <th className="px-5 py-3 text-right">ราคา / Price</th>
-                      <th className="px-5 py-3 text-right">รวม / Total</th>
-                      <th className="px-5 py-3 text-center w-12"></th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-stone-50">
-                    {cart.map((item) => (
-                      <tr key={item.id} className="hover:bg-stone-50/50 transition-colors group">
-                        <td className="px-5 py-4">
-                          <div className="font-medium text-stone-900 text-[13.5px]">{item.name_th}</div>
-                          <div className="text-[11px] text-stone-400 font-mono mt-0.5">{item.sku}</div>
-                        </td>
-                        <td className="px-5 py-4">
-                          <div className="flex items-center justify-center gap-2">
-                            <button
-                              onClick={() => updateQty(item.id, item.qty - 1)}
-                              className="w-7 h-7 flex items-center justify-center rounded-lg border border-stone-200 hover:bg-stone-100 text-stone-600 transition-colors"
-                            >
-                              -
-                            </button>
-                            <input
-                              type="number"
-                              className="w-12 text-center font-mono font-bold text-[14px] bg-transparent focus:outline-none"
-                              value={item.qty}
-                              onChange={(e) => updateQty(item.id, parseFloat(e.target.value) || 0)}
-                            />
-                            <button
-                              onClick={() => updateQty(item.id, item.qty + 1)}
-                              className="w-7 h-7 flex items-center justify-center rounded-lg border border-stone-200 hover:bg-stone-100 text-stone-600 transition-colors"
-                            >
-                              +
-                            </button>
-                          </div>
-                        </td>
-                        <td className="px-5 py-4 text-right font-mono text-[13.5px]">
-                          {formatCurrency(item.selling_price)}
-                        </td>
-                        <td className="px-5 py-4 text-right font-mono font-bold text-stone-900 text-[13.5px]">
-                          {formatCurrency(item.selling_price * item.qty)}
-                        </td>
-                        <td className="px-5 py-4 text-center">
-                          <button
-                            onClick={() => removeFromCart(item.id)}
-                            className="text-stone-300 hover:text-red-500 transition-colors"
-                          >
-                            ✕
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
+      {/* Cart items */}
+      <div className="overflow-y-auto flex-1 divide-y divide-stone-50">
+        {cartItems.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-32 text-stone-300">
+            <ShoppingCart className="w-8 h-8 mb-2" />
+            <p className="text-sm">ตะกร้าว่าง</p>
           </div>
+        ) : (
+          cartItems.map((item) => (
+            <CartItemRow key={item.product_id} item={item} onQtyChange={changeQty} onRemove={removeItem} />
+          ))
+        )}
+      </div>
+
+      {/* Held cart chips */}
+      {heldCarts.length > 0 && (
+        <div className="flex gap-1.5 overflow-x-auto py-2 border-t border-stone-100 flex-shrink-0">
+          {heldCarts.map((hc) => (
+            <button
+              key={hc.id}
+              onClick={() => restoreHeld(hc)}
+              className="text-[11px] font-bold text-amber-700 border border-amber-300 bg-amber-50 rounded-full px-2.5 py-1 whitespace-nowrap flex-shrink-0 hover:bg-amber-100"
+            >
+              {hc.label} ({hc.items.length})
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Summary muted */}
+      {cartItems.length > 0 && (
+        <div className="text-right text-[11px] text-stone-400 py-1 border-t border-stone-50 flex-shrink-0">
+          {cartCount} ชิ้น · {formatCurrency(subtotal)}
+        </div>
+      )}
+    </div>
+  );
+
+  // ════════════════════════════════════════════════════════════════
+  // DESKTOP LAYOUT (≥ md)
+  // ════════════════════════════════════════════════════════════════
+  return (
+    <>
+      {/* ═══ MOBILE (< md) ═══════════════════════════════════════════ */}
+      <div className="flex flex-col h-screen bg-stone-50 md:hidden">
+
+        {/* Mobile Header */}
+        <div className="flex items-center px-4 pt-4 pb-3 bg-white border-b border-stone-100 flex-shrink-0">
+          <button
+            onClick={() => router.back()}
+            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-stone-100 -ml-1"
+            aria-label="ย้อนกลับ"
+          >
+            <ArrowLeft className="w-5 h-5 text-stone-700" />
+          </button>
+          <div className="flex-1 text-center">
+            <p className="text-[15px] font-semibold text-stone-900 leading-tight">POS Terminal</p>
+            <p className="text-[12px] text-stone-400 leading-tight mt-0.5">
+              {session?.session_number ?? '—'} · {session?.shift_name ?? '—'}
+            </p>
+          </div>
+          <button className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-stone-100" aria-label="เมนู">
+            <MoreHorizontal className="w-5 h-5 text-stone-700" />
+          </button>
         </div>
 
-        {/* Right: Summary & Payment */}
-        <div className="flex-[2] flex flex-col gap-4 min-w-0">
-          {/* Totals Summary */}
-          <div className={`${CARD} p-5 space-y-3`}>
-            <div className="flex justify-between text-sm text-stone-500">
-              <span>รวมสินค้า / Subtotal</span>
-              <span className="font-mono tabular-nums">{formatCurrency(totals.subtotalBeforeOrderDiscount)}</span>
-            </div>
-            <div className="flex justify-between items-center text-sm text-stone-500">
-              <span>ส่วนลดท้ายบิล / Order Discount</span>
-              <div className="relative w-28">
-                <input
-                  type="number"
-                  className="w-full pl-2 pr-2 py-1 bg-stone-50 border border-stone-200 rounded text-right font-mono text-sm focus:ring-1 focus:ring-emerald-500/20"
-                  value={orderDiscount}
-                  onChange={(e) => setOrderDiscount(parseFloat(e.target.value) || 0)}
-                />
-              </div>
-            </div>
-            <div className="h-px bg-stone-100" />
-            <div className="flex justify-between text-sm text-stone-400">
-              <span>รวมเงินก่อนภาษี / Subtotal (excl. VAT)</span>
-              <span className="font-mono tabular-nums">{formatCurrency(totals.subtotalExclVat)}</span>
-            </div>
-            <div className="flex justify-between text-sm text-stone-400">
-              <span>ภาษีมูลค่าเพิ่ม / VAT (7%)</span>
-              <span className="font-mono tabular-nums">{formatCurrency(totals.vatAmount)}</span>
-            </div>
-            <div className="h-px bg-stone-100" />
-            <div className="flex justify-between items-end">
-              <span className="text-sm font-bold text-stone-900 uppercase tracking-wider">ยอดสุทธิ / Total</span>
-              <span className="text-3xl font-black text-emerald-600 font-mono tracking-tighter tabular-nums">
-                {formatCurrency(totals.total)}
+        {/* Mobile Tabs */}
+        <div className="flex border-b border-stone-200 bg-white flex-shrink-0">
+          <button
+            onClick={() => setMobileTab('products')}
+            className={`flex-1 py-2.5 text-[13px] font-semibold transition-colors ${
+              mobileTab === 'products'
+                ? 'border-b-2 border-stone-950 text-stone-950 -mb-px'
+                : 'text-stone-400 border-b-2 border-transparent'
+            }`}
+          >
+            สินค้า
+          </button>
+          <button
+            onClick={() => setMobileTab('cart')}
+            className={`flex-1 py-2.5 text-[13px] font-semibold transition-colors flex items-center justify-center gap-1.5 ${
+              mobileTab === 'cart'
+                ? 'border-b-2 border-stone-950 text-stone-950 -mb-px'
+                : 'text-stone-400 border-b-2 border-transparent'
+            }`}
+          >
+            ตะกร้า
+            {cartCount > 0 && (
+              <span className="bg-emerald-600 text-white rounded-full text-xs px-1.5 py-0.5 font-mono leading-none">
+                {cartCount}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Mobile content */}
+        <div className="flex-1 overflow-hidden px-4 pt-3 pb-24">
+          {mobileTab === 'products' ? ProductsContent : CartContent}
+        </div>
+
+        {/* Mobile Sticky Bottom */}
+        <div className="fixed bottom-0 inset-x-0 p-3 bg-white border-t border-stone-200 z-40">
+          <button
+            onClick={() => {
+              if (mobileTab === 'products') setMobileTab('cart');
+              else handleCheckout();
+            }}
+            disabled={cartItems.length === 0}
+            className="w-full h-14 bg-emerald-600 text-white rounded-xl flex items-center justify-between px-5 disabled:opacity-50 hover:bg-emerald-700 active:scale-[0.98] transition-all"
+          >
+            <div className="flex items-center gap-2">
+              <ShoppingCart className="w-5 h-5" />
+              {cartCount > 0 && (
+                <span className="bg-white/20 rounded-full text-xs px-1.5 py-0.5 font-mono">{cartCount}</span>
+              )}
+              <span className="text-[14px] font-semibold">
+                {mobileTab === 'products' ? 'ดูตะกร้า · ชำระเงิน' : 'ชำระเงิน'}
               </span>
             </div>
+            <span className="font-mono font-bold text-lg tabular-nums">{formatCurrency(total)}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ═══ DESKTOP (≥ md) ═══════════════════════════════════════════ */}
+      <div className="hidden md:flex flex-col h-screen bg-stone-50 p-4 gap-4 overflow-hidden">
+
+        {/* 1. Status bar */}
+        <div className="bg-white border border-stone-200 rounded-[10px] shadow-sm p-3 px-5 flex items-center gap-4 flex-shrink-0">
+          {/* Session */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <span className="text-[12px] text-stone-500">รอบการขาย</span>
+            <span className="font-mono font-bold text-[13px] tabular-nums text-stone-900">{session?.session_number ?? '—'}</span>
+            <span className="text-[10px] font-bold text-emerald-700 border border-emerald-200 bg-emerald-50 rounded-full px-1.5 py-0.5">
+              OPEN
+            </span>
+          </div>
+          <div className="h-4 w-px bg-stone-200 flex-shrink-0" />
+          {/* Warehouse */}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <span className="text-[12px] text-stone-500">คลัง</span>
+            <span className="font-mono text-[12px] text-stone-700 font-semibold">{session?.warehouse_code ?? '—'}</span>
+          </div>
+          <div className="h-4 w-px bg-stone-200 flex-shrink-0" />
+          {/* Shift */}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <span className="text-[12px] text-stone-500">กะ/SHIFT</span>
+            <span className="text-[13px] font-bold text-emerald-700">{session?.shift_name ?? '—'}</span>
+          </div>
+          <div className="h-4 w-px bg-stone-200 flex-shrink-0" />
+          {/* Cashier */}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <span className="text-[12px] text-stone-500">แคชเชียร์</span>
+            <span className="text-[13px] text-stone-700">{session?.cashier_name ?? '—'}</span>
+          </div>
+          <div className="h-4 w-px bg-stone-200 flex-shrink-0" />
+          {/* Time */}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <span className="font-mono text-[13px] text-stone-700 tabular-nums">{currentTime}</span>
+          </div>
+          {/* Spacer */}
+          <div className="flex-1" />
+          {/* Close session */}
+          <button
+            onClick={handleCloseSession}
+            className="text-red-600 border border-stone-200 rounded-md px-3 py-1 text-sm flex-shrink-0 hover:bg-red-50"
+          >
+            ปิดรอบ / Close
+          </button>
+        </div>
+
+        {/* 2. Body */}
+        <div className="flex flex-1 gap-4 overflow-hidden">
+
+          {/* ── Products col (flex-[3]) ── */}
+          <div className="flex-[3] flex flex-col bg-white border border-stone-200 rounded-[10px] shadow-sm p-4 overflow-hidden">
+
+            {/* Tab strip */}
+            <div className="flex items-center border-b border-stone-200 mb-3 flex-shrink-0">
+              {(['products', 'history'] as const).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setDesktopTab(t)}
+                  className={`px-3 py-2 text-[13px] font-medium transition-colors ${
+                    desktopTab === t
+                      ? 'border-b-2 border-stone-950 text-stone-950 -mb-px'
+                      : 'text-stone-400 border-b-2 border-transparent hover:text-stone-600'
+                  }`}
+                >
+                  {t === 'products' ? 'สินค้า' : 'ประวัติ'}
+                </button>
+              ))}
+              {heldCarts.length > 0 && (
+                <span className="ml-auto text-[11px] font-bold text-amber-700 border border-amber-300 bg-amber-50 rounded-full px-2 py-0.5">
+                  บิลที่พัก: {heldCarts.length}
+                </span>
+              )}
+            </div>
+
+            {desktopTab === 'products' ? ProductsContent : (
+              <div className="flex items-center justify-center h-full text-stone-400 text-sm">ประวัติการขาย</div>
+            )}
           </div>
 
-          {/* Payment Panel */}
-          <div className={`${CARD} p-5 flex-1 flex flex-col gap-4 overflow-y-auto`}>
-            {/* Member Lookup */}
-            <div className="space-y-2 pb-4 border-b border-stone-100">
-              <label className="text-xs font-bold text-stone-400 uppercase">สมาชิก / Member</label>
-              {!member ? (
+          {/* ── Cart col (flex-[2]) ── */}
+          <div className="flex-[2] flex flex-col bg-white border border-stone-200 rounded-[10px] shadow-sm p-4 overflow-hidden">
+            {CartContent}
+          </div>
+
+          {/* ── Right panel (flex-[2]) ── */}
+          <div className="flex-[2] flex flex-col space-y-4 overflow-y-auto">
+
+            {/* Totals card */}
+            <div className="bg-white border border-stone-200 rounded-[10px] shadow-sm p-4 space-y-2.5 flex-shrink-0">
+              <div className="flex justify-between text-sm text-stone-700">
+                <span>ยอดรวม</span>
+                <span className="font-mono tabular-nums">{formatCurrency(subtotal)}</span>
+              </div>
+              <div className="flex justify-between text-sm text-stone-700 items-center">
+                <span>ส่วนลด</span>
+                <input
+                  type="number"
+                  value={discount}
+                  onChange={(e) => setDiscount(Math.max(0, Number(e.target.value)))}
+                  className="w-24 text-right font-mono tabular-nums border border-stone-200 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-stone-300"
+                  min={0}
+                />
+              </div>
+              <hr className="border-stone-100" />
+              <div className="flex justify-between text-sm text-stone-400">
+                <span>ก่อน VAT</span>
+                <span className="font-mono tabular-nums">{formatCurrency(preVat)}</span>
+              </div>
+              <div className="flex justify-between text-sm text-stone-400">
+                <span>VAT 7%</span>
+                <span className="font-mono tabular-nums">{formatCurrency(vatAmt)}</span>
+              </div>
+              <hr className="border-stone-100" />
+              <div className="flex justify-between items-baseline">
+                <span className="text-sm font-semibold text-stone-700">ยอดสุทธิ</span>
+                <span className="text-emerald-600 text-3xl font-black font-mono tabular-nums">{formatCurrency(total)}</span>
+              </div>
+            </div>
+
+            {/* Member card */}
+            <div className="bg-white border border-stone-200 rounded-[10px] shadow-sm p-4 flex-shrink-0">
+              <p className="text-[12px] font-semibold text-stone-500 mb-2 uppercase tracking-wide">สมาชิก</p>
+              {member ? (
+                <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+                  <div>
+                    <p className="text-[13px] font-semibold text-emerald-900">{member.name}</p>
+                    <p className="text-[11px] text-emerald-700 font-mono">{member.tier} · {member.points} pts</p>
+                  </div>
+                  <button onClick={() => setMember(null)} className="text-emerald-400 hover:text-red-500">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
                 <div className="flex gap-2">
-                  <Input
-                    placeholder="เบอร์โทรศัพท์..."
+                  <input
+                    type="tel"
                     value={memberPhone}
                     onChange={(e) => setMemberPhone(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && searchMember()}
-                    className="flex-1"
+                    placeholder="เบอร์โทร"
+                    className="flex-1 h-9 px-3 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-stone-300 font-mono"
                   />
-                  <Button variant="outline" size="sm" onClick={searchMember} loading={searchingMember}>ค้นหา</Button>
-                </div>
-              ) : (
-                <div className="flex items-center justify-between p-2 bg-emerald-50 border border-emerald-100 rounded-lg">
-                  <div className="flex flex-col">
-                    <span className="text-sm font-bold text-emerald-800">{member.name_th}</span>
-                    <span className="text-[10px] text-emerald-600 font-medium">{member.tier.toUpperCase()} • ส่วนลด {(member.discount_rate * 100).toFixed(0)}%</span>
-                  </div>
-                  <button onClick={() => { setMember(null); setMemberPhone(''); }} className="text-emerald-400 hover:text-emerald-600 p-1">✕</button>
+                  <button
+                    onClick={searchMember}
+                    className="h-9 px-3 bg-stone-950 text-white rounded-lg text-sm hover:bg-stone-800"
+                  >
+                    ค้นหา
+                  </button>
                 </div>
               )}
             </div>
 
-            <div className="grid grid-cols-3 gap-2 shrink-0">
-              {(['cash', 'card', 'mixed'] as const).map((method) => (
-                <button
-                  key={method}
-                  onClick={() => {
-                    setPaymentMethod(method);
-                    if (method === 'card') {
-                      setCardAmount(totals.total.toString());
-                      setCashTendered('');
-                    } else if (method === 'cash') {
-                      setCardAmount('');
-                      setCashTendered('');
-                    }
-                  }}
-                  className={`py-3 rounded-lg border text-sm font-bold transition-all ${
-                    paymentMethod === method 
-                      ? 'border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm' 
-                      : 'border-stone-200 text-stone-400 hover:bg-stone-50'
-                  }`}
-                >
-                  {method === 'cash' ? '💵 เงินสด' : method === 'card' ? '💳 บัตร' : '🔀 ผสม'}
-                </button>
-              ))}
-            </div>
+            {/* Payment card */}
+            <div className="bg-white border border-stone-200 rounded-[10px] shadow-sm p-4 flex flex-col gap-3 flex-shrink-0">
+              <p className="text-[12px] font-semibold text-stone-500 uppercase tracking-wide">ชำระเงิน</p>
 
-            <div className="space-y-4 flex-1">
+              {/* Payment method grid */}
+              <div className="grid grid-cols-3 gap-2">
+                {(['cash', 'card', 'mixed'] as const).map((m) => (
+                  <button
+                    key={m}
+                    onClick={() => setPaymentMethod(m)}
+                    className={`py-2 rounded-lg text-[12px] font-semibold border transition-colors ${
+                      paymentMethod === m
+                        ? 'border-emerald-500 border-2 bg-emerald-50 text-emerald-700'
+                        : 'border-stone-200 text-stone-600 hover:bg-stone-50'
+                    }`}
+                  >
+                    {m === 'cash' ? 'เงินสด' : m === 'card' ? 'บัตร' : 'ผสม'}
+                  </button>
+                ))}
+              </div>
+
+              {/* Cash tendered */}
               {(paymentMethod === 'cash' || paymentMethod === 'mixed') && (
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-stone-400 uppercase">เงินสดที่รับมา / Cash Tendered</label>
-                  <Input
+                <>
+                  <input
                     type="number"
-                    className="text-2xl font-mono text-right"
-                    value={cashTendered}
-                    onChange={(e) => setCashTendered(e.target.value)}
-                    placeholder="0.00"
-                    autoFocus={paymentMethod === 'cash'}
+                    value={cashTendered || ''}
+                    onChange={(e) => setCashTendered(Number(e.target.value))}
+                    placeholder="จำนวนเงินที่รับ"
+                    className="w-full h-12 text-right font-mono tabular-nums text-2xl border border-stone-200 rounded-lg px-3 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                    min={0}
                   />
-                  <div className="grid grid-cols-3 gap-2">
-                    {[100, 500, 1000].map(amt => (
+
+                  {/* Quick amounts */}
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {[20, 100, 500, 1000].map((amt) => (
                       <button
                         key={amt}
-                        onClick={() => setCashTendered(amt.toString())}
-                        className="py-1.5 bg-stone-50 border border-stone-200 rounded text-xs text-stone-600 hover:bg-stone-100"
+                        onClick={() => setCashTendered((prev) => prev + amt)}
+                        className="py-1.5 border border-stone-200 rounded-lg text-[12px] font-mono font-bold text-stone-700 hover:bg-stone-50"
                       >
                         {amt}
                       </button>
                     ))}
                   </div>
-                </div>
+
+                  {/* Change */}
+                  {cashTendered >= total && total > 0 && (
+                    <div className="bg-amber-50 rounded-lg px-4 py-3 flex justify-between items-center">
+                      <span className="text-[12px] text-amber-700 font-medium">เงินทอน</span>
+                      <span className="text-amber-800 font-mono font-black text-2xl tabular-nums">{formatCurrency(change)}</span>
+                    </div>
+                  )}
+                </>
               )}
 
-              {(paymentMethod === 'card' || paymentMethod === 'mixed') && (
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-stone-400 uppercase">รูดบัตร / Card Amount</label>
-                  <Input
-                    type="number"
-                    className="text-2xl font-mono text-right"
-                    value={cardAmount}
-                    onChange={(e) => setCardAmount(e.target.value)}
-                    placeholder="0.00"
-                  />
-                </div>
-              )}
-
-              <div className="mt-auto pt-6 space-y-4">
-                <div className="flex justify-between items-center px-2 py-3 bg-amber-50 rounded-lg border border-amber-100">
-                  <span className="text-sm font-bold text-amber-800 uppercase">เงินทอน / Change</span>
-                  <span className="text-2xl font-mono font-black text-amber-800">{formatCurrency(changeGiven)}</span>
-                </div>
-
-                <Button
-                  className="w-full py-6 text-xl rounded-xl shadow-lg"
-                  disabled={submitting || cart.length === 0 || (paymentMethod === 'mixed' && (parseFloat(cashTendered || '0') + parseFloat(cardAmount || '0')) < totals.total)}
-                  loading={submitting}
-                  onClick={handleCheckout}
-                >
-                  ชำระเงิน / Checkout
-                </Button>
-              </div>
+              {/* Checkout */}
+              <button
+                onClick={handleCheckout}
+                disabled={cartItems.length === 0 || checkingOut}
+                className="w-full py-3.5 rounded-xl text-base font-semibold bg-emerald-600 text-white hover:bg-emerald-700 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {checkingOut ? 'กำลังประมวลผล...' : `ชำระเงิน ${formatCurrency(total)}`}
+              </button>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Receipt Modal */}
-      <Modal
-        isOpen={isReceiptModalOpen}
-        onClose={() => {
-          setIsReceiptModalOpen(false);
-          searchInputRef.current?.focus();
-        }}
-        title="ใบเสร็จรับเงิน / Receipt"
-        maxWidth="max-w-md"
-      >
-        {lastTransaction && (
-          <div className="space-y-6 pt-2">
-            <div id="receipt-print" className="bg-white p-6 rounded border border-stone-100 text-stone-900 font-mono text-sm">
-              <div className="text-center mb-6">
-                <div className="text-xl font-bold tracking-widest uppercase">RECEIPT</div>
-                <div className="text-[11px] text-stone-500 mt-1">{session.warehouse_name_th}</div>
-              </div>
-
-              <div className="flex justify-between mb-1">
-                <span className="text-stone-500">Receipt No:</span>
-                <span className="font-bold">{lastTransaction.receipt_number}</span>
-              </div>
-              <div className="flex justify-between mb-4">
-                <span className="text-stone-500">Date/Time:</span>
-                <span>{new Date(lastTransaction.created_at).toLocaleString('th-TH')}</span>
-              </div>
-
-              <div className="h-px bg-stone-200 mb-4" />
-
-              <div className="space-y-3 mb-6">
-                {lastTransaction.lines?.map((line, i) => (
-                  <div key={i}>
-                    <div className="flex justify-between">
-                      <span className="flex-1 truncate mr-2">{line.name_th}</span>
-                      <span className="shrink-0">{formatCurrency(line.line_total)}</span>
-                    </div>
-                    <div className="text-[11px] text-stone-400">
-                      {formatQty(line.qty)} x {formatCurrency(line.unit_price)}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="h-px bg-stone-200 mb-4" />
-
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-stone-500">Subtotal:</span>
-                  <span>{formatCurrency(lastTransaction.subtotal)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-stone-500">VAT (7%):</span>
-                  <span>{formatCurrency(lastTransaction.vat_amount)}</span>
-                </div>
-                <div className="flex justify-between text-lg font-bold">
-                  <span>TOTAL:</span>
-                  <span>{formatCurrency(lastTransaction.total)}</span>
-                </div>
-              </div>
-
-              <div className="mt-4 pt-4 border-t border-dashed border-stone-200">
-                <div className="flex justify-between">
-                  <span className="text-stone-500 uppercase">{lastTransaction.payment_method}</span>
-                  <span>{formatCurrency((lastTransaction.cash_tendered ?? 0) + (lastTransaction.card_amount ?? 0))}</span>
-                </div>
-                <div className="flex justify-between text-emerald-700 font-bold">
-                  <span>CHANGE:</span>
-                  <span>{formatCurrency(lastTransaction.change_given)}</span>
-                </div>
-              </div>
-
-              <div className="text-center mt-8 text-[11px] text-stone-400 uppercase tracking-widest">
-                Thank you
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <Button variant="outline" className="flex-1" onClick={() => window.print()}>พิมพ์ / Print</Button>
-              <Button className="flex-1" onClick={() => {
-                setIsReceiptModalOpen(false);
-                searchInputRef.current?.focus();
-              }}>รายการใหม่ / New Sale</Button>
-            </div>
-          </div>
-        )}
-      </Modal>
-
-      {/* Close Session Modal */}
-      <Modal
-        isOpen={isCloseModalOpen}
-        onClose={() => setIsCloseModalOpen(false)}
-        title="ปิดรอบการขาย / Close POS Session"
-      >
-        <div className="space-y-4 pt-2">
-          <p className="text-stone-500 text-sm">กรุณาระบุเงินสดคงเหลือในเครื่องเพื่อทำการปิดรอบการขาย</p>
-          
-          <Input
-            label="เงินสดคงเหลือ / Closing Float"
-            type="number"
-            value={closingFloat}
-            onChange={(e) => setClosingFloat(e.target.value)}
-            placeholder="0.00"
-            autoFocus
-          />
-
-          <div className="flex justify-end gap-2 pt-4">
-            <Button variant="outline" onClick={() => setIsCloseModalOpen(false)} disabled={closing}>ยกเลิก / Cancel</Button>
-            <Button className="bg-red-600 hover:bg-red-700" loading={closing} onClick={handleCloseSession}>ยืนยันปิดรอบ / Close Session</Button>
-          </div>
-        </div>
-      </Modal>
-
-      <style jsx global>{`
-        @media print {
-          body * { visibility: hidden; }
-          #receipt-print, #receipt-print * { visibility: visible; }
-          #receipt-print {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 300px; /* Standard thermal printer width */
-            border: none;
-            box-shadow: none;
-          }
-        }
-      `}</style>
-    </div>
+    </>
   );
 }

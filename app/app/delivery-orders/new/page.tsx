@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { get, post } from '@/lib/api-client';
 import { Button } from '@/components/ui/Button';
@@ -12,7 +12,7 @@ const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-sm overflow
 
 type SOLineWithStock = SoLineItem & { qty_available: number; qty_to_deliver: number };
 
-export default function NewDeliveryOrderPage() {
+function NewDeliveryOrderPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const soId = searchParams.get('so_id');
@@ -226,5 +226,13 @@ export default function NewDeliveryOrderPage() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function NewDeliveryOrderPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center py-24"><LoadingSpinner /></div>}>
+      <NewDeliveryOrderPageInner />
+    </Suspense>
   );
 }
