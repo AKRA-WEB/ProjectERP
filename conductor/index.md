@@ -7,9 +7,7 @@
 
 > Gemini CLI: read this section first. Only read full table below if searching for a specific track.
 
-| Track | Status | Plan |
-|-------|--------|------|
-| UI Improvement — Dashboard | Active | [plan](./tracks/ui-improvement-dashboard/plan.md) |
+*(No active tracks — all modules Completed or Verified)*
 
 
 
@@ -53,9 +51,9 @@
 | [POS Improvements — Grid · Members · Hold Bill · Shifts · Alerts · Scanner](./tracks/pos-improvements/plan.md) | Verified | 2026-05-14 | 2026-05-15 |
 | [Accounts Payable — Vendor Bank · AP Invoices · Aging · Payments](./tracks/accounts-payable/plan.md) | Verified | 2026-05-15 | 2026-05-15 |
 | [UI Improvement — Dashboard (Multi-Module KPIs + Activity Feed)](./tracks/ui-improvement-dashboard/plan.md) | Completed | 2026-05-15 | 2026-05-16 |
+| [UI Redesign — POS Terminal · Inventory · GRN Mobile](./tracks/ui-redesign-pos-inventory-grn/plan.md) | Verified | 2026-05-16 | 2026-05-16 |
 | [UI Improvement — Inventory Heatmap Matrix + Warehouse Cards](./tracks/ui-improvement-inventory/plan.md) | Completed | 2026-05-15 | 2026-05-15 |
 | [UI Improvement — POS Tier Badges · Lock Timer · Thermal Receipt](./tracks/ui-improvement-pos/plan.md) | Completed | 2026-05-15 | 2026-05-15 |
 | [UI Improvement — WMS Ops (GRN Tabs · QC KPIs · Receiving Queue)](./tracks/ui-improvement-wms-ops/plan.md) | Completed | 2026-05-15 | 2026-05-15 |
 | [Security Fixes — Pre-Vercel Auth Guards · Warehouse Scope · Perf](./tracks/security-fixes/plan.md) | Verified | 2026-05-15 | 2026-05-16 |
 | [View Transitions — App-wide Implementation](./tracks/view-transitions/plan.md) | Completed | 2026-05-15 | 2026-05-15 |
-| [UI Redesign — POS Terminal · Inventory · GRN Mobile](./tracks/ui-redesign-pos-inventory-grn/plan.md) | Verified | 2026-05-16 | 2026-05-16 |

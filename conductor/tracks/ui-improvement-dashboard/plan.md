@@ -8,7 +8,7 @@ updated: 2026-05-16
 
 # Track: UI Improvement — Dashboard (Multi-Module Overview)
 
-**Status:** Active
+**Status:** Completed
 **Design Reference:** `docs/design/views.jsx` → `DashboardView`, `components.jsx` → `KpiCard`, `SalesChart`
 **Goal:** Expand the WMS-only dashboard into a true multi-module ERP overview page showing Sales + POS + WMS signals.
 
