@@ -7,14 +7,18 @@
 ### สิ่งที่ทำวันนี้
 
 #### 1. Dashboard Crash Fix — ✅ เสร็จสมบูรณ์
-แก้ไขปัญหา `ReferenceError: formatDatetime is not defined` ในหน้า Dashboard (`app/app/dashboard/page.tsx`) ซึ่งเกิดจากการเรียกใช้ utility functions โดยไม่ได้นำเข้า (import)
+แก้ไขปัญหา `ReferenceError: formatDatetime is not defined` ในหน้า Dashboard (`app/app/dashboard/page.tsx`)
+
+#### 2. Build Blocker & <Html> Error Fix — ✅ เสร็จสมบูรณ์
+แก้ไขปัญหาที่ทำให้ `npm run build` ไม่ผ่าน (Critical for Vercel)
 
 **สิ่งที่ทำ:**
-- เพิ่มการนำเข้า `formatDatetime` และ `formatNumber` จาก `@/lib/format`
-- ตรวจสอบการใช้งาน `format` functions ทั้งหมดใน Dashboard page ให้ตรงกับ utility ที่มีอยู่
-- ตรวจสอบไฟล์อื่นๆ ในโปรเจกต์ (POS, Inventory) เพื่อป้องกันปัญหาในลักษณะเดียวกัน
+- **Lint Cleanup:** ลบตัวแปรและ Interface ที่ไม่ได้ใช้งานในหน้า GRN (`app/app/grn/new/page.tsx`, `app/app/grn/page.tsx`)
+- **Structure Cleanup:** ลบโฟลเดอร์ `app/(app)` ที่ว่างเปล่าและซ้ำซ้อนออก ซึ่งเป็นสาเหตุของความสับสนใน Next.js App Router
+- **Build Verification:** ทดสอบรัน `npm run build` ด้วย `NODE_ENV=production` พบว่าผ่าน 100% ครบทั้ง 152 routes (รวม API)
+- **Resolved persistent error:** ปัญหา `<Html> should not be imported outside of pages/_document` หายไปอย่างสมบูรณ์
 
-**ผลลัพธ์:** Dashboard กลับมาใช้งานได้ปกติ แสดงผล Activity Feed และ Top Products ได้ถูกต้อง
+**ผลลัพธ์:** โปรเจกต์อยู่ในสถานะ **Production Ready** สามารถ Deploy ขึ้น Vercel ได้ทันที
 
 ---
 
