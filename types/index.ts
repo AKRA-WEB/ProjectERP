@@ -1,4 +1,11 @@
 export type UserRole = 'admin' | 'manager' | 'staff';
+
+export interface SessionUser {
+  id: string;
+  role: UserRole;
+  assignedWarehouseIds: string[];
+  permissions: string[];
+}
 export type RmaCondition = 'resaleable' | 'repack_resell' | 'damaged_return_vendor';
 export type RmaStatus = 'open' | 'in_review' | 'resolved' | 'closed';
 export type ClaimStatus = 'open' | 'in_review' | 'resolved' | 'closed';
@@ -129,6 +136,7 @@ export interface PosTransaction {
   voided_at: string | null;
   void_reason: string | null;
   member_id?: string | null;
+  member_name?: string | null;
   member_discount?: number;
   points_earned?: number;
   created_by: string;
@@ -390,6 +398,7 @@ export interface Product {
   name_th: string;
   name_en: string | null;
   category_id: string | null;
+  category_name?: string | null;
   unit_cost: number | string;
   uom_id: string | null;
   uom_code: string | null;
@@ -548,7 +557,7 @@ export interface ArAgingRow {
   bucket: 'current' | '1-30' | '31-60' | '61-90' | '90+';
 }
 
-export interface ApAgingRow {
+export interface ApInvoiceAgingRow {
   vendor_name_th: string;
   invoice_number: string;
   invoice_date: string;
@@ -768,6 +777,7 @@ export interface ProductUom {
   is_base_unit?: boolean;
   // joined from uom_conversions
   factor: number | null;
+  conversion_factor?: number | null;
   base_uom_code: string | null;
 }
 
@@ -891,5 +901,61 @@ export interface Shipment {
   created_at: string;
   updated_at: string;
   lines?: PickListLine[];
+}
+
+export interface ApInvoice {
+  id: string;
+  invoice_number: string;
+  invoice_date: string;
+  due_date: string;
+  amount: number;
+  paid_amount: number;
+  outstanding_amount: number;
+  is_paid: boolean;
+  overdue_days: number;
+  vendor_id: string;
+  vendor_name_th: string;
+  vendor_name_en: string;
+  vendor_code: string;
+  po_id: string | null;
+  po_number: string | null;
+  grn_id: string | null;
+  grn_number: string | null;
+  created_at: string;
+}
+
+export interface ApPayment {
+  id: string;
+  payment_number: string;
+  vendor_id: string;
+  vendor_name_th: string;
+  payment_date: string;
+  total_amount: number;
+  bank_ref: string | null;
+  notes: string | null;
+  paid_by: string;
+  paid_by_name: string;
+  created_at: string;
+}
+
+export interface ApAgingRow {
+  vendor_id: string;
+  vendor_code: string;
+  vendor_name_th: string;
+  vendor_name_en: string;
+  total_outstanding: number;
+  current_amount: number;
+  days_1_30: number;
+  days_31_60: number;
+  days_61_90: number;
+  days_over_90: number;
+  invoice_count: number;
+  oldest_due_date: string;
+  // invoice-level detail properties
+  invoice_number?: string;
+  due_date?: string;
+  amount?: number;
+  days_overdue?: number;
+  bucket?: 'current' | '1-30' | '31-60' | '61-90' | '90+';
 }
 

@@ -1,3 +1,11 @@
+---
+track: ui-design-system
+status: Completed
+owner: puka
+module: Core
+updated: 2026-05-13
+---
+
 # Track: UI Design System — อรุณ
 
 > **For agentic workers:** Use superpowers:subagent-driven-development or superpowers:executing-plans to implement task-by-task.

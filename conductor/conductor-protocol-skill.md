@@ -29,11 +29,17 @@ The Conductor Protocol is a hybrid AI workflow where **Claude (The Architect)** 
 - Identify missing dependencies or variables before starting.
 
 ### 3. Step-by-Step Updates
-**Update the `plan.md` checkbox [x] immediately after completing EACH task.**
-- Do not bundle multiple tasks into one turn.
-- Ensure the state of the plan reflects the actual codebase.
+**Update the `plan.md` checkbox [x] immediately after completing each task.**
+- Ensure the state of the plan reflects the actual codebase at all times.
 
-### 4. Reporting
+### 4. Full-Track Execution
+**Execute the entire track per `Go` command.**
+- Complete ALL unchecked tasks in the plan before stopping.
+- After completing all tasks + knowledge capture, STOP and wait for the next command.
+- Do NOT proceed to a different track automatically.
+- Check off each task as it completes — do not batch checkboxes at the end.
+
+### 5. Reporting
 **Create or update `execution-summary.md` only after completing all tasks in the track.**
 - Include technical justifications for any necessary deviations.
 

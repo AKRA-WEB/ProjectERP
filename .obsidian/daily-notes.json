@@ -1,0 +1,5 @@
+{
+  "folder": "_notes/daily",
+  "template": "_notes/templates/daily-standup",
+  "format": "YYYY-MM-DD"
+}

@@ -28,7 +28,7 @@ export default function LoginPage() {
     if (result?.error) {
       setError('อีเมลหรือรหัสผ่านไม่ถูกต้อง / Invalid email or password');
     } else {
-      router.push('/app/dashboard');
+      router.push('/app/menu');
       router.refresh();
     }
   }
@@ -38,8 +38,8 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="rounded-xl bg-white p-8 shadow-md">
           <div className="mb-8 text-center">
-            <h1 className="text-2xl font-bold text-gray-900">WMS-ERP</h1>
-            <p className="mt-1 text-sm text-gray-500">ระบบจัดการคลังสินค้า</p>
+            <h1 className="text-2xl font-bold text-gray-900">BUYMORE (THAILAND) COMPANY LIMITED</h1>
+            <p className="mt-1 text-sm text-gray-500">ระบบบริหารจัดการองค์กร / Enterprise Resource Planning</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">

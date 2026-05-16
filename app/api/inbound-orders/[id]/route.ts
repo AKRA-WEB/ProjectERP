@@ -1,6 +1,10 @@
 import { auth } from '@/auth';
-import { apiSuccess, apiError } from '@/lib/api-response';
+import { apiSuccess, apiError, apiValidationError } from '@/lib/api-response';
+import { assertRole } from '@/lib/authz';
 import { query, queryOne } from '@/lib/db/client';
+import pool from '@/lib/db/client';
+import { z } from 'zod';
+import type { SessionUser } from '@/lib/authz';
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -46,4 +50,101 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   );
 
   return apiSuccess({ ...io, lines, grns });
+}
+
+const patchSchema = z.discriminatedUnion('action', [
+  z.object({
+    action: z.literal('change_warehouse'),
+    warehouse_id: z.string().uuid(),
+  }),
+  z.object({
+    action: z.literal('update_costs'),
+    lines: z.array(z.object({
+      id: z.string().uuid(),
+      unit_cost: z.number().nonnegative(),
+    })).min(1),
+  }),
+]);
+
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const session = await auth();
+  if (!session?.user) return apiError('Unauthorized', 401);
+  const u = session.user as unknown as SessionUser;
+
+  const { id } = await params;
+  const body = await req.json().catch(() => null);
+  if (!body) return apiError('Invalid JSON', 400);
+
+  const parsed = patchSchema.safeParse(body);
+  if (!parsed.success) return apiValidationError(parsed.error);
+
+  if (parsed.data.action === 'change_warehouse') {
+    try { assertRole(u, ['manager', 'admin']); } catch { return apiError('Forbidden', 403); }
+
+    const io = await queryOne<{ status: string }>(
+      'SELECT status FROM inbound_orders WHERE id = $1',
+      [id]
+    );
+    if (!io) return apiError('Inbound Order not found', 404);
+    if (io.status !== 'open') return apiError('Warehouse can only be changed when IO is open', 409);
+
+    const wh = await queryOne<{ id: string }>(
+      'SELECT id FROM warehouses WHERE id = $1 AND is_active = true',
+      [parsed.data.warehouse_id]
+    );
+    if (!wh) return apiError('Warehouse not found', 404);
+
+    await query(
+      'UPDATE inbound_orders SET warehouse_id = $1, updated_at = NOW() WHERE id = $2',
+      [parsed.data.warehouse_id, id]
+    );
+    return apiSuccess({ id, warehouse_id: parsed.data.warehouse_id });
+  }
+
+  if (parsed.data.action === 'update_costs') {
+    try { assertRole(u, ['manager', 'admin']); } catch { return apiError('Forbidden', 403); }
+
+    const io = await queryOne<{ status: string }>(
+      'SELECT status FROM inbound_orders WHERE id = $1',
+      [id]
+    );
+    if (!io) return apiError('Inbound Order not found', 404);
+    if (io.status === 'closed') return apiError('Cannot update costs on a closed IO', 409);
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      for (const line of parsed.data.lines) {
+        // Validate line belongs to this IO
+        const iol = await client.query<{ product_id: string }>(
+          'SELECT product_id FROM inbound_order_lines WHERE id = $1 AND io_id = $2',
+          [line.id, id]
+        );
+        if (!iol.rows[0]) continue;
+
+        await client.query(
+          'UPDATE inbound_order_lines SET unit_cost = $1 WHERE id = $2',
+          [line.unit_cost, line.id]
+        );
+
+        // Update product master unit_cost to reflect actual purchase price
+        await client.query(
+          'UPDATE products SET unit_cost = $1, updated_at = NOW() WHERE id = $2',
+          [line.unit_cost, iol.rows[0].product_id]
+        );
+      }
+
+      await client.query('COMMIT');
+      return apiSuccess({ id, updated: parsed.data.lines.length });
+    } catch (err) {
+      await client.query('ROLLBACK');
+      console.error(err);
+      return apiError('Failed to update costs', 500);
+    } finally {
+      client.release();
+    }
+  }
+
+  return apiError('Unknown action', 400);
 }

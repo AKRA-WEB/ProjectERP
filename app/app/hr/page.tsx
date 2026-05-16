@@ -60,7 +60,7 @@ export default function HrDashboardPage() {
         />
         <KpiCard
           label="เข้างานวันนี้"
-          value={d(stats?.attendance.present + stats?.attendance.late)}
+          value={d((stats?.attendance?.present ?? 0) + (stats?.attendance?.late ?? 0))}
           subValue={<>มาสาย: <span className="font-mono">{d(stats?.attendance.late)}</span> | ขาด: <span className="font-mono">{d(stats?.attendance.absent)}</span></>}
           href="/app/hr/attendance"
           loading={loading}

@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { auth } from '@/auth';
 import { query } from '@/lib/db/client';
-import { apiSuccess, apiError } from '@/lib/api-response';
+import { apiSuccess, apiError, apiValidationError } from '@/lib/api-response';
 import { CreateProductUomSchema } from '@/lib/validations/bom';
 import { SessionUser } from '@/lib/authz';
 
@@ -44,11 +44,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const body = await req.json();
     const result = CreateProductUomSchema.safeParse(body);
     if (!result.success) {
-      return apiError(result.error.errors[0].message, 400);
+      return apiValidationError(result.error);
     }
     const d = result.data;
 
-    const { rows } = await query(`
+    const rows = await query<{ id: string }>(`
       INSERT INTO product_uom (product_id, uom_id, uom_type, barcode_label)
       VALUES ($1, $2, $3, $4)
       RETURNING id

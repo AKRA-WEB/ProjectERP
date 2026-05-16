@@ -1,5 +1,5 @@
 import { auth } from '@/auth';
-import { apiSuccess, apiError } from '@/lib/api-response';
+import { apiSuccess, apiError, apiValidationError } from '@/lib/api-response';
 import { assertPermission } from '@/lib/authz';
 import { query } from '@/lib/db/client';
 import type { SessionUser } from '@/lib/authz';
@@ -24,7 +24,7 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const q = searchParams.get('q');
   const page = Math.max(1, Number(searchParams.get('page') ?? 1));
-  const limit = DEFAULT_PAGE_SIZE;
+  const limit = Math.min(100, Number(searchParams.get('limit') ?? DEFAULT_PAGE_SIZE));
   const offset = (page - 1) * limit;
 
   const conditions = ['is_active = true'];
@@ -37,15 +37,24 @@ export async function GET(req: Request) {
     idx += 2;
   }
 
+  const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+  const [totalRes] = await query<{ count: string }>(`SELECT COUNT(*) FROM pos_members ${where}`, params);
+
   const members = await query(
     `SELECT * FROM pos_members 
-     WHERE ${conditions.join(' AND ')}
+     ${where}
      ORDER BY created_at DESC
-     LIMIT $${idx} OFFSET $${idx + 1}`,
+     LIMIT $${idx++} OFFSET $${idx++}`,
     [...params, limit, offset]
   );
 
-  return apiSuccess(members);
+  return apiSuccess({
+    data: members,
+    total: Number(totalRes.count),
+    page,
+    limit,
+    total_pages: Math.ceil(Number(totalRes.count) / limit),
+  });
 }
 
 export async function POST(req: Request) {
@@ -68,7 +77,7 @@ export async function POST(req: Request) {
 
     return apiSuccess(result[0], 201);
   } catch (err: unknown) {
-    if (err instanceof z.ZodError) return apiError(err.errors[0].message, 400);
+    if (err instanceof z.ZodError) return apiValidationError(err);
     const msg = err instanceof Error ? err.message : 'Unknown error';
     if (err && typeof err === 'object' && 'code' in err && err.code === '23505') {
       return apiError('Member with this phone already exists', 409);

@@ -1,3 +1,11 @@
+---
+track: uom-phase2-form-selectors
+status: Completed
+owner: puka
+module: Inventory
+updated: 2026-05-14
+---
+
 # UoM Phase 2 — Transaction Form Selectors
 
 **Goal:** Add UoM selectors to PO, SO, and Transfer create forms. DB columns (`transaction_uom_id`, `transaction_qty`, `base_qty`) and triggers already exist from migration 026. This track is UI + API wiring only — no new migrations.
@@ -36,7 +44,7 @@ Returns: ProductUom[] with { uom_id, uom_code, uom_name_th, uom_type, factor, ba
 
 File: `app/api/purchase-orders/route.ts`
 
-- [ ] **Step 1 — Extend lineSchema** (add two optional fields after `unit_price`):
+- [x] **Step 1 — Extend lineSchema** (add two optional fields after `unit_price`):
 
 ```typescript
 const lineSchema = z.object({
@@ -49,7 +57,7 @@ const lineSchema = z.object({
 });
 ```
 
-- [ ] **Step 2 — Update the bulk line INSERT** (currently uses 4 params per line; extend to 6):
+- [x] **Step 2 — Update the bulk line INSERT** (currently uses 4 params per line; extend to 6):
 
 Replace the lines INSERT block (starting at `const lineValues = parsed.data.lines`) with:
 
@@ -75,8 +83,8 @@ await query(
 );
 ```
 
-- [ ] Run `npm run lint` → no errors
-- [ ] Commit: `feat(uom): PO API — accept transaction_uom_id + transaction_qty on lines`
+- [x] Run `npm run lint` → no errors
+- [x] Commit: `feat(uom): PO API — accept transaction_uom_id + transaction_qty on lines`
 
 ---
 
@@ -84,7 +92,7 @@ await query(
 
 File: `app/api/sales-orders/route.ts`
 
-- [ ] **Step 1 — Extend SO lineSchema:**
+- [x] **Step 1 — Extend SO lineSchema:**
 
 Find the existing SO line schema and add:
 ```typescript
@@ -92,7 +100,7 @@ transaction_uom_id: z.string().uuid().optional(),
 transaction_qty: z.number().positive().optional(),
 ```
 
-- [ ] **Step 2 — Update SO line INSERT:**
+- [x] **Step 2 — Update SO line INSERT:**
 
 Locate the `INSERT INTO so_line_items` query. Add `transaction_uom_id`, `transaction_qty` columns.
 
@@ -106,8 +114,8 @@ The existing SO line INSERT likely iterates per line. Add the two fields alongsi
 
 Read the exact INSERT in `app/api/sales-orders/route.ts` before modifying to match its pattern exactly.
 
-- [ ] Run `npm run lint` → no errors
-- [ ] Commit: `feat(uom): SO API — accept transaction_uom_id + transaction_qty on lines`
+- [x] Run `npm run lint` → no errors
+- [x] Commit: `feat(uom): SO API — accept transaction_uom_id + transaction_qty on lines`
 
 ---
 
@@ -124,7 +132,7 @@ const lineSchema = z.object({
 });
 ```
 
-- [ ] **Step 1 — Extend Transfer lineSchema:**
+- [x] **Step 1 — Extend Transfer lineSchema:**
 
 ```typescript
 const lineSchema = z.object({
@@ -136,7 +144,7 @@ const lineSchema = z.object({
 });
 ```
 
-- [ ] **Step 2 — Update warehouse_transfer_lines INSERT:**
+- [x] **Step 2 — Update warehouse_transfer_lines INSERT:**
 
 Locate the INSERT into `warehouse_transfer_lines`. Add:
 ```
@@ -144,8 +152,8 @@ transaction_uom_id = $N  (NULL if not provided)
 transaction_qty    = $M  (NULL if not provided)
 ```
 
-- [ ] Run `npm run lint` → no errors
-- [ ] Commit: `feat(uom): Transfers API — accept transaction_uom_id + transaction_qty on lines`
+- [x] Run `npm run lint` → no errors
+- [x] Commit: `feat(uom): Transfers API — accept transaction_uom_id + transaction_qty on lines`
 
 ---
 
@@ -153,7 +161,7 @@ transaction_qty    = $M  (NULL if not provided)
 
 File: `app/app/purchase-orders/new/page.tsx`
 
-- [ ] **Step 1 — Extend POLine interface** to hold UoM data:
+- [x] **Step 1 — Extend POLine interface** to hold UoM data:
 
 ```typescript
 interface POLine {
@@ -169,7 +177,7 @@ interface POLine {
 }
 ```
 
-- [ ] **Step 2 — Add ProductUom interface** (local, not imported):
+- [x] **Step 2 — Add ProductUom interface** (local, not imported):
 
 ```typescript
 interface ProductUom {
@@ -182,7 +190,7 @@ interface ProductUom {
 }
 ```
 
-- [ ] **Step 3 — Fetch UoMs when product is added:**
+- [x] **Step 3 — Fetch UoMs when product is added:**
 
 Replace `addProduct` function:
 ```typescript
@@ -210,7 +218,7 @@ async function addProduct(p: Product) {
 }
 ```
 
-- [ ] **Step 4 — Add UoM selector helper function:**
+- [x] **Step 4 — Add UoM selector helper function:**
 
 ```typescript
 function setLineUom(i: number, uomId: string) {
@@ -222,7 +230,7 @@ function setLineUom(i: number, uomId: string) {
 }
 ```
 
-- [ ] **Step 5 — Update line render in JSX** to show UoM selector and conversion preview after the qty input:
+- [x] **Step 5 — Update line render in JSX** to show UoM selector and conversion preview after the qty input:
 
 ```tsx
 {/* UoM selector — only shown when product has multiple UoMs */}
@@ -253,7 +261,7 @@ function setLineUom(i: number, uomId: string) {
 )}
 ```
 
-- [ ] **Step 6 — Update `updateLine` to sync transaction_qty with qty_ordered:**
+- [x] **Step 6 — Update `updateLine` to sync transaction_qty with qty_ordered:**
 
 ```typescript
 function updateLine(i: number, key: keyof Omit<POLine, 'uom_options'>, val: number) {
@@ -267,7 +275,7 @@ function updateLine(i: number, key: keyof Omit<POLine, 'uom_options'>, val: numb
 }
 ```
 
-- [ ] **Step 7 — Pass UoM fields to POST body:**
+- [x] **Step 7 — Pass UoM fields to POST body:**
 
 In `handleSubmit`, update the lines map:
 ```typescript
@@ -280,10 +288,10 @@ lines: lines.map((l) => ({
 })),
 ```
 
-- [ ] Run `npm run lint` → no errors
+- [x] Run `npm run lint` → no errors
 - [ ] Test: create PO, add a product that has UoMs (e.g. a product with CTN registered). UoM dropdown appears. Select CTN, enter qty 5 → preview shows "= 240 PCS". Submit → PO created. Check DB: `SELECT transaction_uom_id, transaction_qty, base_qty FROM po_line_items ORDER BY created_at DESC LIMIT 1;` → should show CTN id, 5, 240.
 - [ ] Test: add a product with no UoMs registered → no dropdown, behaves as before.
-- [ ] Commit: `feat(uom): PO create form — UoM selector with conversion preview`
+- [x] Commit: `feat(uom): PO create form — UoM selector with conversion preview`
 
 ---
 
@@ -293,12 +301,12 @@ File: `app/app/sales-orders/new/page.tsx`
 
 The SO form uses a different pattern (product dropdown select instead of search). Apply the same UoM selector pattern:
 
-- [ ] **Step 1** — When product is selected in `updateLine`, fetch UoMs and store on the line state (add `uom_options` to SO line interface, same structure as POLine)
-- [ ] **Step 2** — Add UoM selector in the SO line render (same JSX block as Task 4 Step 5)
-- [ ] **Step 3** — Pass `transaction_uom_id` + `transaction_qty` in SO POST body when selected
-- [ ] Run `npm run lint` → no errors
+- [x] **Step 1** — When product is selected in `updateLine`, fetch UoMs and store on the line state (add `uom_options` to SO line interface, same structure as POLine)
+- [x] **Step 2 — Add UoM selector in the SO line render (same JSX block as Task 4 Step 5)**
+- [x] **Step 3 — Pass `transaction_uom_id` + `transaction_qty` in SO POST body when selected**
+- [x] Run `npm run lint` → no errors
 - [ ] Test: create SO, select product with UoMs → UoM dropdown appears → select → preview shows → submit → DB has base_qty filled
-- [ ] Commit: `feat(uom): SO create form — UoM selector with conversion preview`
+- [x] Commit: `feat(uom): SO create form — UoM selector with conversion preview`
 
 ---
 
@@ -308,7 +316,7 @@ File: `app/app/transfers/new/page.tsx`
 
 Current `TransferLine`: `{ product_id, product_label, lot_id?, qty }`. Stock results show `uom_code`.
 
-- [ ] **Step 1 — Extend TransferLine interface:**
+- [x] **Step 1 — Extend TransferLine interface:**
 
 ```typescript
 interface TransferLine {
@@ -322,7 +330,7 @@ interface TransferLine {
 }
 ```
 
-- [ ] **Step 2 — Fetch UoMs in `addLine`:**
+- [x] **Step 2 — Fetch UoMs in `addLine`:**
 
 Replace `addLine` function:
 ```typescript
@@ -344,9 +352,9 @@ async function addLine(item: StockResult) {
 }
 ```
 
-- [ ] **Step 3 — Add UoM selector to transfer line render** (same JSX pattern as Task 4 Step 5, using `qty` instead of `qty_ordered`)
+- [x] **Step 3 — Add UoM selector to transfer line render** (same JSX pattern as Task 4 Step 5, using `qty` instead of `qty_ordered`)
 
-- [ ] **Step 4 — Pass UoM fields in POST body:**
+- [x] **Step 4 — Pass UoM fields in POST body:**
 
 ```typescript
 lines: lines.map((l) => ({
@@ -357,6 +365,6 @@ lines: lines.map((l) => ({
 })),
 ```
 
-- [ ] Run `npm run lint` → no errors
+- [x] Run `npm run lint` → no errors
 - [ ] Test: create transfer, add product with UoMs → dropdown appears → select → preview → submit
-- [ ] Commit: `feat(uom): Transfer create form — UoM selector with conversion preview`
+- [x] Commit: `feat(uom): Transfer create form — UoM selector with conversion preview`

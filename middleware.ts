@@ -23,10 +23,11 @@ export default auth((req) => {
     return NextResponse.redirect(new URL('/app/menu', req.url));
   }
 
-  const role = (req.auth?.user as any)?.role;
-
-  if (isAppPage && pathname.startsWith('/app/admin') && role !== 'admin') {
-    return NextResponse.redirect(new URL('/app/menu', req.url));
+  if (isAppPage && pathname.startsWith('/app/admin')) {
+    const u = req.auth?.user as unknown as { role?: string };
+    if (u?.role !== 'admin') {
+      return NextResponse.redirect(new URL('/app/menu', req.url));
+    }
   }
 
   return NextResponse.next();

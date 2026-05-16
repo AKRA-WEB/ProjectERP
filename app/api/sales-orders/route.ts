@@ -17,6 +17,8 @@ const createSchema = z.object({
     qty_ordered: z.number().positive(),
     unit_price: z.number().min(0),
     discount_amount: z.number().min(0).default(0),
+    transaction_uom_id: z.string().uuid().optional(),
+    transaction_qty: z.number().positive().optional(),
   })).min(1),
 });
 
@@ -91,7 +93,7 @@ export async function POST(req: Request) {
   const { customer_id, warehouse_id, expected_delivery, payment_terms_days, notes, lines } = parsed.data;
 
   let subtotal = 0;
-  const lineData = [];
+  const lineData: (z.infer<typeof createSchema>['lines'][0] & { line_total: number; line_number: number })[] = [];
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -121,9 +123,12 @@ export async function POST(req: Request) {
     for (const line of lineData) {
       await client.query(
         `INSERT INTO so_line_items (
-          so_id, product_id, qty_ordered, unit_price, discount_amount, line_number
-         ) VALUES ($1, $2, $3, $4, $5, $6)`,
-        [so.id, line.product_id, line.qty_ordered, line.unit_price, line.discount_amount, line.line_number]
+          so_id, product_id, qty_ordered, unit_price, discount_amount, transaction_uom_id, transaction_qty, line_number
+         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        [
+          so.id, line.product_id, line.qty_ordered, line.unit_price, line.discount_amount,
+          line.transaction_uom_id ?? null, line.transaction_qty ?? null, line.line_number
+        ]
       );
     }
 

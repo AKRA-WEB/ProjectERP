@@ -1,9 +1,9 @@
 import { NextRequest } from 'next/server';
 import { auth } from '@/auth';
 import pool, { query } from '@/lib/db/client';
-import { apiSuccess, apiError } from '@/lib/api-response';
+import { apiSuccess, apiError, apiValidationError } from '@/lib/api-response';
 import { CreateBomSchema } from '@/lib/validations/bom';
-import { SessionUser } from '@/lib/authz';
+import { type SessionUser, assertRole } from '@/lib/authz';
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -71,15 +71,13 @@ export async function POST(req: NextRequest) {
   if (!session?.user) return apiError('Unauthorized', 401);
   const user = session.user as unknown as SessionUser;
 
-  if (!['admin', 'manager'].includes(user.role)) {
-    return apiError('Forbidden', 403);
-  }
+  try { assertRole(user, ['manager', 'admin']); } catch { return apiError('Forbidden', 403); }
 
   try {
     const body = await req.json();
     const result = CreateBomSchema.safeParse(body);
     if (!result.success) {
-      return apiError(result.error.errors[0].message, 400);
+      return apiValidationError(result.error);
     }
     const d = result.data;
 

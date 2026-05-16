@@ -1,3 +1,11 @@
+---
+track: pos-improvements
+status: Verified
+owner: paku, puka
+module: POS
+updated: 2026-05-15
+---
+
 ## Track: POS Improvements
 
 **Status:** Completed
@@ -29,15 +37,15 @@ Task 1 (migration) → Task 2 (products API) → Task 3 (members API) → Task 4
 
 ---
 
-## Task 1 — Migration: `029_pos_improvements.sql`
+## Task 1 — Migration: `027_pos_improvements.sql`
 
-**File:** `migrations/029_pos_improvements.sql`
+**File:** `migrations/027_pos_improvements.sql`
 
 - [x] Create file with full SQL below
 - [x] Run `npm run migrate` locally and confirm no errors
 
 ```sql
--- migrations/029_pos_improvements.sql
+-- migrations/027_pos_improvements.sql
 
 BEGIN;
 
@@ -221,31 +229,31 @@ COMMIT;
 Read the full file before starting. This is the largest task — do NOT batch edits; make each sub-task independently verifiable.
 
 ### 6a — Fix VAT constant
-- [ ] Import `VAT_RATE` from `@/lib/constants`
-- [ ] Replace `Math.round(total * 7 / 107 * 100) / 100` with `Math.round(total * VAT_RATE / (1 + VAT_RATE) * 100) / 100`
+- [x] Import `VAT_RATE` from `@/lib/constants`
+- [x] Replace `Math.round(total * 7 / 107 * 100) / 100` with `Math.round(total * VAT_RATE / (1 + VAT_RATE) * 100) / 100`
 
 ### 6b — Product Grid with Category Tabs
-- [ ] On mount, fetch `GET /api/pos/products?warehouse_id=X&limit=100` → store as `allProducts`
-- [ ] Fetch `GET /api/product-categories` → store as `categories`
-- [ ] State: `selectedCategory: string | null` (null = All)
-- [ ] Filter client-side: `displayedProducts = selectedCategory ? allProducts.filter(p => p.category_id === selectedCategory) : allProducts`
-- [ ] Add search filter on top of category filter
-- [ ] Category tabs: "ทั้งหมด / All" + one tab per category; horizontal scrollable row
-- [ ] Replace current 2-col mini-grid with `grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 overflow-y-auto`
-- [ ] Each card: `<img src={p.image_url ?? '/placeholder-product.png'} className="w-full h-20 object-cover rounded" />`, `name_th`, `formatCurrency(selling_price)`, stock badge
-- [ ] Click card → `addToCart(product)`
+- [x] On mount, fetch `GET /api/pos/products?warehouse_id=X&limit=100` → store as `allProducts`
+- [x] Fetch `GET /api/product-categories` → store as `categories`
+- [x] State: `selectedCategory: string | null` (null = All)
+- [x] Filter client-side: `displayedProducts = selectedCategory ? allProducts.filter(p => p.category_id === selectedCategory) : allProducts`
+- [x] Add search filter on top of category filter
+- [x] Category tabs: "ทั้งหมด / All" + one tab per category; horizontal scrollable row
+- [x] Replace current 2-col mini-grid with `grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 overflow-y-auto`
+- [x] Each card: `<img src={p.image_url ?? '/placeholder-product.png'} className="w-full h-20 object-cover rounded" />`, `name_th`, `formatCurrency(selling_price)`, stock badge
+- [x] Click card → `addToCart(product)`
 
 ### 6c — Low Stock Badges
-- [ ] Product card stock badge logic:
+- [x] Product card stock badge logic:
   - `qty_available <= 0` → `<span className="bg-red-100 text-red-600">หมด</span>` + red card border
   - `qty_available > 0 && qty_available <= reorder_point` → `<span className="bg-amber-100 text-amber-700">สต็อกต่ำ</span>` + amber card border
   - else → `<span className="bg-stone-100 text-stone-600">{qty_available}</span>`
-- [ ] Cart row: show `⚠` icon if `item.qty_available - item.qty <= item.reorder_point && item.qty_available > 0`
+- [x] Cart row: show `⚠` icon if `item.qty_available - item.qty <= item.reorder_point && item.qty_available > 0`
 
 ### 6d — Barcode Scanner Listener
-- [ ] Add `barcodeBuffer = useRef<string>('')`
-- [ ] Add `lastKeystrokeTime = useRef<number>(0)`
-- [ ] `useEffect` attaches `keydown` listener to `window`:
+- [x] Add `barcodeBuffer = useRef<string>('')`
+- [x] Add `lastKeystrokeTime = useRef<number>(0)`
+- [x] `useEffect` attaches `keydown` listener to `window`:
   ```ts
   const handler = (e: KeyboardEvent) => {
     const now = Date.now();
@@ -270,43 +278,43 @@ Read the full file before starting. This is the largest task — do NOT batch ed
   window.addEventListener('keydown', handler);
   return () => window.removeEventListener('keydown', handler);
   ```
-- [ ] Add `scannerFlash` state; apply `ring-2 ring-emerald-500` to search input when true
+- [x] Add `scannerFlash` state; apply `ring-2 ring-emerald-500` to search input when true
 
 ### 6e — Member Lookup Panel
-- [ ] Add `member: PosMember | null` state, `memberPhone: string` state
-- [ ] In payment panel: phone `<Input>` + "ค้นหา / Find" button
-- [ ] On search: `GET /api/pos/members?q=${memberPhone}` → show member card (name, tier, discount %)
-- [ ] "ล้าง / Clear" button to deselect member
-- [ ] "สมัครสมาชิก / Register" button → `RegisterMemberModal` (name, phone, email fields; POST `/api/pos/members`; auto-select on success)
-- [ ] When member selected: apply `member.discount_rate` as percentage of subtotal → `memberDiscountAmount = subtotal * member.discount_rate`
-- [ ] Show "แต้มที่จะได้รับ / Points: {Math.floor(totalAfterDiscount / 20)}" in totals panel
-- [ ] Pass `member_id` and `member_discount` in checkout POST body
+- [x] Add `member: PosMember | null` state, `memberPhone: string` state
+- [x] In payment panel: phone `<Input>` + "ค้นหา / Find" button
+- [x] On search: `GET /api/pos/members?q=${memberPhone}` → show member card (name, tier, discount %)
+- [x] "ล้าง / Clear" button to deselect member
+- [x] "สมัครสมาชิก / Register" button → `RegisterMemberModal` (name, phone, email fields; POST `/api/pos/members`; auto-select on success)
+- [x] When member selected: apply `member.discount_rate` as percentage of subtotal → `memberDiscountAmount = subtotal * member.discount_rate`
+- [x] Show "แต้มที่จะได้รับ / Points: {Math.floor(totalAfterDiscount / 20)}" in totals panel
+- [x] Pass `member_id` and `member_discount` in checkout POST body
 
 ### 6f — Modify Checkout API
 **File:** `app/api/pos/transactions/route.ts`
 
-- [ ] Read current file
-- [ ] Zod schema: add `member_id: z.string().uuid().optional()`, `member_discount: z.number().min(0).default(0)`
-- [ ] Include `member_id`, `member_discount`, `points_earned` in INSERT statement
-- [ ] Points formula: `Math.floor((total - member_discount) / 20)`
-- [ ] After INSERT txn, inside same DB transaction: if `member_id`, UPDATE `pos_members SET point_balance = point_balance + $N, updated_at = NOW() WHERE id = $M`
-- [ ] `npm run lint`
+- [x] Read current file
+- [x] Zod schema: add `member_id: z.string().uuid().optional()`, `member_discount: z.number().min(0).default(0)`
+- [x] Include `member_id`, `member_discount`, `points_earned` in INSERT statement
+- [x] Points formula: `Math.floor((total - member_discount) / 20)`
+- [x] After INSERT txn, inside same DB transaction: if `member_id`, UPDATE `pos_members SET point_balance = point_balance + $N, updated_at = NOW() WHERE id = $M`
+- [x] `npm run lint`
 
 ### 6g — Hold Bill UI
-- [ ] `heldCarts: PosHeldCart[]` state; fetch `GET /api/pos/held-carts?session_id=X` on mount and after each hold/resume
-- [ ] "พักบิล / Hold Bill" button in cart header (disabled when cart empty)
-- [ ] Click → `HoldNoteModal`: single note `<Input>`, confirm → POST `/api/pos/held-carts`; clear cart state; refresh held cart list
-- [ ] "บิลที่พัก / Held Bills ({count})" button → `HeldBillsModal`: list held carts with `hold_number`, item count, note; "Resume" button → GET `/api/pos/held-carts/${id}` → map lines to CartItem, set cart, DELETE held cart; "Discard" button → DELETE held cart
+- [x] `heldCarts: PosHeldCart[]` state; fetch `GET /api/pos/held-carts?session_id=X` on mount and after each hold/resume
+- [x] "พักบิล / Hold Bill" button in cart header (disabled when cart empty)
+- [x] Click → `HoldNoteModal`: single note `<Input>`, confirm → POST `/api/pos/held-carts`; clear cart state; refresh held cart list
+- [x] "บิลที่พัก / Held Bills ({count})" button → `HeldBillsModal`: list held carts with `hold_number`, item count, note; "Resume" button → GET `/api/pos/held-carts/${id}` → map lines to CartItem, set cart, DELETE held cart; "Discard" button → DELETE held cart
 
 ### 6h — Transaction History Tab
-- [ ] Tab strip above product area: "สินค้า / Products" | "ประวัติ / History" + "พักบิล / Held ({n})"
-- [ ] History tab: display `sessionData.transactions` (fetched from GET `/api/pos/sessions/${id}`); auto-refresh every 30s via `setInterval`; clear interval on tab switch or unmount
-- [ ] Each row: receipt number, time (formatDatetime), payment method, total (formatCurrency), StatusBadge
-- [ ] Click row → toggle expanded inline lines
-- [ ] Void button (visible only when `u.role === 'manager' || u.role === 'admin'`): PATCH `/api/pos/transactions/${id}` `{ action: 'void', void_reason }`
+- [x] Tab strip above product area: "สินค้า / Products" | "ประวัติ / History" + "พักบิล / Held ({n})"
+- [x] History tab: display `sessionData.transactions` (fetched from GET `/api/pos/sessions/${id}`); auto-refresh every 30s via `setInterval`; clear interval on tab switch or unmount
+- [x] Each row: receipt number, time (formatDatetime), payment method, total (formatCurrency), StatusBadge
+- [x] Click row → toggle expanded inline lines
+- [x] Void button (visible only when `u.role === 'manager' || u.role === 'admin'`): PATCH `/api/pos/transactions/${id}` `{ action: 'void', void_reason }`
 
 ### 6i — Shift in Status Bar
-- [ ] If `session.shift_name_th` exists, show between cashier and close button in top status bar
+- [x] If `session.shift_name_th` exists, show between cashier and close button in top status bar
 
 ---
 
@@ -395,7 +403,7 @@ Read the full file before starting. This is the largest task — do NOT batch ed
 ## QA Checklist (Billy)
 
 ### Migration
-- [ ] `029_pos_improvements.sql` exists; all `IF NOT EXISTS` guards present
+- [ ] `027_pos_improvements.sql` exists; all `IF NOT EXISTS` guards present
 - [ ] `pos_members.phone` UNIQUE constraint
 - [ ] `pos_held_cart_lines` cascades on `pos_held_carts` delete
 - [ ] `pos_transactions.member_discount` has DEFAULT 0

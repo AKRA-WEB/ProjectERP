@@ -1,3 +1,11 @@
+---
+track: bom-module
+status: Completed
+owner: paku, puka
+module: BOM
+updated: 2026-05-13
+---
+
 # BOM Module — Bill of Materials + Product Multi-UOM
 
 **Track:** bom-module  
@@ -182,15 +190,15 @@ Create `lib/validations/bom.ts`:
 
 ## Acceptance Criteria
 
-- [ ] Migration runs clean after `021_hr_attendance.sql`
-- [ ] Can create BOM with 3+ component lines
-- [ ] Activating BOM v2 auto-deactivates BOM v1 for same product
-- [ ] Circular BOM check blocks self-reference
-- [ ] Product UOM conversions display alongside product detail
-- [ ] BOM list page paginated and filterable
-- [ ] All API routes return proper `apiSuccess`/`apiError` responses
-- [ ] Sidebar shows สูตรการผลิต / BOM link
-- [ ] Thai + English labels throughout
+- [x] Migration runs clean after `021_hr_attendance.sql`
+- [x] Can create BOM with 3+ component lines
+- [x] Activating BOM v2 auto-deactivates BOM v1 for same product
+- [x] Circular BOM check blocks self-reference
+- [x] Product UOM conversions display alongside product detail
+- [x] BOM list page paginated and filterable
+- [x] All API routes return proper `apiSuccess`/`apiError` responses
+- [x] Sidebar shows สูตรการผลิต / BOM link
+- [x] Thai + English labels throughout
 
 ---
 

@@ -3,7 +3,7 @@ import { auth } from '@/auth';
 import { queryOne } from '@/lib/db/client';
 import { apiSuccess, apiError } from '@/lib/api-response';
 import { z } from 'zod';
-import type { SessionUser } from '@/lib/authz';
+import { assertRole, SessionUser } from '@/lib/authz';
 
 const UpdateSchema = z.object({
   employee_id: z.string().max(50).optional(),
@@ -42,7 +42,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const session = await auth();
   if (!session?.user) return apiError('Unauthorized', 401);
   const u = session.user as unknown as SessionUser;
-  if (!['admin', 'manager'].includes(u.role)) return apiError('Forbidden', 403);
+  try { assertRole(u, ['manager', 'admin']); } catch { return apiError('Forbidden', 403); }
   const { id } = await params;
 
   const body = await req.json();

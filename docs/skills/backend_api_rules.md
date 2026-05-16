@@ -1,3 +1,10 @@
+---
+type: skill
+domain: backend
+agent: paku
+load-when: "API Route, NextAuth, Zod, middleware, auth"
+---
+
 # Backend API Rules
 
 **ใช้เมื่อ:** สร้าง Next.js API Route, NextAuth v5 session, Zod validation, หรือ middleware
@@ -92,3 +99,39 @@ const PatchSchema = z.discriminatedUnion('action', [
 - ห้าม string interpolation ใน SQL ทุกกรณี
 - `users` table ใช้ `name_th`, `name_en` — ไม่มี `name` column
 - Document numbers ผ่าน `next_doc_number(prefix, seq)` ใน PostgreSQL เท่านั้น — ห้ามสร้างใน app code
+
+---
+
+## Patterns & Traps — Captured in Field
+
+<!-- Claude and Gemini append here after each task. Format:
+## ✅ Pattern — [name]   or   ## ❌ Trap — [name]
+-->
+
+## ✅ Pattern — Unified Activity Feed (UNION ALL)
+**Context:** Creating a dashboard feed that aggregates events from multiple modules (e.g., GRN, Sales, POS).
+**Correct way:**
+```sql
+SELECT * FROM (
+  (SELECT 'grn' AS type, grn_number AS ref, status::text AS action, created_at FROM goods_receipt_notes WHERE status != 'draft' ORDER BY created_at DESC LIMIT 4)
+  UNION ALL
+  (SELECT 'so' AS type, so_number AS ref, status::text AS action, updated_at AS created_at FROM sales_orders WHERE status != 'draft' ORDER BY updated_at DESC LIMIT 4)
+  UNION ALL
+  (SELECT 'pos' AS type, receipt_number AS ref, 'sale' AS action, created_at FROM pos_transactions WHERE status = 'completed' ORDER BY created_at DESC LIMIT 4)
+) AS activities ORDER BY created_at DESC LIMIT 8
+```
+**Found in:** task [T-9] of track [ui-improvement-dashboard]
+
+## ❌ Trap — SessionUser defined in lib/authz.ts causes circular imports
+**Symptom:** `Module declares 'SessionUser' locally, but it is not exported` — TypeScript loses track of exports during build optimization.
+**Root cause:** Defining `SessionUser` and `UserRole` in `lib/authz.ts` creates circular dependency chains when other modules import from authz while authz imports from them.
+**Fix:** Always define `SessionUser`, `UserRole`, and all shared interfaces in `types/index.ts`. Re-export from `lib/authz.ts` only for backward compat:
+```typescript
+// types/index.ts — define here
+export type UserRole = 'admin' | 'manager' | 'staff';
+export interface SessionUser { id: string; role: UserRole; assignedWarehouseIds: string[]; }
+
+// lib/authz.ts — re-export only
+export type { UserRole, SessionUser } from '@/types';
+```
+**Found in:** ROOT_CAUSE_REPORT.md (2026-05-16)

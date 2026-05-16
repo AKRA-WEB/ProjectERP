@@ -1,7 +1,7 @@
 import { auth } from '@/auth';
-import { apiSuccess, apiError } from '@/lib/api-response';
+import { apiSuccess, apiError, apiValidationError } from '@/lib/api-response';
 import { assertPermission } from '@/lib/authz';
-import { query, pool } from '@/lib/db/client';
+import pool, { query } from '@/lib/db/client';
 import type { SessionUser } from '@/lib/authz';
 import { z } from 'zod';
 
@@ -33,9 +33,10 @@ export async function GET(req: Request) {
     `SELECT hc.*, 
             (SELECT COUNT(*) FROM pos_held_cart_lines WHERE held_cart_id = hc.id) as line_count
      FROM pos_held_carts hc
-     WHERE hc.session_id = $1
+     JOIN pos_sessions ps ON ps.id = hc.session_id
+     WHERE hc.session_id = $1 AND ps.opened_by = $2
      ORDER BY hc.created_at DESC`,
-    [sessionId]
+    [sessionId, u.id]
   );
 
   return apiSuccess(heldCarts);
@@ -75,7 +76,7 @@ export async function POST(req: Request) {
     return apiSuccess({ id: hcId }, 201);
   } catch (err: unknown) {
     await client.query('ROLLBACK');
-    if (err instanceof z.ZodError) return apiError(err.errors[0].message, 400);
+    if (err instanceof z.ZodError) return apiValidationError(err);
     const msg = err instanceof Error ? err.message : 'Unknown error';
     return apiError(msg, 500);
   } finally {

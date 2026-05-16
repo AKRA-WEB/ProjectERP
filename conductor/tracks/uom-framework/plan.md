@@ -1,3 +1,11 @@
+---
+track: uom-framework
+status: Completed
+owner: paku, puka
+module: Inventory
+updated: 2026-05-13
+---
+
 # UoM Framework Implementation
 
 **Full spec:** `docs/superpowers/specs/2026-05-13-uom-framework-design.md`  

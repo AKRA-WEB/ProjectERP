@@ -11,7 +11,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import type { PosSession, PosProduct, PosTransaction, PosPaymentMethod, ProductCategory, PosMember, PosHeldCart, SessionUser } from '@/types';
+import type { PosSession, PosProduct, PosTransaction, PosPaymentMethod, ProductCategory, PosMember, PosHeldCart, PosHeldCartLine, SessionUser } from '@/types';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden';
 
@@ -176,6 +176,16 @@ export default function PosTerminalPage() {
     }
   }
 
+  const addToCart = useCallback((product: PosProduct) => {
+    setCart(prev => {
+      const existing = prev.find(item => item.id === product.id);
+      if (existing) {
+        return prev.map(item => item.id === product.id ? { ...item, qty: item.qty + 1 } : item);
+      }
+      return [...prev, { ...product, qty: 1 }];
+    });
+  }, []);
+
   // Scanner Listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -217,22 +227,11 @@ export default function PosTerminalPage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [allProducts, addToCart]);
 
-  const addToCart = useCallback((product: PosProduct) => {
-    setCart(prev => {
-      const existing = prev.find(item => item.id === product.id);
-      if (existing) {
-        return prev.map(item => item.id === product.id ? { ...item, qty: item.qty + 1 } : item);
-      }
-      return [...prev, { ...product, qty: 1 }];
-    });
-  }, []);
-
   const searchProducts = useCallback(async () => {
     if (!session) return;
     setSearching(true);
     try {
       const results = await get<PosProduct[]>(`/api/pos/products?warehouse_id=${session.warehouse_id}&q=${encodeURIComponent(searchQuery)}`);
-      setSearchResults(results);
       
       // If exactly 1 result with exact barcode/sku match, add to cart immediately and clear search
       if (results.length === 1 && (results[0].barcode === searchQuery || results[0].sku === searchQuery)) {
@@ -251,7 +250,7 @@ export default function PosTerminalPage() {
       if (searchQuery.trim().length >= 2) {
         searchProducts();
       } else {
-        setSearchResults([]);
+      
       }
     }, 300);
 

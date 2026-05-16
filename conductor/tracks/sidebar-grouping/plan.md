@@ -1,3 +1,11 @@
+---
+track: sidebar-grouping
+status: Completed
+owner: puka
+module: Core
+updated: 2026-05-10
+---
+
 # Track: Sidebar Navigation Grouping
 
 **Goal:** Reorganize the 15 flat sidebar items into 7 labelled functional groups so users can navigate the ERP by business domain rather than scrolling a undifferentiated list.

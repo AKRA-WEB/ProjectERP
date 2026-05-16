@@ -1,3 +1,11 @@
+---
+track: vendor-product-links
+status: Verified
+owner: paku, puka
+module: Vendors
+updated: 2026-05-13
+---
+
 # Vendor-Product Links — Data Completeness
 
 **What already exists (no work needed):**

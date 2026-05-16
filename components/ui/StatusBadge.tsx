@@ -46,6 +46,11 @@ const STATUS_CONFIG: Record<string, { variant: BadgeVariant }> = {
   resigned:            { variant: 'muted' },
   processing:          { variant: 'info' },
   void:                { variant: 'danger' },
+  picking:             { variant: 'warn' },
+  picked:              { variant: 'ok' },
+  short_picked:        { variant: 'warn' },
+  shipped:             { variant: 'info' },
+  delivered:           { variant: 'ok' },
 };
 
 const LABEL_TH: Record<string, string> = {
@@ -83,6 +88,11 @@ const LABEL_TH: Record<string, string> = {
   resigned: 'ลาออก (Resigned)',
   processing: 'กำลังดำเนินการ',
   void: 'ยกเลิก (Void)',
+  picking: 'กำลังหยิบ',
+  picked: 'หยิบครบ',
+  short_picked: 'หยิบไม่ครบ',
+  shipped: 'จัดส่งแล้ว',
+  delivered: 'ส่งถึงแล้ว',
 };
 
 interface StatusBadgeProps {

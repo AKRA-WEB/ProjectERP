@@ -4,7 +4,7 @@ import { assertPermission } from '@/lib/authz';
 import { query } from '@/lib/db/client';
 import type { SessionUser } from '@/lib/authz';
 
-import type { ApAgingRow } from '@/types';
+import type { ApInvoiceAgingRow } from '@/types';
 
 export async function GET() {
   const session = await auth();
@@ -13,7 +13,7 @@ export async function GET() {
 
   try { assertPermission(u, 'reports:accounting'); } catch { return apiError('Forbidden', 403); }
 
-  const rows = await query<Omit<ApAgingRow, 'bucket'>>(
+  const rows = await query<Omit<ApInvoiceAgingRow, 'bucket'>>(
     `SELECT 
         v.name_th AS vendor_name_th,
         inv.invoice_number,
@@ -30,7 +30,7 @@ export async function GET() {
 
   const data = rows.map((r) => {
     const days = Number(r.days_overdue);
-    let bucket: ApAgingRow['bucket'] = 'current';
+    let bucket: ApInvoiceAgingRow['bucket'] = 'current';
     if (days > 90) bucket = '90+';
     else if (days > 60) bucket = '61-90';
     else if (days > 30) bucket = '31-60';

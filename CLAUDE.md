@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Purpose
 
-Full ERP platform starting with WMS (Warehouse Management System). Architecture is designed for future module expansion: Sales, POS, Accounting, HR, BOM. The branching system must remain systematic so employees trained on one module can navigate others without retraining. All new ERP modules should follow the patterns established here.
+BUYMORE (THAILAND) COMPANY LIMITED — Full ERP platform on Next.js 15 + PostgreSQL. Modules: WMS, POS, Sales, Accounting, HR, BOM. See `docs/architecture.md` for route layout and module checklist.
 
 ## Commands
 
@@ -12,19 +12,14 @@ Full ERP platform starting with WMS (Warehouse Management System). Architecture 
 npm run dev          # start dev server (Next.js 15)
 npm run build        # production build
 npm run lint         # ESLint
-npm run migrate      # run SQL migrations in order (migrations/*.sql)
-npm run migrate:seed # seed dev data (warehouses, UOMs)
-
-# Create initial admin user (run once after first migrate)
-DATABASE_URL=... npx ts-node scripts/create-admin.ts
-# Override defaults: ADMIN_EMAIL=... ADMIN_PASSWORD=... DATABASE_URL=... npx ts-node scripts/create-admin.ts
+npm run migrate      # run SQL migrations in order
+npm run migrate:seed # seed dev data
 ```
 
-No test suite exists yet. `npm run lint` is the only automated check.
+No test suite. `npm run lint` + `npx tsc --noEmit` are the automated checks.
 
 ## Environment
 
-Required in `.env.local`:
 ```
 DATABASE_URL=postgresql://user:pass@host:5432/dbname
 NEXTAUTH_SECRET=<random-string>
@@ -33,132 +28,42 @@ NEXTAUTH_URL=http://localhost:3000
 
 ## Claude-Gemini Collaboration Protocol
 
-**Trigger Word: `Architect: <requirement>`**
-When you see this, you must:
-1. Analyze the requirement against the codebase.
-2. Create/Update a track in `conductor/tracks/<feature-name>/`.
-3. Write `plan.md` with tasks and checkboxes.
-4. Update `conductor/index.md`.
-5. **Stop** and wait for Gemini CLI.
+**Trigger: `Architect: <requirement>`** → spawn Chen agent to plan. Do NOT plan inline.
+- Claude = Architect (plans). Gemini CLI = Implementer (executes).
+- Refer to `conductor/PROTOCOLS.md` for full protocol.
 
-This project uses a hybrid AI workflow:
-- **Claude (The Architect):** Responsible for high-level design, requirement analysis, and task planning.
-- **Gemini CLI (The Implementer):** Responsible for code execution, testing, and detailed implementation.
+## Architecture
 
-**When you (Claude) receive a new requirement:**
-1. Analyze the current codebase.
-2. Create a detailed implementation plan in `conductor/tracks/<feature-name>/plan.md`.
-3. Stop and let the user know the plan is ready for Gemini CLI.
-4. Do **NOT** implement the code unless it's a very small, single-file change.
+**Stack:** Next.js 15 App Router · React 19 · TypeScript strict · PostgreSQL (raw `pg`) · NextAuth v5 · Zod · Tailwind CSS
 
-Refer to `conductor/PROTOCOLS.md` for the full protocol.
+### Critical Patterns
 
-## Architecture Overview
-
-**Stack:** Next.js 15 App Router · React 19 · TypeScript 5 strict · PostgreSQL (raw `pg`, no ORM) · NextAuth v5 beta · Zod · Tailwind CSS · bcryptjs
-
-### Route Layout
-
-```
-app/
-  login/           # public auth page
-  (app)/           # authenticated group — layout.tsx wraps all with Sidebar + TopBar
-    dashboard/
-    products/
-    vendors/
-    purchase-requests/   [id]/ new/
-    purchase-orders/     [id]/ new/
-    grn/                 [id]/ new/
-    rma/                 [id]/ new/
-    claims/              [id]/ new/
-    transfers/           [id]/ new/
-    cycle-counts/        [id]/ new/
-    inventory/           ledger/
-    admin/               users/ warehouses/
-  api/             # Next.js Route Handlers (all return JSON)
-```
-
-### Database Layer (`lib/db/client.ts`)
-
-Three exports:
-- `pool` — raw `pg.Pool` for transactions
-- `query<T>(sql, params)` — returns `T[]`
-- `queryOne<T>(sql, params)` — returns `T | null`
-
-**All SQL must use parameterized queries (`$1`, `$2`, …). Never string interpolation.**
-
-For multi-statement transactions use `pool.connect()`:
+**Auth (every API route):**
 ```typescript
-const client = await pool.connect();
-try {
-  await client.query('BEGIN');
-  // ... client.query(sql, params)
-  await client.query('COMMIT');
-} catch {
-  await client.query('ROLLBACK');
-} finally {
-  client.release();
-}
-```
-
-### Auth & Authorization (`lib/authz.ts`, `auth.ts`, `middleware.ts`)
-
-**Three roles:** `admin` · `manager` · `staff`
-
-`session.user` is cast everywhere as:
-```typescript
+const session = await auth(); if (!session) return apiError('Unauthorized', 401);
 const u = session.user as unknown as SessionUser;
-// SessionUser = { id: string; role: UserRole; assignedWarehouseIds: string[] }
-```
-No NextAuth type augmentation — always use this cast.
-
-**Warehouse scoping** (every GET list endpoint must apply this):
-```typescript
-const scope = buildWarehouseScopeClause(u, 'alias.warehouse_id', idx);
-if (scope) {
-  conditions.push(scope.clause);
-  params.push(...scope.params);
-  idx += scope.params.length;
-}
-// Returns null for admin (no restriction), FALSE clause for staff with no assignments,
-// or ANY($n::uuid[]) for staff/manager with assignments.
-```
-
-**Role enforcement:**
-```typescript
 try { assertRole(u, ['manager', 'admin']); } catch { return apiError('Forbidden', 403); }
 ```
 
-Middleware protects `/app/*` and `/api/*` (excluding `/api/auth`). Admin-only: `/app/admin/*`.
-
-### API Response Pattern (`lib/api-response.ts`)
-
+**Warehouse scope (every GET list):**
 ```typescript
-return apiSuccess(data);           // { data } with 200
-return apiSuccess(data, 201);      // { data } with 201
-return apiError('message', 404);   // { error } with status
-return apiValidationError(zodError); // { error, details } with 400
+const scope = buildWarehouseScopeClause(u, 'alias.warehouse_id', idx);
 ```
 
-Client-side fetching (`lib/api-client.ts`) — named exports `get`, `post`, `patch`, `del` — all unwrap `response.data` and throw `ApiError` on non-2xx.
+**API responses:**
+```typescript
+return apiSuccess(data);        // 200
+return apiError('msg', 404);    // error
+return apiValidationError(err); // 400
+```
 
-### Stock Ledger (Immutable Event Log)
+**Stock ledger:** Insert-only. Never UPDATE/DELETE. Trigger `sync_stock_balances()` fires automatically.
 
-`stock_ledger` is **insert-only**. Never UPDATE or DELETE rows.
+**Document numbers:** PostgreSQL `next_doc_number(prefix, seq)` — never app-side.
 
-The PostgreSQL trigger `sync_stock_balances()` fires after every INSERT and updates `stock_balances.qty_on_hand`. `qty_available` is a generated column: `qty_on_hand - qty_reserved`.
+**Shared types:** `SessionUser`, `UserRole` → `types/index.ts` only. Never define in `lib/authz.ts`.
 
-**Entry types:** `grn_receipt` · `grn_qc_reject` · `rma_return` · `rma_vendor_return` · `transfer_out` · `transfer_in` · `cycle_count_adjustment` · `po_reversal` · `manual_adjustment`
-
-### Document Numbering
-
-Auto-generated by PostgreSQL function `next_doc_number(prefix, seq_name)` at INSERT time. Format: `PREFIX-YYYYMMDD-0001`. Never generate document numbers in application code.
-
-Sequences: `seq_pr` · `seq_po` · `seq_grn` · `seq_rma` · `seq_clm` · `seq_trf` · `seq_cc`
-
-### Migrations (`migrations/`)
-
-Files run in filename order. Migration runner (`lib/db/migrate.ts`) tracks applied versions in `schema_migrations` table. Each file runs in a transaction. **Never edit applied migrations** — add new files instead.
+**View Transitions:** Use `lib/react-vts.tsx` bridge — never import from `react` directly.
 
 ## Business Logic
 
@@ -169,37 +74,40 @@ Files run in filename order. Migration runner (`lib/db/migrate.ts`) tracks appli
 | PR | `draft` → `submitted` → `manager_approved` → `admin_approved` → `converted_to_po` \| `rejected` |
 | PO | `draft` → `sent` → `partially_received` / `fully_received` → `invoiced` → `paid` → `closed` \| `cancelled` |
 | GRN | `draft` → `received` → `qc_passed` / `qc_failed` → `stocked` |
-| RMA | `open` → `in_review` → `resolved` → `closed` |
-| Claim | `open` → `in_review` → `resolved` → `closed` |
-| Transfer | `pending` → `completed` (atomic, no in-transit state) |
+| RMA/Claim | `open` → `in_review` → `resolved` → `closed` |
+| Transfer | `pending` → `completed` (atomic) |
 | Cycle Count | `open` → `counting` → `pending_approval` → `approved` → `closed` |
 
-### Key Business Rules
-
-- VAT rate: 7% (`VAT_RATE = 0.07` in `lib/constants.ts`). All amounts in THB only.
-- Transfers complete immediately (atomically debit source + credit destination in one transaction).
-- Cycle count approval calls PostgreSQL stored proc `apply_cycle_count(cycle_count_id, approved_by_id)` — do not replicate this logic in application code.
-- PO status auto-updates after GRN stocking: check `qty_received` vs `qty_ordered` across all lines to set `fully_received` or `partially_received`.
-- GRN QC creates `grn_qc_reject` ledger entries for rejected quantity (removes from available stock).
-- `staff` role: can only access their assigned warehouses. `manager`: same restriction but with approval authority. `admin`: unrestricted.
+### Key Rules
+- VAT 7% (`VAT_RATE = 0.07` in `lib/constants.ts`). All amounts THB.
+- Transfer: atomic debit source + credit destination.
+- Cycle count approval: stored proc `apply_cycle_count()` — never replicate in app code.
+- PO auto-updates after GRN stocking.
 
 ## UI Conventions
+- Bilingual: Thai primary, English secondary.
+- `formatDate()` Thai locale Asia/Bangkok. `formatCurrency()` THB only.
+- All pages `'use client'`. Components from `components/ui/index.ts`.
+- PATCH uses `body.action` discriminant.
 
-- Bilingual labels: Thai primary, English secondary (e.g., `คลังสินค้า / Warehouse`).
-- Dates formatted with `formatDate()` (Thai locale, Asia/Bangkok TZ).
-- Currency formatted with `formatCurrency()` — always THB, never USD.
-- All list pages: paginated, warehouse-filtered via `buildWarehouseScopeClause`.
-- PATCH actions use `body.action` string discriminant (e.g., `{ action: 'approve' }`, `{ action: 'resolve', ... }`).
-- All `'use client'` pages — no RSC data fetching; pages fetch from API routes via `lib/api-client.ts`.
-- UI components exported from `components/ui/index.ts`: `Button`, `Input`, `Select`, `Modal`, `Table`, `Badge`, `StatusBadge`, `Pagination`, etc.
+## Obsidian Integration
 
-## Adding a New ERP Module
+Vault = this folder. Hub: `_notes/HOME.md`. Dashboard: `_notes/dashboard.md`.
+- plan.md must have YAML frontmatter (track/status/owner/module/updated) — see `chen.agent.md`
+- GEMINI.md Critical Traps = rolling 8 max (hook-managed)
+- Skill files > 200 lines → prune (see `_notes/skill-changelog.md`)
+- Never write to `_notes/` or `.obsidian/`
 
-When adding a future module (Sales, POS, Accounting, HR, BOM):
+## Post-Task Knowledge Capture (Claude)
 
-1. **Migrations** — add `migrations/0NN_modulename.sql` with enums, tables, sequences, and `next_doc_number` calls.
-2. **API routes** — under `app/api/<module>/` and `app/api/<module>/[id]/`. Follow the existing pattern: auth check → cast to `SessionUser` → Zod validation → warehouse scope → execute.
-3. **Pages** — under `app/(app)/<module>/`. Use `'use client'` with `get`/`post`/`patch` from `lib/api-client.ts`.
-4. **Sidebar** — add entry to `navItems` array in `components/layout/Sidebar.tsx`. Use `roles` field to restrict visibility.
-5. **Types** — add status enums and interfaces to `types/index.ts`.
-6. **Shared stock** — modules that touch inventory must write to `stock_ledger` (never directly update `stock_balances`). Add appropriate `ledger_entry_type` enum values in a new migration.
+After every task answer 3 questions:
+
+**Q1 — New reusable pattern?** → append `## ✅ Pattern — [name]` to relevant `docs/skills/*.md`
+**Q2 — Bug trap that could recur?** → append `## ❌ Trap — [name]` to relevant `docs/skills/*.md`
+**Q3 — Architectural decision?** → append to `conductor/tracks/<track>/decisions.md`
+
+Skip only when all 3 are NO.
+
+**Upgrade triggers:**
+- Billy flags same bug category twice → add trap to skill file
+- Chen plan needed schema fix → add rule to `database_sql_rules.md`

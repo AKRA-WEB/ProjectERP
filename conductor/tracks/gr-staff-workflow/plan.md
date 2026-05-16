@@ -1,3 +1,11 @@
+---
+track: gr-staff-workflow
+status: Completed
+owner: puka
+module: WMS
+updated: 2026-05-10
+---
+
 # Track: GR Staff Workflow
 
 **Goal:** Build a focused goods-receipt workflow for warehouse staff. When a vendor delivers goods, staff can see what is expected, record quantities received, assign a storage location per line, view existing stock levels inline, and confirm the receiver's name.

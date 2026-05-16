@@ -36,3 +36,11 @@ worktrees/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Obsidian — app config tracked, session state not tracked
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache
+
+# Private notes (daily log ไม่ขึ้น git)
+_notes/daily/

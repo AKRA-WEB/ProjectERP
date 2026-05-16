@@ -3,7 +3,7 @@ import { auth } from '@/auth';
 import pool, { queryOne } from '@/lib/db/client';
 import { apiSuccess, apiError } from '@/lib/api-response';
 import { z } from 'zod';
-import type { SessionUser } from '@/lib/authz';
+import { assertRole, SessionUser } from '@/lib/authz';
 
 const ActionSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('submit') }),
@@ -55,7 +55,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   if (action === 'approve') {
-    if (!['admin','manager'].includes(u.role)) return apiError('Forbidden', 403);
+    try { assertRole(u, ['manager', 'admin']); } catch { return apiError('Forbidden', 403); }
     if (lr.status !== 'submitted') return apiError('Can only approve submitted requests', 400);
     if (lr.employee_id === u.id) return apiError('Cannot approve own leave request', 403);
 
@@ -87,12 +87,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   if (action === 'reject') {
-    if (!['admin','manager'].includes(u.role)) return apiError('Forbidden', 403);
+    try { assertRole(u, ['manager', 'admin']); } catch { return apiError('Forbidden', 403); }
     if (lr.status !== 'submitted') return apiError('Can only reject submitted requests', 400);
     const d = parsed.data as { action: 'reject'; reject_reason: string };
     await queryOne(
-      `UPDATE leave_requests SET status='rejected', reject_reason=$1 WHERE id=$2`,
-      [d.reject_reason, id]
+      `UPDATE leave_requests 
+       SET status = 'rejected', approved_by = $1, reject_reason = $2, updated_at = NOW() 
+       WHERE id = $3 AND status = 'submitted'
+       RETURNING id`,
+      [u.id, d.reject_reason, id]
     );
   }
 

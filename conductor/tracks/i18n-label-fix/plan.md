@@ -1,3 +1,11 @@
+---
+track: i18n-label-fix
+status: Completed
+owner: puka
+module: Core
+updated: 2026-05-10
+---
+
 # Track: i18n Label Fix — Thai Labels for Statuses, Entry Types & Modules
 
 **Status:** Completed  

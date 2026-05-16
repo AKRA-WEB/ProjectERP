@@ -1,3 +1,11 @@
+---
+track: responsive-design
+status: Completed
+owner: puka
+module: Core
+updated: 2026-05-10
+---
+
 # Track: Responsive Design
 
 **Goal:** Automatically adapt the ERP layout for both mobile and desktop devices using Tailwind CSS breakpoints. No new libraries required.

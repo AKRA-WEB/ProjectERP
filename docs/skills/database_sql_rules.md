@@ -1,3 +1,10 @@
+---
+type: skill
+domain: database
+agent: paku
+load-when: "SQL, migration, stock ledger, PostgreSQL, pagination"
+---
+
 # Database SQL Rules
 
 **ใช้เมื่อ:** เขียน SQL query, migration, stock ledger operation, หรือ pagination
@@ -86,3 +93,32 @@ COMMIT;
 - ห้าม `any` cast ใน TypeScript เมื่อรับผล query
 - ตรวจ column name จาก migration file ก่อนเขียน query เสมอ
 - `qty_available` คือ generated column — ห้าม update ตรง
+
+## ✅ Pattern — SQL Date Arithmetic
+**Context:** Calculating future dates (like due dates) based on an integer number of days.
+**Correct way:**
+```sql
+-- Use INTERVAL with string concatenation for dynamic days
+UPDATE po_invoices 
+   SET due_date = CURRENT_DATE + ($1 || ' days')::INTERVAL 
+ WHERE id = $2;
+```
+**Found in:** task [1.1] of track [accounts-payable]
+
+---
+
+## Patterns & Traps — Captured in Field
+
+<!-- Claude and Gemini append here after each task. Format:
+## ✅ Pattern — [name]   or   ## ❌ Trap — [name]
+-->
+
+## ❌ Trap — Strict null violations in new module UI crash build
+**Symptom:** `Property 'bucket' does not exist on type 'ApAgingRow'` / `Object is possibly 'undefined'` — build fails on new modules.
+**Root cause:** New modules implemented without accounting for `strict: true`. Accessing nested API response properties without null checks blocks the build.
+**Fix:** Always guard API response access with `??` and optional chaining:
+```typescript
+const val = data?.nested?.value ?? 0;
+```
+Run `npx tsc --noEmit` before marking any task done.
+**Found in:** ROOT_CAUSE_REPORT.md (2026-05-16)

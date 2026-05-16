@@ -23,39 +23,46 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   if (!session?.user) return apiError('Unauthorized', 401);
 
   const { id } = await params;
-  const po = await queryOne(
-    `SELECT po.*, v.code AS vendor_code, v.name_th AS vendor_name, v.name_en AS vendor_name_en,
-            w.code AS warehouse_code, w.name_th AS warehouse_name,
-            u.name_en AS created_by_name
-     FROM purchase_orders po
-     JOIN vendors v ON v.id = po.vendor_id
-     JOIN warehouses w ON w.id = po.warehouse_id
-     JOIN users u ON u.id = po.created_by
-     WHERE po.id = $1`,
-    [id]
-  );
+
+  const [po, lines, grns, invoices] = await Promise.all([
+    queryOne(
+      `SELECT po.*, v.code AS vendor_code, v.name_th AS vendor_name, v.name_en AS vendor_name_en,
+              w.code AS warehouse_code, w.name_th AS warehouse_name,
+              u.name_en AS created_by_name
+       FROM purchase_orders po
+       JOIN vendors v ON v.id = po.vendor_id
+       JOIN warehouses w ON w.id = po.warehouse_id
+       JOIN users u ON u.id = po.created_by
+       WHERE po.id = $1`,
+      [id]
+    ),
+    query(
+      `SELECT li.*, p.sku, p.name_th, p.name_en, u.code AS uom_code,
+              p.is_lot_tracked, p.is_serial_tracked,
+              COALESCE(sb.qty_on_hand, 0) AS qty_on_hand,
+              COALESCE(sb.qty_available, 0) AS qty_available
+       FROM po_line_items li
+       JOIN products p ON p.id = li.product_id
+       JOIN units_of_measure u ON u.id = p.uom_id
+       JOIN purchase_orders po_sub ON po_sub.id = li.po_id
+       LEFT JOIN stock_balances sb ON sb.product_id = li.product_id AND sb.warehouse_id = po_sub.warehouse_id
+       WHERE li.po_id = $1
+       ORDER BY li.line_number`,
+      [id]
+    ),
+    query(
+      'SELECT id, grn_number, status, received_date FROM goods_receipt_notes WHERE po_id = $1 ORDER BY created_at DESC',
+      [id]
+    ),
+    query(
+      'SELECT * FROM po_invoices WHERE po_id = $1 ORDER BY invoice_date',
+      [id]
+    )
+  ]);
+
   if (!po) return apiError('PO not found', 404);
 
-  const lines = await query(
-    `SELECT li.*, p.sku, p.name_th, p.name_en, u.code AS uom_code,
-            p.is_lot_tracked, p.is_serial_tracked,
-            COALESCE(sb.qty_on_hand, 0) AS qty_on_hand,
-            COALESCE(sb.qty_available, 0) AS qty_available
-     FROM po_line_items li
-     JOIN products p ON p.id = li.product_id
-     JOIN units_of_measure u ON u.id = p.uom_id
-     LEFT JOIN stock_balances sb ON sb.product_id = li.product_id AND sb.warehouse_id = $2
-     WHERE li.po_id = $1
-     ORDER BY li.line_number`,
-    [id, (po as { warehouse_id: string }).warehouse_id]
-  );
-
-  const invoices = await query(
-    'SELECT * FROM po_invoices WHERE po_id = $1 ORDER BY invoice_date',
-    [id]
-  );
-
-  return apiSuccess({ ...po, lines, invoices });
+  return apiSuccess({ ...po, lines, grns, invoices });
 }
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {

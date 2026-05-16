@@ -1,3 +1,11 @@
+---
+track: sales-module
+status: Completed
+owner: paku, puka
+module: Sales
+updated: 2026-05-11
+---
+
 # Track: Sales Module
 
 **Created:** 2026-05-11

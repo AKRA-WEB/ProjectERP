@@ -1,3 +1,11 @@
+---
+track: encoding-fix
+status: Completed
+owner: puka
+module: Core
+updated: 2026-05-10
+---
+
 # Track: Thai Text Double-Encoding Fix
 
 **Status:** Completed  

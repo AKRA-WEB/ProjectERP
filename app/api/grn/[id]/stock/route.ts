@@ -110,6 +110,45 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       [u.id, id]
     );
 
+    // Auto-create AP Invoice
+    if (po_id) {
+      // Fetch PO vendor + payment terms
+      const poInfo = await client.query<{ vendor_id: string; payment_terms_days: number; po_number: string }>(
+        `SELECT po.vendor_id, po.payment_terms_days, po.po_number
+         FROM goods_receipt_notes g
+         JOIN purchase_orders po ON po.id = g.po_id
+         WHERE g.id = $1`,
+        [id]
+      );
+      if (poInfo.rows.length > 0) {
+        const { vendor_id, payment_terms_days, po_number } = poInfo.rows[0];
+        // Calculate invoice amount from accepted lines
+        const amtResult = await client.query<{ total: string }>(
+          `SELECT COALESCE(SUM(gl.qty_accepted * pl.unit_price), 0) AS total
+           FROM grn_line_items gl
+           JOIN po_line_items pl ON pl.id = gl.po_line_item_id
+           WHERE gl.grn_id = $1 AND gl.qty_accepted > 0`,
+          [id]
+        );
+        const invoiceAmount = parseFloat(amtResult.rows[0].total);
+        if (invoiceAmount > 0) {
+          // Check if AP invoice already exists for this GRN to prevent duplicates
+          const existing = await client.query(
+            `SELECT id FROM po_invoices WHERE grn_id = $1`,
+            [id]
+          );
+          if (existing.rows.length === 0) {
+            await client.query(
+              `INSERT INTO po_invoices
+               (po_id, vendor_id, grn_id, invoice_number, invoice_date, due_date, amount, paid_amount)
+               VALUES ($1, $2, $3, $4, CURRENT_DATE, CURRENT_DATE + ($5 || ' days')::INTERVAL, $6, 0)`,
+              [po_id, vendor_id, id, po_number, payment_terms_days, invoiceAmount]
+            );
+          }
+        }
+      }
+    }
+
     if (po_id) {
       const poLines = await client.query<{ qty_ordered: string; qty_received: string }>(
         'SELECT qty_ordered, qty_received FROM po_line_items WHERE po_id = $1',

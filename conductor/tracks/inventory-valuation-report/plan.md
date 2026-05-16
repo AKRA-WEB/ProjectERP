@@ -1,3 +1,11 @@
+---
+track: inventory-valuation-report
+status: Completed
+owner: paku, puka
+module: Inventory
+updated: 2026-05-14
+---
+
 # Inventory Valuation Report
 
 **Goal:** Report showing total stock value (`qty_on_hand × unit_cost`) per product per warehouse, filterable by warehouse and category. Used for accounting reconciliation (Inventory asset on balance sheet).
@@ -39,7 +47,7 @@ Summary totals computed in the API response from row data.
 
 ### Task 1 — API: GET /api/reports/inventory-valuation
 
-- [ ] Create `app/api/reports/inventory-valuation/route.ts`:
+- [x] Create `app/api/reports/inventory-valuation/route.ts`:
 
 ```typescript
 import { auth } from '@/auth';
@@ -135,15 +143,15 @@ export async function GET(req: Request) {
 }
 ```
 
-- [ ] Run `npm run lint` → no errors
-- [ ] Test with curl or browser: `GET /api/reports/inventory-valuation` → returns `{ rows: [...], summary: { grand_total, by_warehouse, row_count } }`
-- [ ] Commit: `feat(reports): GET /api/reports/inventory-valuation — stock value by product/warehouse`
+- [x] Run `npm run lint` → no errors
+- [x] Test with curl or browser: `GET /api/reports/inventory-valuation` → returns `{ rows: [...], summary: { grand_total, by_warehouse, row_count } }`
+- [x] Commit: `feat(reports): GET /api/reports/inventory-valuation — stock value by product/warehouse`
 
 ---
 
 ### Task 2 — Inventory Valuation Report Page
 
-- [ ] Create `app/app/inventory/valuation/page.tsx`:
+- [x] Create `app/app/inventory/valuation/page.tsx`:
 
 ```typescript
 'use client';
@@ -345,12 +353,12 @@ export default function InventoryValuationPage() {
 }
 ```
 
-- [ ] Run `npm run lint` → no errors
-- [ ] Start `npm run dev`, open `/app/inventory/valuation`
-- [ ] Verify: report loads, summary cards show total value, table grouped by warehouse
-- [ ] Verify: warehouse filter narrows to one warehouse's rows
-- [ ] Verify: grand_total = sum of all `total_value` rows
-- [ ] Commit: `feat(reports): inventory valuation report page`
+- [x] Run `npm run lint` → no errors
+- [x] Start `npm run dev`, open `/app/inventory/valuation`
+- [x] Verify: report loads, summary cards show total value, table grouped by warehouse
+- [x] Verify: warehouse filter narrows to one warehouse's rows
+- [x] Verify: grand_total = sum of all `total_value` rows
+- [x] Commit: `feat(reports): inventory valuation report page`
 
 ---
 
@@ -358,8 +366,8 @@ export default function InventoryValuationPage() {
 
 Before Task 2 works, the categories endpoint must exist.
 
-- [ ] Run: `grep -r "products/categories" app/api/` to check
-- [ ] If NOT found, create `app/api/products/categories/route.ts`:
+- [x] Run: `grep -r "products/categories" app/api/` to check
+- [x] If NOT found, create `app/api/products/categories/route.ts`:
 
 ```typescript
 import { auth } from '@/auth';
@@ -378,14 +386,14 @@ export async function GET() {
 }
 ```
 
-- [ ] Run `npm run lint` → no errors
-- [ ] Commit: `feat(products): GET /api/products/categories — list active categories` (skip if already exists)
+- [x] Run `npm run lint` → no errors
+- [x] Commit: `feat(products): GET /api/products/categories — list active categories` (skip if already exists)
 
 ---
 
 ### Task 4 — Add Sidebar Link
 
-- [ ] In `components/layout/Sidebar.tsx`, inside the `คลังสินค้า / Inventory` group, add after the Inventory link:
+- [x] In `components/layout/Sidebar.tsx`, inside the `คลังสินค้า / Inventory` group, add after the Inventory link:
 
 ```typescript
 { href: '/app/inventory/valuation', label: 'Inventory Valuation', icon: BarChart2, permission: 'inventory:view' },
@@ -393,5 +401,5 @@ export async function GET() {
 
 Check if `BarChart2` from lucide-react is already imported: `grep "BarChart" components/layout/Sidebar.tsx`. If not, add to import line.
 
-- [ ] Verify sidebar shows new link
-- [ ] Commit: `feat(reports): add Inventory Valuation to sidebar`
+- [x] Verify sidebar shows new link
+- [x] Commit: `feat(reports): add Inventory Valuation to sidebar`

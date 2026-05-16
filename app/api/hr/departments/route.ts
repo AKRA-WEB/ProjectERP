@@ -3,7 +3,7 @@ import { auth } from '@/auth';
 import { query } from '@/lib/db/client';
 import { apiSuccess, apiError } from '@/lib/api-response';
 import { z } from 'zod';
-import type { SessionUser } from '@/lib/authz';
+import { assertRole, SessionUser } from '@/lib/authz';
 
 const CreateSchema = z.object({
   code: z.string().min(1).max(50),
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user) return apiError('Unauthorized', 401);
   const u = session.user as unknown as SessionUser;
-  if (!['admin', 'manager'].includes(u.role)) return apiError('Forbidden', 403);
+  try { assertRole(u, ['manager', 'admin']); } catch { return apiError('Forbidden', 403); }
 
   const body = await req.json();
   const parsed = CreateSchema.safeParse(body);

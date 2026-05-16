@@ -1,11 +1,5 @@
-export type UserRole = 'admin' | 'manager' | 'staff';
-
-export interface SessionUser {
-  id: string;
-  role: UserRole;
-  assignedWarehouseIds: string[];
-  permissions: string[];
-}
+import { type SessionUser, type UserRole } from '@/types';
+export type { SessionUser, UserRole };
 
 /** Returns true if user has the permission, or if user is admin (bypass). */
 export function hasPermission(user: SessionUser, permission: string): boolean {

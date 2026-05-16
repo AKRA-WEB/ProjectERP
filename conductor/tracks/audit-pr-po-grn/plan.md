@@ -1,3 +1,11 @@
+---
+track: audit-pr-po-grn
+status: Completed
+owner: paku, puka
+module: WMS
+updated: 2026-05-10
+---
+
 # Track: Audit PR → PO → GRN End-to-End Flow
 
 **Goal:** Verify the full procurement cycle works correctly in a running dev server. Identify bugs, broken UI states, and missing validations before adding new modules.

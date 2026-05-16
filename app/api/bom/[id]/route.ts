@@ -1,9 +1,9 @@
 import { NextRequest } from 'next/server';
 import { auth } from '@/auth';
 import pool, { queryOne, query } from '@/lib/db/client';
-import { apiSuccess, apiError } from '@/lib/api-response';
+import { apiSuccess, apiError, apiValidationError } from '@/lib/api-response';
 import { PatchBomSchema } from '@/lib/validations/bom';
-import { SessionUser } from '@/lib/authz';
+import { type SessionUser, assertRole } from '@/lib/authz';
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -52,15 +52,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const user = session.user as unknown as SessionUser;
   const { id } = await params;
 
-  if (!['admin', 'manager'].includes(user.role)) {
-    return apiError('Forbidden', 403);
-  }
+  try { assertRole(user, ['manager', 'admin']); } catch { return apiError('Forbidden', 403); }
 
   try {
     const body = await req.json();
     const result = PatchBomSchema.safeParse(body);
     if (!result.success) {
-      return apiError(result.error.errors[0].message, 400);
+      return apiValidationError(result.error);
     }
     const d = result.data;
 
@@ -68,7 +66,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     try {
       await client.query('BEGIN');
 
-      const bom = await queryOne('SELECT product_id, is_active FROM bom_headers WHERE id = $1', [id]);
+      const bom = await queryOne<{ product_id: string; is_active: boolean }>('SELECT product_id, is_active FROM bom_headers WHERE id = $1', [id]);
       if (!bom) throw new Error('BOM not found');
 
       if (d.action === 'update_header') {
@@ -141,7 +139,7 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
   const user = session.user as unknown as SessionUser;
   const { id } = await params;
 
-  if (user.role !== 'admin') return apiError('Forbidden', 403);
+  try { assertRole(user, ['admin']); } catch { return apiError('Forbidden', 403); }
 
   // TODO: Block if referenced in manufacturing orders
   await query('DELETE FROM bom_headers WHERE id = $1', [id]);

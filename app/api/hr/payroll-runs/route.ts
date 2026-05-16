@@ -3,7 +3,7 @@ import { auth } from '@/auth';
 import pool, { query } from '@/lib/db/client';
 import { apiSuccess, apiError } from '@/lib/api-response';
 import { z } from 'zod';
-import type { SessionUser } from '@/lib/authz';
+import { assertRole, buildWarehouseScopeClause, SessionUser } from '@/lib/authz';
 import { calcPayroll, calcOTPay } from '@/lib/hr/payroll-calc';
 
 const CreateSchema = z.object({
@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user) return apiError('Unauthorized', 401);
   const u = session.user as unknown as SessionUser;
-  if (!['admin', 'manager'].includes(u.role)) return apiError('Forbidden', 403);
+  try { assertRole(u, ['manager', 'admin']); } catch { return apiError('Forbidden', 403); }
 
   const body = await req.json();
   const parsed = CreateSchema.safeParse(body);

@@ -2,33 +2,35 @@ import { NextRequest } from 'next/server';
 import { auth } from '@/auth';
 import pool, { query, queryOne } from '@/lib/db/client';
 import { apiSuccess, apiError } from '@/lib/api-response';
-import type { SessionUser } from '@/lib/authz';
+import { type SessionUser, assertRole } from '@/lib/authz';
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session?.user) return apiError('Unauthorized', 401);
   const { id } = await params;
 
-  const run = await queryOne(`
-    SELECT pr.*, 
-      u.name_th AS created_by_name_th, u.name_en AS created_by_name_en, 
-      a.name_th AS approved_by_name_th, a.name_en AS approved_by_name_en
-    FROM payroll_runs pr
-    JOIN users u ON u.id = pr.created_by
-    LEFT JOIN users a ON a.id = pr.approved_by
-    WHERE pr.id = $1
-  `, [id]);
-  if (!run) return apiError('Not found', 404);
+  const [run, lines] = await Promise.all([
+    queryOne(`
+      SELECT pr.*, 
+        u.name_th AS created_by_name_th, u.name_en AS created_by_name_en, 
+        a.name_th AS approved_by_name_th, a.name_en AS approved_by_name_en
+      FROM payroll_runs pr
+      JOIN users u ON u.id = pr.created_by
+      LEFT JOIN users a ON a.id = pr.approved_by
+      WHERE pr.id = $1
+    `, [id]),
+    query(`
+      SELECT pl.*, 
+        u.name_th AS employee_name_th, u.name_en AS employee_name_en, 
+        u.employee_id AS employee_id_code
+      FROM payroll_lines pl
+      JOIN users u ON u.id = pl.employee_id
+      WHERE pl.run_id = $1
+      ORDER BY u.name_en
+    `, [id])
+  ]);
 
-  const lines = await query(`
-    SELECT pl.*, 
-      u.name_th AS employee_name_th, u.name_en AS employee_name_en, 
-      u.employee_id AS employee_id_code
-    FROM payroll_lines pl
-    JOIN users u ON u.id = pl.employee_id
-    WHERE pl.run_id = $1
-    ORDER BY u.name_en
-  `, [id]);
+  if (!run) return apiError('Not found', 404);
 
   return apiSuccess({ ...run, lines });
 }
@@ -37,7 +39,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const session = await auth();
   if (!session?.user) return apiError('Unauthorized', 401);
   const u = session.user as unknown as SessionUser;
-  if (!['admin', 'manager'].includes(u.role)) return apiError('Forbidden', 403);
+  try { assertRole(u, ['manager', 'admin']); } catch { return apiError('Forbidden', 403); }
   const { id } = await params;
 
   const body = await req.json();

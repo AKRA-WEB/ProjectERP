@@ -1,3 +1,11 @@
+---
+track: grn-receiving-workflow
+status: Completed
+owner: puka
+module: WMS
+updated: 2026-05-14
+---
+
 # GRN Receiving Workflow — Staff Work Card
 
 ## Analysis
@@ -52,7 +60,7 @@ New fields needed:
 
 ### Task 1 — Migration 027
 
-- [ ] Create `migrations/027_grn_receiving_workflow.sql`:
+- [x] Create `migrations/027_grn_receiving_workflow.sql`:
 
 ```sql
 -- Add receiver_name and split tracking to GRN header
@@ -82,10 +90,10 @@ ALTER TABLE goods_receipt_notes
 CREATE INDEX IF NOT EXISTS idx_grn_split ON goods_receipt_notes(split_from_grn_id) WHERE split_from_grn_id IS NOT NULL;
 ```
 
-- [ ] Run `npm run migrate`
-- [ ] Verify: `\d goods_receipt_notes` shows `receiver_name`, `split_from_grn_id`
-- [ ] Verify: `\d grn_line_items` shows `qty_expected`, constraint `qty_received_nonneg`
-- [ ] Commit: `feat(grn): migration 027 — work card fields, allow zero qty, split tracking`
+- [x] Run `npm run migrate`
+- [x] Verify: `\d goods_receipt_notes` shows `receiver_name`, `split_from_grn_id`
+- [x] Verify: `\d grn_line_items` shows `qty_expected`, constraint `qty_received_nonneg`
+- [x] Commit: `feat(grn): migration 027 — work card fields, allow zero qty, split tracking`
 
 ---
 
@@ -96,7 +104,7 @@ Admin fills ONE form: Vendor + Warehouse + product lines. API atomically creates
 2. GRN work card template (qty_received=0, ready for staff)
 3. Upserts `vendor_products` — records that each product is supplied by this vendor with the given unit_price
 
-- [ ] Create `app/api/receiving/order/route.ts`:
+- [x] Create `app/api/receiving/order/route.ts`:
 
 ```typescript
 import { auth } from '@/auth';
@@ -220,14 +228,14 @@ export async function POST(req: Request) {
 }
 ```
 
-- [ ] Run `npm run lint` → no errors
-- [ ] Commit: `feat(receiving): POST /api/receiving/order — create PO + GRN template + upsert vendor_products`
+- [x] Run `npm run lint` → no errors
+- [x] Commit: `feat(receiving): POST /api/receiving/order — create PO + GRN template + upsert vendor_products`
 
 ---
 
 ### Task 2B — UI: สร้างคำสั่งซื้อ (Admin "Open Work Card" form)
 
-- [ ] Create `app/app/receiving/new/page.tsx`:
+- [x] Create `app/app/receiving/new/page.tsx`:
 
 ```typescript
 'use client';
@@ -474,17 +482,17 @@ export default function NewReceivingOrderPage() {
 }
 ```
 
-- [ ] Run `npm run lint` → no errors
-- [ ] Start `npm run dev`, open `/app/receiving/new`
-- [ ] Test: select vendor, select warehouse, add 3 products, set prices → submit
-- [ ] Verify: redirects to GRN work card (status=draft), check DB: PO created with status=`sent`, GRN lines have qty_received=0 and qty_expected filled, `vendor_products` has upserted records for each product+vendor
-- [ ] Commit: `feat(receiving): new receiving order form — vendor + warehouse + lines → PO + GRN template`
+- [x] Run `npm run lint` → no errors
+- [x] Start `npm run dev`, open `/app/receiving/new`
+- [x] Test: select vendor, select warehouse, add 3 products, set prices → submit
+- [x] Verify: redirects to GRN work card (status=draft), check DB: PO created with status=`sent`, GRN lines have qty_received=0 and qty_expected filled, `vendor_products` has upserted records for each product+vendor
+- [x] Commit: `feat(receiving): new receiving order form — vendor + warehouse + lines → PO + GRN template`
 
 ---
 
 ### Task 2C — Sidebar Link for "เปิดคำสั่งซื้อ"
 
-- [ ] In `components/layout/Sidebar.tsx`, inside the `จัดซื้อ / Procurement` nav group (where PR/PO links are), add:
+- [x] In `components/layout/Sidebar.tsx`, inside the `จัดซื้อ / Procurement` nav group (where PR/PO links are), add:
 
 ```typescript
 { href: '/app/receiving/new', label: 'เปิดคำสั่งซื้อ', icon: PackagePlus, permission: 'grn:create' },
@@ -492,8 +500,8 @@ export default function NewReceivingOrderPage() {
 
 Check if `PackagePlus` is imported from lucide-react: `grep "PackagePlus" components/layout/Sidebar.tsx`. If not, add to the import line.
 
-- [ ] Verify sidebar shows new link
-- [ ] Commit: `feat(receiving): sidebar link — เปิดคำสั่งซื้อ`
+- [x] Verify sidebar shows new link
+- [x] Commit: `feat(receiving): sidebar link — เปิดคำสั่งซื้อ`
 
 ---
 
@@ -641,14 +649,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 }
 ```
 
-- [ ] Run `npm run lint` → no errors
-- [ ] Commit: `feat(grn): receive route — accept line quantities, delivery date, receiver name, auto-split partial deliveries`
+- [x] Run `npm run lint` → no errors
+- [x] Commit: `feat(grn): receive route — accept line quantities, delivery date, receiver name, auto-split partial deliveries`
 
 ---
 
 ### Task 4 — New API: Supervisor Confirm (Skip QC → Stock)
 
-- [ ] Create `app/api/grn/[id]/confirm/route.ts`:
+- [x] Create `app/api/grn/[id]/confirm/route.ts`:
 
 ```typescript
 import { auth } from '@/auth';
@@ -769,8 +777,8 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
 }
 ```
 
-- [ ] Run `npm run lint` → no errors
-- [ ] Commit: `feat(grn): POST /api/grn/[id]/confirm — supervisor confirms receipt, stocks inventory, skips QC`
+- [x] Run `npm run lint` → no errors
+- [x] Commit: `feat(grn): POST /api/grn/[id]/confirm — supervisor confirms receipt, stocks inventory, skips QC`
 
 ---
 
@@ -778,9 +786,9 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
 
 File: `app/app/purchase-orders/[id]/page.tsx`
 
-- [ ] Read the PO detail page and locate the action buttons section (near `po.status === 'sent'` or `partially_received` guards)
+- [x] Read the PO detail page and locate the action buttons section (near `po.status === 'sent'` or `partially_received` guards)
 
-- [ ] Add "สร้างการ์ดงาน รับสินค้า" button visible when `po.status` is `sent`, `partially_received`:
+- [x] Add "สร้างการ์ดงาน รับสินค้า" button visible when `po.status` is `sent`, `partially_received`:
 
 ```tsx
 {(['sent', 'partially_received'] as const).includes(po.status as 'sent' | 'partially_received') && (
@@ -811,13 +819,14 @@ async function handleCreateWorkCard() {
     setActing(false);
   }
 }
-```
+- [x] Add `handleCreateWorkCard` function:
+...
+- [x] Ensure `po.warehouse_id` is available in the PO detail GET response. If not, add to the SELECT in `app/api/purchase-orders/[id]/route.ts`.
 
-- [ ] Ensure `po.warehouse_id` is available in the PO detail GET response. If not, add to the SELECT in `app/api/purchase-orders/[id]/route.ts`.
+- [x] Run `npm run lint` → no errors
+- [x] Test: open a PO in `sent` status → button appears → click → redirects to new GRN with `draft` status showing all PO lines with qty=0
+- [x] Commit: `feat(grn): PO detail — สร้างการ์ดงาน button creates GRN template`
 
-- [ ] Run `npm run lint` → no errors
-- [ ] Test: open a PO in `sent` status → button appears → click → redirects to new GRN with `draft` status showing all PO lines with qty=0
-- [ ] Commit: `feat(grn): PO detail — สร้างการ์ดงาน button creates GRN template`
 
 ---
 
@@ -1050,13 +1059,13 @@ async function handleConfirm() {
 )}
 ```
 
-- [ ] Run `npm run lint` → no errors
-- [ ] Test full flow:
+- [x] Run `npm run lint` → no errors
+- [x] Test full flow:
   1. Go to a sent PO → click "สร้างการ์ดงาน" → GRN created with all lines, qty=0, status=draft
   2. Open GRN → fill delivery_date, receiver_name, qty for SOME lines, locations → "รับลงสินค้า"
   3. Verify original GRN status = `received`, split GRN created for remaining items with status = `draft`
   4. As manager/admin: open received GRN → "ยืนยันรับสินค้า" → status = `stocked`, check stock_balances updated
-- [ ] Commit: `feat(grn): work card UI — staff fill form, receive action, supervisor confirm`
+- [x] Commit: `feat(grn): work card UI — staff fill form, receive action, supervisor confirm`
 
 ---
 
@@ -1064,7 +1073,7 @@ async function handleConfirm() {
 
 File: `app/app/grn/page.tsx`
 
-- [ ] Update status label rendering. Find where GRN status is displayed and replace with:
+- [x] Update status label rendering. Find where GRN status is displayed and replace with:
 
 ```typescript
 const STATUS_LABEL: Record<string, string> = {
@@ -1077,25 +1086,25 @@ const STATUS_LABEL: Record<string, string> = {
 };
 ```
 
-- [ ] Update GRN list GET API (`app/api/grn/route.ts`) to also return `split_from_grn_id` in the SELECT query. Add to the SELECT:
+- [x] Update GRN list GET API (`app/api/grn/route.ts`) to also return `split_from_grn_id` in the SELECT query. Add to the SELECT:
   ```sql
   g.split_from_grn_id,
   ```
 
-- [ ] In the GRN list table, show a "แยก" badge when `split_from_grn_id` is set:
+- [x] In the GRN list table, show a "แยก" badge when `split_from_grn_id` is set:
   ```tsx
   {row.split_from_grn_id && (
     <span className="ml-1.5 px-1.5 py-[1px] text-[10px] rounded-[4px] bg-amber-50 border border-amber-200 text-amber-700">แยก</span>
   )}
   ```
 
-- [ ] Run `npm run lint` → no errors
-- [ ] Verify: GRN list shows Thai status labels, split GRNs show amber badge
-- [ ] Commit: `feat(grn): list page — Thai status labels + split GRN badge`
+- [x] Run `npm run lint` → no errors
+- [x] Verify: GRN list shows Thai status labels, split GRNs show amber badge
+- [x] Commit: `feat(grn): list page — Thai status labels + split GRN badge`
 
 ---
 
 ### Task 8 — Update conductor/index.md
 
-- [ ] Mark this track Completed in `conductor/index.md`
-- [ ] Commit: `chore: conductor — grn-receiving-workflow track completed`
+- [x] Mark this track Completed in `conductor/index.md`
+- [x] Commit: `chore: conductor — grn-receiving-workflow track completed`

@@ -1,5 +1,5 @@
 import { auth } from '@/auth';
-import { apiSuccess, apiError } from '@/lib/api-response';
+import { apiSuccess, apiError, apiValidationError } from '@/lib/api-response';
 import { assertPermission } from '@/lib/authz';
 import { query } from '@/lib/db/client';
 import type { SessionUser } from '@/lib/authz';
@@ -69,7 +69,7 @@ export async function PATCH(
     if (result.length === 0) return apiError('Member not found', 404);
     return apiSuccess(result[0]);
   } catch (err: unknown) {
-    if (err instanceof z.ZodError) return apiError(err.errors[0].message, 400);
+    if (err instanceof z.ZodError) return apiValidationError(err);
     const msg = err instanceof Error ? err.message : 'Unknown error';
     return apiError(msg, 500);
   }

@@ -3,6 +3,7 @@
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import React from 'react';
+import { ViewTransition } from '@/lib/react-vts';
 
 // SVG components for modules
 const PosIcon = () => (
@@ -126,47 +127,49 @@ export default function MainMenuPage() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center w-full max-w-[1000px] mx-auto min-h-[calc(100vh-120px)] font-sans">
-      <div className="text-center mb-14">
-        <div className="inline-flex items-center gap-3 px-3 pr-4 py-1.5 border border-[#e4e0d6] bg-white/55 rounded-full mb-6">
-          <div className="w-7 h-7 rounded-full bg-[#1c1917] text-[#f6f4ef] grid place-items-center text-[13px] font-semibold">อ</div>
-          <span className="text-[11.5px] uppercase tracking-[0.18em] text-[#44403c] font-medium">Arun · ERP</span>
-        </div>
-        <h1 className="font-display text-[34px] font-medium tracking-[-0.025em] text-[#1c1917] m-0">เลือกระบบงาน</h1>
-        <div className="text-[13px] color-[#78716c] mt-2.5 tracking-[0.02em] text-[#78716c]">Choose a workspace to continue</div>
-      </div>
-
-      <nav className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 border-t border-b border-[#e4e0d6] w-full max-w-[900px]" aria-label="ระบบงาน">
-        {visibleModules.length === 0 ? (
-          <div className="col-span-full py-20 text-center text-[#78716c]">
-            <p>ขออภัย คุณยังไม่มีสิทธิ์เข้าถึงระบบใดๆ</p>
+    <ViewTransition default="none" enter="fade-in" exit="fade-out">
+      <div className="flex flex-col items-center justify-center w-full max-w-[1000px] mx-auto min-h-[calc(100vh-120px)] font-sans">
+        <div className="text-center mb-14">
+          <div className="inline-flex items-center gap-3 px-3 pr-4 py-1.5 border border-[#e4e0d6] bg-white/55 rounded-full mb-6">
+            <div className="w-7 h-7 rounded-full bg-[#1c1917] text-[#f6f4ef] grid place-items-center text-[13px] font-semibold">B</div>
+            <span className="text-[11.5px] uppercase tracking-[0.18em] text-[#44403c] font-medium">BUYMORETH ERP</span>
           </div>
-        ) : (
-          visibleModules.map((mod, i) => (
-            <Link key={mod.id} href={mod.href} className={`relative flex flex-col items-center px-5 pt-[44px] pb-[32px] no-underline text-inherit border-r border-[#e4e0d6] transition-colors duration-150 hover:bg-white/55 group ${i === visibleModules.length - 1 ? 'border-r-0' : ''} lg:border-r`}>
-              <div className="w-24 h-24 grid place-items-center text-[#44403c] transition-all duration-250 ease-out mb-6 group-hover:text-[#1c1917] group-hover:-translate-y-0.5">
-                <mod.icon />
-              </div>
-              <div className="font-display text-[17px] font-medium tracking-[-0.005em] text-[#1c1917] text-center">{mod.nameTh}</div>
-              <div className="font-mono text-[10.5px] tracking-[0.14em] uppercase text-[#78716c] mt-2">{mod.nameEn}</div>
-              <svg className="absolute bottom-[14px] right-[14px] w-4 h-4 text-[#78716c] opacity-0 transition-all duration-250 ease-out group-hover:opacity-100 group-hover:translate-x-0.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
-            </Link>
-          ))
-        )}
-      </nav>
-
-      <div className="mt-10 flex items-center gap-3.5 text-[12.5px] text-[#78716c]">
-        <div className="w-[30px] h-[30px] rounded-full bg-[#efece4] border border-[#e4e0d6] grid place-items-center text-[11px] font-semibold text-[#44403c]">
-          {initials(user?.name || '')}
+          <h1 className="font-display text-[34px] font-medium tracking-[-0.025em] text-[#1c1917] m-0">เลือกระบบงาน</h1>
+          <div className="text-[13px] color-[#78716c] mt-2.5 tracking-[0.02em] text-[#78716c]">Choose a workspace to continue</div>
         </div>
-        <span className="font-medium text-[#44403c]">{user?.name || 'ผู้ใช้งาน'}</span>
-        <span className="w-1 h-1 rounded-full bg-[#e4e0d6]" />
-        <span>{role || 'Staff'}</span>
-      </div>
 
-      <div className="flex items-center gap-3.5 mt-14 text-[10.5px] font-mono uppercase tracking-[0.22em] text-[#78716c] w-full max-w-[400px] before:content-[''] before:flex-1 before:h-px before:bg-[#e4e0d6] before:min-w-[48px] after:content-[''] after:flex-1 after:h-px after:bg-[#e4e0d6] after:min-w-[48px]">
-        v 2.0 · {currentThaiMonth}
+        <nav className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 border-t border-b border-[#e4e0d6] w-full max-w-[900px]" aria-label="ระบบงาน">
+          {visibleModules.length === 0 ? (
+            <div className="col-span-full py-20 text-center text-[#78716c]">
+              <p>ขออภัย คุณยังไม่มีสิทธิ์เข้าถึงระบบใดๆ</p>
+            </div>
+          ) : (
+            visibleModules.map((mod, i) => (
+              <Link key={mod.id} href={mod.href} className={`relative flex flex-col items-center px-5 pt-[44px] pb-[32px] no-underline text-inherit border-r border-[#e4e0d6] transition-colors duration-150 hover:bg-white/55 group ${i === visibleModules.length - 1 ? 'border-r-0' : ''} lg:border-r`}>
+                <div className="w-24 h-24 grid place-items-center text-[#44403c] transition-all duration-250 ease-out mb-6 group-hover:text-[#1c1917] group-hover:-translate-y-0.5">
+                  <mod.icon />
+                </div>
+                <div className="font-display text-[17px] font-medium tracking-[-0.005em] text-[#1c1917] text-center">{mod.nameTh}</div>
+                <div className="font-mono text-[10.5px] tracking-[0.14em] uppercase text-[#78716c] mt-2">{mod.nameEn}</div>
+                <svg className="absolute bottom-[14px] right-[14px] w-4 h-4 text-[#78716c] opacity-0 transition-all duration-250 ease-out group-hover:opacity-100 group-hover:translate-x-0.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+              </Link>
+            ))
+          )}
+        </nav>
+
+        <div className="mt-10 flex items-center gap-3.5 text-[12.5px] text-[#78716c]">
+          <div className="w-[30px] h-[30px] rounded-full bg-[#efece4] border border-[#e4e0d6] grid place-items-center text-[11px] font-semibold text-[#44403c]">
+            {initials(user?.name || '')}
+          </div>
+          <span className="font-medium text-[#44403c]">{user?.name || 'ผู้ใช้งาน'}</span>
+          <span className="w-1 h-1 rounded-full bg-[#e4e0d6]" />
+          <span>{role || 'Staff'}</span>
+        </div>
+
+        <div className="flex items-center gap-3.5 mt-14 text-[10.5px] font-mono uppercase tracking-[0.22em] text-[#78716c] w-full max-w-[400px] before:content-[''] before:flex-1 before:h-px before:bg-[#e4e0d6] before:min-w-[48px] after:content-[''] after:flex-1 after:h-px after:bg-[#e4e0d6] after:min-w-[48px]">
+          v 2.0 · {currentThaiMonth}
+        </div>
       </div>
-    </div>
+    </ViewTransition>
   );
 }

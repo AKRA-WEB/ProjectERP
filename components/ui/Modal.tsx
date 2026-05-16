@@ -69,8 +69,8 @@ export function ModalHeader({ children, onClose }: { children: ReactNode; onClos
   );
 }
 
-export function ModalBody({ children }: { children: ReactNode }) {
-  return <div className="flex-1 overflow-y-auto px-[22px] py-5">{children}</div>;
+export function ModalBody({ children, className }: { children: ReactNode; className?: string }) {
+  return <div className={cn('flex-1 overflow-y-auto px-[22px] py-5', className)}>{children}</div>;
 }
 
 export function ModalFooter({ children, className }: { children: ReactNode; className?: string }) {

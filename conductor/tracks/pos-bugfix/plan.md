@@ -1,3 +1,11 @@
+---
+track: pos-bugfix
+status: Completed
+owner: paku, puka
+module: POS
+updated: 2026-05-13
+---
+
 # POS Bugfix Plan
 
 **Goal:** Fix 4 remaining issues in POS module found by Billy QA audit (2026-05-13).
@@ -39,9 +47,9 @@ try { assertWarehouseAccess(u, current.warehouse_id); } catch { return apiError(
 
 Also add `assertWarehouseAccess` to the imports at the top of the file.
 
-- [ ] Read file, make edits
-- [ ] `npm run lint` — expect no new errors
-- [ ] `git add "app/api/pos/sessions/[id]/route.ts" && git commit -m "fix(pos): add warehouse access check to close_session PATCH"`
+- [x] Read file, make edits
+- [x] `npm run lint` — expect no new errors
+- [x] `git add "app/api/pos/sessions/[id]/route.ts" && git commit -m "fix(pos): add warehouse access check to close_session PATCH"`
 
 ---
 
@@ -67,9 +75,9 @@ Also add `assertWarehouseAccess` to the imports at the top of the file.
 
 `formatDatetime` signature: `formatDatetime(value: string | Date | null | undefined): string`
 
-- [ ] Edit all 3 files
-- [ ] `npm run lint`
-- [ ] `git add app/app/pos/page.tsx app/app/pos/sessions/page.tsx "app/app/pos/sessions/[id]/page.tsx" && git commit -m "fix(pos): toLocaleString → formatDatetime in POS UI pages"`
+- [x] Edit all 3 files
+- [x] `npm run lint`
+- [x] `git add app/app/pos/page.tsx app/app/pos/sessions/page.tsx "app/app/pos/sessions/[id]/page.tsx" && git commit -m "fix(pos): toLocaleString → formatDatetime in POS UI pages"`
 
 ---
 
@@ -93,9 +101,9 @@ const vatAmount = Math.round(total * VAT_RATE / (1 + VAT_RATE) * 100) / 100;
 
 Note: Add `VAT_RATE` to the existing import from `@/lib/constants` at the top of the file.
 
-- [ ] Edit file
-- [ ] `npm run lint`
-- [ ] `git add app/api/pos/transactions/route.ts && git commit -m "fix(pos): replace hardcoded VAT 7/107 with VAT_RATE constant"`
+- [x] Edit file
+- [x] `npm run lint`
+- [x] `git add app/api/pos/transactions/route.ts && git commit -m "fix(pos): replace hardcoded VAT 7/107 with VAT_RATE constant"`
 
 ---
 
@@ -125,14 +133,14 @@ import { DEFAULT_PAGE_SIZE } from '@/lib/constants';
 
 Add `DEFAULT_PAGE_SIZE` to the import from `@/lib/constants` if not already present.
 
-- [ ] Edit file
-- [ ] `npm run lint`
-- [ ] `git add "app/api/pos/sessions/[id]/route.ts" && git commit -m "fix(pos): replace hardcoded LIMIT 50 with DEFAULT_PAGE_SIZE"`
+- [x] Edit file
+- [x] `npm run lint`
+- [x] `git add "app/api/pos/sessions/[id]/route.ts" && git commit -m "fix(pos): replace hardcoded LIMIT 50 with DEFAULT_PAGE_SIZE"`
 
 ---
 
 ## Final Verification
 
-- [ ] `npm run lint` — exit 0
-- [ ] `grep -rn "toLocaleString\|toLocaleDateString" app/app/pos/` — expect no output
-- [ ] `grep -rn "7 / 107\|7/107" app/api/pos/` — expect no output
+- [x] `npm run lint` — exit 0
+- [x] `grep -rn "toLocaleString\|toLocaleDateString" app/app/pos/` — expect no output
+- [x] `grep -rn "7 / 107\|7/107" app/api/pos/` — expect no output

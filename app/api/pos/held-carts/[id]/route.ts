@@ -1,7 +1,7 @@
 import { auth } from '@/auth';
 import { apiSuccess, apiError } from '@/lib/api-response';
 import { assertPermission } from '@/lib/authz';
-import { query } from '@/lib/db/client';
+import { query, queryOne } from '@/lib/db/client';
 import type { SessionUser } from '@/lib/authz';
 
 export async function GET(
@@ -15,11 +15,11 @@ export async function GET(
 
   try { assertPermission(u, 'pos:cashier'); } catch { return apiError('Forbidden', 403); }
 
-  const heldCart = await query(
+  const heldCart = await queryOne<Record<string, unknown>>(
     `SELECT hc.* FROM pos_held_carts hc WHERE hc.id = $1`,
     [id]
   );
-  if (heldCart.length === 0) return apiError('Held cart not found', 404);
+  if (!heldCart) return apiError('Held cart not found', 404);
 
   const lines = await query(
     `SELECT hcl.*, p.name_th, p.sku, p.image_url 
@@ -29,7 +29,7 @@ export async function GET(
     [id]
   );
 
-  return apiSuccess({ ...heldCart[0], lines });
+  return apiSuccess({ ...heldCart, lines });
 }
 
 export async function DELETE(
@@ -42,6 +42,15 @@ export async function DELETE(
   const u = session.user as unknown as SessionUser;
 
   try { assertPermission(u, 'pos:cashier'); } catch { return apiError('Forbidden', 403); }
+
+  const cart = await queryOne<{ cashier_id: string }>(
+    'SELECT cashier_id FROM pos_held_carts WHERE id = $1',
+    [id]
+  );
+  if (!cart) return apiError('Held cart not found', 404);
+  if (u.role === 'staff' && cart.cashier_id !== u.id) {
+    return apiError('Forbidden', 403);
+  }
 
   const result = await query(
     `DELETE FROM pos_held_carts WHERE id = $1 RETURNING id`,

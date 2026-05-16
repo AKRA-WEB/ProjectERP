@@ -1,3 +1,11 @@
+---
+track: main-menu
+status: Completed
+owner: puka
+module: Core
+updated: 2026-05-13
+---
+
 # Main Menu — Module Hub Page
 
 **Track:** main-menu  

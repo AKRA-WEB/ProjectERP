@@ -1,3 +1,11 @@
+---
+track: import-vendors
+status: Completed
+owner: paku, puka
+module: Vendors
+updated: 2026-05-13
+---
+
 # Import Vendors from Excel
 
 **Source file:** `data/imports/Vendor.xlsx`  

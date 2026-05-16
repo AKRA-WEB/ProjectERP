@@ -1,3 +1,11 @@
+---
+track: ui-redesign
+status: Completed
+owner: puka
+module: Core
+updated: 2026-05-13
+---
+
 # UI Redesign — อรุณ Design System v2
 
 **Track:** ui-redesign  

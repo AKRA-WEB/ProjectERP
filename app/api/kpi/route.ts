@@ -119,6 +119,46 @@ export async function GET(req: Request) {
     whParam
   );
 
+  const [salesStats] = await query<{ pending_so: string; revenue_30d: string; revenue_today: string }>(
+    `SELECT
+       COUNT(*) FILTER (WHERE status IN ('confirmed','partially_delivered')) AS pending_so,
+       COALESCE(SUM(total_amount) FILTER (WHERE created_at >= NOW() - INTERVAL '30 days'), 0) AS revenue_30d,
+       COALESCE(SUM(total_amount) FILTER (WHERE created_at >= DATE_TRUNC('day', NOW())), 0) AS revenue_today
+     FROM sales_orders WHERE status != 'cancelled' ${whWhere}`,
+    whParam
+  );
+
+  const [posStats] = await query<{ tx_count: string; revenue_today: string }>(
+    `SELECT
+       COUNT(*) AS tx_count,
+       COALESCE(SUM(total), 0) AS revenue_today
+     FROM pos_transactions
+     WHERE status = 'completed' AND created_at >= DATE_TRUNC('day', NOW()) ${whWhere}`,
+    whParam
+  );
+
+  const topProducts = await query<{ sku: string; name_th: string; qty_sold: string; tx_count: string }>(
+    `SELECT p.sku, p.name_th, SUM(tl.qty) AS qty_sold, COUNT(DISTINCT t.id) AS tx_count
+     FROM pos_transaction_lines tl
+     JOIN products p ON p.id = tl.product_id
+     JOIN pos_transactions t ON t.id = tl.transaction_id
+     WHERE t.status = 'completed' AND t.created_at >= NOW() - INTERVAL '30 days'
+       ${warehouseId ? 'AND t.warehouse_id = $1' : ''}
+     GROUP BY p.id, p.sku, p.name_th ORDER BY qty_sold DESC LIMIT 5`,
+    whParam
+  );
+
+  const recentActivity = await query<{ type: string; ref: string; action: string; created_at: string }>(
+    `SELECT * FROM (
+      (SELECT 'grn' AS type, grn_number AS ref, status::text AS action, created_at FROM goods_receipt_notes WHERE status != 'draft' ${whWhere} ORDER BY created_at DESC LIMIT 4)
+      UNION ALL
+      (SELECT 'so' AS type, so_number AS ref, status::text AS action, updated_at AS created_at FROM sales_orders WHERE status != 'draft' ${whWhere} ORDER BY updated_at DESC LIMIT 4)
+      UNION ALL
+      (SELECT 'pos' AS type, receipt_number AS ref, 'sale' AS action, created_at FROM pos_transactions WHERE status = 'completed' ${whWhere} ORDER BY created_at DESC LIMIT 4)
+    ) AS activities ORDER BY created_at DESC LIMIT 8`,
+    whParam
+  );
+
   return apiSuccess({
     pr: prStats,
     po: poStats,
@@ -129,5 +169,9 @@ export async function GET(req: Request) {
     recent_ledger: recentLedger,
     top_received: topReceived,
     warehouse_perf: warehousePerf,
+    sales: salesStats,
+    pos_today: posStats,
+    top_products: topProducts,
+    recent_activity: recentActivity,
   });
 }

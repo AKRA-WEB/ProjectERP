@@ -1,0 +1,114 @@
+{
+  "collapse-filter": true,
+  "search": "",
+  "showTags": false,
+  "showAttachments": false,
+  "hideUnresolved": false,
+  "showOrphans": true,
+  "collapse-color-groups": true,
+  "colorGroups": [
+    {
+      "query": "path:conductor/tracks",
+      "color": {
+        "a": 1,
+        "rgb": 6710886
+      }
+    },
+    {
+      "query": "path:_notes/daily",
+      "color": {
+        "a": 1,
+        "rgb": 4169727
+      }
+    },
+    {
+      "query": "path:_notes/weekly",
+      "color": {
+        "a": 1,
+        "rgb": 1690476
+      }
+    },
+    {
+      "query": "path:_notes/modules",
+      "color": {
+        "a": 1,
+        "rgb": 16744272
+      }
+    },
+    {
+      "query": "path:docs/skills",
+      "color": {
+        "a": 1,
+        "rgb": 16744272
+      }
+    },
+    {
+      "query": "path:migrations",
+      "color": {
+        "a": 1,
+        "rgb": 16711680
+      }
+    },
+    {
+      "query": "path:app/api",
+      "color": {
+        "a": 1,
+        "rgb": 16744272
+      }
+    },
+    {
+      "query": "path:app/app",
+      "color": {
+        "a": 1,
+        "rgb": 39423
+      }
+    },
+    {
+      "query": "file:HOME",
+      "color": {
+        "a": 1,
+        "rgb": 16776960
+      }
+    },
+    {
+      "query": "file:CLAUDE",
+      "color": {
+        "a": 1,
+        "rgb": 16711935
+      }
+    },
+    {
+      "query": "file:plan",
+      "color": {
+        "a": 1,
+        "rgb": 5614855
+      }
+    },
+    {
+      "query": "path:.claude/agents",
+      "color": {
+        "a": 1,
+        "rgb": 16744192
+      }
+    },
+    {
+      "query": "path:docs/skills",
+      "color": {
+        "a": 1,
+        "rgb": 16776960
+      }
+    }
+  ],
+  "collapse-display": true,
+  "showArrow": false,
+  "textFadeMultiplier": 0,
+  "nodeSizeMultiplier": 1,
+  "lineSizeMultiplier": 1,
+  "collapse-forces": true,
+  "centerStrength": 0.518713248970312,
+  "repelStrength": 10,
+  "linkStrength": 1,
+  "linkDistance": 250,
+  "scale": 0.5359795996225897,
+  "close": false
+}

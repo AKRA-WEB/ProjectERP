@@ -1,3 +1,11 @@
+---
+track: accounting-module
+status: Completed
+owner: paku, puka
+module: Accounting
+updated: 2026-05-11
+---
+
 # Track: Accounting Module
 
 **Created:** 2026-05-11

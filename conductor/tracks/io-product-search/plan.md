@@ -1,3 +1,11 @@
+---
+track: io-product-search
+status: Completed
+owner: puka
+module: WMS
+updated: 2026-05-10
+---
+
 # Track: IO Product Search + Remove Unit Cost
 
 **Goal:** Two targeted changes to the Inbound Order creation form:

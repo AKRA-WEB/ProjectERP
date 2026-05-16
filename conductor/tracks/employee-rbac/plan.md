@@ -1,3 +1,11 @@
+---
+track: employee-rbac
+status: Completed
+owner: paku, puka
+module: HR
+updated: 2026-05-10
+---
+
 # Track: Employee Management + RBAC
 
 **Goal:** Extend `users` with employee identity fields (Employee ID, Name, Position, Department) and layer a permission-based RBAC system on top of the existing 3-tier role enum. Admins can define custom roles with discrete permissions and assign them to employees. The UI filters sidebar navigation and page actions based on the logged-in employee's resolved permissions.
@@ -752,37 +760,37 @@ The admin section currently has Users and Warehouses. The Roles page is at `/app
 
 Optionally, update the admin dashboard or nav section header to include a card/link to the Roles page.
 
-- [ ] Verify `/app/admin/roles` is reachable and sidebar item links correctly
+- [x] Verify `/app/admin/roles` is reachable and sidebar item links correctly
 
 ---
 
 ## Verification Checklist
 
 ### Migration
-- [ ] `npm run migrate` applies `015_employee_rbac.sql` cleanly
-- [ ] `SELECT COUNT(*) FROM permissions` returns 45
-- [ ] Three system roles exist in `employee_roles`
+- [x] `npm run migrate` applies `015_employee_rbac.sql` cleanly
+- [x] `SELECT COUNT(*) FROM permissions` returns 45
+- [x] Three system roles exist in `employee_roles`
 
 ### Auth
-- [ ] Staff user with GR Receiver role logs in → `session.user.permissions` includes `grn:create`
-- [ ] Admin user logs in → `session.user.permissions` is empty or full (bypass applies)
+- [x] Staff user with GR Receiver role logs in → `session.user.permissions` includes `grn:create`
+- [x] Admin user logs in → `session.user.permissions` is empty or full (bypass applies)
 
 ### Role Management
-- [ ] `/app/admin/roles` lists system + custom roles
-- [ ] Create custom role "GR Receiver" with `grn:view`, `grn:create`, `grn:verify`
-- [ ] Permission matrix shows checkboxes grouped by module
-- [ ] Deleting a system role returns 409
+- [x] `/app/admin/roles` lists system + custom roles
+- [x] Create custom role "GR Receiver" with `grn:view`, `grn:create`, `grn:verify`
+- [x] Permission matrix shows checkboxes grouped by module
+- [x] Deleting a system role returns 409
 
 ### Employee Management
-- [ ] Create user with Employee ID "EMP001", Position "Warehouse Staff", Department "Operations"
-- [ ] Edit user → employee fields editable
-- [ ] Assign GR Receiver role to user via UserRoleModal
-- [ ] Remove role from user
+- [x] Create user with Employee ID "EMP001", Position "Warehouse Staff", Department "Operations"
+- [x] Edit user → employee fields editable
+- [x] Assign GR Receiver role to user via UserRoleModal
+- [x] Remove role from user
 
 ### Frontend RBAC
-- [ ] Staff user with only `grn:view` permission: sidebar shows only GRN (and any other permitted items); PR, PO, etc. are hidden
-- [ ] Admin user: sees all sidebar items
-- [ ] `npm run build` passes — no TypeScript errors
+- [x] Staff user with only `grn:view` permission: sidebar shows only GRN (and any other permitted items); PR, PO, etc. are hidden
+- [x] Admin user: sees all sidebar items
+- [x] `npm run build` passes — no TypeScript errors
 
 ### Important Note on Session Refresh
 > Permissions are loaded at login and stored in the JWT (8-hour session). If an admin changes a user's role assignments, the user must **re-login** for the new permissions to take effect. Display a note in the UserRoleModal: "การเปลี่ยนบทบาทจะมีผลหลังจากผู้ใช้ล็อกอินใหม่ / Changes take effect after the user re-logs in."

@@ -59,6 +59,7 @@ export async function GET(req: Request) {
 
   const rows = await query(
     `SELECT g.id, g.grn_number, g.status, g.received_date, g.created_at,
+            g.split_from_grn_id,
             po.po_number,
             io.io_number,
             g.po_id,
@@ -131,28 +132,15 @@ export async function POST(req: Request) {
     if (!io) return apiError('Inbound Order not found', 404);
     if (!['open', 'receiving'].includes(io.status)) return apiError('Inbound Order must be open or receiving', 409);
 
-    const ioLines = await query<{
-      id: string;
-      qty_ordered: number;
-      qty_received: number;
-    }>(
-      'SELECT id, qty_ordered, qty_received FROM inbound_order_lines WHERE io_id = $1',
+    // Validate all submitted line IDs belong to this IO
+    const ioLines = await query<{ id: string }>(
+      'SELECT id FROM inbound_order_lines WHERE io_id = $1',
       [parsed.data.inbound_order_id]
     );
-
-    const ioLineMap = new Map(ioLines.map((l) => [l.id, l]));
-
+    const ioLineSet = new Set(ioLines.map((l) => l.id));
     for (const line of parsed.data.lines) {
       if (!line.inbound_order_line_id) return apiError('inbound_order_line_id is required for IO-based GRN', 422);
-      const ioLine = ioLineMap.get(line.inbound_order_line_id);
-      if (!ioLine) return apiError(`IO line ${line.inbound_order_line_id} not found`, 422);
-      const remaining = Number(ioLine.qty_ordered) - Number(ioLine.qty_received);
-      if (line.qty_received > remaining) {
-        return apiError(
-          `qty_received (${line.qty_received}) exceeds remaining qty (${remaining}) for line ${line.inbound_order_line_id}`,
-          422
-        );
-      }
+      if (!ioLineSet.has(line.inbound_order_line_id)) return apiError(`IO line ${line.inbound_order_line_id} not found`, 422);
     }
   }
 

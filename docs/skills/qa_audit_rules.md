@@ -1,3 +1,10 @@
+---
+type: skill
+domain: qa
+agent: billy
+load-when: "QA, audit, rework-plan, lint, build, review"
+---
+
 # QA Audit Rules
 
 **ใช้เมื่อ:** ตรวจสอบ track ที่ implement แล้ว, รัน lint/build, หรือสร้าง `rework-plan.md` (หน้าที่ของ Billy)
@@ -71,6 +78,8 @@
 - [ ] `formatCurrency()` ใช้แทน inline number format
 - [ ] Bilingual labels (Thai / English)
 - [ ] ใช้ components จาก `components/ui/index.ts`
+- [ ] ไม่มี `console.log` / `console.error` / `console.warn` debug artifacts
+- [ ] ไม่มี hardcoded VAT rate (`0.07`) — ต้องใช้ `VAT_RATE` จาก `lib/constants.ts`
 
 ### Migration
 - [ ] ไฟล์ใหม่ ไม่แก้ไฟล์เก่า
@@ -89,3 +98,11 @@
 - ห้าม mark Verified ถ้า lint fail
 - ห้าม mark Verified ถ้ามี Must Fix ค้างอยู่
 - ต้อง verify file exists จริงก่อน report — ห้ามเดาจาก plan เท่านั้น
+
+---
+
+## Patterns & Traps — Captured in Field
+
+<!-- Claude and Gemini append here after each task. Format:
+## ✅ Pattern — [name]   or   ## ❌ Trap — [name]
+-->

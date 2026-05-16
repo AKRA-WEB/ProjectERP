@@ -37,26 +37,27 @@ export async function GET(req: NextRequest) {
 
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
-  const rows = await query(`
-    SELECT
-      u.id, u.employee_id, u.name_th, u.name_en, u.email, u.role,
-      u.department_id, d.name_th AS department_name_th, d.name_en AS department_name_en,
-      u.position_id, p.name_th AS position_name_th, p.name_en AS position_name_en,
-      u.salary_grade_id, sg.name_th AS salary_grade_name,
-      u.base_salary, u.employment_type, u.employee_status,
-      u.hired_date, u.resignation_date, u.phone, u.created_at
-    FROM users u
-    LEFT JOIN departments d ON d.id = u.department_id
-    LEFT JOIN positions p ON p.id = u.position_id
-    LEFT JOIN salary_grades sg ON sg.id = u.salary_grade_id
-    ${where}
-    ORDER BY u.name_en
-    LIMIT $${idx} OFFSET $${idx + 1}
-  `, [...params, limit, offset]);
-
-  const [{ count }] = await query<{ count: string }>(`
-    SELECT COUNT(*) FROM users u ${where}
-  `, params);
+  const [rows, [{ count }]] = await Promise.all([
+    query(`
+      SELECT
+        u.id, u.employee_id, u.name_th, u.name_en, u.email, u.role,
+        u.department_id, d.name_th AS department_name_th, d.name_en AS department_name_en,
+        u.position_id, p.name_th AS position_name_th, p.name_en AS position_name_en,
+        u.salary_grade_id, sg.name_th AS salary_grade_name,
+        u.base_salary, u.employment_type, u.employee_status,
+        u.hired_date, u.resignation_date, u.phone, u.created_at
+      FROM users u
+      LEFT JOIN departments d ON d.id = u.department_id
+      LEFT JOIN positions p ON p.id = u.position_id
+      LEFT JOIN salary_grades sg ON sg.id = u.salary_grade_id
+      ${where}
+      ORDER BY u.name_en
+      LIMIT $${idx} OFFSET $${idx + 1}
+    `, [...params, limit, offset]),
+    query<{ count: string }>(`
+      SELECT COUNT(*) FROM users u ${where}
+    `, params)
+  ]);
 
   return apiSuccess({ data: rows, total: parseInt(count), page, limit });
 }

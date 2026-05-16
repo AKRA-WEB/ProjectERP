@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { auth } from '@/auth';
 import { query, queryOne } from '@/lib/db/client';
-import { apiSuccess, apiError } from '@/lib/api-response';
+import { apiSuccess, apiError, apiValidationError } from '@/lib/api-response';
 import { PatchProductUomSchema } from '@/lib/validations/bom';
 import { SessionUser } from '@/lib/authz';
 
@@ -19,7 +19,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const body = await req.json();
     const result = PatchProductUomSchema.safeParse(body);
     if (!result.success) {
-      return apiError(result.error.errors[0].message, 400);
+      return apiValidationError(result.error);
     }
     const d = result.data;
 
@@ -58,13 +58,13 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
   }
 
   // Check if referenced in active BOMs
-  const { count } = await queryOne<{ count: string }>(`
+  const res = await queryOne<{ count: string }>(`
     SELECT COUNT(*) FROM bom_lines bl
     JOIN bom_headers bh ON bh.id = bl.bom_id
     WHERE bl.component_id = $1 AND bl.uom_id = $2 AND bh.is_active = TRUE
   `, [id, uomId]);
 
-  if (parseInt(count) > 0) {
+  if (res && parseInt(res.count) > 0) {
     return apiError('Cannot remove UOM: referenced in active BOM(s)', 400);
   }
 

@@ -11,6 +11,8 @@ const lineSchema = z.object({
   product_id: z.string().uuid(),
   lot_id: z.string().uuid().optional(),
   qty: z.number().positive(),
+  transaction_uom_id: z.string().uuid().optional(),
+  transaction_qty: z.number().positive().optional(),
 });
 
 const createSchema = z.object({
@@ -87,17 +89,6 @@ export async function POST(req: Request) {
   try {
     await client.query('BEGIN');
 
-    for (const line of parsed.data.lines) {
-      const balance = await client.query<{ qty_available: string }>(
-        'SELECT qty_available FROM stock_balances WHERE warehouse_id = $1 AND product_id = $2 FOR UPDATE',
-        [parsed.data.source_warehouse_id, line.product_id]
-      );
-      if (!balance.rows[0] || Number(balance.rows[0].qty_available) < line.qty) {
-        await client.query('ROLLBACK');
-        return apiError(`Insufficient stock for product ${line.product_id}`, 409);
-      }
-    }
-
     const trf = await client.query<{ id: string; transfer_number: string }>(
       `INSERT INTO warehouse_transfers (source_warehouse_id, dest_warehouse_id, initiated_by, notes)
        VALUES ($1, $2, $3, $4) RETURNING id, transfer_number, status`,
@@ -106,39 +97,50 @@ export async function POST(req: Request) {
     const transferId = trf.rows[0].id;
 
     const lineValues = parsed.data.lines
-      .map((_, i) => `($1, $${i * 3 + 2}, $${i * 3 + 3}, $${i * 3 + 4}, ${i + 1})`)
+      .map((_, i) => `($1, $${i * 5 + 2}, $${i * 5 + 3}, $${i * 5 + 4}, $${i * 5 + 5}, $${i * 5 + 6}, ${i + 1})`)
       .join(', ');
     const lineParams: unknown[] = [transferId];
     for (const l of parsed.data.lines) {
-      lineParams.push(l.product_id, l.lot_id ?? null, l.qty);
+      lineParams.push(l.product_id, l.lot_id ?? null, l.qty, l.transaction_uom_id ?? null, l.transaction_qty ?? null);
     }
-    await client.query(
-      `INSERT INTO warehouse_transfer_lines (transfer_id, product_id, lot_id, qty, line_number) VALUES ${lineValues}`,
+    const insertedLines = await client.query<{ product_id: string; lot_id: string | null; qty: number; base_qty: number | null }>(
+      `INSERT INTO warehouse_transfer_lines (transfer_id, product_id, lot_id, qty, transaction_uom_id, transaction_qty, line_number)
+       VALUES ${lineValues}
+       RETURNING product_id, lot_id, qty, base_qty`,
       lineParams
     );
 
-    for (const line of parsed.data.lines) {
-      const srcBalance = await client.query<{ qty_on_hand: string }>(
-        'SELECT qty_on_hand FROM stock_balances WHERE warehouse_id = $1 AND product_id = $2',
+    for (const line of insertedLines.rows) {
+      const effectiveQty = Number(line.base_qty ?? line.qty);
+
+      // Lock source balance row
+      const balance = await client.query<{ qty_available: string; qty_on_hand: string }>(
+        'SELECT qty_available, qty_on_hand FROM stock_balances WHERE warehouse_id = $1 AND product_id = $2 FOR UPDATE',
         [parsed.data.source_warehouse_id, line.product_id]
       );
-      const srcQtyAfter = Number(srcBalance.rows[0]?.qty_on_hand ?? 0) - line.qty;
+
+      if (!balance.rows[0] || Number(balance.rows[0].qty_available) < effectiveQty) {
+        await client.query('ROLLBACK');
+        return apiError(`Insufficient stock for product ${line.product_id} (needed ${effectiveQty}, available ${balance.rows[0]?.qty_available ?? 0})`, 409);
+      }
+
+      const srcQtyAfter = Number(balance.rows[0].qty_on_hand) - effectiveQty;
 
       const dstBalance = await client.query<{ qty_on_hand: string }>(
         'SELECT qty_on_hand FROM stock_balances WHERE warehouse_id = $1 AND product_id = $2',
         [parsed.data.dest_warehouse_id, line.product_id]
       );
-      const dstQtyAfter = Number(dstBalance.rows[0]?.qty_on_hand ?? 0) + line.qty;
+      const dstQtyAfter = Number(dstBalance.rows[0]?.qty_on_hand ?? 0) + effectiveQty;
 
       await client.query(
         `INSERT INTO stock_ledger (warehouse_id, product_id, lot_id, entry_type, reference_type, reference_id, qty_change, qty_after, created_by)
          VALUES ($1, $2, $3, 'transfer_out', 'transfer', $4, $5, $6, $7)`,
-        [parsed.data.source_warehouse_id, line.product_id, line.lot_id ?? null, transferId, -line.qty, srcQtyAfter, u.id]
+        [parsed.data.source_warehouse_id, line.product_id, line.lot_id ?? null, transferId, -effectiveQty, srcQtyAfter, u.id]
       );
       await client.query(
         `INSERT INTO stock_ledger (warehouse_id, product_id, lot_id, entry_type, reference_type, reference_id, qty_change, qty_after, created_by)
          VALUES ($1, $2, $3, 'transfer_in', 'transfer', $4, $5, $6, $7)`,
-        [parsed.data.dest_warehouse_id, line.product_id, line.lot_id ?? null, transferId, line.qty, dstQtyAfter, u.id]
+        [parsed.data.dest_warehouse_id, line.product_id, line.lot_id ?? null, transferId, effectiveQty, dstQtyAfter, u.id]
       );
     }
 

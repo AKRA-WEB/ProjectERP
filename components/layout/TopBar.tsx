@@ -38,7 +38,9 @@ export function TopBar({ onMenuToggle, userName, userRole, onSignOut }: TopBarPr
 
   return (
     <>
-      <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-line-soft bg-surface/80 backdrop-blur-md px-4 md:px-6">
+      <header 
+        style={{ viewTransitionName: 'site-topbar' }}
+        className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-line-soft bg-surface/80 backdrop-blur-md px-4 md:px-6">
         <div className="flex items-center gap-4 w-1/3">
           {/* Hamburger — mobile only */}
           <button

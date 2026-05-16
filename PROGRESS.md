@@ -2,52 +2,261 @@
 
 ---
 
-## Session: 2026-05-13 (Session 5 — UI Design System "อรุณ" + Conductor Protocol)
+## Session: 2026-05-15 (Session 8 — AP System Plan + Obsidian Setup + Workflow Upgrade)
 
 ### สิ่งที่ทำวันนี้
 
-#### 1. Conductor Protocol Skill — ✅ เสร็จสมบูรณ์
+#### 1. Accounts Payable System — Plan พร้อมแล้ว
 
-**ไฟล์:** `conductor/conductor-protocol-skill.md`
-- สร้างชุดทักษะ (Skill) ใหม่เพื่อควบคุมระเบียบการทำงานร่วมกันระหว่าง Claude (Architect) และ Gemini (Implementer)
-- **Mandates:**
-  - **Surgical Execution:** ห้ามแก้ไขไฟล์หรือ refactor นอกเหนือจาก Task ที่ได้รับมอบหมายเด็ดขาด
-  - **Zero Assumptions (HALT Rule):** หากแผนงานกำกวม ให้หยุด (HALT) และถามทันที ห้ามเดา logic เอง
-  - **Step-by-Step Updates:** อัพเดท checkbox ใน `plan.md` ทันทีที่จบ 1 Task ห้ามรวบยอด
-- **Integration:** อัพเดท `GEMINI.md` ใน root เพื่อยกระดับกฎเหล่านี้เป็น Foundational Mandates ของโปรเจกต์
+วางแผน AP System ครบวงจร 17 tasks, 5 phases — พร้อมให้ Gemini CLI implement
+
+**Key findings จากการอ่าน schema จริง:**
+- `po_invoices` table มีอยู่แล้วใน `005_pr_po.sql` → extend ด้วย `ALTER TABLE` ไม่ต้องสร้างใหม่
+- `vendors` มี `payment_terms_days INTEGER DEFAULT 30` อยู่แล้ว → migration เพิ่มแค่ bank fields
+- GRN stocking trigger 2 จุด: `app/api/grn/[id]/stock/route.ts` + `app/api/grn/[id]/confirm/route.ts`
+
+**Scope:**
+- Migration `031_ap_system.sql` — extend vendors (bank fields), extend po_invoices (vendor_id, grn_id, paid_amount), new ap_payments + ap_payment_allocations tables + trigger auto-update is_paid
+- API: `/api/ap/invoices`, `/api/ap/aging`, `/api/ap/payments` + vendor PATCH
+- UI: AP invoices list, invoice detail, aging report, payment recording
+- GRN integration: auto-create AP invoice on stocking
+
+**Output:** `conductor/tracks/accounts-payable/plan.md` ✅
 
 ---
 
-#### 2. UI Design System — อรุณ (Aroon) — ✅ เสร็จสมบูรณ์
+#### 4. Accounts Payable (AP) Module — Implementation Complete
 
-**การปรับปรุงระดับโครงสร้าง:**
-- **Typography:** เปลี่ยนมาใช้ **IBM Plex Sans Thai** (สำหรับภาษาไทย/อังกฤษ) และ **IBM Plex Mono** (สำหรับตัวเลข/รหัส) ผ่าน `next/font/google` เพื่อประสิทธิภาพที่ดีขึ้น
-- **Design Tokens:** กำหนดชุดสีและระยะห่างแบบ Semantic (Ink, Line, Surface, Accent) ใน `tailwind.config.ts` และ `app/globals.css` โดยใช้ Notion/Stripe aesthetic เป็นต้นแบบ
+Gemini CLI ได้ดำเนินการ Implement ระบบ AP จนเสร็จสิ้นครบทุก Phase:
 
-**Core UI Components (Refactored):**
-- `Button`: ปรับปรุงสี ink primary และ emerald accent พร้อม shadow แบบละเอียด
-- `Badge` & `StatusBadge`: เปลี่ยนเป็นดีไซน์แบบ Pill พร้อมจุด Indicator สีตามสถานะ
-- `Input` & `Select`: ปรับปรุง Focus ring (emerald soft glow) และ Typography
-- `Modal`: เพิ่ม Backdrop blur และ Pop-in animation
+**สิ่งที่ทำ:**
+- **Migration:** สร้าง `031_ap_system.sql` เพิ่มฟิลด์ธนาคารใน `vendors`, ขยาย `po_invoices`, และเพิ่มตาราง `ap_payments`
+- **Backend:** API `/api/ap/invoices`, `/api/ap/aging`, `/api/ap/payments` (พร้อม logic ตัดจ่ายหนี้แบบ partial)
+- **Integration:** เชื่อมต่อ GRN ให้สร้าง AP Invoice โดยอัตโนมัติเมื่อ Stocked/Confirmed
+- **Frontend:** พัฒนา UI ครบทุกส่วน (List, Detail, Aging Report, Multi-invoice Payment Form)
+- **Navigation:** เพิ่มส่วนงาน AP ใน Sidebar
 
-**New UI Components:**
-- `Card`: ระบบ Card แบบ Modular (Header, Body, Footer, Flush layout)
-- `KpiCard` & `KpiGrid`: สำหรับแสดงผลตัวเลขสถิติบน Dashboard พร้อมรองรับ Sparkline และ Loading state
-- `Table` (Enhanced): พัฒนาเป็น Dual-mode รองรับทั้งการส่ง headers/loading (High-level) และการเขียนแถวอิสระ (Low-level) แก้ปัญหา Type mismatch ในโมดูลบัญชี
+**ผลลัพธ์:** `Completed` พร้อมรอ Billy QA ตรวจสอบ
 
-**Shell Components:**
-- `Sidebar`: เปลี่ยนเป็นแบบ Collapsible (พับเก็บได้เหลือ 64px) พร้อมระบบ Tooltip และ Brand Logo "อรุณ"
-- `TopBar`: ดีไซน์แบบ Glassmorphism (Backdrop blur) พร้อมระบบ **Dynamic Breadcrumbs** ที่สร้างจาก path อัตโนมัติ
+---
+
+#### 2. Chen Agent Bug Fix — ไม่สร้างไฟล์
+
+**ปัญหา:** Chen agent สร้างแผนเป็น text output แต่ไม่ได้ write ไฟล์จริงบน disk เพราะ:
+1. Tools มีแค่ `read, search, agent` — ไม่มี `write`/`edit`
+2. Bash ใน Git Bash ใช้ path `/c/Users/...` อ่านไฟล์ Windows ไม่ออก → schema ดู empty
+
+**แก้:**
+- เพิ่ม `write` + `edit` ใน `.claude/agents/chen.agent.md` tools list
+- เพิ่ม "File Writing Rules" section — บังคับ Write tool + Windows absolute path
+- เพิ่ม Verify step ก่อนรายงานว่าเสร็จ
+
+**เรียนรู้:** subagent output ≠ file exists — ต้อง Glob verify ทุกครั้งหลัง spawn agent
+
+---
+
+#### 3. Obsidian In-Project Vault Setup
+
+เปิด Obsidian ตรงบน `projectERP/` folder โดยไม่ย้ายไฟล์ใดๆ
+
+**สิ่งที่ทำ:**
+- `.obsidian/app.json` — exclude node_modules, .next, migrations, scripts, *.log; ตั้ง new note → `_notes/`
+- สร้าง `_notes/HOME.md` — vault entry point + quick links ไป active tracks
+- สร้าง `_notes/daily/`, `_notes/modules/`, `_notes/decisions/`
+- ย้าย `HR_MODULE_SUMMARY.md` → `_notes/modules/`, `Context.md` → `_notes/`, `TROUBLESHOOTING.md` → `docs/`
+- `.gitignore` — เพิ่ม `.obsidian/workspace.json` + `_notes/daily/`
+
+**Root .md ที่เหลือ (3 ไฟล์ที่ต้องอยู่ root):** `CLAUDE.md` · `GEMINI.md` · `PROGRESS.md`
+
+---
+
+#### 4. Post-Task Knowledge Capture System
+
+ระบบ capture pattern/trap อัตโนมัติหลังทุก task — ทั้ง Gemini และ Claude
+
+**เพิ่มใน:**
+- `GEMINI.md` — Post-Task Knowledge Capture protocol (Q1 pattern / Q2 trap / Q3 decision)
+- `CLAUDE.md` — section เดียวกัน + trigger ที่บังคับ capture ทันที
+- `conductor/PROTOCOLS.md` — เพิ่ม bullet + execution-summary ต้อง list patterns
+- `docs/skills/*.md` (4 ไฟล์) — เพิ่ม section "Patterns & Traps — Captured in Field"
+
+**วิธีทำงาน:** หลังทุก task → check 3 คำถาม → append ใน skill file หรือ decisions.md → เริ่ม task ถัดไป
 
 ---
 
 ### สถานะโค้ด (Code Stability)
 
-**✅ STABLE** — ผ่าน `npm run lint` และ `npm run build` (UI Component testing)
+| ระบบ | สถานะ |
+|------|-------|
+| WMS Core | ✅ Verified |
+| POS Module (base) | ✅ Verified |
+| POS Improvements | ✅ Verified |
+| HR Module | ✅ Completed |
+| Sales Module | ✅ Completed |
+| Accounting Module | ✅ Completed |
+| Outbound Picking | ✅ Completed |
+| **Accounts Payable** | **📋 Plan Ready — รอ Gemini implement** |
+
+---
+
+### สิ่งที่ต้องทำครั้งหน้า
+
+1. **Gemini CLI:** `Go` → implement Accounts Payable track (17 tasks)
+2. **Billy QA** หลัง AP implement เสร็จ
+3. ลบไฟล์ที่ copy ไป `02-2 - AKRA\BUYMORETH` ถ้าไม่ต้องการ
+
+---
+
+## Session: 2026-05-15 (Session 7 — POS Improvements QA)
+
+### สิ่งที่ทำวันนี้
+
+#### 1. Billy QA Audit — POS Improvements Track — ⚠️ Rework Required
+
+รัน Billy QA audit ครบวงจรบน track `pos-improvements` ที่ Gemini CLI implement ไว้ พบ 12 ปัญหา ทั้งหมดได้รับการ validate โดย Chen agent เทียบกับ code จริง
+
+**ปัญหาที่พบ (Must Fix — 4 รายการ):**
+
+| ID | ไฟล์ | ปัญหา |
+|----|------|-------|
+| F-001 | `app/api/pos/transactions/route.ts` | **Security:** `discount_amount` จาก client body ไม่ถูก verify กับ `discount_rate` จาก DB — cashier สามารถส่ง discount เกินสิทธิ์ได้ |
+| F-002 | `app/api/pos/transactions/route.ts` | **Data Integrity:** `UPDATE pos_members SET points_balance` รัน **หลัง** `client.release()` — นอก transaction block. Crash ระหว่างกลาง = sale บันทึก แต่แต้มไม่ถูกบวก |
+| F-003 | `app/api/pos/shifts/route.ts` | **Architecture:** Shift number ใช้ `Math.random()` ใน app code — ผิด CLAUDE.md. `seq_pos_shift` มีใน migration แต่ไม่ได้ wire เข้า column DEFAULT |
+| F-004 | `app/api/pos/sessions/route.ts` | **Feature Broken:** `p.image_url` ขาดจาก SQL SELECT — product images ใน terminal ทุกรายการแสดงไม่ได้ |
+
+**ปัญหาที่พบ (Should Fix — 5 รายการ):**
+
+| ID | ปัญหา |
+|----|-------|
+| F-005 | `transactions/route.ts` GET hardcode `LIMIT 50` ไม่มี pagination |
+| F-006 | `members/route.ts` GET ไม่มี LIMIT — full table scan |
+| F-007 | `shifts/route.ts` `cash_in_drawer` ไม่มี range validation ใน Zod |
+| F-008 | `held-carts/route.ts` GET ไม่ verify ว่า `session_id` เป็นของ user ที่ login — IDOR risk |
+| F-009 | `transactions/route.ts` + `session/[id]/page.tsx` hardcode `0.07` แทน `VAT_RATE` จาก constants |
+
+**Suggestions (3 รายการ):**
+- F-010: Barcode scanner keydown listener ไม่มี guard เมื่อ modal เปิดอยู่
+- F-011: `shifts/page.tsx` + `members/page.tsx` ใช้ `toLocaleDateString()` โดยตรงแทน `formatDate()`
+- F-012: ชื่อ migration ใน plan.md ผิด (`029_` → จริงคือ `027_`)
+
+**Output:**
+- `conductor/tracks/pos-improvements/rework-plan.md` — สร้างใหม่, ครบ 12 รายการพร้อม execution order และ acceptance criteria
+- `conductor/index.md` — อัพเดทสถานะ POS Improvements: `Completed` → `Rework Required`
+
+---
+
+### ปัญหายากที่พบและแก้ในเซสชันนี้
+
+#### 1. Points UPDATE outside transaction (F-002) — Pattern ที่อันตรายแต่มองข้ามง่าย
+
+**ปัญหา:** Code ดูถูกต้องเมื่อมอง surface — มี `pool.connect()`, มี BEGIN/COMMIT, มี try/catch. แต่ `UPDATE pos_members` เขียนไว้บรรทัดหลัง `client.release()` ทำให้รันนอก transaction จริง
+
+**เหตุที่อันตราย:** ถ้า process crash หลัง COMMIT แต่ก่อน UPDATE → sale บันทึกครบ แต่แต้มสมาชิกไม่ถูกบวก ไม่มี error, ไม่มี rollback, ไม่มีทางรู้จาก log ปกติ
+
+**วิธีตรวจจับ:** ต้องอ่านโค้ดเรียงบรรทัดและ track `client` lifetime อย่างละเอียด — lint ไม่จับ, TypeScript ไม่จับ, unit test ไม่จับ (ถ้า test ไม่ crash process จงใจ)
+
+#### 2. Shift number ใช้ Math.random() (F-003) — Collision risk ซ่อนในรูป "เร็วดี"
+
+**ปัญหา:** Gemini ใช้ `Math.random()` สร้าง suffix แทนที่จะ wire `seq_pos_shift` เข้า column DEFAULT เพราะ `next_doc_number()` ต้องการ sequence ที่ register ก่อน
+
+**เหตุที่อันตราย:** Random 4-digit suffix → collision probability ไม่ใช่ศูนย์ในระบบ high-volume POS ที่เปิดหลาย shift/วัน นอกจากนี้ยังผิด architectural rule ของ project
+
+**วิธีแก้ถูกต้อง:** New migration `030_fix_shift_number_default.sql` → `ALTER TABLE pos_shifts ALTER COLUMN shift_number SET DEFAULT next_doc_number('SHF', 'seq_pos_shift')` + ลบ app-side generation
+
+#### 3. IDOR บน Held Carts (F-008) — Business logic ทำให้มองข้ามง่าย
+
+**ปัญหา:** `session_id` เป็น UUID ที่ client ส่งมา ถ้าไม่ join กับ `pos_sessions` เพื่อ verify `cashier_id = u.id` → cashier ที่รู้ session UUID ของคนอื่นสามารถ GET held carts ของ terminal อื่นได้
+
+**เหตุที่มองข้าม:** ปกติ cashier ได้ `session_id` มาจาก login flow ของตัวเอง — ในทางปฏิบัติไม่น่าจะรู้ UUID ของคนอื่น แต่ถ้าโจมตีด้วย enumeration หรือ log leak → exposed
+
+---
+
+### สถานะโค้ด (Code Stability)
+
+**⚠️ REWORK PENDING** — POS Improvements รอ Gemini CLI fix ตาม `rework-plan.md`
+
+| ระบบ | สถานะ |
+|------|-------|
+| WMS Core | ✅ Verified |
+| POS Module (base) | ✅ Verified |
+| POS Improvements | ⚠️ Rework Required (12 issues) |
+| HR Module | ✅ Completed |
+| Sales Module | ✅ Completed |
+| Accounting Module | ✅ Completed |
+| Outbound Picking | ✅ Completed |
+
+---
+
+### สิ่งที่ต้องทำครั้งหน้า
+
+**ลำดับความสำคัญสูง:**
+1. **Gemini CLI:** Execute `conductor/tracks/pos-improvements/rework-plan.md` — แก้ 12 issues ตาม execution order (R-003 migration ก่อน)
+2. **Re-run Billy QA** หลัง rework เสร็จ → ต้องผ่าน acceptance criteria ทุกข้อ
+
+**ลำดับความสำคัญกลาง:**
+3. **Outbound Picking QA** — track ยังเป็น Completed ยังไม่ผ่าน Billy
+4. **New track** — เลือก feature ถัดไปหลัง POS Improvements Verified
+
+---
+
+### จุดเตือนพิเศษ ⚠️
+
+**1. Transaction atomicity — pattern ที่ถูกต้อง**
+```typescript
+const client = await pool.connect();
+try {
+  await client.query('BEGIN');
+  await client.query('INSERT INTO pos_transactions ...');
+  await client.query('UPDATE pos_members SET points_balance = points_balance + $1 ...'); // ← ต้องอยู่ตรงนี้
+  await client.query('COMMIT');
+} catch (e) {
+  await client.query('ROLLBACK');
+  throw e;
+} finally {
+  client.release(); // ← release LAST
+}
+```
+ห้ามเขียน UPDATE หลัง `client.release()` ไม่ว่ากรณีใด
+
+**2. Document numbers — DB only**
+ทุก sequence ที่สร้างใน migration ต้องถูก wire เข้า `DEFAULT next_doc_number(prefix, seq_name)` ที่ระดับ column DDL ทันที ห้าม generate ใน app code ไม่ว่าจะ `Math.random()`, `Date`, หรือ counter
+
+**3. List endpoints ต้องมี LIMIT เสมอ**
+ทุก GET list route ต้องมี LIMIT — minimum `LIMIT 100` hard cap แม้ไม่มี pagination params
+
+---
+
+## Session: 2026-05-13 (Session 5 — UI Design System "อรุณ" + HR Bugfix Final)
+
+### สิ่งที่ทำวันนี้
+
+#### 1. Conductor Protocol Skill — ✅ เสร็จสมบูรณ์
+... (คงเดิม)
+
+#### 2. UI Design System — อรุณ (Aroon) — ✅ เสร็จสมบูรณ์
+... (คงเดิม)
+
+#### 3. HR Bugfix Final — ✅ เสร็จสมบูรณ์
+
+**การแก้ไข Bug และโครงสร้าง:**
+- **User Name Fix:** แก้ไขปัญหา `u.name` ที่ไม่มีอยู่ในตาราง `users` ในทุก API และ UI ของโมดูล HR โดยเปลี่ยนไปใช้ `name_th` และ `name_en` แทน
+- **Department Type Sync:** อัพเดท interface `Department` ใน `types/index.ts` ให้รองรับ `manager_name_th/en` และปรับปรุงหน้าจอแสดงผลแผนกให้ใช้งานฟิลด์ใหม่
+- **Formatting Cleanup:** 
+    - แก้ไขการนำเข้า (import) `formatDate`, `formatNumber`, `formatCurrency` จาก `@/lib/format` แทน `@/lib/utils` ที่ผิดพลาด
+    - เปลี่ยนการใช้ `.toLocaleString()` และ `.toLocaleDateString()` เป็น utility functions ของโปรเจกต์เพื่อให้รองรับ Timezone (Asia/Bangkok) อย่างถูกต้อง
+    - เพิ่ม `THAI_MONTHS` constant สำหรับ dropdown ในหน้า Payroll เพื่อความถูกต้องของภาษา
+- **Consistency:** ตรวจสอบและแก้ไขไฟล์ในโมดูล HR ทั้งหมด (Attendance, Employees, Leave Requests, Payroll) ให้มีมาตรฐานเดียวกัน
+
+---
+
+### สถานะโค้ด (Code Stability)
+
+**✅ STABLE** — ผ่าน `npm run lint` และ `npm run build`
 
 | ระบบ | สถานะ |
 |------|-------|
 | UI System (Aroon) | ✅ Completed & Integrated |
+| HR Module | ✅ Rework Completed & Bugfixed |
 | Collaboration Protocol | ✅ Documented & Mandated |
 | Dashboard | ✅ Migrated to new KPI system |
 
@@ -56,12 +265,11 @@
 ### สิ่งที่ต้องทำครั้งหน้า
 
 **ลำดับความสำคัญสูง:**
-1. **Rework HR Module** — ปัจจุบันสถานะเป็น `Rework Required` ต้องตรวจสอบ `rework-plan.md` และปรับปรุงระบบ Payroll/Slip ให้เสถียร
-2. **BOM Module Implementation** — เริ่มต้น Track สูตรการผลิตและ Multi-UOM ตามแผนงาน
+1. **BOM Module Implementation** — เริ่มต้น Track สูตรการผลิตและ Multi-UOM ตามแผนงาน
+2. **Audit Trail UI** — ใช้ `Card` และ `Table` ใหม่ในการสร้างหน้าประวัติการแก้ไขข้อมูล (Audit triggers)
 
 **ลำดับความสำคัญกลาง:**
-3. **Audit Trail UI** — ใช้ `Card` และ `Table` ใหม่ในการสร้างหน้าประวัติการแก้ไขข้อมูล (Audit triggers)
-4. **Mobile Polish** — ตรวจสอบ Responsive ของหน้าจอที่สร้างใหม่ทั้งหมดโดยใช้ Sidebar แบบพับ
+3. **Mobile Polish** — ตรวจสอบ Responsive ของหน้าจอที่สร้างใหม่ทั้งหมดโดยใช้ Sidebar แบบพับ
 
 ---
 

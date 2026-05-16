@@ -1,3 +1,11 @@
+---
+track: hr-module
+status: Completed
+owner: paku, puka
+module: HR
+updated: 2026-05-13
+---
+
 # Track: HR Module
 
 > **For agentic workers:** Use superpowers:subagent-driven-development or superpowers:executing-plans to implement task-by-task.

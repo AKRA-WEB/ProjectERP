@@ -33,18 +33,19 @@ export async function GET(req: NextRequest) {
 
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
-  const rows = await query(`
-    SELECT ar.*, u.name_th AS employee_name_th, u.name_en AS employee_name_en, u.employee_id AS employee_code
-    FROM attendance_records ar
-    JOIN users u ON u.id = ar.employee_id
-    ${where}
-    ORDER BY ar.work_date DESC, u.name_en ASC
-    LIMIT $${idx} OFFSET $${idx + 1}
-  `, [...params, limit, offset]);
-
-  const [{ count }] = await query<{ count: string }>(`
-    SELECT COUNT(*) FROM attendance_records ar ${where}
-  `, params);
+  const [rows, [{ count }]] = await Promise.all([
+    query(`
+      SELECT ar.*, u.name_th AS employee_name_th, u.name_en AS employee_name_en, u.employee_id AS employee_code
+      FROM attendance_records ar
+      JOIN users u ON u.id = ar.employee_id
+      ${where}
+      ORDER BY ar.work_date DESC, u.name_en ASC
+      LIMIT $${idx} OFFSET $${idx + 1}
+    `, [...params, limit, offset]),
+    query<{ count: string }>(`
+      SELECT COUNT(*) FROM attendance_records ar ${where}
+    `, params)
+  ]);
 
   return apiSuccess({ data: rows, total: parseInt(count), page, limit });
 }

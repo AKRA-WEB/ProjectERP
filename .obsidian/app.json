@@ -1,0 +1,21 @@
+{
+  "userIgnoreFilters": [
+    "node_modules",
+    ".next",
+    ".git",
+    ".vercel",
+    ".turbo",
+    "coverage",
+    "build",
+    "dist",
+    "*.log",
+    "*.tsbuildinfo",
+    "package-lock.json",
+    "migrations",
+    "scripts"
+  ],
+  "newFileLocation": "folder",
+  "newFileFolderPath": "_notes",
+  "useMarkdownLinks": false,
+  "promptDelete": true
+}

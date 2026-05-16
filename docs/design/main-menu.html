@@ -69,25 +69,43 @@
 
     /* Grid of big icons */
     .mm-grid {
-      display: grid;
-      grid-template-columns: repeat(5, 180px);
-      gap: 0;
-      border-top: 1px solid var(--hair);
-      border-bottom: 1px solid var(--hair);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 14px;
+      max-width: 760px;
     }
     .mm-card {
+      flex: 0 0 172px;
       position: relative;
       display: flex; flex-direction: column;
       align-items: center;
-      padding: 44px 20px 32px;
+      padding: 36px 18px 28px;
       text-decoration: none;
       color: inherit;
-      border-right: 1px solid var(--hair);
-      transition: background .18s ease;
+      background: #fdfcf9;
+      border: 1px solid var(--hair);
+      border-radius: 4px;
+      box-shadow: 0 1px 0 rgba(28,25,23,.02);
+      overflow: hidden;
+      transition: background .18s ease, border-color .18s ease, transform .18s ease, box-shadow .25s ease;
     }
-    .mm-card:last-child { border-right: 0; }
-    .mm-card:hover { background: rgba(255,255,255,.55); }
-    .mm-card:hover .mm-ico { color: var(--ink-warm); }
+    .mm-card::before {
+      content: "";
+      position: absolute; left: 0; right: 0; top: 0;
+      height: 2px;
+      background: var(--accent, var(--ink-warm));
+      opacity: .65;
+      transition: opacity .18s ease, height .18s ease;
+    }
+    .mm-card:hover {
+      background: #ffffff;
+      border-color: #d3cdbd;
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px -16px rgba(28,25,23,.18), 0 2px 0 rgba(28,25,23,.02);
+    }
+    .mm-card:hover::before { opacity: 1; height: 3px; }
+    .mm-card:hover .mm-ico { color: var(--accent, var(--ink-warm)); }
     .mm-card:hover .mm-arrow { opacity: 1; transform: translateX(2px); }
 
     .mm-ico {
@@ -113,8 +131,9 @@
       font-size: 10.5px;
       letter-spacing: .14em;
       text-transform: uppercase;
-      color: var(--ink-warm-3);
+      color: var(--accent, var(--ink-warm-3));
       margin-top: 8px;
+      opacity: .85;
     }
     .mm-arrow {
       position: absolute; bottom: 14px; right: 14px;
@@ -157,15 +176,11 @@
     }
 
     @media (max-width: 1000px) {
-      .mm-grid { grid-template-columns: repeat(3, 1fr); width: 100%; max-width: 640px; }
-      .mm-card:nth-child(3n) { border-right: 0; }
-      .mm-card:nth-child(-n+3) { border-bottom: 1px solid var(--hair); }
+      .mm-grid { max-width: 580px; }
     }
     @media (max-width: 640px) {
-      .mm-grid { grid-template-columns: repeat(2, 1fr); max-width: 440px; }
-      .mm-card { border-right: 1px solid var(--hair) !important; border-bottom: 1px solid var(--hair) !important; }
-      .mm-card:nth-child(2n) { border-right: 0 !important; }
-      .mm-card:last-child { border-bottom: 0 !important; }
+      .mm-grid { max-width: 380px; gap: 12px; }
+      .mm-card { flex-basis: calc(50% - 6px); }
     }
     @media (max-width: 480px) {
       .mm-title { font-size: 26px; }
@@ -187,7 +202,7 @@
 
     <nav class="mm-grid" aria-label="ระบบงาน">
 
-      <a class="mm-card" href="pos-app.html" aria-label="POS Terminal">
+      <a class="mm-card" href="pos-app.html" aria-label="POS Terminal" style="--accent:#b85c3c">
         <div class="mm-ico" aria-hidden="true">
           <!-- POS · storefront -->
           <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
@@ -209,7 +224,36 @@
         <svg class="mm-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
       </a>
 
-      <a class="mm-card" href="wms.html" aria-label="Warehouse">
+      <a class="mm-card" href="ERP Dashboard.html" aria-label="Sales" style="--accent:#3a7a7a">
+        <div class="mm-ico" aria-hidden="true">
+          <!-- Sales · price tag -->
+          <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M34 6 H54 V26 L28 52 a4 4 0 0 1 -5.6 0 L12 41.6 a4 4 0 0 1 0 -5.6 Z"/>
+            <circle cx="45" cy="19" r="3.2"/>
+            <path d="M22 36 L36 50" opacity=".55"/>
+          </svg>
+        </div>
+        <div class="mm-name">ขาย</div>
+        <div class="mm-tag">Sales</div>
+        <svg class="mm-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+      </a>
+
+      <a class="mm-card" href="ERP Dashboard.html" aria-label="Purchasing" style="--accent:#4f5d8a">
+        <div class="mm-ico" aria-hidden="true">
+          <!-- Purchasing · paper bag -->
+          <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 22 H50 L48 58 H16 Z"/>
+            <path d="M14 22 L18 14 H46 L50 22"/>
+            <path d="M24 22 V30 a8 8 0 0 0 16 0 V22"/>
+            <path d="M14 22 H50"/>
+          </svg>
+        </div>
+        <div class="mm-name">จัดซื้อ</div>
+        <div class="mm-tag">Purchasing</div>
+        <svg class="mm-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+      </a>
+
+      <a class="mm-card" href="wms.html" aria-label="Warehouse" style="--accent:#5b7a99">
         <div class="mm-ico" aria-hidden="true">
           <!-- WMS · stacked crates -->
           <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
@@ -230,7 +274,7 @@
         <svg class="mm-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
       </a>
 
-      <a class="mm-card" href="ERP Dashboard.html" aria-label="Accounting">
+      <a class="mm-card" href="ERP Dashboard.html" aria-label="Accounting" style="--accent:#a98038">
         <div class="mm-ico" aria-hidden="true">
           <!-- ACC · ledger book -->
           <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
@@ -248,7 +292,7 @@
         <svg class="mm-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
       </a>
 
-      <a class="mm-card" href="ERP Dashboard.html" aria-label="HR">
+      <a class="mm-card" href="ERP Dashboard.html" aria-label="HR" style="--accent:#6b8e6f">
         <div class="mm-ico" aria-hidden="true">
           <!-- HR · figure + ring -->
           <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
@@ -263,7 +307,7 @@
         <svg class="mm-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
       </a>
 
-      <a class="mm-card" href="ERP Dashboard.html" aria-label="Admin">
+      <a class="mm-card" href="ERP Dashboard.html" aria-label="Admin" style="--accent:#7a5a7e">
         <div class="mm-ico" aria-hidden="true">
           <!-- ADMIN · concentric rings + center dot -->
           <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">

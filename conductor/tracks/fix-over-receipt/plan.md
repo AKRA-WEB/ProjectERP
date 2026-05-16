@@ -1,3 +1,11 @@
+---
+track: fix-over-receipt
+status: Completed
+owner: paku
+module: WMS
+updated: 2026-05-10
+---
+
 # Track: Fix BUG-001 — Over-receipt Not Blocked
 
 **Goal:** Prevent GRN from accepting `qty_received` greater than remaining quantity on each PO line. Fix at both API (server) and UI (client) layers.

@@ -11,6 +11,8 @@ const lineSchema = z.object({
   pr_line_item_id: z.string().uuid().optional(),
   qty_ordered: z.number().positive(),
   unit_price: z.number().nonnegative(),
+  transaction_uom_id: z.string().uuid().optional(),
+  transaction_qty: z.number().positive().optional(),
 });
 
 const createSchema = z.object({
@@ -104,14 +106,22 @@ export async function POST(req: Request) {
   if (!po) return apiError('Failed to create PO', 500);
 
   const lineValues = parsed.data.lines
-    .map((_, i) => `($1, $${i * 4 + 2}, $${i * 4 + 3}, $${i * 4 + 4}, $${i * 4 + 5}, ${i + 1})`)
+    .map((_, i) => `($1, $${i * 6 + 2}, $${i * 6 + 3}, $${i * 6 + 4}, $${i * 6 + 5}, $${i * 6 + 6}, $${i * 6 + 7}, ${i + 1})`)
     .join(', ');
   const lineParams: unknown[] = [po.id];
   for (const l of parsed.data.lines) {
-    lineParams.push(l.product_id, l.pr_line_item_id ?? null, l.qty_ordered, l.unit_price);
+    lineParams.push(
+      l.product_id,
+      l.pr_line_item_id ?? null,
+      l.qty_ordered,
+      l.unit_price,
+      l.transaction_uom_id ?? null,
+      l.transaction_qty ?? null,
+    );
   }
   await query(
-    `INSERT INTO po_line_items (po_id, product_id, pr_line_item_id, qty_ordered, unit_price, line_number) VALUES ${lineValues}`,
+    `INSERT INTO po_line_items (po_id, product_id, pr_line_item_id, qty_ordered, unit_price, transaction_uom_id, transaction_qty, line_number)
+     VALUES ${lineValues}`,
     lineParams
   );
 

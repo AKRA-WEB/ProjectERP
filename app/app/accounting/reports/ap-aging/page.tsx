@@ -20,7 +20,9 @@ export default function ApAgingPage() {
   }, []);
 
   const bucketTotals = (data?.rows || []).reduce((acc: Record<string, number>, row) => {
-    acc[row.bucket] = (acc[row.bucket] || 0) + row.amount;
+    if (row.bucket && row.amount) {
+      acc[row.bucket] = (acc[row.bucket] || 0) + row.amount;
+    }
     return acc;
   }, {});
 
@@ -47,9 +49,9 @@ export default function ApAgingPage() {
             <tr key={i} className="hover:bg-stone-50 transition-colors text-sm">
               <td className="px-6 py-4 font-medium text-stone-900">{row.vendor_name_th}</td>
               <td className="px-6 py-4 font-mono text-stone-500">{row.invoice_number}</td>
-              <td className="px-6 py-4">{new Date(row.due_date).toLocaleDateString('th-TH')}</td>
-              <td className={`px-6 py-4 font-bold ${row.days_overdue > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
-                {row.days_overdue > 0 ? `เกินกำหนด ${row.days_overdue} วัน` : 'ยังไม่ครบกำหนด'}
+              <td className="px-6 py-4">{row.due_date ? new Date(row.due_date).toLocaleDateString('th-TH') : '-'}</td>
+              <td className={`px-6 py-4 font-bold ${(row.days_overdue ?? 0) > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                {(row.days_overdue ?? 0) > 0 ? `เกินกำหนด ${row.days_overdue} วัน` : 'ยังไม่ครบกำหนด'}
               </td>
               <td className="px-6 py-4 font-mono font-bold text-right">{formatCurrency(row.amount)}</td>
               <td className="px-6 py-4 uppercase font-bold text-[10px] tracking-widest text-stone-400">{row.bucket}</td>

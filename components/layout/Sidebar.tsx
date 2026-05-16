@@ -94,6 +94,14 @@ const MODULE_NAV: Record<ModuleKey, NavGroup[]> = {
       ],
     },
     {
+      label: 'เจ้าหนี้และการชำระเงิน / AP',
+      items: [
+        { href: '/app/ap',          label: 'ใบแจ้งหนี้เจ้าหนี้',   icon: CreditCard, permission: 'vendors:view' },
+        { href: '/app/ap/payments', label: 'รายการชำระเงิน', icon: History,    permission: 'vendors:view' },
+        { href: '/app/ap/aging',    label: 'รายงานอายุหนี้',   icon: Clock,      permission: 'vendors:view' },
+      ],
+    },
+    {
       label: 'ข้อมูลหลัก / Master Data',
       items: [
         { href: '/app/products', label: 'สินค้า / Products',    icon: Package, permission: 'products:view' },
@@ -191,7 +199,7 @@ function detectModule(pathname: string): ModuleKey | null {
     '/app/inbound-orders', '/app/grn', '/app/rma', '/app/claims',
     '/app/transfers', '/app/cycle-counts', '/app/inventory',
     '/app/products', '/app/vendors', '/app/bom', '/app/inventory/reorder',
-    '/app/picking', '/app/shipments',
+    '/app/picking', '/app/shipments', '/app/ap',
   ];
 
   if (WMS_PREFIXES.some(p => pathname === p || pathname.startsWith(p + '/'))) return 'wms';
@@ -277,6 +285,7 @@ export function Sidebar({ open, onClose, userRole, permissions, collapsed, onTog
 
   return (
     <aside
+      style={{ viewTransitionName: 'site-sidebar' }}
       className={cn(
         'fixed inset-y-0 left-0 z-30 flex h-full flex-col border-r border-line-soft bg-surface-soft transition-all duration-300 ease-in-out md:static md:translate-x-0 md:z-auto',
         open ? 'translate-x-0' : '-translate-x-full',
@@ -288,8 +297,8 @@ export function Sidebar({ open, onClose, userRole, permissions, collapsed, onTog
         'flex h-16 items-center border-b border-line-soft transition-all duration-300 shrink-0',
         collapsed ? 'justify-center px-0' : 'justify-between px-6'
       )}>
-        {!collapsed && <span className="text-[18px] font-bold tracking-tight text-ink font-sans">BUYMORE · ERP</span>}
-        {collapsed && <span className="text-[20px] font-bold text-accent">อ</span>}
+        {!collapsed && <span className="text-[18px] font-bold tracking-tight text-ink font-sans">BUYMORETH ERP</span>}
+        {collapsed && <span className="text-[20px] font-bold text-accent">B</span>}
         
         {/* Close button — mobile only */}
         <button

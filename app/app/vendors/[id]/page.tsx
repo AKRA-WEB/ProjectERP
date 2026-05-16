@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { get, patch, post, del } from '@/lib/api-client';
 import { formatCurrency, formatDate } from '@/lib/format';
 import Link from 'next/link';
+import { DirectionalTransition } from '@/components/ui/directional-transition';
 
 interface CatalogItem {
   id: string;
@@ -317,155 +318,157 @@ export default function VendorDetailPage() {
   const color = AVATAR_COLORS[h % AVATAR_COLORS.length];
 
   return (
-    <div className="max-w-[1440px] mx-auto pb-12 space-y-5">
+    <DirectionalTransition>
+      <div className="max-w-[1440px] mx-auto pb-12 space-y-5">
 
-      {/* Back */}
-      <Link href="/app/vendors" className="inline-flex items-center gap-1.5 text-[13px] text-stone-400 hover:text-stone-700 transition-colors">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 3L5 7l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-        ผู้จำหน่ายทั้งหมด
-      </Link>
+        {/* Back */}
+        <Link href="/app/vendors" transitionTypes={['nav-back']} className="inline-flex items-center gap-1.5 text-[13px] text-stone-400 hover:text-stone-700 transition-colors">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 3L5 7l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          ผู้จำหน่ายทั้งหมด
+        </Link>
 
-      {/* Header card */}
-      <div className={`${CARD} p-6`}>
-        <div className="flex items-start gap-4 flex-wrap">
-          <div className="w-12 h-12 rounded-[10px] shrink-0 grid place-items-center text-[18px] font-semibold"
-            style={{ background: color + '22', color }}>
-            {vendor.name_th.slice(0, 2)}
-          </div>
-
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[22px] font-semibold tracking-tight text-stone-950 leading-tight">{vendor.name_th}</h1>
-              <span className={`inline-flex items-center gap-[5px] px-2 py-[2px] text-[11.5px] font-medium rounded-full border leading-[1.5] before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:bg-current ${vendor.is_active ? 'text-emerald-700 border-emerald-200 bg-emerald-50' : 'text-stone-500 border-stone-200 bg-stone-50'}`}>
-                {vendor.is_active ? 'ใช้งาน' : 'ปิดใช้'}
-              </span>
+        {/* Header card */}
+        <div className={`${CARD} p-6`}>
+          <div className="flex items-start gap-4 flex-wrap">
+            <div className="w-12 h-12 rounded-[10px] shrink-0 grid place-items-center text-[18px] font-semibold"
+              style={{ background: color + '22', color }}>
+              {vendor.name_th.slice(0, 2)}
             </div>
-            {vendor.name_en && <div className="text-[13.5px] text-stone-400 mt-0.5">{vendor.name_en}</div>}
+
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-[22px] font-semibold tracking-tight text-stone-950 leading-tight">{vendor.name_th}</h1>
+                <span className={`inline-flex items-center gap-[5px] px-2 py-[2px] text-[11.5px] font-medium rounded-full border leading-[1.5] before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:bg-current ${vendor.is_active ? 'text-emerald-700 border-emerald-200 bg-emerald-50' : 'text-stone-500 border-stone-200 bg-stone-50'}`}>
+                  {vendor.is_active ? 'ใช้งาน' : 'ปิดใช้'}
+                </span>
+              </div>
+              {vendor.name_en && <div className="text-[13.5px] text-stone-400 mt-0.5">{vendor.name_en}</div>}
+            </div>
+
+            <button onClick={() => setShowEdit(true)}
+              className="h-8 px-3 rounded-[7px] text-[13px] font-medium text-stone-600 bg-white border border-stone-200 hover:bg-stone-50 shadow-[0_1px_0_rgba(15,23,42,.03)] inline-flex items-center gap-1.5 shrink-0">
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M9 2L11 4 4.5 10.5H2.5v-2L9 2z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
+              แก้ไข
+            </button>
           </div>
 
-          <button onClick={() => setShowEdit(true)}
-            className="h-8 px-3 rounded-[7px] text-[13px] font-medium text-stone-600 bg-white border border-stone-200 hover:bg-stone-50 shadow-[0_1px_0_rgba(15,23,42,.03)] inline-flex items-center gap-1.5 shrink-0">
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M9 2L11 4 4.5 10.5H2.5v-2L9 2z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/></svg>
-            แก้ไข
+          {/* Info grid */}
+          <div className="mt-5 grid grid-cols-2 lg:grid-cols-4 gap-4 pt-5 border-t border-stone-100">
+            {[
+              { label: 'รหัส', value: vendor.code, mono: true },
+              { label: 'เลขผู้เสียภาษี', value: vendor.tax_id ?? '—', mono: true },
+              { label: 'เครดิต', value: `${vendor.payment_terms_days} วัน` },
+              { label: 'วันที่เพิ่ม', value: formatDate(vendor.created_at) },
+            ].map((item) => (
+              <div key={item.label}>
+                <div className="text-[11.5px] text-stone-400 mb-1">{item.label}</div>
+                <div className={`text-[13.5px] text-stone-800 font-medium ${item.mono ? 'font-mono' : ''}`}>{item.value}</div>
+              </div>
+            ))}
+          </div>
+
+          {(vendor.contact_name || vendor.phone || vendor.email || vendor.address_th) && (
+            <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-stone-100">
+              {vendor.contact_name && (
+                <div>
+                  <div className="text-[11.5px] text-stone-400 mb-1">ผู้ติดต่อ</div>
+                  <div className="text-[13.5px] text-stone-800">{vendor.contact_name}</div>
+                </div>
+              )}
+              {vendor.phone && (
+                <div>
+                  <div className="text-[11.5px] text-stone-400 mb-1">โทรศัพท์</div>
+                  <a href={`tel:${vendor.phone}`} className="text-[13.5px] text-emerald-700 hover:underline">{vendor.phone}</a>
+                </div>
+              )}
+              {vendor.email && (
+                <div>
+                  <div className="text-[11.5px] text-stone-400 mb-1">อีเมล</div>
+                  <a href={`mailto:${vendor.email}`} className="text-[13.5px] text-emerald-700 hover:underline truncate block max-w-[200px]">{vendor.email}</a>
+                </div>
+              )}
+              {vendor.address_th && (
+                <div className="col-span-2 lg:col-span-1">
+                  <div className="text-[11.5px] text-stone-400 mb-1">ที่อยู่</div>
+                  <div className="text-[13px] text-stone-600 leading-relaxed">{vendor.address_th}</div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Catalog section */}
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h2 className="text-[16px] font-semibold text-stone-950">แคตาล็อกสินค้า</h2>
+            <p className="text-[13px] text-stone-400">{catalog.length} รายการ</p>
+          </div>
+          <button onClick={() => setShowAddCatalog(true)}
+            className="inline-flex items-center gap-1.5 h-8 px-3 rounded-[7px] bg-stone-950 text-white text-[13px] font-medium shadow-sm hover:bg-stone-800 transition-colors">
+            + เพิ่มสินค้า
           </button>
         </div>
 
-        {/* Info grid */}
-        <div className="mt-5 grid grid-cols-2 lg:grid-cols-4 gap-4 pt-5 border-t border-stone-100">
-          {[
-            { label: 'รหัส', value: vendor.code, mono: true },
-            { label: 'เลขผู้เสียภาษี', value: vendor.tax_id ?? '—', mono: true },
-            { label: 'เครดิต', value: `${vendor.payment_terms_days} วัน` },
-            { label: 'วันที่เพิ่ม', value: formatDate(vendor.created_at) },
-          ].map((item) => (
-            <div key={item.label}>
-              <div className="text-[11.5px] text-stone-400 mb-1">{item.label}</div>
-              <div className={`text-[13.5px] text-stone-800 font-medium ${item.mono ? 'font-mono' : ''}`}>{item.value}</div>
-            </div>
-          ))}
+        <div className={CARD}>
+          <table className="w-full border-collapse text-[13px]">
+            <thead>
+              <tr>
+                {[
+                  { h: 'SKU สินค้า',       sm: false },
+                  { h: 'ชื่อสินค้า',        sm: false },
+                  { h: 'SKU ผู้จำหน่าย',   sm: true },
+                  { h: 'ราคาต่อหน่วย',     sm: false },
+                  { h: 'Lead Time',         sm: true },
+                  { h: 'หลัก',             sm: false },
+                  { h: '',                  sm: false },
+                ].map(({ h: hdr, sm }, i) => (
+                  <th key={i} className={`text-left py-2.5 px-3.5 text-[11.5px] font-medium tracking-[.04em] uppercase text-stone-400 bg-stone-50 border-y border-stone-200 first:pl-5 last:pr-5 ${sm ? 'hidden lg:table-cell' : ''} ${i === 3 ? 'text-right' : ''}`}>
+                    {hdr}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {catalog.length === 0 ? (
+                <tr><td colSpan={7} className="py-12 text-center text-[13px] text-stone-400">ยังไม่มีสินค้าในแคตาล็อก</td></tr>
+              ) : catalog.map((item) => (
+                <tr key={item.id} className="border-b border-stone-50 last:border-0 hover:bg-stone-50/60 transition-colors">
+                  <td className="py-0 h-11 px-3.5 pl-5 font-mono text-[12.5px] font-medium text-stone-700">{item.product_sku}</td>
+                  <td className="py-0 h-11 px-3.5 text-stone-700">{item.product_name_en || '—'}</td>
+                  <td className="py-0 h-11 px-3.5 font-mono text-[12.5px] text-stone-500 hidden lg:table-cell">{item.vendor_sku ?? '—'}</td>
+                  <td className="py-0 h-11 px-3.5 text-right font-mono tabular-nums font-medium text-stone-900">{formatCurrency(item.unit_price)}</td>
+                  <td className="py-0 h-11 px-3.5 text-stone-500 hidden lg:table-cell">{item.lead_days} วัน</td>
+                  <td className="py-0 h-11 px-3.5">
+                    {item.is_preferred ? (
+                      <span className="inline-flex items-center gap-[5px] px-2 py-[2px] text-[11.5px] font-medium rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 leading-[1.5] before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:bg-current">
+                        หลัก
+                      </span>
+                    ) : (
+                      <span className="text-stone-300 text-[12px]">—</span>
+                    )}
+                  </td>
+                  <td className="py-0 h-11 px-3.5 pr-5">
+                    <button
+                      onClick={() => removeCatalogItem(item.product_id)}
+                      disabled={removingId === item.product_id}
+                      className="text-[12px] text-stone-300 hover:text-red-500 transition-colors disabled:opacity-40"
+                    >
+                      ลบ
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
 
-        {(vendor.contact_name || vendor.phone || vendor.email || vendor.address_th) && (
-          <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-stone-100">
-            {vendor.contact_name && (
-              <div>
-                <div className="text-[11.5px] text-stone-400 mb-1">ผู้ติดต่อ</div>
-                <div className="text-[13.5px] text-stone-800">{vendor.contact_name}</div>
-              </div>
-            )}
-            {vendor.phone && (
-              <div>
-                <div className="text-[11.5px] text-stone-400 mb-1">โทรศัพท์</div>
-                <a href={`tel:${vendor.phone}`} className="text-[13.5px] text-emerald-700 hover:underline">{vendor.phone}</a>
-              </div>
-            )}
-            {vendor.email && (
-              <div>
-                <div className="text-[11.5px] text-stone-400 mb-1">อีเมล</div>
-                <a href={`mailto:${vendor.email}`} className="text-[13.5px] text-emerald-700 hover:underline truncate block max-w-[200px]">{vendor.email}</a>
-              </div>
-            )}
-            {vendor.address_th && (
-              <div className="col-span-2 lg:col-span-1">
-                <div className="text-[11.5px] text-stone-400 mb-1">ที่อยู่</div>
-                <div className="text-[13px] text-stone-600 leading-relaxed">{vendor.address_th}</div>
-              </div>
-            )}
-          </div>
+        {showEdit && (
+          <EditModal vendor={vendor} onClose={() => setShowEdit(false)} onSaved={() => { setShowEdit(false); fetchVendor(); }} />
+        )}
+        {showAddCatalog && (
+          <AddCatalogModal vendorId={id} onClose={() => setShowAddCatalog(false)} onSaved={() => { setShowAddCatalog(false); fetchVendor(); }} />
         )}
       </div>
-
-      {/* Catalog section */}
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h2 className="text-[16px] font-semibold text-stone-950">แคตาล็อกสินค้า</h2>
-          <p className="text-[13px] text-stone-400">{catalog.length} รายการ</p>
-        </div>
-        <button onClick={() => setShowAddCatalog(true)}
-          className="inline-flex items-center gap-1.5 h-8 px-3 rounded-[7px] bg-stone-950 text-white text-[13px] font-medium shadow-sm hover:bg-stone-800 transition-colors">
-          + เพิ่มสินค้า
-        </button>
-      </div>
-
-      <div className={CARD}>
-        <table className="w-full border-collapse text-[13px]">
-          <thead>
-            <tr>
-              {[
-                { h: 'SKU สินค้า',       sm: false },
-                { h: 'ชื่อสินค้า',        sm: false },
-                { h: 'SKU ผู้จำหน่าย',   sm: true },
-                { h: 'ราคาต่อหน่วย',     sm: false },
-                { h: 'Lead Time',         sm: true },
-                { h: 'หลัก',             sm: false },
-                { h: '',                  sm: false },
-              ].map(({ h: hdr, sm }, i) => (
-                <th key={i} className={`text-left py-2.5 px-3.5 text-[11.5px] font-medium tracking-[.04em] uppercase text-stone-400 bg-stone-50 border-y border-stone-200 first:pl-5 last:pr-5 ${sm ? 'hidden lg:table-cell' : ''} ${i === 3 ? 'text-right' : ''}`}>
-                  {hdr}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {catalog.length === 0 ? (
-              <tr><td colSpan={7} className="py-12 text-center text-[13px] text-stone-400">ยังไม่มีสินค้าในแคตาล็อก</td></tr>
-            ) : catalog.map((item) => (
-              <tr key={item.id} className="border-b border-stone-50 last:border-0 hover:bg-stone-50/60 transition-colors">
-                <td className="py-0 h-11 px-3.5 pl-5 font-mono text-[12.5px] font-medium text-stone-700">{item.product_sku}</td>
-                <td className="py-0 h-11 px-3.5 text-stone-700">{item.product_name_en || '—'}</td>
-                <td className="py-0 h-11 px-3.5 font-mono text-[12.5px] text-stone-500 hidden lg:table-cell">{item.vendor_sku ?? '—'}</td>
-                <td className="py-0 h-11 px-3.5 text-right font-mono tabular-nums font-medium text-stone-900">{formatCurrency(item.unit_price)}</td>
-                <td className="py-0 h-11 px-3.5 text-stone-500 hidden lg:table-cell">{item.lead_days} วัน</td>
-                <td className="py-0 h-11 px-3.5">
-                  {item.is_preferred ? (
-                    <span className="inline-flex items-center gap-[5px] px-2 py-[2px] text-[11.5px] font-medium rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 leading-[1.5] before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:bg-current">
-                      หลัก
-                    </span>
-                  ) : (
-                    <span className="text-stone-300 text-[12px]">—</span>
-                  )}
-                </td>
-                <td className="py-0 h-11 px-3.5 pr-5">
-                  <button
-                    onClick={() => removeCatalogItem(item.product_id)}
-                    disabled={removingId === item.product_id}
-                    className="text-[12px] text-stone-300 hover:text-red-500 transition-colors disabled:opacity-40"
-                  >
-                    ลบ
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {showEdit && (
-        <EditModal vendor={vendor} onClose={() => setShowEdit(false)} onSaved={() => { setShowEdit(false); fetchVendor(); }} />
-      )}
-      {showAddCatalog && (
-        <AddCatalogModal vendorId={id} onClose={() => setShowAddCatalog(false)} onSaved={() => { setShowAddCatalog(false); fetchVendor(); }} />
-      )}
-    </div>
+    </DirectionalTransition>
   );
 }

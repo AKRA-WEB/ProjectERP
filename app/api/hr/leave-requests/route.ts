@@ -3,6 +3,7 @@ import { auth } from '@/auth';
 import { query } from '@/lib/db/client';
 import { apiSuccess, apiError } from '@/lib/api-response';
 import { z } from 'zod';
+import { buildWarehouseScopeClause } from '@/lib/authz';
 import type { SessionUser } from '@/lib/authz';
 
 const CreateSchema = z.object({

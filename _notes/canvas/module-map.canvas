@@ -1,0 +1,22 @@
+{
+  "nodes": [
+    {"id":"wms","x":-400,"y":0,"width":200,"height":80,"type":"text","text":"# WMS\nPR → PO → GRN → Transfer → Cycle Count"},
+    {"id":"pos","x":0,"y":-300,"width":200,"height":80,"type":"text","text":"# POS\nSession → Cart → Transaction → Member"},
+    {"id":"sales","x":0,"y":-150,"width":200,"height":80,"type":"text","text":"# Sales\nSQ → SO → DO → SI → SR"},
+    {"id":"accounting","x":400,"y":-200,"width":200,"height":80,"type":"text","text":"# Accounting\nCoA → JE → Reports → AP"},
+    {"id":"hr","x":0,"y":150,"width":200,"height":80,"type":"text","text":"# HR\nEmployees → Leave → Attendance → Payroll"},
+    {"id":"bom","x":-400,"y":-200,"width":200,"height":80,"type":"text","text":"# BOM\nสูตรการผลิต → Multi-UOM"},
+    {"id":"inventory","x":-100,"y":0,"width":220,"height":80,"type":"text","text":"# Inventory\nLedger → Valuation → Reorder Dashboard"},
+    {"id":"security","x":400,"y":100,"width":200,"height":80,"type":"text","text":"# Security\nAuth Guards → Warehouse Scope"}
+  ],
+  "edges": [
+    {"id":"e1","fromNode":"wms","toNode":"inventory","label":"stock_ledger"},
+    {"id":"e2","fromNode":"pos","toNode":"accounting","label":"revenue"},
+    {"id":"e3","fromNode":"pos","toNode":"inventory","label":"stock deduction"},
+    {"id":"e4","fromNode":"sales","toNode":"inventory","label":"outbound picking"},
+    {"id":"e5","fromNode":"sales","toNode":"accounting","label":"invoices"},
+    {"id":"e6","fromNode":"bom","toNode":"wms","label":"production order"},
+    {"id":"e7","fromNode":"wms","toNode":"accounting","label":"AP invoices"},
+    {"id":"e8","fromNode":"hr","toNode":"accounting","label":"payroll entries"}
+  ]
+}

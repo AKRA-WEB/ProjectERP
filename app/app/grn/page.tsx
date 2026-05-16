@@ -5,6 +5,7 @@ import { get } from '@/lib/api-client';
 import { formatDate, formatQty } from '@/lib/format';
 import type { PaginatedResponse } from '@/types';
 import Link from 'next/link';
+import { DirectionalTransition } from '@/components/ui/directional-transition';
 
 interface GRN {
   id: string;
@@ -181,7 +182,7 @@ function GRNDetailModal({ grn, onClose }: { grn: GRNDetail; onClose: () => void 
             className="h-8 px-3 rounded-[7px] text-[13px] font-medium text-stone-600 bg-white border border-stone-200 hover:bg-stone-50 shadow-[0_1px_0_rgba(15,23,42,.03)]">
             ปิด
           </button>
-          <Link href={`/app/grn/${grn.id}`}
+          <Link href={`/app/grn/${grn.id}`} transitionTypes={['nav-forward']}
             className="h-8 px-3 rounded-[7px] text-[13px] font-medium text-white bg-stone-950 hover:bg-stone-800 shadow-sm inline-flex items-center gap-1.5">
             ดูรายละเอียดเต็ม →
           </Link>
@@ -225,121 +226,124 @@ export default function GRNPage() {
   }
 
   return (
-    <div className="max-w-[1440px] mx-auto pb-12 space-y-5">
+    <DirectionalTransition>
+      <div className="max-w-[1440px] mx-auto pb-12 space-y-5">
 
-      {/* Header */}
-      <div className="flex items-end justify-between gap-6 flex-wrap">
-        <div>
-          <h1 className="text-[26px] font-semibold tracking-tight text-stone-950 leading-tight mb-1">
-            ใบรับสินค้า
-          </h1>
-          <p className="text-[13.5px] text-stone-500">
-            Goods Receipt Notes · {loading ? '—' : (data?.total ?? 0).toLocaleString('th-TH')} รายการ
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link href="/app/grn/receiving-queue" className={BTN_SM}>
-            รายการรอรับ
-          </Link>
-          <Link
-            href="/app/grn/new"
-            className="inline-flex items-center gap-1.5 h-8 px-3 rounded-[7px] bg-stone-950 text-white text-[13px] font-medium shadow-sm hover:bg-stone-800 transition-colors"
-          >
-            + สร้าง GRN
-          </Link>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex gap-0 border-b border-stone-200">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => { setTab(t.id); setPage(1); }}
-            className={`px-3.5 py-2.5 text-[13.5px] font-medium border-b-2 -mb-px transition-colors ${
-              tab === t.id
-                ? 'text-stone-950 border-stone-950'
-                : 'text-stone-400 border-transparent hover:text-stone-700'
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Table card */}
-      <div className={CARD}>
-        <table className="w-full border-collapse text-[13px]">
-          <thead>
-            <tr>
-              {['เลข GRN', 'เอกสารอ้างอิง / Ref.', 'คลังสินค้า', 'ผู้รับ', 'วันที่รับ', 'รายการ', 'สถานะ', ''].map((h, i) => (
-                <th key={i} className={`text-left py-2.5 px-3.5 text-[11.5px] font-medium tracking-[.04em] uppercase text-stone-400 bg-stone-50 border-b border-y border-stone-200 first:pl-5 last:pr-5 ${i === 5 ? 'text-center' : ''} ${[2,3,4,5].includes(i) ? 'hidden lg:table-cell' : ''}`}>
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr><td colSpan={8} className="py-12 text-center text-[13px] text-stone-400">กำลังโหลด...</td></tr>
-            ) : data?.data.length === 0 ? (
-              <tr><td colSpan={8} className="py-12 text-center text-[13px] text-stone-400">ไม่พบรายการ</td></tr>
-            ) : data?.data.map((g) => (
-              <tr
-                key={g.id}
-                onClick={() => openModal(g)}
-                className="border-b border-stone-50 last:border-0 hover:bg-stone-50/60 cursor-default transition-colors"
-              >
-                <td className="py-0 h-11 px-3.5 pl-5 font-mono text-[12.5px] text-stone-700 font-medium">{g.grn_number}</td>
-                <td className="py-0 h-11 px-3.5 font-mono text-[12.5px] text-blue-600 hidden lg:table-cell">
-                  <span onClick={(e) => e.stopPropagation()}>
-                    {g.po_id ? (
-                      <Link href={`/app/purchase-orders/${g.po_id}`} className="hover:underline">{g.po_number}</Link>
-                    ) : g.io_number ? (
-                      <Link href={`/app/inbound-orders/${g.inbound_order_id}`} className="hover:underline">{g.io_number}</Link>
-                    ) : '—'}
-                  </span>
-                </td>
-                <td className="py-0 h-11 px-3.5 text-stone-500 hidden lg:table-cell">{g.warehouse_code}</td>
-                <td className="py-0 h-11 px-3.5 text-stone-500 hidden lg:table-cell">{g.received_by_name}</td>
-                <td className="py-0 h-11 px-3.5 text-stone-500 font-mono text-[12.5px] hidden lg:table-cell">{formatDate(g.received_date)}</td>
-                <td className="py-0 h-11 px-3.5 text-center tabular-nums text-stone-500 hidden lg:table-cell">{g.line_count}</td>
-                <td className="py-0 h-11 px-3.5"><Pill status={g.status} /></td>
-                <td className="py-0 h-11 px-3.5 pr-5 text-stone-300">
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Pagination */}
-      {data && data.total_pages > 1 && (
-        <div className="flex items-center justify-between text-[13px] text-stone-500">
-          <span>หน้า {page} จาก {data.total_pages}</span>
-          <div className="flex gap-1">
-            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
-              className="h-8 px-3 rounded-[7px] border border-stone-200 bg-white hover:bg-stone-50 disabled:opacity-40 disabled:pointer-events-none text-[13px]">
-              ← ก่อนหน้า
-            </button>
-            <button onClick={() => setPage((p) => Math.min(data.total_pages, p + 1))} disabled={page === data.total_pages}
-              className="h-8 px-3 rounded-[7px] border border-stone-200 bg-white hover:bg-stone-50 disabled:opacity-40 disabled:pointer-events-none text-[13px]">
-              ถัดไป →
-            </button>
+        {/* Header */}
+        <div className="flex items-end justify-between gap-6 flex-wrap">
+          <div>
+            <h1 className="text-[26px] font-semibold tracking-tight text-stone-950 leading-tight mb-1">
+              ใบรับสินค้า
+            </h1>
+            <p className="text-[13.5px] text-stone-500">
+              Goods Receipt Notes · {loading ? '—' : (data?.total ?? 0).toLocaleString('th-TH')} รายการ
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link href="/app/grn/receiving-queue" transitionTypes={['nav-forward']} className={BTN_SM}>
+              รายการรอรับ
+            </Link>
+            <Link
+              href="/app/grn/new"
+              transitionTypes={['nav-forward']}
+              className="inline-flex items-center gap-1.5 h-8 px-3 rounded-[7px] bg-stone-950 text-white text-[13px] font-medium shadow-sm hover:bg-stone-800 transition-colors"
+            >
+              + สร้าง GRN
+            </Link>
           </div>
         </div>
-      )}
 
-      {/* Loading overlay for modal fetch */}
-      {modalLoading && (
-        <div className="fixed inset-0 z-40 grid place-items-center bg-[rgba(15,23,42,.2)]">
-          <div className="text-stone-500 text-[13px]">กำลังโหลด...</div>
+        {/* Tabs */}
+        <div className="flex gap-0 border-b border-stone-200">
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => { setTab(t.id); setPage(1); }}
+              className={`px-3.5 py-2.5 text-[13.5px] font-medium border-b-2 -mb-px transition-colors ${
+                tab === t.id
+                  ? 'text-stone-950 border-stone-950'
+                  : 'text-stone-400 border-transparent hover:text-stone-700'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
-      )}
 
-      {/* GRN Detail Modal */}
-      {modal && <GRNDetailModal grn={modal} onClose={() => setModal(null)} />}
-    </div>
+        {/* Table card */}
+        <div className={CARD}>
+          <table className="w-full border-collapse text-[13px]">
+            <thead>
+              <tr>
+                {['เลข GRN', 'เอกสารอ้างอิง / Ref.', 'คลังสินค้า', 'ผู้รับ', 'วันที่รับ', 'รายการ', 'สถานะ', ''].map((h, i) => (
+                  <th key={i} className={`text-left py-2.5 px-3.5 text-[11.5px] font-medium tracking-[.04em] uppercase text-stone-400 bg-stone-50 border-b border-y border-stone-200 first:pl-5 last:pr-5 ${i === 5 ? 'text-center' : ''} ${[2,3,4,5].includes(i) ? 'hidden lg:table-cell' : ''}`}>
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan={8} className="py-12 text-center text-[13px] text-stone-400">กำลังโหลด...</td></tr>
+              ) : data?.data.length === 0 ? (
+                <tr><td colSpan={8} className="py-12 text-center text-[13px] text-stone-400">ไม่พบรายการ</td></tr>
+              ) : data?.data.map((g) => (
+                <tr
+                  key={g.id}
+                  onClick={() => openModal(g)}
+                  className="border-b border-stone-50 last:border-0 hover:bg-stone-50/60 cursor-default transition-colors"
+                >
+                  <td className="py-0 h-11 px-3.5 pl-5 font-mono text-[12.5px] text-stone-700 font-medium">{g.grn_number}</td>
+                  <td className="py-0 h-11 px-3.5 font-mono text-[12.5px] text-blue-600 hidden lg:table-cell">
+                    <span onClick={(e) => e.stopPropagation()}>
+                      {g.po_id ? (
+                        <Link href={`/app/purchase-orders/${g.po_id}`} transitionTypes={['nav-forward']} className="hover:underline">{g.po_number}</Link>
+                      ) : g.io_number ? (
+                        <Link href={`/app/inbound-orders/${g.inbound_order_id}`} transitionTypes={['nav-forward']} className="hover:underline">{g.io_number}</Link>
+                      ) : '—'}
+                    </span>
+                  </td>
+                  <td className="py-0 h-11 px-3.5 text-stone-500 hidden lg:table-cell">{g.warehouse_code}</td>
+                  <td className="py-0 h-11 px-3.5 text-stone-500 hidden lg:table-cell">{g.received_by_name}</td>
+                  <td className="py-0 h-11 px-3.5 text-stone-500 font-mono text-[12.5px] hidden lg:table-cell">{formatDate(g.received_date)}</td>
+                  <td className="py-0 h-11 px-3.5 text-center tabular-nums text-stone-500 hidden lg:table-cell">{g.line_count}</td>
+                  <td className="py-0 h-11 px-3.5"><Pill status={g.status} /></td>
+                  <td className="py-0 h-11 px-3.5 pr-5 text-stone-300">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        {data && data.total_pages > 1 && (
+          <div className="flex items-center justify-between text-[13px] text-stone-500">
+            <span>หน้า {page} จาก {data.total_pages}</span>
+            <div className="flex gap-1">
+              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
+                className="h-8 px-3 rounded-[7px] border border-stone-200 bg-white hover:bg-stone-50 disabled:opacity-40 disabled:pointer-events-none text-[13px]">
+                ← ก่อนหน้า
+              </button>
+              <button onClick={() => setPage((p) => Math.min(data.total_pages, p + 1))} disabled={page === data.total_pages}
+                className="h-8 px-3 rounded-[7px] border border-stone-200 bg-white hover:bg-stone-50 disabled:opacity-40 disabled:pointer-events-none text-[13px]">
+                ถัดไป →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Loading overlay for modal fetch */}
+        {modalLoading && (
+          <div className="fixed inset-0 z-40 grid place-items-center bg-[rgba(15,23,42,.2)]">
+            <div className="text-stone-500 text-[13px]">กำลังโหลด...</div>
+          </div>
+        )}
+
+        {/* GRN Detail Modal */}
+        {modal && <GRNDetailModal grn={modal} onClose={() => setModal(null)} />}
+      </div>
+    </DirectionalTransition>
   );
 }

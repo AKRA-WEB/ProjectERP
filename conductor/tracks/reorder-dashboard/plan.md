@@ -1,3 +1,11 @@
+---
+track: reorder-dashboard
+status: Verified
+owner: paku, puka
+module: Inventory
+updated: 2026-05-13
+---
+
 # Reorder Point Dashboard + Auto-PR
 
 **Goal:** Show all products with `qty_available <= reorder_point` per warehouse, let users select items and create a PR in one click.

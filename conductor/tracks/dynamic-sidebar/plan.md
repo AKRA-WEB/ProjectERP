@@ -1,3 +1,11 @@
+---
+track: dynamic-sidebar
+status: Completed
+owner: puka
+module: Core
+updated: 2026-05-13
+---
+
 # Dynamic Sidebar — Module-Scoped Navigation
 
 **Track:** dynamic-sidebar  

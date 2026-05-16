@@ -1,3 +1,11 @@
+---
+track: pos-module
+status: Completed
+owner: paku, puka
+module: POS
+updated: 2026-05-11
+---
+
 # Track: POS Module (Point of Sale)
 
 **Created:** 2026-05-11

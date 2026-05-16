@@ -1,3 +1,11 @@
+---
+track: debug-select-options-crash
+status: Completed
+owner: puka
+module: Core
+updated: 2026-05-11
+---
+
 # Track: Debug — Select Component options.map Crash
 
 **Created:** 2026-05-11

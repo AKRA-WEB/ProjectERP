@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Button, Table, Thead, Tbody, Th, Td, Badge, Modal, ModalHeader, ModalBody, ModalFooter, Input } from '@/components/ui';
 import { get, post, patch } from '@/lib/api-client';
 import type { Warehouse } from '@/types';
+import { DirectionalTransition } from '@/components/ui/directional-transition';
 
 interface WarehouseWithStats extends Warehouse {
   user_count?: number;
@@ -75,73 +76,75 @@ export default function AdminWarehousesPage() {
   const isEdit = !!editWh;
 
   return (
-    <div>
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">คลังสินค้า / Warehouses</h1>
-          <p className="text-sm text-gray-500">{warehouses.length} คลัง</p>
+    <DirectionalTransition>
+      <div className="max-w-[1440px] mx-auto pb-12">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">คลังสินค้า / Warehouses</h1>
+            <p className="text-sm text-gray-500">{warehouses.length} คลัง</p>
+          </div>
+          <Button onClick={openCreate} className="w-full sm:w-auto">+ เพิ่มคลัง</Button>
         </div>
-        <Button onClick={openCreate} className="w-full sm:w-auto">+ เพิ่มคลัง</Button>
-      </div>
 
-      <div className="rounded-xl bg-white shadow-sm border border-gray-100">
-        <Table>
-          <Thead>
-            <tr>
-              <Th>รหัส / Code</Th>
-              <Th>ชื่อ (TH)</Th>
-              <Th className="hidden sm:table-cell">Name (EN)</Th>
-              <Th className="hidden sm:table-cell">ผู้ใช้ / Users</Th>
-              <Th>สถานะ</Th>
-              <Th></Th>
-            </tr>
-          </Thead>
-          <Tbody>
-            {loading ? (
-              <tr><Td colSpan={6}><div className="py-8 text-center text-gray-400">กำลังโหลด...</div></Td></tr>
-            ) : (
-              warehouses.map((w) => (
-                <tr key={w.id} className="hover:bg-gray-50">
-                  <Td className="font-mono font-medium text-sm">{w.code}</Td>
-                  <Td className="text-sm">{w.name_th}</Td>
-                  <Td className="text-sm text-gray-500 hidden sm:table-cell">{w.name_en}</Td>
-                  <Td className="text-sm hidden sm:table-cell">{w.user_count ?? 0} คน</Td>
-                  <Td>
-                    <Badge variant={w.is_active ? 'green' : 'gray'}>
-                      {w.is_active ? 'ใช้งาน' : 'ปิด'}
-                    </Badge>
-                  </Td>
-                  <Td>
-                    <button className="text-sm text-blue-600 hover:underline" onClick={() => openEdit(w)}>แก้ไข</button>
-                  </Td>
-                </tr>
-              ))
-            )}
-          </Tbody>
-        </Table>
-      </div>
+        <div className="rounded-xl bg-white shadow-sm border border-gray-100">
+          <Table>
+            <Thead>
+              <tr>
+                <Th>รหัส / Code</Th>
+                <Th>ชื่อ (TH)</Th>
+                <Th className="hidden sm:table-cell">Name (EN)</Th>
+                <Th className="hidden sm:table-cell">ผู้ใช้ / Users</Th>
+                <Th>สถานะ</Th>
+                <Th></Th>
+              </tr>
+            </Thead>
+            <Tbody>
+              {loading ? (
+                <tr><Td colSpan={6}><div className="py-8 text-center text-gray-400">กำลังโหลด...</div></Td></tr>
+              ) : (
+                warehouses.map((w) => (
+                  <tr key={w.id} className="hover:bg-gray-50">
+                    <Td className="font-mono font-medium text-sm">{w.code}</Td>
+                    <Td className="text-sm">{w.name_th}</Td>
+                    <Td className="text-sm text-gray-500 hidden sm:table-cell">{w.name_en}</Td>
+                    <Td className="text-sm hidden sm:table-cell">{w.user_count ?? 0} คน</Td>
+                    <Td>
+                      <Badge variant={w.is_active ? 'green' : 'gray'}>
+                        {w.is_active ? 'ใช้งาน' : 'ปิด'}
+                      </Badge>
+                    </Td>
+                    <Td>
+                      <button className="text-sm text-blue-600 hover:underline" onClick={() => openEdit(w)}>แก้ไข</button>
+                    </Td>
+                  </tr>
+                ))
+              )}
+            </Tbody>
+          </Table>
+        </div>
 
-      {isOpen && (
-        <Modal open onClose={() => { setShowCreate(false); setEditWh(null); }}>
-          <ModalHeader>{isEdit ? 'แก้ไขคลังสินค้า' : 'เพิ่มคลังสินค้าใหม่'}</ModalHeader>
-          <ModalBody>
-            <div className="space-y-4">
-              <Input label="รหัสคลัง / Code *" value={form.code} onChange={(e) => setF('code', e.target.value)} disabled={isEdit} />
-              <div className="grid grid-cols-2 gap-4">
-                <Input label="ชื่อ (TH) *" value={form.name_th} onChange={(e) => setF('name_th', e.target.value)} />
-                <Input label="Name (EN) *" value={form.name_en} onChange={(e) => setF('name_en', e.target.value)} />
-                <Input label="ที่อยู่ (TH)" value={form.address_th} onChange={(e) => setF('address_th', e.target.value)} />
-                <Input label="Address (EN)" value={form.address_en} onChange={(e) => setF('address_en', e.target.value)} />
+        {isOpen && (
+          <Modal open onClose={() => { setShowCreate(false); setEditWh(null); }}>
+            <ModalHeader>{isEdit ? 'แก้ไขคลังสินค้า' : 'เพิ่มคลังสินค้าใหม่'}</ModalHeader>
+            <ModalBody>
+              <div className="space-y-4">
+                <Input label="รหัสคลัง / Code *" value={form.code} onChange={(e) => setF('code', e.target.value)} disabled={isEdit} />
+                <div className="grid grid-cols-2 gap-4">
+                  <Input label="ชื่อ (TH) *" value={form.name_th} onChange={(e) => setF('name_th', e.target.value)} />
+                  <Input label="Name (EN) *" value={form.name_en} onChange={(e) => setF('name_en', e.target.value)} />
+                  <Input label="ที่อยู่ (TH)" value={form.address_th} onChange={(e) => setF('address_th', e.target.value)} />
+                  <Input label="Address (EN)" value={form.address_en} onChange={(e) => setF('address_en', e.target.value)} />
+                </div>
+                {error && <p className="text-sm text-red-600">{error}</p>}
               </div>
-              {error && <p className="text-sm text-red-600">{error}</p>}
-            </div>
-          </ModalBody>
-          <ModalFooter>
-            <Button variant="ghost" onClick={() => { setShowCreate(false); setEditWh(null); }}>ยกเลิก</Button>
-            <Button onClick={handleSave} loading={saving}>{isEdit ? 'บันทึก' : 'สร้างคลัง'}</Button>
-          </ModalFooter>
-        </Modal>
-      )}
-    </div>
+            </ModalBody>
+            <ModalFooter>
+              <Button variant="ghost" onClick={() => { setShowCreate(false); setEditWh(null); }}>ยกเลิก</Button>
+              <Button onClick={handleSave} loading={saving}>{isEdit ? 'บันทึก' : 'สร้างคลัง'}</Button>
+            </ModalFooter>
+          </Modal>
+        )}
+      </div>
+    </DirectionalTransition>
   );
 }

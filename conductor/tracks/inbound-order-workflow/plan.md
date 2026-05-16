@@ -1,3 +1,11 @@
+---
+track: inbound-order-workflow
+status: Completed
+owner: paku, puka
+module: WMS
+updated: 2026-05-10
+---
+
 # Track: Inbound Order Workflow (LINE-Based Purchasing)
 
 **Goal:** Build a parallel receiving path alongside the formal PR→PO chain. Vendors are ordered via LINE; staff manually enter an "Inbound Order" (task card), the goods arrive and are received via GR, a supervisor verifies the receipt against the delivery bill, and the vendor's reference number is recorded last.
