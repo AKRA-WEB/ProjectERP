@@ -2,7 +2,7 @@
 import { useState, useCallback } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -14,6 +14,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const handleCloseSidebar = useCallback(() => setSidebarOpen(false), []);
   const handleMenuToggle = useCallback(() => setSidebarOpen((v) => !v), []);
   const handleToggleCollapse = useCallback(() => setSidebarCollapsed((v) => !v), []);
+  const handleSignOut = useCallback(() => signOut({ callbackUrl: '/login' }), []);
 
   const isMenuPage = pathname === '/app/menu';
 
@@ -54,6 +55,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           onMenuToggle={handleMenuToggle}
           userName={user?.name}
           userRole={userRole}
+          onSignOut={handleSignOut}
         />
         <main className="flex-1 overflow-auto p-4 md:p-6 bg-surface-sunken/40">{children}</main>
       </div>
