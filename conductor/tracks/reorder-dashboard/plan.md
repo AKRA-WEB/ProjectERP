@@ -1,6 +1,7 @@
 ---
 track: reorder-dashboard
 status: Verified
+aliases: ["Reorder Point Dashboard + Auto-PR"]
 owner: paku, puka
 module: Inventory
 updated: 2026-05-13

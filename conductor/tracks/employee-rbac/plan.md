@@ -1,6 +1,7 @@
 ---
 track: employee-rbac
 status: Completed
+aliases: ["Employee Management + RBAC"]
 owner: paku, puka
 module: HR
 updated: 2026-05-10

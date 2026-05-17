@@ -1,6 +1,7 @@
 ---
 track: hr-bugfix-final
 status: Completed
+aliases: ["HR Bugfix Final Implementation Plan"]
 owner: paku, puka
 module: HR
 updated: 2026-05-13

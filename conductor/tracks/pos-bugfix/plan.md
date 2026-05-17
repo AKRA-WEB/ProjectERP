@@ -1,6 +1,7 @@
 ---
 track: pos-bugfix
 status: Completed
+aliases: ["POS Bugfix Plan"]
 owner: paku, puka
 module: POS
 updated: 2026-05-13

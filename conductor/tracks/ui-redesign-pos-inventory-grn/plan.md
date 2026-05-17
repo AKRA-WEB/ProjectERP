@@ -1,6 +1,7 @@
 ---
 track: ui-redesign-pos-inventory-grn
 status: planned
+aliases: ["UI Redesign — POS Terminal · Inventory · GRN Mobile"]
 owner: Gemini CLI
 module: POS, WMS, Inventory
 updated: 2026-05-16

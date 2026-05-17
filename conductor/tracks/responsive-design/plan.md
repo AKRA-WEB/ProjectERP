@@ -1,6 +1,7 @@
 ---
 track: responsive-design
 status: Completed
+aliases: ["Responsive Design"]
 owner: puka
 module: Core
 updated: 2026-05-10

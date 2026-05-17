@@ -1,6 +1,7 @@
 ---
 track: security-fixes
 status: Verified
+aliases: ["Plan — Security Fixes (Pre-Vercel Deployment)"]
 owner: paku, puka
 module: Security
 updated: 2026-05-16

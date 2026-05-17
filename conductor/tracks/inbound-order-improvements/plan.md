@@ -1,6 +1,7 @@
 ---
 track: inbound-order-improvements
 status: Verified
+aliases: ["Inbound Order Improvements"]
 owner: paku, puka
 module: WMS
 updated: 2026-05-14

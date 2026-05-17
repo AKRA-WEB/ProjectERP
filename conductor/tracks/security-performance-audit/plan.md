@@ -1,6 +1,7 @@
 ---
 track: security-performance-audit
 status: Verified
+aliases: ["Security & Vercel Performance Audit"]
 owner: paku, puka
 module: Security
 updated: 2026-05-14

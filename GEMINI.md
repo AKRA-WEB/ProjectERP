@@ -29,11 +29,12 @@ This project uses **Obsidian** as a knowledge base opened directly on this folde
 - `.obsidian/` is Obsidian config — never touch
 
 **Frontmatter sync (MANDATORY after completing a track):**
-When you finish all tasks in a track and are about to stop, update the `status` field in the plan.md frontmatter to match the track's real status:
+When you finish all tasks in a track and are about to stop, update the `status` field in the plan.md frontmatter to match the track's real status. **Also ensure an `aliases` field exists with the track's full title for Obsidian navigation.**
 ```yaml
 status: Completed   # ← update this when track is done
+aliases: ["Full Track Title"] # ← ensure this exists for Obsidian
 ```
-This keeps the Obsidian dashboard at `_notes/dashboard.md` accurate. Failure to sync = track shows wrong status in the dashboard.
+This keeps the Obsidian dashboard at `_notes/dashboard.md` accurate and enables easy search. Failure to sync = track shows wrong status or becomes hard to find in Obsidian.
 
 ## Skill Modules — Load On-Demand
 

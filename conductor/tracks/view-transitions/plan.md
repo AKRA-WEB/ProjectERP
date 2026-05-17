@@ -1,6 +1,7 @@
 ---
 track: view-transitions
 status: Completed
+aliases: ["View Transitions Implementation Plan"]
 owner: puka
 module: Core
 updated: 2026-05-15

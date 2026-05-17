@@ -1,6 +1,7 @@
 ---
 track: ui-improvement-wms-ops
 status: Completed
+aliases: ["UI Improvement — WMS Operations (GRN Tabs · QC KPIs · Receiving Queue)"]
 owner: puka
 module: WMS
 updated: 2026-05-15

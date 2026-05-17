@@ -1,6 +1,7 @@
 ---
 track: hr-module
 status: Completed
+aliases: ["HR Module"]
 owner: paku, puka
 module: HR
 updated: 2026-05-13

@@ -1,6 +1,7 @@
 ---
 track: accounting-module
 status: Completed
+aliases: ["Accounting Module"]
 owner: paku, puka
 module: Accounting
 updated: 2026-05-11

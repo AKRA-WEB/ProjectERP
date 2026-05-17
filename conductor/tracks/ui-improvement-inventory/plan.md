@@ -1,6 +1,7 @@
 ---
 track: ui-improvement-inventory
 status: Completed
+aliases: ["UI Improvement — Inventory Stock Balances (Heatmap Matrix)"]
 owner: puka
 module: Inventory
 updated: 2026-05-15

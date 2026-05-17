@@ -1,6 +1,7 @@
 ---
 track: ui-improvement-pos
 status: Completed
+aliases: ["UI Improvement — POS Terminal UI Polish"]
 owner: puka
 module: POS
 updated: 2026-05-15

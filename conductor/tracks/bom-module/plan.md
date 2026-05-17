@@ -1,6 +1,7 @@
 ---
 track: bom-module
 status: Completed
+aliases: ["BOM Module — Bill of Materials + Product Multi-UOM"]
 owner: paku, puka
 module: BOM
 updated: 2026-05-13

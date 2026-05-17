@@ -1,6 +1,7 @@
 ---
 track: vendor-product-links
 status: Verified
+aliases: ["Vendor-Product Links — Data Completeness"]
 owner: paku, puka
 module: Vendors
 updated: 2026-05-13

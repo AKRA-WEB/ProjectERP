@@ -1,6 +1,7 @@
 ---
 track: fix-over-receipt
 status: Completed
+aliases: ["Fix BUG-001 — Over-receipt Not Blocked"]
 owner: paku
 module: WMS
 updated: 2026-05-10

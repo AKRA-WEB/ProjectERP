@@ -1,6 +1,7 @@
 ---
 track: receiving-queue-improvements
 status: Verified
+aliases: ["Receiving Queue Improvements"]
 owner: paku, puka
 module: WMS
 updated: 2026-05-14

@@ -1,6 +1,7 @@
 ---
 track: import-vendors
 status: Completed
+aliases: ["Import Vendors from Excel"]
 owner: paku, puka
 module: Vendors
 updated: 2026-05-13

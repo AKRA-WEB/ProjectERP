@@ -1,6 +1,7 @@
 ---
 track: pos-improvements
 status: Verified
+aliases: ["pos-improvements"]
 owner: paku, puka
 module: POS
 updated: 2026-05-15

@@ -1,6 +1,7 @@
 ---
 track: ui-design-system
 status: Completed
+aliases: ["UI Design System — อรุณ"]
 owner: puka
 module: Core
 updated: 2026-05-13

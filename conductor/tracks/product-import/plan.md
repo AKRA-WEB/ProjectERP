@@ -1,6 +1,7 @@
 ---
 track: product-import
 status: Completed
+aliases: ["Product Import — Implementation Plan"]
 owner: paku+puka
 module: inventory
 updated: 2026-05-17

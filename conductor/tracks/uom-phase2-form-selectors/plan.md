@@ -1,6 +1,7 @@
 ---
 track: uom-phase2-form-selectors
 status: Completed
+aliases: ["UoM Phase 2 — Transaction Form Selectors"]
 owner: puka
 module: Inventory
 updated: 2026-05-14

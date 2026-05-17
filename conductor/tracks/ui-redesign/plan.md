@@ -1,6 +1,7 @@
 ---
 track: ui-redesign
 status: Completed
+aliases: ["UI Redesign — อรุณ Design System v2"]
 owner: puka
 module: Core
 updated: 2026-05-13

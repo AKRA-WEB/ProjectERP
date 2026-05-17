@@ -1,6 +1,7 @@
 ---
 track: accounts-payable
 status: Verified
+aliases: ["Accounts Payable (AP) System + Vendor Banking"]
 owner: paku, puka
 module: Accounting
 updated: 2026-05-15

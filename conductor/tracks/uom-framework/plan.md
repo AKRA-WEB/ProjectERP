@@ -1,6 +1,7 @@
 ---
 track: uom-framework
 status: Completed
+aliases: ["UoM Framework Implementation"]
 owner: paku, puka
 module: Inventory
 updated: 2026-05-13

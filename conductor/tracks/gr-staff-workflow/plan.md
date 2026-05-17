@@ -1,6 +1,7 @@
 ---
 track: gr-staff-workflow
 status: Completed
+aliases: ["GR Staff Workflow"]
 owner: puka
 module: WMS
 updated: 2026-05-10

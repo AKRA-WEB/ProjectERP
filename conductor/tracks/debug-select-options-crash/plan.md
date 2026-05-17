@@ -1,6 +1,7 @@
 ---
 track: debug-select-options-crash
 status: Completed
+aliases: ["Debug — Select Component options.map Crash"]
 owner: puka
 module: Core
 updated: 2026-05-11

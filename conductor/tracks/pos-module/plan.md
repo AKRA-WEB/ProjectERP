@@ -1,6 +1,7 @@
 ---
 track: pos-module
 status: Completed
+aliases: ["POS Module (Point of Sale)"]
 owner: paku, puka
 module: POS
 updated: 2026-05-11

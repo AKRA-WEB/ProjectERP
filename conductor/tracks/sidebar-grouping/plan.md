@@ -1,6 +1,7 @@
 ---
 track: sidebar-grouping
 status: Completed
+aliases: ["Sidebar Navigation Grouping"]
 owner: puka
 module: Core
 updated: 2026-05-10

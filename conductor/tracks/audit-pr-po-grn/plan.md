@@ -1,6 +1,7 @@
 ---
 track: audit-pr-po-grn
 status: Completed
+aliases: ["Audit PR → PO → GRN End-to-End Flow"]
 owner: paku, puka
 module: WMS
 updated: 2026-05-10

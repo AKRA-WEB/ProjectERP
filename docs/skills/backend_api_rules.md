@@ -100,6 +100,25 @@ const PatchSchema = z.discriminatedUnion('action', [
 - `users` table ใช้ `name_th`, `name_en` — ไม่มี `name` column
 - Document numbers ผ่าน `next_doc_number(prefix, seq)` ใน PostgreSQL เท่านั้น — ห้ามสร้างใน app code
 
+## ✅ Pattern — Thai-friendly Slugify
+**Context:** Converting Thai product names or categories into URL-friendly/Code-friendly slugs.
+**Correct way:**
+```typescript
+function slugify(text: string): string {
+  if (!text) return '';
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-') 
+    .replace(/[^\wก-๙-]+/g, '') // Keep alphanumeric + Thai characters
+    .replace(/--+/g, '-') 
+    .replace(/^-+/, '') 
+    .replace(/-+$/, ''); 
+}
+```
+**Found in:** task [2] of track [product-import] (2026-05-17)
+
 ---
 
 ## Patterns & Traps — Captured in Field

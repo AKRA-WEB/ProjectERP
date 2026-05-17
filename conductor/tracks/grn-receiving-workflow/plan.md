@@ -1,6 +1,7 @@
 ---
 track: grn-receiving-workflow
 status: Completed
+aliases: ["GRN Receiving Workflow — Staff Work Card"]
 owner: puka
 module: WMS
 updated: 2026-05-14

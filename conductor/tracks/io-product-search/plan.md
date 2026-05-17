@@ -1,6 +1,7 @@
 ---
 track: io-product-search
 status: Completed
+aliases: ["IO Product Search + Remove Unit Cost"]
 owner: puka
 module: WMS
 updated: 2026-05-10

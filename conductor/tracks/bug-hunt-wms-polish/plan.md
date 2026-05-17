@@ -1,6 +1,7 @@
 ---
 track: bug-hunt-wms-polish
 status: Completed
+aliases: ["Bug Hunt & Polish — WMS Core"]
 owner: paku, puka
 module: WMS
 updated: 2026-05-11

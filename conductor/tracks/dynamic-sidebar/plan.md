@@ -1,6 +1,7 @@
 ---
 track: dynamic-sidebar
 status: Completed
+aliases: ["Dynamic Sidebar — Module-Scoped Navigation"]
 owner: puka
 module: Core
 updated: 2026-05-13

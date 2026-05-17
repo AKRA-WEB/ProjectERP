@@ -1,6 +1,7 @@
 ---
 track: outbound-picking
 status: Verified
+aliases: ["Outbound Picking"]
 owner: paku, puka
 module: WMS
 updated: 2026-05-16

@@ -1,6 +1,7 @@
 ---
 track: main-menu
 status: Completed
+aliases: ["Main Menu — Module Hub Page"]
 owner: puka
 module: Core
 updated: 2026-05-13

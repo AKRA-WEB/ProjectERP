@@ -1,6 +1,7 @@
 ---
 track: ui-improvement-dashboard
 status: Completed
+aliases: ["UI Improvement — Dashboard (Multi-Module Overview)"]
 owner: puka
 module: Core
 updated: 2026-05-16

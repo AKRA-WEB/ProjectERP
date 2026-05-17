@@ -105,6 +105,18 @@ UPDATE po_invoices
 ```
 **Found in:** task [1.1] of track [accounts-payable]
 
+## ✅ Pattern — Enum Alteration in Migrations
+**Context:** Adding new values to a PostgreSQL `TYPE ... ENUM` within a migration script.
+**Correct way:**
+```sql
+-- ALTER TYPE ... ADD VALUE cannot run inside a transaction block (Postgres < 12).
+-- Use COMMIT/BEGIN to break out of the migration runner's transaction.
+COMMIT;
+ALTER TYPE ledger_entry_type ADD VALUE IF NOT EXISTS 'new_type';
+BEGIN;
+```
+**Found in:** task [1] of track [product-import]
+
 ---
 
 ## Patterns & Traps — Captured in Field

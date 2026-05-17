@@ -1,6 +1,7 @@
 ---
 track: inbound-order-workflow
 status: Completed
+aliases: ["Inbound Order Workflow (LINE-Based Purchasing)"]
 owner: paku, puka
 module: WMS
 updated: 2026-05-10

@@ -1,6 +1,7 @@
 ---
 track: sales-module
 status: Completed
+aliases: ["Sales Module"]
 owner: paku, puka
 module: Sales
 updated: 2026-05-11

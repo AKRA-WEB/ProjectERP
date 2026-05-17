@@ -1,6 +1,7 @@
 ---
 track: encoding-fix
 status: Completed
+aliases: ["Thai Text Double-Encoding Fix"]
 owner: puka
 module: Core
 updated: 2026-05-10

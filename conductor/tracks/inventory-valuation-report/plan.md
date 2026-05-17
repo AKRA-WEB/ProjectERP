@@ -1,6 +1,7 @@
 ---
 track: inventory-valuation-report
 status: Completed
+aliases: ["Inventory Valuation Report"]
 owner: paku, puka
 module: Inventory
 updated: 2026-05-14
