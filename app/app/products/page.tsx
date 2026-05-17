@@ -3,9 +3,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { get } from '@/lib/api-client';
 import { formatCurrency } from '@/lib/format';
-import type { PaginatedResponse, Product } from '@/types';
+import { PaginatedResponse, Product } from '@/types';
 import ProductFormModal from './ProductFormModal';
+import ProductImportModal from '@/components/inventory/ProductImportModal';
 import Link from 'next/link';
+
 import { DirectionalTransition } from '@/components/ui/directional-transition';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-[0_1px_0_rgba(15,23,42,.03),0_1px_2px_rgba(15,23,42,.04)]';
@@ -16,6 +18,7 @@ export default function ProductsPage() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [selected, setSelected] = useState<Product | undefined>(undefined);
 
   const fetchProducts = useCallback(async () => {
@@ -56,6 +59,12 @@ export default function ProductsPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowImport(true)}
+              className="inline-flex items-center gap-1.5 h-8 px-3 rounded-[7px] border border-stone-200 text-stone-700 text-[13px] font-medium hover:bg-stone-50 transition-colors"
+            >
+              นำเข้าสินค้า
+            </button>
             <button
               onClick={openNew}
               className="inline-flex items-center gap-1.5 h-8 px-3 rounded-[7px] bg-stone-950 text-white text-[13px] font-medium shadow-sm hover:bg-stone-800 transition-colors"
@@ -168,6 +177,13 @@ export default function ProductsPage() {
             onSaved={() => { setShowForm(false); fetchProducts(); }}
           />
         )}
+
+        {/* Product import modal */}
+        <ProductImportModal
+          open={showImport}
+          onClose={() => setShowImport(false)}
+          onSuccess={() => { setShowImport(false); fetchProducts(); }}
+        />
       </div>
     </DirectionalTransition>
   );

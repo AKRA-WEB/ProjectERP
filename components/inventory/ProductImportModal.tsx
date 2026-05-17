@@ -4,7 +4,7 @@ import { useState, useRef } from 'react';
 import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { importProducts } from '@/lib/api-client';
+import { importProducts, type ImportResult } from '@/lib/api-client';
 import { 
   FileSpreadsheet, 
   Upload, 
@@ -14,13 +14,6 @@ import {
   FileX
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-interface ImportResult {
-  inserted: number;
-  updated: number;
-  failed: number;
-  errors: Array<{ row: number; sku: string; reason: string }>;
-}
 
 interface ProductImportModalProps {
   open: boolean;
@@ -65,8 +58,9 @@ export default function ProductImportModal({ open, onClose, onSuccess }: Product
       const data = await importProducts(file);
       setResult(data);
       setStatus('result');
-    } catch (err: any) {
-      setError(err.message || 'เกิดข้อผิดพลาดในการนำเข้าข้อมูล');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการนำเข้าข้อมูล';
+      setError(message);
       setStatus('error');
     }
   };
@@ -103,8 +97,8 @@ export default function ProductImportModal({ open, onClose, onSuccess }: Product
               {file ? (
                 <>
                   <FileSpreadsheet className="w-12 h-12 text-primary mb-2" />
-                  <p className="text- ink font-medium">{file.name}</p>
-                  <p className="text- ink-3 text-sm">{(file.size / 1024).toFixed(1)} KB</p>
+                  <p className="text-ink font-medium">{file.name}</p>
+                  <p className="text-ink-3 text-sm">{(file.size / 1024).toFixed(1)} KB</p>
                 </>
               ) : (
                 <>

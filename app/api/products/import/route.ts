@@ -31,8 +31,14 @@ export async function POST(req: Request) {
     return apiError('Forbidden', 403);
   }
 
-  const formData = await req.formData();
-  const file = formData.get('file') as File;
+  let formData: FormData;
+  try {
+    formData = await req.formData();
+  } catch {
+    return apiError('Invalid multipart body', 400);
+  }
+
+  const file = formData.get('file') as File | null;
   if (!file) return apiError('No file uploaded', 400);
 
   const arrayBuffer = await file.arrayBuffer();
@@ -44,7 +50,7 @@ export async function POST(req: Request) {
     return apiSuccess({ inserted: 0, updated: 0, failed: 0, errors: [] });
   }
 
-  const dataRows = rows.slice(1);
+  const dataRows = rows.slice(1) as unknown[][];
   const result = {
     inserted: 0,
     updated: 0,
@@ -66,7 +72,7 @@ export async function POST(req: Request) {
     const uomCache = new Map<string, string>();
 
     for (let i = 0; i < dataRows.length; i++) {
-      const row = dataRows[i] as any[];
+      const row = dataRows[i];
       const rowNum = i + 2; // 1-based + skip header
 
       const sku = row[0] ? String(row[0]).trim() : null;
@@ -122,7 +128,7 @@ export async function POST(req: Request) {
         // 4. Product Upsert
         const productRes = await client.query<{ id: string; was_updated: boolean }>(
           `INSERT INTO products (
-            sku, name_th, name_sub, name_en,
+            sku, name_th, name_sub, name_en, description_th,
             category_id, uom_id,
             unit_cost, selling_price,
             reorder_point, discount_type, discount_value,
@@ -131,19 +137,20 @@ export async function POST(req: Request) {
             image_url, default_location, barcode,
             is_active, created_by
           ) VALUES (
-            $1, $2, $3, $2,
-            $4, $5,
-            $6, $7,
-            $8, $9, $10,
-            $11, $12,
-            $13, $14,
-            $15, $16, $17,
-            true, $18
+            $1, $2, $3, $2, $4,
+            $5, $6,
+            $7, $8,
+            $9, $10, $11,
+            $12, $13,
+            $14, $15,
+            $16, $17, $18,
+            true, $19
           )
           ON CONFLICT (sku) DO UPDATE SET
             name_th = EXCLUDED.name_th,
             name_sub = EXCLUDED.name_sub,
             name_en = EXCLUDED.name_en,
+            description_th = EXCLUDED.description_th,
             category_id = EXCLUDED.category_id,
             uom_id = EXCLUDED.uom_id,
             unit_cost = EXCLUDED.unit_cost,
@@ -164,6 +171,7 @@ export async function POST(req: Request) {
             sku,
             name_th,
             row[2] ? String(row[2]).trim() : null,
+            row[6] ? String(row[6]).trim() : null, // description_th
             categoryId,
             uomId,
             Number(row[7] || 0),
@@ -201,21 +209,23 @@ export async function POST(req: Request) {
             );
           }
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         result.failed++;
+        const message = err instanceof Error ? err.message : 'Database error';
         result.errors.push({
           row: rowNum,
-          sku: sku,
-          reason: err.message || 'Database error',
+          sku: sku || 'N/A',
+          reason: message,
         });
       }
     }
 
     await client.query('COMMIT');
     return apiSuccess(result);
-  } catch (err: any) {
+  } catch (err: unknown) {
     await client.query('ROLLBACK');
-    return apiError(err.message || 'Import failed', 500);
+    const message = err instanceof Error ? err.message : 'Import failed';
+    return apiError(message, 500);
   } finally {
     client.release();
   }

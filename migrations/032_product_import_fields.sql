@@ -12,7 +12,9 @@ ALTER TABLE products
   ADD COLUMN IF NOT EXISTS default_location   VARCHAR(50);
 
 -- Add initial_import to ledger enum (must run outside transaction in Postgres)
--- We use COMMIT/BEGIN hack to escape the transaction started by lib/db/migrate.ts
+-- COMMIT/BEGIN below: ALTER TYPE ADD VALUE cannot run in a transaction block (PG < 12).
+-- This intentionally breaks out of the migration transaction to add the enum value,
+-- then re-opens an empty transaction for the runner's COMMIT to close.
 COMMIT;
 ALTER TYPE ledger_entry_type ADD VALUE IF NOT EXISTS 'initial_import';
 BEGIN;

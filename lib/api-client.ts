@@ -43,12 +43,14 @@ export const post = apiClient.post;
 export const patch = apiClient.patch;
 export const del = apiClient.delete;
 
-export async function importProducts(file: File): Promise<{
+export interface ImportResult {
   inserted: number;
   updated: number;
   failed: number;
   errors: Array<{ row: number; sku: string; reason: string }>;
-}> {
+}
+
+export async function importProducts(file: File): Promise<ImportResult> {
   const fd = new FormData();
   fd.append('file', file);
   const res = await fetch('/api/products/import', { method: 'POST', body: fd });
