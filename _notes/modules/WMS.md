@@ -7,6 +7,12 @@ type: module-summary
 
 ระบบจัดการคลังสินค้าหลัก. เป็น core module แรกของ BUYMORE ERP.
 
+## Dependencies
+- [[Inventory]] — ส่งข้อมูลสต็อกเข้า/ออกผ่าน `stock_ledger`
+- [[Accounting]] — สร้างรายการหนี้สิน (AP Invoices) จากการรับสินค้า (GRN)
+- [[BOM]] — รับใบสั่งผลิต (Production Orders) เพื่อเบิกจ่ายวัตถุดิบ
+- [[Core]] — ใช้ระบบรันเลขที่เอกสาร และ UI Framework
+
 ## Flow
 ```
 PR → PO → GRN → (Transfer | Cycle Count | RMA | Claim)

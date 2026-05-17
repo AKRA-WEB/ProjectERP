@@ -7,6 +7,11 @@ type: module-summary
 
 Vendor master, product links, bank accounts, Excel import.
 
+## Dependencies
+- [[WMS]] — ข้อมูลพื้นฐานสำหรับสร้าง PR/PO
+- [[Accounting]] — จัดการข้อมูลบัญชีเจ้าหนี้ (AP)
+- [[Inventory]] — เชื่อมโยงราคาทุนและ Lead time ของสินค้า
+
 ## Key Tables
 - `vendors` · `vendor_products` (product links)
 - `vendor_bank_accounts`

@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { formatCurrency, formatQty } from '@/lib/format';
 import { SearchInput, Pagination } from '@/components/ui';
-import { Filter, Download, ScanLine, Home, ArrowLeftRight, ClipboardList, Boxes } from 'lucide-react';
+import { Filter, Download, ScanLine, Home, ArrowLeftRight, ClipboardList, Boxes, Upload } from 'lucide-react';
+import ProductImportModal from '@/components/inventory/ProductImportModal';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -97,6 +98,7 @@ export default function InventoryPage() {
   const [warehouseFilter, setWarehouseFilter] = useState('');
   const [lowStockFilter, setLowStockFilter] = useState(false);
   const [view, setView] = useState<'table' | 'card'>('table');
+  const [showImport, setShowImport] = useState(false);
 
   const fetchInventory = useCallback(async () => {
     setLoading(true);
@@ -203,9 +205,18 @@ export default function InventoryPage() {
               <h1 className="text-[17px] font-bold text-stone-900">สต็อกสินค้า</h1>
               <p className="text-[12px] text-stone-400 mt-0.5 font-mono">{skuCount} รายการ</p>
             </div>
-            <button className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-stone-100" aria-label="กรอง">
-              <Filter className="w-4 h-4 text-stone-600" />
-            </button>
+            <div className="flex items-center gap-1">
+              <button 
+                onClick={() => setShowImport(true)}
+                className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-stone-100" 
+                aria-label="นำเข้า"
+              >
+                <Upload className="w-4 h-4 text-stone-600" />
+              </button>
+              <button className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-stone-100" aria-label="กรอง">
+                <Filter className="w-4 h-4 text-stone-600" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -317,17 +328,24 @@ export default function InventoryPage() {
                 >
                   {v === 'table' ? 'ตาราง' : 'การ์ด'}
                 </button>
-              ))}
+                ))}
+                </div>
+                <button
+                onClick={() => setShowImport(true)}
+                className="flex items-center gap-1.5 border border-emerald-200 bg-emerald-50 text-emerald-700 rounded-md px-3 py-1.5 text-sm font-medium hover:bg-emerald-100 shadow-sm"
+                >
+                <Upload className="w-3.5 h-3.5" />
+                นำเข้าสินค้า (Excel)
+                </button>
+                <button
+                onClick={exportCSV}
+                className="flex items-center gap-1.5 border border-stone-200 bg-white rounded-md px-3 py-1.5 text-sm text-stone-700 hover:bg-stone-50 shadow-sm"
+                >
+                <Download className="w-3.5 h-3.5" />
+                Export CSV
+              </button>
             </div>
-            <button
-              onClick={exportCSV}
-              className="flex items-center gap-1.5 border border-stone-200 bg-white rounded-md px-3 py-1.5 text-sm text-stone-700 hover:bg-stone-50 shadow-sm"
-            >
-              <Download className="w-3.5 h-3.5" />
-              Export CSV
-            </button>
           </div>
-        </div>
 
         {/* KPI strip */}
         <div className="bg-white border border-stone-200 rounded-[10px] shadow-sm flex divide-x divide-stone-100">
@@ -464,6 +482,15 @@ export default function InventoryPage() {
           </div>
         )}
       </div>
+
+      <ProductImportModal 
+        open={showImport} 
+        onClose={() => setShowImport(false)} 
+        onSuccess={() => {
+          setShowImport(false);
+          fetchInventory();
+        }}
+      />
     </>
   );
 }

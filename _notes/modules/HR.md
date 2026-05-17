@@ -7,6 +7,11 @@ type: module-summary
 
 ระบบ HR ครบวงจร: พนักงาน, ลา, เวลางาน, เงินเดือน.
 
+## Dependencies
+- [[Accounting]] — ส่งรายการจ่ายเงินเดือน (Payroll Entries) และภาษีหัก ณ ที่จ่าย
+- [[Security]] — จัดการสิทธิ์การเข้าถึง (RBAC) ของพนักงานในระบบ
+- [[Core]] — UI Components สำหรับจัดการข้อมูลพนักงาน
+
 ## Flow
 ```
 Employee → Leave Request → Attendance → Payroll Run

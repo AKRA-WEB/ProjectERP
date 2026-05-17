@@ -29,7 +29,10 @@
       "Bash(npx tsc *)",
       "Bash(Get-ChildItem \"C:\\\\Users\\\\AKRA-Panich-Front\\\\OneDrive\\\\Desktop\\\\projectERP\\\\app\" -MaxDepth 1)",
       "Bash(Select-Object Name, LastWriteTime)",
-      "Bash(Format-Table)"
+      "Bash(Format-Table)",
+      "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d, indent=2\\)\\)\")",
+      "Skill(superpowers:brainstorming)",
+      "Skill(superpowers:writing-plans)"
     ]
   },
   "hooks": {

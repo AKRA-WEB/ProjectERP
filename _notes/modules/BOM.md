@@ -7,6 +7,11 @@ type: module-summary
 
 ระบบสูตรการผลิต รองรับ Multi-UOM.
 
+## Dependencies
+- [[Inventory]] — ดึงข้อมูลวัตถุดิบและจัดการ Multi-UoM
+- [[WMS]] — ส่งใบสั่งผลิตเพื่อเบิกของและรับสินค้าสำเร็จรูปเข้าคลัง
+- [[Core]] — Infrastructure สำหรับการคำนวณและ UI
+
 ## Flow
 ```
 Product → BOM Header → BOM Lines (components + qty + UoM)

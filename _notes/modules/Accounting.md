@@ -7,6 +7,11 @@ type: module-summary
 
 Chart of Accounts, Journal Entries, Reports, Accounts Payable.
 
+## Dependencies
+- **Receives data from:** [[POS]], [[Sales]], [[WMS]], [[HR]]
+- [[Inventory]] — รับข้อมูลมูลค่าสต็อกเพื่อปรับปรุงบัญชีสินค้าคงเหลือ
+- [[Core]] — Infrastructure สำหรับการออกรายงานและส่งออกข้อมูล
+
 ## Flow
 ```
 CoA → JE (Journal Entry) → Reports

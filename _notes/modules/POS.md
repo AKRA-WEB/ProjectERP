@@ -7,6 +7,11 @@ type: module-summary
 
 ระบบขายหน้าร้าน. รองรับ member, held bills, shifts, barcode scanner.
 
+## Dependencies
+- [[Inventory]] — ตัดสต็อกทันทีเมื่อปิดการขาย (Stock Deduction)
+- [[Accounting]] — ส่งข้อมูลรายได้ (Revenue) และภาษีขาย
+- [[Core]] — ใช้ระบบ Auth และ UI สำหรับหน้าจอ Touchscreen
+
 ## Flow
 ```
 Open Session → Shift → Cart → (Hold Bill | Checkout) → Transaction → Close Session

@@ -7,6 +7,11 @@ type: module-summary
 
 Stock balances, valuation, reorder, UoM conversions.
 
+## Dependencies
+- **Data Source for:** [[WMS]], [[POS]], [[Sales]], [[BOM]]
+- [[Accounting]] — ส่งข้อมูลมูลค่าสต็อก (Valuation) ไปบันทึกบัญชี
+- [[Core]] — ใช้ระบบจัดการ UoM และ Infrastructure
+
 ## Key Tables
 - `stock_ledger` (insert-only) · `stock_balances`
 - `uom_conversions` · `product_uoms`

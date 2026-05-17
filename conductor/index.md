@@ -10,6 +10,7 @@
 | Track | Status | Plan |
 |-------|--------|------|
 | Hamburger Sidebar Z-Index Fix | Completed | [plan](./tracks/hamburger-zindex-fix/plan.md) |
+| Product Import — Inventory | Completed | [plan](./tracks/product-import/plan.md) |
 
 
 

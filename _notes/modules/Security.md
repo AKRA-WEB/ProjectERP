@@ -7,6 +7,10 @@ type: module-summary
 
 RBAC, warehouse scoping, Vercel performance guards.
 
+## Dependencies
+- **Protects:** All modules ([[Core]], [[WMS]], [[Inventory]], [[POS]], [[Sales]], [[Accounting]], [[HR]], [[BOM]], [[Vendors]])
+- [[HR]] — ดึงข้อมูลพนักงานเพื่อกำหนดสิทธิ์ตามตำแหน่ง
+
 ## Roles
 - `admin` — unrestricted
 - `manager` — warehouse-scoped + approval authority
