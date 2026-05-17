@@ -103,8 +103,8 @@ export default function BomDetailPage({ params }: { params: Promise<{ id: string
     setCompResults([]);
   }
 
-  if (loading) return <div className="py-16 text-center text-stone-400 italic">กำลังโหลด...</div>;
-  if (!bom) return <div className="py-16 text-center text-stone-400 italic">ไม่พบข้อมูล</div>;
+  if (loading) return <div className="py-16 text-center text-stone-600 italic">กำลังโหลด...</div>;
+  if (!bom) return <div className="py-16 text-center text-stone-600 italic">ไม่พบข้อมูล</div>;
 
   return (
     <div className="max-w-6xl mx-auto pb-12 space-y-6">
@@ -141,7 +141,7 @@ export default function BomDetailPage({ params }: { params: Promise<{ id: string
           { label: 'ผู้สร้าง', value: bom.created_by_name || '—', sub: formatDate(bom.created_at) },
         ].map((f, i) => (
           <div key={i} className="bg-white border border-stone-200 p-4 rounded-xl shadow-sm">
-            <p className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider mb-1">{f.label}</p>
+            <p className="text-[11px] font-semibold text-stone-600 uppercase tracking-wider mb-1">{f.label}</p>
             <p className="text-[15px] font-bold text-stone-950 truncate">{f.value}</p>
             {f.sub && <p className="text-[11px] text-stone-500 font-mono mt-0.5">{f.sub}</p>}
           </div>
@@ -173,7 +173,7 @@ export default function BomDetailPage({ params }: { params: Promise<{ id: string
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-[13px]">
             <thead>
-              <tr className="bg-stone-50/50 border-b border-stone-100 text-stone-400 font-semibold uppercase tracking-wider text-[10px]">
+              <tr className="bg-stone-50/50 border-b border-stone-100 text-stone-600 font-semibold uppercase tracking-wider text-[10px]">
                 <th className="text-left py-2.5 px-4 w-12">#</th>
                 <th className="text-left py-2.5 px-4">ส่วนประกอบ</th>
                 <th className="text-right py-2.5 px-4 w-28">จำนวน</th>
@@ -186,11 +186,11 @@ export default function BomDetailPage({ params }: { params: Promise<{ id: string
             <tbody>
               {bom.lines?.map((l) => (
                 <tr key={l.id} className="border-b border-stone-50 last:border-0 hover:bg-stone-50/30">
-                  <td className="py-3 px-4 text-stone-400 font-mono">{l.line_number}</td>
+                  <td className="py-3 px-4 text-stone-600 font-mono">{l.line_number}</td>
                   <td className="py-3 px-4">
                     <div className="font-medium text-stone-900">{l.component_name_th}</div>
-                    <div className="text-[10px] text-stone-400 font-mono">{l.component_sku}</div>
-                    {l.notes && <div className="text-[11px] text-stone-400 mt-1 italic">{l.notes}</div>}
+                    <div className="text-[10px] text-stone-600 font-mono">{l.component_sku}</div>
+                    {l.notes && <div className="text-[11px] text-stone-600 mt-1 italic">{l.notes}</div>}
                   </td>
                   <td className="py-3 px-4 text-right font-mono">{Number(l.qty_required).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                   <td className="py-3 px-4 text-stone-500 font-medium">{l.uom_code}</td>
@@ -222,7 +222,7 @@ export default function BomDetailPage({ params }: { params: Promise<{ id: string
                     <div className="font-mono text-[10px] text-stone-500 uppercase tracking-wider">{selectedComp.sku}</div>
                     <div className="text-sm font-bold text-stone-900">{selectedComp.name_th}</div>
                   </div>
-                  <button onClick={() => setSelectedComp(null)} className="text-stone-400 hover:text-red-600 font-bold px-2">✕</button>
+                  <button onClick={() => setSelectedComp(null)} className="text-stone-600 hover:text-red-600 font-bold px-2">✕</button>
                 </div>
               ) : (
                 <>

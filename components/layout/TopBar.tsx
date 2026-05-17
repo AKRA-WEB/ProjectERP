@@ -8,12 +8,13 @@ import { Modal, ModalBody } from '@/components/ui';
 
 interface TopBarProps {
   onMenuToggle?: () => void;
+  sidebarOpen?: boolean;
   userName?: string;
   userRole?: string;
   onSignOut?: () => void;
 }
 
-export function TopBar({ onMenuToggle, userName, userRole, onSignOut }: TopBarProps) {
+export function TopBar({ onMenuToggle, sidebarOpen, userName, userRole, onSignOut }: TopBarProps) {
   const pathname = usePathname();
   const [showSearch, setShowSearch] = useState(false);
   
@@ -47,6 +48,8 @@ export function TopBar({ onMenuToggle, userName, userRole, onSignOut }: TopBarPr
             onClick={onMenuToggle}
             className="md:hidden rounded-md p-2 text-ink-3 hover:bg-surface-sunken hover:text-ink transition-colors"
             aria-label="เปิดเมนู"
+            aria-expanded={sidebarOpen}
+            aria-controls="main-sidebar"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
           </button>

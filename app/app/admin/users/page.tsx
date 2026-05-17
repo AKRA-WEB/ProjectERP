@@ -89,7 +89,7 @@ export default function AdminUsersPage() {
               {loading ? (
                 <tr>
                   <Td colSpan={7}>
-                    <div className="py-8 text-center text-gray-400">กำลังโหลด...</div>
+                    <div className="py-8 text-center text-gray-600">กำลังโหลด...</div>
                   </Td>
                 </tr>
               ) : data?.data.length === 0 ? (

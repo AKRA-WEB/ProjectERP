@@ -113,7 +113,7 @@ export default function ChartOfAccountsPage() {
                   <div className={`font-medium ${!a.allows_direct_posting ? 'text-stone-900 font-bold underline decoration-stone-200' : 'text-stone-700'}`}>
                     {a.name_th}
                   </div>
-                  <div className="text-xs text-stone-400 font-mono">{a.name_en}</div>
+                  <div className="text-xs text-stone-600 font-mono">{a.name_en}</div>
                 </td>
                 <td className="px-5 py-4 uppercase text-xs font-bold tracking-wider">
                   <Badge variant={
@@ -145,7 +145,7 @@ export default function ChartOfAccountsPage() {
               </tr>
             ))}
             {filtered.length === 0 && !loading && (
-              <tr><td colSpan={7} className="px-5 py-12 text-center text-stone-400 italic">ไม่พบข้อมูลบัญชี</td></tr>
+              <tr><td colSpan={7} className="px-5 py-12 text-center text-stone-600 italic">ไม่พบข้อมูลบัญชี</td></tr>
             )}
           </Table>
         </div>

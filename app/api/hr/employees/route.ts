@@ -1,8 +1,28 @@
 import { NextRequest } from 'next/server';
 import { auth } from '@/auth';
-import { query } from '@/lib/db/client';
-import { apiSuccess, apiError } from '@/lib/api-response';
-import { buildWarehouseScopeClause, SessionUser } from '@/lib/authz';
+import { query, queryOne } from '@/lib/db/client';
+import { apiSuccess, apiError, apiValidationError } from '@/lib/api-response';
+import { buildWarehouseScopeClause, assertRole, SessionUser } from '@/lib/authz';
+import { z } from 'zod';
+import bcrypt from 'bcryptjs';
+import { BCRYPT_ROUNDS } from '@/lib/constants';
+
+const CreateSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+  name_th: z.string().min(1),
+  name_en: z.string().min(1),
+  role: z.enum(['admin', 'manager', 'staff']),
+  employee_id: z.string().optional(),
+  department_id: z.string().uuid().nullable().optional(),
+  position_id: z.string().uuid().nullable().optional(),
+  salary_grade_id: z.string().uuid().nullable().optional(),
+  base_salary: z.number().min(0).nullable().optional(),
+  employment_type: z.enum(['full_time', 'part_time', 'contract']).optional(),
+  employee_status: z.enum(['active', 'inactive', 'resigned']).optional(),
+  hired_date: z.string().nullable().optional(),
+  phone: z.string().nullable().optional(),
+});
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -60,4 +80,47 @@ export async function GET(req: NextRequest) {
   ]);
 
   return apiSuccess({ data: rows, total: parseInt(count), page, limit });
+}
+
+export async function POST(req: NextRequest) {
+  const session = await auth();
+  if (!session?.user) return apiError('Unauthorized', 401);
+  const u = session.user as unknown as SessionUser;
+
+  try { assertRole(u, ['manager', 'admin']); } catch { return apiError('Forbidden', 403); }
+
+  const body = await req.json().catch(() => null);
+  if (!body) return apiError('Invalid JSON', 400);
+
+  const parsed = CreateSchema.safeParse(body);
+  if (!parsed.success) return apiValidationError(parsed.error);
+  const d = parsed.data;
+
+  // Check unique constraints
+  const existing = await queryOne('SELECT id FROM users WHERE email = $1', [d.email]);
+  if (existing) return apiError('Email already in use', 409);
+
+  if (d.employee_id) {
+    const existingEmp = await queryOne('SELECT id FROM users WHERE employee_id = $1', [d.employee_id]);
+    if (existingEmp) return apiError('Employee ID already in use', 409);
+  }
+
+  const password_hash = await bcrypt.hash(d.password, BCRYPT_ROUNDS);
+
+  const user = await queryOne(
+    `INSERT INTO users (
+      email, password_hash, name_th, name_en, role,
+      employee_id, department_id, position_id, salary_grade_id,
+      base_salary, employment_type, employee_status, hired_date, phone
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+    RETURNING id, email, name_en, name_th, role, employee_id, created_at`,
+    [
+      d.email, password_hash, d.name_th, d.name_en, d.role,
+      d.employee_id || null, d.department_id || null, d.position_id || null, d.salary_grade_id || null,
+      d.base_salary || null, d.employment_type || 'full_time', d.employee_status || 'active',
+      d.hired_date || null, d.phone || null
+    ]
+  );
+
+  return apiSuccess(user, 201);
 }

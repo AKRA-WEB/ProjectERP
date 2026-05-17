@@ -113,7 +113,7 @@ export default function GeneralLedgerPage() {
           </Table>
         </div>
       ) : accountId ? null : (
-        <div className="p-12 text-center text-stone-400 italic">กรุณาเลือกบัญชีเพื่อดูรายการ</div>
+        <div className="p-12 text-center text-stone-600 italic">กรุณาเลือกบัญชีเพื่อดูรายการ</div>
       )}
     </div>
   );

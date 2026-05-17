@@ -10,7 +10,7 @@ import {
   Building2, UserCircle, FileText, Receipt, Truck, CreditCard, ShoppingBag,
   History, BarChart3, BarChart2, Calendar, BookOpen, Scale, TrendingDown, Landmark,
   Clock, Banknote, Users, Building, Timer, Wallet, Settings, KeyRound,
-  Warehouse, ChevronLeft, CheckSquare, Square
+  Warehouse, ChevronLeft, ChevronDown, CheckSquare, Square
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -231,6 +231,123 @@ interface SidebarProps {
   userName?: string;
 }
 
+interface SidebarGroupProps {
+  label: string;
+  items: NavItem[];
+  collapsed?: boolean;
+  editing: boolean;
+  pathname: string;
+  hiddenItems: string[];
+  toggleHidden: (href: string) => void;
+}
+
+function SidebarGroup({
+  label,
+  items,
+  collapsed,
+  editing,
+  pathname,
+  hiddenItems,
+  toggleHidden,
+}: SidebarGroupProps) {
+  const [isOpen, setIsOpen] = useState(true);
+
+  useEffect(() => {
+    if (collapsed) return;
+    try {
+      const stored = localStorage.getItem(`sidebar-group-${label}`);
+      if (stored !== null) {
+        setIsOpen(JSON.parse(stored));
+      }
+    } catch (e) {
+      console.error('Failed to load group state', e);
+    }
+  }, [label, collapsed]);
+
+  const toggleOpen = () => {
+    if (collapsed) return;
+    const next = !isOpen;
+    setIsOpen(next);
+    try {
+      localStorage.setItem(`sidebar-group-${label}`, JSON.stringify(next));
+    } catch (e) {
+      console.error('Failed to save group state', e);
+    }
+  };
+
+  return (
+    <div className="mb-6">
+      {!collapsed ? (
+        <button
+          onClick={toggleOpen}
+          aria-expanded={isOpen}
+          className="flex items-center justify-between w-full px-4 mb-2 group/btn"
+        >
+          <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-4 select-none whitespace-nowrap group-hover/btn:text-ink-2 transition-colors">
+            {label}
+          </p>
+          <ChevronDown 
+            className={cn(
+              "w-3.5 h-3.5 text-ink-4 transition-transform duration-200 group-hover/btn:text-ink-2",
+              !isOpen && "-rotate-90"
+            )}
+          />
+        </button>
+      ) : (
+        <div className="h-px bg-line-soft mx-4 mb-4" />
+      )}
+      
+      {(isOpen || collapsed) && (
+        <ul className="space-y-0.5">
+          {items.map((item) => {
+            const isActive = !editing && (pathname === item.href || (item.href !== '/app/dashboard' && pathname.startsWith(item.href + '/')));
+            const isHidden = hiddenItems.includes(item.href);
+            
+            return (
+              <li key={item.href}>
+                {editing ? (
+                  <button
+                    onClick={() => toggleHidden(item.href)}
+                    className={cn(
+                      'flex items-center gap-[10px] w-full py-0 mx-2 px-3 h-[34px] rounded-md text-[13.5px] font-medium transition-all group overflow-hidden',
+                      isHidden ? 'text-ink-4 opacity-50' : 'text-ink-2 hover:bg-surface-sunken hover:text-ink'
+                    )}
+                  >
+                    <span className="text-[16px] w-5 shrink-0 text-center flex justify-center text-ink-3 group-hover:text-ink">
+                      {isHidden ? <Square className="w-4 h-4" /> : <CheckSquare className="w-4 h-4 text-emerald-600" />}
+                    </span>
+                    <span className="truncate">{item.label}</span>
+                  </button>
+                ) : (
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      'flex items-center gap-[10px] py-0 mx-2 h-[34px] rounded-md text-[13.5px] font-medium transition-all group overflow-hidden',
+                      collapsed ? 'px-0 justify-center mx-3' : 'px-3',
+                      isActive
+                        ? 'bg-white shadow-[0_1px_2px_rgba(15,23,42,0.06)] border border-line text-ink'
+                        : 'text-ink-2 hover:bg-surface-sunken hover:text-ink'
+                    )}
+                    title={collapsed ? item.label : undefined}
+                  >
+                    <span className={cn(
+                      "text-[16px] w-5 shrink-0 text-center flex justify-center group-hover:scale-110 transition-transform",
+                      isActive ? 'text-ink' : 'text-ink-3 group-hover:text-ink-2'
+                    )}>
+                      <item.icon className="w-[17px] h-[17px]" strokeWidth={1.6} />
+                    </span>
+                    {!collapsed && <span className="truncate">{item.label}</span>}
+                  </Link>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 export function Sidebar({ open, onClose, userRole, permissions, collapsed, onToggleCollapse, userName }: SidebarProps) {
   const pathname = usePathname();
   const [editing, setEditing] = useState(false);
@@ -285,6 +402,7 @@ export function Sidebar({ open, onClose, userRole, permissions, collapsed, onTog
 
   return (
     <aside
+      id="main-sidebar"
       style={{ viewTransitionName: 'site-sidebar' }}
       className={cn(
         'fixed inset-y-0 left-0 z-50 flex h-full flex-col border-r border-line-soft bg-surface-soft transition-all duration-300 ease-in-out md:static md:translate-x-0 md:z-auto',
@@ -373,64 +491,18 @@ export function Sidebar({ open, onClose, userRole, permissions, collapsed, onTog
           </div>
         )}
 
-        {visibleGroups.map((group) => {
-          return (
-            <div key={group.label} className="mb-6">
-              {!collapsed && (
-                <p className="px-4 mb-2 text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-4 select-none whitespace-nowrap">
-                  {group.label}
-                </p>
-              )}
-              {collapsed && <div className="h-px bg-line-soft mx-4 mb-4" />}
-              
-              <ul className="space-y-0.5">
-                {group.items.map((item) => {
-                  const isActive = !editing && (pathname === item.href || (item.href !== '/app/dashboard' && pathname.startsWith(item.href + '/')));
-                  const isHidden = hiddenItems.includes(item.href);
-                  
-                  return (
-                    <li key={item.href}>
-                      {editing ? (
-                        <button
-                          onClick={() => toggleHidden(item.href)}
-                          className={cn(
-                            'flex items-center gap-[10px] w-full py-0 mx-2 px-3 h-[34px] rounded-md text-[13.5px] font-medium transition-all group overflow-hidden',
-                            isHidden ? 'text-ink-4 opacity-50' : 'text-ink-2 hover:bg-surface-sunken hover:text-ink'
-                          )}
-                        >
-                          <span className="text-[16px] w-5 shrink-0 text-center flex justify-center text-ink-3 group-hover:text-ink">
-                            {isHidden ? <Square className="w-4 h-4" /> : <CheckSquare className="w-4 h-4 text-emerald-600" />}
-                          </span>
-                          <span className="truncate">{item.label}</span>
-                        </button>
-                      ) : (
-                        <Link
-                          href={item.href}
-                          className={cn(
-                            'flex items-center gap-[10px] py-0 mx-2 h-[34px] rounded-md text-[13.5px] font-medium transition-all group overflow-hidden',
-                            collapsed ? 'px-0 justify-center mx-3' : 'px-3',
-                            isActive
-                              ? 'bg-white shadow-[0_1px_2px_rgba(15,23,42,0.06)] border border-line text-ink'
-                              : 'text-ink-2 hover:bg-surface-sunken hover:text-ink'
-                          )}
-                          title={collapsed ? item.label : undefined}
-                        >
-                          <span className={cn(
-                            "text-[16px] w-5 shrink-0 text-center flex justify-center group-hover:scale-110 transition-transform",
-                            isActive ? 'text-ink' : 'text-ink-3 group-hover:text-ink-2'
-                          )}>
-                            <item.icon className="w-[17px] h-[17px]" strokeWidth={1.6} />
-                          </span>
-                          {!collapsed && <span className="truncate">{item.label}</span>}
-                        </Link>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          );
-        })}
+        {visibleGroups.map((group) => (
+          <SidebarGroup
+            key={group.label}
+            label={group.label}
+            items={group.items}
+            collapsed={collapsed}
+            editing={editing}
+            pathname={pathname}
+            hiddenItems={hiddenItems}
+            toggleHidden={toggleHidden}
+          />
+        ))}
       </nav>
 
       {/* Footer / User Profile */}

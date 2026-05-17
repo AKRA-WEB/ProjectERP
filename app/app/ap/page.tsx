@@ -78,7 +78,7 @@ export default function ApInvoicesPage() {
               className={`px-3.5 py-2.5 text-[13.5px] font-medium border-b-2 -mb-px transition-colors ${
                 isPaid === t.id
                   ? 'text-stone-950 border-stone-950'
-                  : 'text-stone-400 border-transparent hover:text-stone-700'
+                  : 'text-stone-600 border-transparent hover:text-stone-700'
               }`}
             >
               {t.label}
@@ -92,7 +92,7 @@ export default function ApInvoicesPage() {
             <thead>
               <tr>
                 {['เลขที่ใบแจ้งหนี้', 'Vendor', 'วันที่รับ', 'วันครบกำหนด', 'ยอดรวม', 'ชำระแล้ว', 'คงเหลือ', 'สถานะ', ''].map((h, i) => (
-                  <th key={i} className={`text-left py-2.5 px-3.5 text-[11.5px] font-medium tracking-[.04em] uppercase text-stone-400 bg-stone-50 border-b border-y border-stone-200 first:pl-5 last:pr-5 ${[4, 5, 6].includes(i) ? 'text-right' : ''} ${[2, 3, 5, 6].includes(i) ? 'hidden lg:table-cell' : ''}`}>
+                  <th key={i} className={`text-left py-2.5 px-3.5 text-[11.5px] font-medium tracking-[.04em] uppercase text-stone-600 bg-stone-50 border-b border-y border-stone-200 first:pl-5 last:pr-5 ${[4, 5, 6].includes(i) ? 'text-right' : ''} ${[2, 3, 5, 6].includes(i) ? 'hidden lg:table-cell' : ''}`}>
                     {h}
                   </th>
                 ))}
@@ -100,9 +100,9 @@ export default function ApInvoicesPage() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={9} className="py-12 text-center text-[13px] text-stone-400">กำลังโหลด...</td></tr>
+                <tr><td colSpan={9} className="py-12 text-center text-[13px] text-stone-600">กำลังโหลด...</td></tr>
               ) : data?.invoices.length === 0 ? (
-                <tr><td colSpan={9} className="py-12 text-center text-[13px] text-stone-400">ไม่พบรายการ</td></tr>
+                <tr><td colSpan={9} className="py-12 text-center text-[13px] text-stone-600">ไม่พบรายการ</td></tr>
               ) : data?.invoices.map((inv) => (
                 <tr
                   key={inv.id}
@@ -115,7 +115,7 @@ export default function ApInvoicesPage() {
                   </td>
                   <td className="py-0 h-11 px-3.5">
                     <div className="font-medium text-stone-900">{inv.vendor_name_th}</div>
-                    <div className="text-[11px] text-stone-400 font-mono">{inv.vendor_code}</div>
+                    <div className="text-[11px] text-stone-600 font-mono">{inv.vendor_code}</div>
                   </td>
                   <td className="py-0 h-11 px-3.5 text-stone-500 font-mono text-[12.5px] hidden lg:table-cell">{formatDate(inv.invoice_date)}</td>
                   <td className="py-0 h-11 px-3.5 text-stone-500 font-mono text-[12.5px] hidden lg:table-cell">{formatDate(inv.due_date)}</td>
@@ -134,7 +134,7 @@ export default function ApInvoicesPage() {
                       <StatusBadge status="processing" labelOverride="ยังไม่ครบกำหนด" />
                     )}
                   </td>
-                  <td className="py-0 h-11 px-3.5 pr-5 text-stone-300 group-hover:text-stone-400 text-right">
+                  <td className="py-0 h-11 px-3.5 pr-5 text-stone-300 group-hover:text-stone-600 text-right">
                     <Link href={`/app/ap/${inv.id}`} transitionTypes={['nav-forward']}>
                       <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="inline"><path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                     </Link>

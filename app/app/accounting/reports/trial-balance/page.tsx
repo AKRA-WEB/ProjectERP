@@ -93,7 +93,7 @@ export default function TrialBalancePage() {
           ))}
           {!loading && data.length > 0 && (
             <tr className="bg-stone-900 text-white font-bold">
-              <td colSpan={2} className="px-6 py-4 text-right uppercase tracking-widest text-[11px] text-stone-400">Total Balance</td>
+              <td colSpan={2} className="px-6 py-4 text-right uppercase tracking-widest text-[11px] text-stone-600">Total Balance</td>
               <td className="px-6 py-4 text-right font-mono">{formatCurrency(totals.debit)}</td>
               <td className="px-6 py-4 text-right font-mono">{formatCurrency(totals.credit)}</td>
               <td className="px-6 py-4 text-right font-mono text-emerald-400">

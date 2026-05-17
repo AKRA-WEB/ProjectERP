@@ -442,7 +442,7 @@ export default function InventoryPage() {
           </div>
         ) : (
           /* Card view */
-          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
             {loading ? (
               <div className="col-span-4 text-center py-12 text-stone-400 text-sm">กำลังโหลด...</div>
             ) : allItems.map((item) => {

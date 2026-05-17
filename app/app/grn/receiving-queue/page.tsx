@@ -73,10 +73,10 @@ function MobileBottomTabBar() {
             key={tab.key}
             onClick={() => router.push(tab.href)}
             className={`flex-1 flex flex-col items-center justify-center gap-0.5 text-[10px] font-medium ${
-              tab.active ? 'text-emerald-600' : 'text-stone-400 hover:text-stone-600'
+              tab.active ? 'text-emerald-600' : 'text-stone-600 hover:text-stone-600'
             }`}
           >
-            <Icon className={`w-5 h-5 ${tab.active ? 'text-emerald-600' : 'text-stone-400'}`} />
+            <Icon className={`w-5 h-5 ${tab.active ? 'text-emerald-600' : 'text-stone-600'}`} />
             {tab.label}
           </button>
         );
@@ -132,7 +132,7 @@ export default function ReceivingQueuePage() {
             </button>
             <div className="flex-1 text-center">
               <p className="text-[15px] font-semibold text-stone-900">รายการรอรับ</p>
-              <p className="text-[12px] text-stone-400 mt-0.5">Receiving Queue · {selectedWarehouseCode}</p>
+              <p className="text-[12px] text-stone-600 mt-0.5">Receiving Queue · {selectedWarehouseCode}</p>
             </div>
             <button className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-stone-100">
               <Filter className="w-4 h-4 text-stone-600" />
@@ -144,19 +144,19 @@ export default function ReceivingQueuePage() {
             {/* Summary strip */}
             <div className="grid grid-cols-3 gap-2">
               <div className={`bg-white rounded-xl p-3 border ${urgentCount > 0 ? 'border-amber-300' : 'border-stone-200'}`}>
-                <p className="text-[10px] text-stone-400">ด่วน</p>
+                <p className="text-[10px] text-stone-600">ด่วน</p>
                 <p className={`text-xl font-mono font-bold tabular-nums ${urgentCount > 0 ? 'text-amber-700' : 'text-stone-300'}`}>{urgentCount}</p>
-                <p className="text-[9px] text-stone-400">เกิน 4 ชม.</p>
+                <p className="text-[9px] text-stone-600">เกิน 4 ชม.</p>
               </div>
               <div className="bg-white rounded-xl p-3 border border-stone-200">
-                <p className="text-[10px] text-stone-400">IO (LINE)</p>
+                <p className="text-[10px] text-stone-600">IO (LINE)</p>
                 <p className="text-xl font-mono font-bold tabular-nums text-stone-900">{data.inbound_orders.length}</p>
-                <p className="text-[9px] text-stone-400">{ioQtyTotal.toLocaleString()} ชิ้น</p>
+                <p className="text-[9px] text-stone-600">{ioQtyTotal.toLocaleString()} ชิ้น</p>
               </div>
               <div className="bg-white rounded-xl p-3 border border-stone-200">
-                <p className="text-[10px] text-stone-400">PO</p>
+                <p className="text-[10px] text-stone-600">PO</p>
                 <p className="text-xl font-mono font-bold tabular-nums text-stone-900">{data.pending_pos.length}</p>
-                <p className="text-[9px] text-stone-400">{poQtyTotal.toLocaleString()} ชิ้น</p>
+                <p className="text-[9px] text-stone-600">{poQtyTotal.toLocaleString()} ชิ้น</p>
               </div>
             </div>
 
@@ -188,10 +188,10 @@ export default function ReceivingQueuePage() {
 
             {/* Queue cards */}
             {loading ? (
-              <div className="text-center py-12 text-stone-400 text-sm">กำลังโหลด...</div>
+              <div className="text-center py-12 text-stone-600 text-sm">กำลังโหลด...</div>
             ) : segment === 'io' ? (
               data.inbound_orders.length === 0 ? (
-                <div className="text-center py-12 text-stone-400 text-sm">ไม่มี IO ค้างรับ</div>
+                <div className="text-center py-12 text-stone-600 text-sm">ไม่มี IO ค้างรับ</div>
               ) : (
                 <div className="space-y-3">
                   {data.inbound_orders.map((io) => {
@@ -209,11 +209,11 @@ export default function ReceivingQueuePage() {
                           </div>
                           <div className="text-right">
                             <p className="text-xl font-mono font-bold tabular-nums text-stone-900">{formatQty(io.total_qty_remaining)}</p>
-                            <p className="text-[10px] text-stone-400">{io.total_lines} รายการ</p>
+                            <p className="text-[10px] text-stone-600">{io.total_lines} รายการ</p>
                           </div>
                         </div>
                         <p className="text-[13.5px] font-medium text-stone-800">{io.vendor_name}</p>
-                        <p className="text-[12px] text-stone-400">{timeSince(io.created_at)}</p>
+                        <p className="text-[12px] text-stone-600">{timeSince(io.created_at)}</p>
                         <button
                           onClick={() => router.push(`/app/grn/new?io_id=${io.id}`)}
                           className="w-full h-10 bg-emerald-600 text-white rounded-xl text-[13px] font-semibold hover:bg-emerald-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
@@ -228,7 +228,7 @@ export default function ReceivingQueuePage() {
               )
             ) : (
               data.pending_pos.length === 0 ? (
-                <div className="text-center py-12 text-stone-400 text-sm">ไม่มี PO ค้างรับ</div>
+                <div className="text-center py-12 text-stone-600 text-sm">ไม่มี PO ค้างรับ</div>
               ) : (
                 <div className="space-y-3">
                   {data.pending_pos.map((po) => {
@@ -246,11 +246,11 @@ export default function ReceivingQueuePage() {
                           </div>
                           <div className="text-right">
                             <p className="text-xl font-mono font-bold tabular-nums text-stone-900">{formatQty(po.total_qty_remaining)}</p>
-                            <p className="text-[10px] text-stone-400">{po.total_lines} รายการ</p>
+                            <p className="text-[10px] text-stone-600">{po.total_lines} รายการ</p>
                           </div>
                         </div>
                         <p className="text-[13.5px] font-medium text-stone-800">{po.vendor_name}</p>
-                        <p className="text-[12px] text-stone-400">
+                        <p className="text-[12px] text-stone-600">
                           {po.expected_date ? `คาดรับ ${formatDate(po.expected_date)}` : timeSince(po.created_at ?? '')}
                         </p>
                         <button
@@ -321,9 +321,9 @@ export default function ReceivingQueuePage() {
                   </Thead>
                   <Tbody>
                     {loading ? (
-                      <tr><Td colSpan={7}><div className="py-8 text-center text-stone-400">กำลังโหลด...</div></Td></tr>
+                      <tr><Td colSpan={7}><div className="py-8 text-center text-stone-600">กำลังโหลด...</div></Td></tr>
                     ) : data.inbound_orders.length === 0 ? (
-                      <tr><Td colSpan={7}><div className="py-8 text-center text-stone-400 italic">ไม่มีรายการ IO ค้างรับ</div></Td></tr>
+                      <tr><Td colSpan={7}><div className="py-8 text-center text-stone-600 italic">ไม่มีรายการ IO ค้างรับ</div></Td></tr>
                     ) : data.inbound_orders.map((io) => (
                       <tr key={io.id} className="hover:bg-stone-50">
                         <Td className="font-mono font-medium text-sm text-emerald-700">
@@ -367,9 +367,9 @@ export default function ReceivingQueuePage() {
                   </Thead>
                   <Tbody>
                     {loading ? (
-                      <tr><Td colSpan={7}><div className="py-8 text-center text-stone-400">กำลังโหลด...</div></Td></tr>
+                      <tr><Td colSpan={7}><div className="py-8 text-center text-stone-600">กำลังโหลด...</div></Td></tr>
                     ) : data.pending_pos.length === 0 ? (
-                      <tr><Td colSpan={7}><div className="py-8 text-center text-stone-400 italic">ไม่มีรายการ PO ค้างรับ</div></Td></tr>
+                      <tr><Td colSpan={7}><div className="py-8 text-center text-stone-600 italic">ไม่มีรายการ PO ค้างรับ</div></Td></tr>
                     ) : data.pending_pos.map((po) => (
                       <tr key={po.id} className="hover:bg-stone-50">
                         <Td className="font-mono font-medium text-sm text-blue-700">

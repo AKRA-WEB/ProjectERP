@@ -70,7 +70,7 @@ export default function PickingPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, tab, session, currentUser]);
+  }, [page, tab, currentUser]);
 
   useEffect(() => {
     fetchPickLists();

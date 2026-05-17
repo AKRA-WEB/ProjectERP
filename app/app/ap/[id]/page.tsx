@@ -44,8 +44,8 @@ export default function ApInvoiceDetailPage() {
 
   useEffect(() => { fetchInvoice(); }, [fetchInvoice]);
 
-  if (loading) return <div className="py-16 text-center text-stone-400">กำลังโหลด...</div>;
-  if (!invoice) return <div className="py-16 text-center text-stone-400">ไม่พบข้อมูลใบแจ้งหนี้</div>;
+  if (loading) return <div className="py-16 text-center text-stone-600">กำลังโหลด...</div>;
+  if (!invoice) return <div className="py-16 text-center text-stone-600">ไม่พบข้อมูลใบแจ้งหนี้</div>;
 
   return (
     <DirectionalTransition>
@@ -78,17 +78,17 @@ export default function ApInvoiceDetailPage() {
             <h2 className="text-[15px] font-semibold text-stone-800 mb-4 pb-4 border-b border-stone-100">ข้อมูลใบแจ้งหนี้</h2>
             <div className="grid grid-cols-2 gap-y-4 gap-x-6">
               <div>
-                <p className="text-xs text-stone-400 mb-1">ผู้จำหน่าย / Vendor</p>
+                <p className="text-xs text-stone-600 mb-1">ผู้จำหน่าย / Vendor</p>
                 <Link href={`/app/vendors/${invoice.vendor_id}`} className="text-sm font-medium text-blue-600 hover:underline font-mono">
                   [{invoice.vendor_code}] {invoice.vendor_name_th}
                 </Link>
               </div>
               <div>
-                <p className="text-xs text-stone-400 mb-1">วันที่รับใบแจ้งหนี้</p>
+                <p className="text-xs text-stone-600 mb-1">วันที่รับใบแจ้งหนี้</p>
                 <p className="text-sm font-medium">{formatDate(invoice.invoice_date)}</p>
               </div>
               <div>
-                <p className="text-xs text-stone-400 mb-1">วันครบกำหนด / Due Date</p>
+                <p className="text-xs text-stone-600 mb-1">วันครบกำหนด / Due Date</p>
                 <p className={`text-sm font-medium ${invoice.overdue_days > 0 && !invoice.is_paid ? 'text-red-600' : ''}`}>
                   {formatDate(invoice.due_date)}
                   {invoice.overdue_days > 0 && !invoice.is_paid && (
@@ -97,7 +97,7 @@ export default function ApInvoiceDetailPage() {
                 </p>
               </div>
               <div>
-                <p className="text-xs text-stone-400 mb-1">อ้างอิงเอกสาร</p>
+                <p className="text-xs text-stone-600 mb-1">อ้างอิงเอกสาร</p>
                 <div className="flex gap-3">
                   {invoice.po_number && (
                     <Link href={`/app/purchase-orders/${invoice.po_id}`} className="text-[12px] font-mono text-stone-600 bg-stone-100 hover:bg-stone-200 px-2 py-0.5 rounded">
@@ -131,7 +131,7 @@ export default function ApInvoiceDetailPage() {
               <tbody>
                 {invoice.allocations.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="py-8 text-center text-stone-400 italic">ยังไม่มีประวัติการชำระเงิน</td>
+                    <td colSpan={4} className="py-8 text-center text-stone-600 italic">ยังไม่มีประวัติการชำระเงิน</td>
                   </tr>
                 ) : invoice.allocations.map((alloc) => (
                   <tr key={alloc.id} className="border-b border-stone-50 last:border-0 hover:bg-stone-50/60">
@@ -153,7 +153,7 @@ export default function ApInvoiceDetailPage() {
         {/* Right Column: Totals & Action */}
         <div className="space-y-6">
           <div className={`${CARD} p-6 bg-stone-50/50`}>
-            <h3 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-4">ยอดเงิน</h3>
+            <h3 className="text-xs font-bold text-stone-600 uppercase tracking-widest mb-4">ยอดเงิน</h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center text-sm">
                 <span className="text-stone-500">ยอดรวมทั้งสิ้น</span>
@@ -165,7 +165,7 @@ export default function ApInvoiceDetailPage() {
               </div>
               <div className="pt-3 border-t border-stone-200 flex justify-between items-center">
                 <span className="text-stone-900 font-semibold">ยอดค้างชำระ</span>
-                <span className={`font-mono text-lg font-bold ${invoice.outstanding_amount > 0 ? 'text-red-600' : 'text-stone-400'}`}>
+                <span className={`font-mono text-lg font-bold ${invoice.outstanding_amount > 0 ? 'text-red-600' : 'text-stone-600'}`}>
                   {formatCurrency(invoice.outstanding_amount)}
                 </span>
               </div>

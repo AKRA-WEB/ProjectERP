@@ -91,7 +91,7 @@ export default function ProfitLossPage() {
           </div>
 
           <section>
-            <h3 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-4">รายได้ / Revenue</h3>
+            <h3 className="text-xs font-bold text-stone-600 uppercase tracking-widest mb-4">รายได้ / Revenue</h3>
             {data.revenue.items.map((item) => (
               <Row key={item.code} name={`${item.code} - ${item.name}`} amount={item.amount} indent />
             ))}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button, StatusBadge, Modal, ModalHeader, ModalBody, ModalFooter, Input } from '@/components/ui';
 import { get, post } from '@/lib/api-client';
@@ -42,12 +42,12 @@ export default function PRDetailPage() {
   const [acting, setActing] = useState(false);
   const [error, setError] = useState('');
 
-  async function fetchPR() {
+  const fetchPR = useCallback(async () => {
     setLoading(true);
     try { setPr(await get<PRDetail>(`/api/purchase-requests/${id}`)); } finally { setLoading(false); }
-  }
+  }, [id]);
 
-  useEffect(() => { fetchPR(); }, [id]);
+  useEffect(() => { fetchPR(); }, [fetchPR]);
 
   async function action(path: string, body: object = {}) {
     setError('');

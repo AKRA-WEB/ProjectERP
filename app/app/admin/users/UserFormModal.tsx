@@ -92,7 +92,7 @@ export default function UserFormModal({ user, onClose, onSaved }: Props) {
           )}
 
           <div className="border-t pt-4">
-            <h3 className="text-xs font-bold text-gray-400 uppercase mb-4 tracking-widest">ข้อมูลพนักงาน / Employee Info</h3>
+            <h3 className="text-xs font-bold text-gray-600 uppercase mb-4 tracking-widest">ข้อมูลพนักงาน / Employee Info</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input label="รหัสพนักงาน / Employee ID" value={form.employee_id} onChange={(e) => set('employee_id', e.target.value)} placeholder="เช่น EMP001" />
               <Input label="ตำแหน่ง / Position" value={form.position} onChange={(e) => set('position', e.target.value)} />

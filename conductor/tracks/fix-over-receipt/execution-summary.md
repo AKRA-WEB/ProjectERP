@@ -1,27 +1,27 @@
 # Execution Summary: Fix BUG-001 — Over-receipt Not Blocked
 
-**Date:** 2026-05-10  
-**Status:** Completed  
+**Date:** 2026-05-17  
+**Status:** Completed (Reworked)
 **Track:** `fix-over-receipt`
 
 ## Overview
-Implemented a dual-layer guard to prevent users from receiving more items than ordered on a Purchase Order (PO). This ensures inventory integrity and prevents financial discrepancies.
+Implemented a robust dual-layer guard to prevent over-receipt on both Purchase Orders (PO) and Inbound Orders (IO). The guard now accounts for all non-cancelled GRNs, even those not yet "stocked," by summing up previous receipt lines from the database.
 
 ## Changes
 
-### 1. Server-side Guard (`app/api/grn/route.ts`)
-- Added a check in the `POST` handler to fetch the current `qty_ordered` and `qty_received` for each PO line.
-- Validation logic blocks the request with a `422 Unprocessable Entity` status if any line item in the GRN exceeds its remaining PO quantity.
+### 1. Robust Server-side Guard (`app/api/grn/route.ts`)
+- **Summation Logic:** Instead of relying on the `qty_received` column in PO/IO lines (which only updates on "stocking"), the API now queries and sums `qty_received` from all existing `grn_line_items` for the source document that are not part of a cancelled GRN.
+- **PO Support:** Prevents over-receipt against Purchase Orders.
+- **IO Support:** Added missing quantity validation for Inbound Orders, ensuring consistency across receipt sources.
+- **Floating Point Safety:** Added a small allowance (`0.0001`) for floating-point comparisons.
 
 ### 2. Client-side Guard (`app/(app)/grn/new/page.tsx`)
 - Updated the quantity input to include a `max` attribute based on the remaining quantity.
 - Added a validation check in `handleSubmit` to provide immediate Thai error messages if a user attempts to over-receive.
-- Renamed the column header to "สั่งซื้อคงเหลือ" (Remaining Ordered) for better clarity.
 
 ## Verification Results
-- **Logic Verification:** Confirmed that the comparison logic (`qty_received > remaining`) correctly identifies and blocks over-receipt cases.
-- **Linting:** `npm run lint` passed with no new errors.
-- **Regression:** Verified that valid receipts (≤ remaining) still process correctly.
+- **Logic Verification:** Confirmed that the comparison logic correctly identifies and blocks over-receipt cases across multiple draft/received GRNs.
+- **TypeScript & Linting:** `npx tsc --noEmit` and `npm run lint` passed with zero errors.
 
 ## Final Status
-BUG-001 is now RESOLVED at both the API and UI layers.
+BUG-001 is RESOLVED with high confidence across all receipt workflows.

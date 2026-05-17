@@ -241,7 +241,7 @@ function NewGRNPageInner() {
           <p className="text-[15px] font-semibold text-stone-900 leading-tight">
             รับสินค้า · {docNumber ?? (mode === 'po' ? selectedPoId.slice(0, 8) : '—')}
           </p>
-          {vendorName && <p className="text-[12px] text-stone-400 leading-tight mt-0.5">{vendorName}</p>}
+          {vendorName && <p className="text-[12px] text-stone-600 leading-tight mt-0.5">{vendorName}</p>}
         </div>
         <button className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-stone-100">
           <MoreHorizontal className="w-5 h-5 text-stone-700" />
@@ -257,7 +257,7 @@ function NewGRNPageInner() {
               style={{ width: totalCount > 0 ? `${(doneCount / totalCount) * 100}%` : '0%' }}
             />
           </div>
-          <span className="text-[11px] font-mono text-stone-400 flex-shrink-0">{doneCount}/{totalCount}</span>
+          <span className="text-[11px] font-mono text-stone-600 flex-shrink-0">{doneCount}/{totalCount}</span>
         </div>
       )}
 
@@ -266,7 +266,7 @@ function NewGRNPageInner() {
           <div className="flex flex-col items-center justify-center py-16 text-stone-300">
             <p className="text-sm">ไม่มีรายการสินค้า</p>
             {mode === 'po' && !selectedPoId && (
-              <p className="text-xs mt-1 text-stone-400">เลือก PO ก่อน</p>
+              <p className="text-xs mt-1 text-stone-600">เลือก PO ก่อน</p>
             )}
           </div>
         ) : (
@@ -274,10 +274,10 @@ function NewGRNPageInner() {
             {/* Scan banner */}
             <div className="bg-stone-900 text-white rounded-xl p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <ScanLine className="w-5 h-5 text-stone-400" />
+                <ScanLine className="w-5 h-5 text-stone-600" />
                 <div>
                   <p className="text-[13px] font-semibold">สแกนบาร์โค้ดสินค้า</p>
-                  <p className="text-[11px] text-stone-400">สแกนเพื่อข้ามไปยังรายการที่ตรงกัน</p>
+                  <p className="text-[11px] text-stone-600">สแกนเพื่อข้ามไปยังรายการที่ตรงกัน</p>
                 </div>
               </div>
               <button className="border border-stone-600 text-stone-300 text-[12px] px-3 py-1.5 rounded-lg hover:bg-stone-800">
@@ -303,7 +303,7 @@ function NewGRNPageInner() {
                 <div className="rounded-xl bg-stone-50 border border-stone-200 p-3 space-y-2">
                   <div className="flex items-center justify-between text-[12px]">
                     <span className="text-stone-500">จำนวนที่รับ</span>
-                    <span className="text-stone-400 font-mono">สั่ง {formatQty(activeL.qty_ordered)}</span>
+                    <span className="text-stone-600 font-mono">สั่ง {formatQty(activeL.qty_ordered)}</span>
                   </div>
                   <div className="flex justify-center items-center gap-2.5">
                     <button
@@ -342,7 +342,7 @@ function NewGRNPageInner() {
                 {/* Lot + Location */}
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-[11px] text-stone-400 mb-1 block">LOT NO.</label>
+                    <label className="text-[11px] text-stone-600 mb-1 block">LOT NO.</label>
                     <input
                       value={activeL.lot_number}
                       onChange={(e) => updateLine(activeLine, 'lot_number', e.target.value)}
@@ -351,7 +351,7 @@ function NewGRNPageInner() {
                     />
                   </div>
                   <div>
-                    <label className="text-[11px] text-stone-400 mb-1 block">ตำแหน่งเก็บ</label>
+                    <label className="text-[11px] text-stone-600 mb-1 block">ตำแหน่งเก็บ</label>
                     <input
                       value={activeL.storage_location}
                       onChange={(e) => updateLine(activeLine, 'storage_location', e.target.value)}
@@ -363,7 +363,7 @@ function NewGRNPageInner() {
 
                 {/* Expiry date */}
                 <div>
-                  <label className="text-[11px] text-stone-400 mb-1 flex items-center gap-1">
+                  <label className="text-[11px] text-stone-600 mb-1 flex items-center gap-1">
                     <Calendar className="w-3 h-3" /> วันหมดอายุ
                   </label>
                   <div className="flex items-center gap-2">
@@ -383,7 +383,7 @@ function NewGRNPageInner() {
                 </div>
 
                 {/* Action buttons */}
-                <div className="grid grid-cols-2 gap-2 pt-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
                   <button onClick={skipLine}
                     className="h-10 border border-stone-200 rounded-xl text-[13px] font-semibold text-stone-600 hover:bg-stone-50">
                     ข้ามไปก่อน
@@ -421,10 +421,10 @@ function NewGRNPageInner() {
                       )}
                       <div className="flex-1 min-w-0">
                         <p className="text-[13px] font-medium text-stone-800 truncate">{l.product_label.split(' — ')[1] ?? l.product_label}</p>
-                        <p className="text-[11px] font-mono text-stone-400">{l.sku}</p>
+                        <p className="text-[11px] font-mono text-stone-600">{l.sku}</p>
                       </div>
                       <span className={`text-[12px] font-mono font-bold flex-shrink-0 ${
-                        status === 'done' ? 'text-emerald-600' : status === 'partial' ? 'text-amber-600' : 'text-stone-400'
+                        status === 'done' ? 'text-emerald-600' : status === 'partial' ? 'text-amber-600' : 'text-stone-600'
                       }`}>
                         {formatQty(l.qty_received)}/{formatQty(l.qty_ordered)}
                       </span>
@@ -447,7 +447,7 @@ function NewGRNPageInner() {
           className={`w-full h-12 rounded-xl text-[14px] font-semibold transition-all ${
             allDone
               ? 'bg-emerald-600 text-white hover:bg-emerald-700'
-              : 'bg-stone-200 text-stone-400 cursor-not-allowed'
+              : 'bg-stone-200 text-stone-600 cursor-not-allowed'
           }`}
         >
           {saving ? 'กำลังบันทึก...' : allDone
@@ -502,7 +502,7 @@ function NewGRNPageInner() {
           <div className="bg-stone-50 rounded-lg p-4 flex flex-col justify-center">
             <label className="text-xs font-medium text-stone-500 uppercase tracking-wider mb-1">ผู้รับสินค้า</label>
             <p className="text-sm font-semibold text-stone-900">{session?.user?.name ?? '—'}</p>
-            <p className="text-xs text-stone-400 mt-1">บันทึกอัตโนมัติจากผู้ใช้ที่ล็อกอิน</p>
+            <p className="text-xs text-stone-600 mt-1">บันทึกอัตโนมัติจากผู้ใช้ที่ล็อกอิน</p>
           </div>
         </div>
 
@@ -559,7 +559,7 @@ function NewGRNPageInner() {
         )}
 
         {mode === 'po' && !selectedPoId && (
-          <p className="text-sm text-stone-400 text-center py-8 border-2 border-dashed border-stone-200 rounded-lg">
+          <p className="text-sm text-stone-600 text-center py-8 border-2 border-dashed border-stone-200 rounded-lg">
             เลือกใบสั่งซื้อก่อนเพื่อโหลดรายการสินค้า
           </p>
         )}

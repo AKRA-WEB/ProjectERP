@@ -102,7 +102,7 @@ export default function AdminUomPage() {
   const baseUoms = uoms.filter(u => u.is_base_unit);
   const nonBaseUoms = uoms.filter(u => !u.is_base_unit);
 
-  if (loading) return <div className="py-16 text-center text-gray-400">กำลังโหลด...</div>;
+  if (loading) return <div className="py-16 text-center text-gray-600">กำลังโหลด...</div>;
 
   return (
     <div className="space-y-8">
@@ -150,7 +150,7 @@ export default function AdminUomPage() {
                   <Td>
                     {u.factor
                       ? <span className="text-sm">1 {u.code} = <strong>{u.factor}</strong> {u.base_uom_code}</span>
-                      : <span className="text-gray-400 text-sm">—</span>}
+                      : <span className="text-gray-600 text-sm">—</span>}
                   </Td>
                   <Td><span className="text-sm text-gray-500">{u.barcode_label ?? '—'}</span></Td>
                   <Td>
@@ -190,7 +190,7 @@ export default function AdminUomPage() {
             </Thead>
             <Tbody>
               {conversions.length === 0 ? (
-                <tr><Td colSpan={4} className="text-center text-gray-400 py-8">ยังไม่มี conversion rules</Td></tr>
+                <tr><Td colSpan={4} className="text-center text-gray-600 py-8">ยังไม่มี conversion rules</Td></tr>
               ) : conversions.map(c => (
                 <tr key={c.id}>
                   <Td>
@@ -222,7 +222,7 @@ export default function AdminUomPage() {
         <Modal title="เพิ่มหน่วยนับ" onClose={() => setShowCreateUom(false)}>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Code <span className="text-gray-400">(A-Z0-9 หรือภาษาไทย)</span></label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Code <span className="text-gray-600">(A-Z0-9 หรือภาษาไทย)</span></label>
               <Input
                 value={newUom.code}
                 onChange={e => setNewUom(p => ({ ...p, code: e.target.value.toUpperCase() }))}

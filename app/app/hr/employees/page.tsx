@@ -7,7 +7,9 @@ import Link from 'next/link';
 import { Pagination } from '@/components/ui/Pagination';
 import { formatNumber } from '@/lib/format';
 import { DirectionalTransition } from '@/components/ui/directional-transition';
-
+import { useSession } from 'next-auth/react';
+import EmployeeFormModal from './EmployeeFormModal';
+import { type SessionUser } from '@/types';
 
 const AVATAR_COLORS = [
   '#a78bfa', '#fb923c', '#22c55e', '#0ea5e9', '#f43f5e',
@@ -30,6 +32,7 @@ interface PaginatedEmployees {
 }
 
 export default function EmployeesPage() {
+  const { data: session } = useSession();
   const [data, setData] = useState<PaginatedEmployees | null>(null);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [page, setPage] = useState(1);
@@ -38,6 +41,10 @@ export default function EmployeesPage() {
   const [deptFilter, setDeptFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState<EmployeeStatus | ''>('');
   const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+
+  const user = session?.user as SessionUser | undefined;
+  const canCreate = user && ['admin', 'manager'].includes(user.role);
 
   const fetchEmployees = useCallback(async () => {
     setLoading(true);
@@ -79,6 +86,17 @@ export default function EmployeesPage() {
               {loading ? '—' : formatNumber(data?.total ?? 0)} คน
             </p>
           </div>
+          {canCreate && (
+            <button
+              onClick={() => setShowForm(true)}
+              className="h-9 px-4 rounded-[8px] bg-emerald-600 hover:bg-emerald-700 text-white text-[13.5px] font-medium transition-colors flex items-center gap-2"
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M7 3v8M3 7h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              เพิ่มพนักงาน
+            </button>
+          )}
         </div>
 
         {/* Filters */}
@@ -199,6 +217,16 @@ export default function EmployeesPage() {
             onPageChange={setPage}
             limit={pageSize}
             onLimitChange={setPageSize}
+          />
+        )}
+
+        {showForm && (
+          <EmployeeFormModal
+            onClose={() => setShowForm(false)}
+            onSaved={() => {
+              setShowForm(false);
+              fetchEmployees();
+            }}
           />
         )}
       </div>

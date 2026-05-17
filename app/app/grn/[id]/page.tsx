@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button, StatusBadge, Badge, Input, Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/ui';
 import { get, post } from '@/lib/api-client';
@@ -8,12 +8,37 @@ import { formatDate, formatQty } from '@/lib/format';
 import { useSession } from 'next-auth/react';
 import type { GrnStatus } from '@/types';
 import Link from 'next/link';
+import { Search, ScanLine, Plus, Trash2 } from 'lucide-react';
+
+const LABEL_CLS = "block text-[13px] font-medium text-stone-500 mb-1";
+const FIELD_CLS = "w-full bg-white border border-stone-200 rounded-[7px] px-3 py-2 text-[14px] outline-none focus:border-emerald-500 transition-colors";
+
+interface ExtraLine {
+  product_id: string;
+  sku: string;
+  name_th: string;
+  qty_received: number;
+  storage_location: string;
+}
+
+interface ProductSearchResult {
+  id: string;
+  sku: string;
+  name_th: string;
+}
+
+interface Warehouse {
+  id: string;
+  code: string;
+  name_th: string;
+}
 
 interface GRNLine {
   id: string;
   line_number: number;
   sku: string;
   name_th: string;
+  qty_expected: number | null;
   qty_received: number;
   qty_accepted: number | null;
   qty_rejected: number | null;
@@ -31,6 +56,7 @@ interface GRNDetail {
   po_number: string | null;
   io_number: string | null;
   inbound_order_id: string | null;
+  warehouse_id: string;
   warehouse_code: string;
   warehouse_name: string;
   received_by_name: string;
@@ -60,7 +86,20 @@ export default function GRNDetailPage() {
   const [qcNotes, setQcNotes] = useState('');
   const [verifyNotes, setVerifyNotes] = useState('');
 
-  async function fetchGRN() {
+  // Work Card States
+  const [extraLines, setExtraLines] = useState<ExtraLine[]>([]);
+  const [productSearch, setProductSearch] = useState('');
+  const [searchResults, setSearchResults] = useState<ProductSearchResult[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [workCard, setWorkCard] = useState({
+    delivery_date: new Date().toISOString().split('T')[0],
+    receiver_name: '',
+    warehouse_id: '',
+    lines: [] as { id: string; qty_received: number; storage_location: string }[],
+  });
+
+  const fetchGRN = useCallback(async () => {
     setLoading(true);
     try {
       const data = await get<GRNDetail>(`/api/grn/${id}`);
@@ -72,12 +111,55 @@ export default function GRNDetailPage() {
         qc_status: l.qc_status ?? 'pass',
         qc_notes: l.qc_notes ?? '',
       })) ?? []);
+
+      // Initialize Work Card
+      setWorkCard((wc) => ({
+        ...wc,
+        warehouse_id: data.warehouse_id,
+        receiver_name: data.received_by_name ?? '',
+        lines: data.lines.map((l) => ({
+          id: l.id,
+          qty_received: data.status === 'draft' ? 0 : l.qty_received,
+          storage_location: l.storage_location ?? '',
+        })),
+      }));
     } finally {
       setLoading(false);
     }
-  }
+  }, [id]);
 
-  useEffect(() => { fetchGRN(); }, [id]);
+  useEffect(() => { fetchGRN(); }, [fetchGRN]);
+
+  useEffect(() => {
+    get<Warehouse[]>('/api/admin/warehouses').then(setWarehouses).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!productSearch.trim()) { setSearchResults([]); return; }
+    const t = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const res = await get<{ data: ProductSearchResult[] }>(
+          `/api/products?search=${encodeURIComponent(productSearch)}&limit=10`
+        );
+        setSearchResults(res.data ?? []);
+      } catch (e) {
+        console.error('Search error', e);
+      } finally {
+        setSearching(false);
+      }
+    }, 300);
+    return () => clearTimeout(t);
+  }, [productSearch]);
+
+  function addExtraLine(p: ProductSearchResult) {
+    setExtraLines((prev) => [...prev, {
+      product_id: p.id, sku: p.sku, name_th: p.name_th,
+      qty_received: 1, storage_location: '',
+    }]);
+    setProductSearch('');
+    setSearchResults([]);
+  }
 
   async function action(path: string, body: object = {}) {
     setError('');
@@ -87,6 +169,32 @@ export default function GRNDetailPage() {
       await fetchGRN();
       setShowQC(false);
       setShowVerify(false);
+    } catch (e: unknown) {
+      const err = e as { message?: string };
+      setError(err.message ?? 'เกิดข้อผิดพลาด');
+    } finally {
+      setActing(false);
+    }
+  }
+
+  async function handleReceive() {
+    setError('');
+    setActing(true);
+    try {
+      await post(`/api/grn/${id}/receive`, {
+        delivery_date: workCard.delivery_date,
+        receiver_name: workCard.receiver_name || undefined,
+        warehouse_id: workCard.warehouse_id !== grn?.warehouse_id ? workCard.warehouse_id : undefined,
+        lines: workCard.lines,
+        extra_lines: extraLines.length > 0
+          ? extraLines.map((l) => ({
+              product_id: l.product_id,
+              qty_received: l.qty_received,
+              storage_location: l.storage_location || undefined,
+            }))
+          : undefined,
+      });
+      await fetchGRN();
     } catch (e: unknown) {
       const err = e as { message?: string };
       setError(err.message ?? 'เกิดข้อผิดพลาด');
@@ -132,8 +240,169 @@ export default function GRNDetailPage() {
         ))}
       </div>
 
-      {/* QC form */}
-      {showQC ? (
+      {/* Forms and Tables */}
+      {grn.status === 'draft' ? (
+        <div className="rounded-xl bg-white shadow-sm border border-emerald-100 p-6 mb-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-lg font-semibold text-emerald-800 flex items-center gap-2">
+              <ScanLine className="w-5 h-5" /> บันทึกรับสินค้า (Work Card)
+            </h2>
+            <div className="w-1/3">
+              <label className={LABEL_CLS}>คลังรับสินค้า / Receiving Warehouse</label>
+              <select
+                value={workCard.warehouse_id}
+                onChange={(e) => setWorkCard((wc) => ({ ...wc, warehouse_id: e.target.value }))}
+                className={FIELD_CLS}
+              >
+                {warehouses.map((w) => (
+                  <option key={w.id} value={w.id}>{w.code} — {w.name_th}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <table className="w-full text-sm mb-4 border-t border-stone-200">
+            <thead className="bg-stone-50">
+              <tr>
+                <th className="text-left p-3 font-medium text-stone-600">SKU</th>
+                <th className="text-left p-3 font-medium text-stone-600">สินค้า</th>
+                <th className="text-right p-3 font-medium text-stone-600 w-32">ที่สั่ง / คาดว่าจะรับ</th>
+                <th className="text-right p-3 font-medium text-stone-600 w-32">จำนวนที่รับ</th>
+                <th className="text-left p-3 font-medium text-stone-600 w-40">โลเคชั่น</th>
+              </tr>
+            </thead>
+            <tbody>
+              {grn.lines?.map((line) => {
+                const wl = workCard.lines.find(l => l.id === line.id) || { qty_received: 0, storage_location: '' };
+                return (
+                  <tr key={line.id} className="border-b border-stone-100">
+                    <td className="p-3 font-mono text-xs text-stone-500">{line.sku}</td>
+                    <td className="p-3 font-medium text-stone-800">{line.name_th}</td>
+                    <td className="p-3 text-right font-mono text-stone-500">
+                      {line.qty_expected != null ? formatQty(line.qty_expected) : '—'} <span className="text-[11px] text-stone-400">{line.uom_code}</span>
+                    </td>
+                    <td className="p-3 text-right">
+                      <input
+                        type="number" min="0" step="any"
+                        value={wl.qty_received || ''}
+                        onChange={(e) => setWorkCard(wc => ({
+                          ...wc,
+                          lines: wc.lines.map(l => l.id === line.id ? { ...l, qty_received: parseFloat(e.target.value) || 0 } : l)
+                        }))}
+                        className="w-full text-right rounded-[6px] border border-stone-200 px-2 py-1.5 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400"
+                      />
+                      {wl.qty_received > 0 && line.qty_expected != null && wl.qty_received > line.qty_expected && (
+                        <p className="text-[11px] text-amber-600 text-right mt-0.5 tabular-nums">
+                          เกินที่สั่ง +{(wl.qty_received - Number(line.qty_expected)).toFixed(0)} {line.uom_code}
+                        </p>
+                      )}
+                    </td>
+                    <td className="p-3">
+                      <input
+                        type="text" placeholder="A-01"
+                        value={wl.storage_location}
+                        onChange={(e) => setWorkCard(wc => ({
+                          ...wc,
+                          lines: wc.lines.map(l => l.id === line.id ? { ...l, storage_location: e.target.value } : l)
+                        }))}
+                        className="w-full rounded-[6px] border border-stone-200 px-2 py-1.5 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400"
+                      />
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+
+          {/* Extra / bonus items search */}
+          <div className="mt-6 mb-2">
+            <p className={LABEL_CLS}>เพิ่มสินค้าแถม / สินค้าที่ไม่ได้สั่ง</p>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="ค้นหาสินค้าด้วยชื่อหรือ SKU..."
+                value={productSearch}
+                onChange={(e) => setProductSearch(e.target.value)}
+                className={FIELD_CLS}
+              />
+              <Search className="absolute right-3 top-2.5 w-4 h-4 text-stone-400" />
+              {searchResults.length > 0 && (
+                <ul className="absolute z-10 left-0 right-0 top-full mt-1 bg-white border border-stone-200 rounded-[7px] shadow-lg text-[13px] max-h-60 overflow-y-auto">
+                  {searchResults.map((p) => (
+                    <li
+                      key={p.id}
+                      onClick={() => addExtraLine(p)}
+                      className="px-3 py-2.5 cursor-pointer hover:bg-emerald-50 flex items-center gap-3 border-b border-stone-50 last:border-0"
+                    >
+                      <Plus className="w-4 h-4 text-emerald-500" />
+                      <span className="font-mono text-stone-500 text-[11px]">{p.sku}</span>
+                      <span className="font-medium">{p.name_th}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {searching && (
+                <span className="absolute right-10 top-2.5 text-[11px] text-stone-400">กำลังค้นหา…</span>
+              )}
+            </div>
+          </div>
+
+          {extraLines.length > 0 && (
+            <table className="w-full text-[13px] mb-4 border-t border-dashed border-amber-200 mt-4">
+              <thead className="bg-amber-50">
+                <tr>
+                  <th className="px-3 py-2 text-left font-medium text-amber-800">สินค้าเพิ่มเติม (ไม่ได้สั่ง)</th>
+                  <th className="px-3 py-2 text-right font-medium text-stone-600 w-32">จำนวนที่รับ</th>
+                  <th className="px-3 py-2 text-left font-medium text-stone-600 w-40">โลเคชั่น</th>
+                  <th className="w-10"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {extraLines.map((el, i) => (
+                  <tr key={i} className="border-b border-stone-100">
+                    <td className="px-3 py-2">
+                      <span className="font-mono text-[11px] text-stone-500 block">{el.sku}</span>
+                      <span className="font-medium text-stone-800">{el.name_th}</span>
+                    </td>
+                    <td className="px-3 py-2">
+                      <input
+                        type="number" min="0.01" step="any"
+                        value={el.qty_received || ''}
+                        onChange={(e) => setExtraLines((prev) =>
+                          prev.map((l, idx) => idx === i ? { ...l, qty_received: parseFloat(e.target.value) || 0 } : l)
+                        )}
+                        className="w-full bg-white border border-stone-200 rounded-[6px] px-2 py-1.5 text-[13px] text-right outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+                      />
+                    </td>
+                    <td className="px-3 py-2">
+                      <input
+                        type="text" placeholder="A-01-02"
+                        value={el.storage_location}
+                        onChange={(e) => setExtraLines((prev) =>
+                          prev.map((l, idx) => idx === i ? { ...l, storage_location: e.target.value } : l)
+                        )}
+                        className="w-full bg-white border border-stone-200 rounded-[6px] px-2 py-1.5 text-[13px] outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+                      />
+                    </td>
+                    <td className="px-3 py-2 text-center">
+                      <button
+                        onClick={() => setExtraLines((prev) => prev.filter((_, idx) => idx !== i))}
+                        className="text-red-400 hover:text-red-600 p-1"
+                      ><Trash2 className="w-4 h-4" /></button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+
+          <div className="flex justify-end mt-6">
+            <Button onClick={handleReceive} loading={acting} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+              รับลงสินค้า
+            </Button>
+          </div>
+        </div>
+      ) : showQC ? (
         <div className="rounded-xl bg-white shadow-sm border border-gray-100 p-6 mb-6">
           <h2 className="text-sm font-semibold text-gray-700 mb-4">QC Review</h2>
           <table className="w-full text-sm mb-4">
@@ -191,6 +460,7 @@ export default function GRNDetailPage() {
                 <th className="text-left p-3 font-medium">#</th>
                 <th className="text-left p-3 font-medium">SKU</th>
                 <th className="text-left p-3 font-medium min-w-[200px]">สินค้า</th>
+                <th className="text-right p-3 font-medium">คาดหวัง</th>
                 <th className="text-right p-3 font-medium">รับมา</th>
                 <th className="text-right p-3 font-medium">ยอมรับ</th>
                 <th className="text-right p-3 font-medium">ปฏิเสธ</th>
@@ -205,6 +475,7 @@ export default function GRNDetailPage() {
                   <td className="p-3 text-gray-400">{l.line_number}</td>
                   <td className="p-3 font-mono text-xs">{l.sku}</td>
                   <td className="p-3">{l.name_th}</td>
+                  <td className="p-3 text-right text-stone-500">{l.qty_expected != null ? formatQty(l.qty_expected) : '—'}</td>
                   <td className="p-3 text-right">{formatQty(l.qty_received)} {l.uom_code}</td>
                   <td className="p-3 text-right text-green-600">{l.qty_accepted != null ? formatQty(l.qty_accepted) : '—'}</td>
                   <td className="p-3 text-right text-red-500">{l.qty_rejected != null ? formatQty(l.qty_rejected) : '—'}</td>
@@ -227,8 +498,6 @@ export default function GRNDetailPage() {
       {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
 
       <div className="flex gap-3 justify-end">
-        {grn.status === 'draft' && <Button onClick={() => action('receive')} loading={acting}>ยืนยันรับสินค้า</Button>}
-        
         {grn.status === 'received' && (
           <>
             {grn.inbound_order_id ? (

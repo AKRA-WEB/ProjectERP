@@ -97,7 +97,7 @@ export default function BomListPage() {
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-[13px]">
             <thead>
-              <tr className="bg-stone-50 border-b border-stone-200 text-stone-400 font-semibold uppercase tracking-wider text-[11px]">
+              <tr className="bg-stone-50 border-b border-stone-200 text-stone-600 font-semibold uppercase tracking-wider text-[11px]">
                 <th className="text-left py-3 px-4">เลขที่ BOM</th>
                 <th className="text-left py-3 px-4">สินค้า</th>
                 <th className="text-left py-3 px-4">ประเภท</th>
@@ -110,15 +110,15 @@ export default function BomListPage() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={8} className="py-12 text-center text-stone-400">กำลังโหลด...</td></tr>
+                <tr><td colSpan={8} className="py-12 text-center text-stone-600">กำลังโหลด...</td></tr>
               ) : !data || data.data.length === 0 ? (
-                <tr><td colSpan={8} className="py-12 text-center text-stone-400">ไม่พบข้อมูลสูตรการผลิต</td></tr>
+                <tr><td colSpan={8} className="py-12 text-center text-stone-600">ไม่พบข้อมูลสูตรการผลิต</td></tr>
               ) : data.data.map((r) => (
                 <tr key={r.id} className="border-b border-stone-50 last:border-0 hover:bg-stone-50/50 transition-colors">
                   <td className="py-4 px-4 font-mono font-medium text-stone-600">{r.bom_number}</td>
                   <td className="py-4 px-4">
                     <div className="font-medium text-stone-900">{r.product_name_th}</div>
-                    <div className="text-[11px] text-stone-400 font-mono">{r.product_sku}</div>
+                    <div className="text-[11px] text-stone-600 font-mono">{r.product_sku}</div>
                   </td>
                   <td className="py-4 px-4">
                     <span className="capitalize">{r.bom_type}</span>

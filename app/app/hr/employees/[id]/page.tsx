@@ -1,17 +1,19 @@
 'use client';
 
 import { useState, useEffect, use } from 'react';
-import { get, patch } from '@/lib/api-client';
-import type { HrEmployee, Department, Position, SalaryGrade } from '@/types';
+import { get, patch, del } from '@/lib/api-client';
+import type { HrEmployee, Department, Position, SalaryGrade, SessionUser } from '@/types';
 import { useSession } from 'next-auth/react';
 import { formatDate, formatCurrency } from '@/lib/utils';
 import Link from 'next/link';
 import { DirectionalTransition } from '@/components/ui/directional-transition';
+import { useRouter } from 'next/navigation';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-[0_1px_0_rgba(15,23,42,.03),0_1px_2px_rgba(15,23,42,.04)]';
 
 export default function EmployeeDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const router = useRouter();
   const { data: session } = useSession();
   const [employee, setEmployee] = useState<HrEmployee | null>(null);
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -24,8 +26,9 @@ export default function EmployeeDetailPage({ params }: { params: Promise<{ id: s
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
-  const user = session?.user as { role: string } | undefined;
+  const user = session?.user as SessionUser | undefined;
   const canEdit = user && ['admin', 'manager'].includes(user.role);
+  const canDelete = user?.role === 'admin';
 
   useEffect(() => {
     async function init() {
@@ -61,6 +64,19 @@ export default function EmployeeDetailPage({ params }: { params: Promise<{ id: s
     } finally { setSaving(false); }
   }
 
+  async function handleDelete() {
+    if (!window.confirm('คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลพนักงานนี้? การลบไม่สามารถเรียกคืนได้ และอาจล้มเหลวหากพนักงานมีประวัติการทำรายการในระบบ')) return;
+    setSaving(true);
+    setError('');
+    try {
+      await del(`/api/hr/employees/${id}`);
+      router.push('/app/hr/employees');
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาดในการลบ');
+      setSaving(false);
+    }
+  }
+
   if (loading) return <div className="py-12 text-center text-stone-400">กำลังโหลด...</div>;
   if (!employee) return <div className="py-12 text-center text-stone-400">ไม่พบข้อมูลพนักงาน</div>;
 
@@ -90,6 +106,15 @@ export default function EmployeeDetailPage({ params }: { params: Promise<{ id: s
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {canDelete && !isEditing && (
+              <button
+                onClick={handleDelete}
+                disabled={saving}
+                className="h-8 px-4 rounded-[7px] border border-red-200 bg-red-50 text-[13px] font-medium text-red-600 hover:bg-red-100 transition-colors shadow-sm disabled:opacity-50"
+              >
+                ลบพนักงาน
+              </button>
+            )}
             {canEdit && !isEditing && (
               <button
                 onClick={() => setIsEditing(true)}

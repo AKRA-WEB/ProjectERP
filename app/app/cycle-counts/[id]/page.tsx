@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button, StatusBadge, Badge } from '@/components/ui';
 import { get, patch } from '@/lib/api-client';
@@ -52,7 +52,7 @@ export default function CycleCountDetailPage() {
   const [error, setError] = useState('');
   const [editMode, setEditMode] = useState(false);
 
-  async function fetchCC() {
+  const fetchCC = useCallback(async () => {
     setLoading(true);
     try {
       const data = await get<CycleCount>(`/api/cycle-counts/${id}`);
@@ -76,9 +76,9 @@ export default function CycleCountDetailPage() {
         notes: l.notes ?? '',
       })) ?? []);
     } finally { setLoading(false); }
-  }
+  }, [id]);
 
-  useEffect(() => { fetchCC(); }, [id]);
+  useEffect(() => { fetchCC(); }, [fetchCC]);
 
   async function submitCounts() {
     await action('submit_counts', {

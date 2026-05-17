@@ -106,13 +106,17 @@ export async function POST(req: Request) {
   try {
     await client.query('BEGIN');
 
+    // Fetch next doc number
+    const docRes = await client.query("SELECT next_doc_number('SQ', 'seq_sq') AS doc_number");
+    const docNumber = docRes.rows[0].doc_number;
+
     // 1. Insert Header
     const sqRes = await client.query(
       `INSERT INTO sales_quotations (
-        customer_id, warehouse_id, valid_until, subtotal, vat_amount, total_amount, notes, created_by
-       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        sq_number, customer_id, warehouse_id, valid_until, subtotal, vat_amount, total_amount, notes, created_by
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING *`,
-      [customer_id, warehouse_id, valid_until || null, subtotal, vatAmount, totalAmount, notes || null, u.id]
+      [docNumber, customer_id, warehouse_id, valid_until || null, subtotal, vatAmount, totalAmount, notes || null, u.id]
     );
     const sq = sqRes.rows[0];
 

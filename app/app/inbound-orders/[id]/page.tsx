@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button, StatusBadge, Input } from '@/components/ui';
 import { get, post } from '@/lib/api-client';
@@ -39,7 +39,7 @@ export default function InboundOrderDetailPage() {
   const [vendorRef, setVendorRef] = useState('');
   const [error, setError] = useState('');
 
-  async function fetchIO() {
+  const fetchIO = useCallback(async () => {
     setLoading(true);
     try {
       const data = await get<IODetail>(`/api/inbound-orders/${id}`);
@@ -48,9 +48,9 @@ export default function InboundOrderDetailPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [id]);
 
-  useEffect(() => { fetchIO(); }, [id]);
+  useEffect(() => { fetchIO(); }, [fetchIO]);
 
   async function handleClose() {
     if (!vendorRef) { setError('กรุณาระบุเลขที่อ้างอิงจากผู้จำหน่าย'); return; }

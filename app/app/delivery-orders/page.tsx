@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { get } from '@/lib/api-client';
 import { Button } from '@/components/ui/Button';
 import { Table } from '@/components/ui/Table';
@@ -26,11 +26,7 @@ export default function DeliveryOrdersPage() {
     get<Warehouse[]>('/api/admin/warehouses').then(setWarehouses).catch(console.error);
   }, []);
 
-  useEffect(() => {
-    fetchDOs();
-  }, [page, status, warehouseId]);
-
-  async function fetchDOs() {
+  const fetchDOs = useCallback(async () => {
     setLoading(true);
     try {
       const query = new URLSearchParams({
@@ -46,7 +42,11 @@ export default function DeliveryOrdersPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [page, status, warehouseId]);
+
+  useEffect(() => {
+    fetchDOs();
+  }, [fetchDOs]);
 
   return (
     <div className="space-y-6">

@@ -105,13 +105,13 @@ function GRNDetailModal({ grn, onClose }: { grn: GRNDetail; onClose: () => void 
               <span className="font-mono">{grn.grn_number}</span>
               <Pill status={grn.status} />
             </h3>
-            <div className="text-[12px] text-stone-400 mt-0.5">
+            <div className="text-[12px] text-stone-600 mt-0.5">
               {grn.io_number ?? grn.po_number ?? '—'} · {grn.warehouse_name} · {formatDate(grn.received_date)}
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-[7px] grid place-items-center text-stone-400 hover:bg-stone-100 hover:text-stone-700"
+            className="w-8 h-8 rounded-[7px] grid place-items-center text-stone-600 hover:bg-stone-100 hover:text-stone-700"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M4 4L12 12M12 4L4 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
@@ -129,7 +129,7 @@ function GRNDetailModal({ grn, onClose }: { grn: GRNDetail; onClose: () => void 
               { l: 'ผู้รับสินค้า', v: grn.received_by_name },
             ].map((s) => (
               <div key={s.l} className="bg-stone-50 border border-stone-200 rounded-[8px] px-3 py-[10px]">
-                <div className="text-[11.5px] text-stone-400 mb-1">{s.l}</div>
+                <div className="text-[11.5px] text-stone-600 mb-1">{s.l}</div>
                 <div className="text-[13px] font-medium text-stone-900 truncate">{s.v || '—'}</div>
               </div>
             ))}
@@ -137,13 +137,13 @@ function GRNDetailModal({ grn, onClose }: { grn: GRNDetail; onClose: () => void 
 
           {/* Line items */}
           <div>
-            <div className="text-[12px] font-semibold tracking-[.04em] uppercase text-stone-400 mb-2">รายการสินค้า</div>
+            <div className="text-[12px] font-semibold tracking-[.04em] uppercase text-stone-600 mb-2">รายการสินค้า</div>
             <div className={CARD}>
               <table className="w-full border-collapse text-[13px]">
                 <thead>
                   <tr>
                     {['SKU', 'ชื่อสินค้า', 'รับเข้า', 'ผ่าน', 'ตีคืน', 'หน่วย'].map((h, i) => (
-                      <th key={h} className={`text-left py-2.5 px-3.5 text-[11.5px] font-medium tracking-[.04em] uppercase text-stone-400 bg-stone-50 border-b border-stone-200 first:pl-5 last:pr-5 ${i >= 2 ? 'text-right' : ''}`}>
+                      <th key={h} className={`text-left py-2.5 px-3.5 text-[11.5px] font-medium tracking-[.04em] uppercase text-stone-600 bg-stone-50 border-b border-stone-200 first:pl-5 last:pr-5 ${i >= 2 ? 'text-right' : ''}`}>
                         {h}
                       </th>
                     ))}
@@ -155,12 +155,12 @@ function GRNDetailModal({ grn, onClose }: { grn: GRNDetail; onClose: () => void 
                       <td className="py-0 h-10 px-3.5 pl-5 font-mono text-[12.5px] text-stone-700">{l.sku}</td>
                       <td className="py-0 h-10 px-3.5">
                         <div className="truncate max-w-[180px]">{l.name_th}</div>
-                        {l.lot_number && <div className="text-[11px] text-stone-400 font-mono">Lot: {l.lot_number}</div>}
+                        {l.lot_number && <div className="text-[11px] text-stone-600 font-mono">Lot: {l.lot_number}</div>}
                       </td>
                       <td className="py-0 h-10 px-3.5 text-right font-mono tabular-nums">{formatQty(l.qty_received)}</td>
                       <td className="py-0 h-10 px-3.5 text-right font-mono tabular-nums text-emerald-700">{l.qty_accepted != null ? formatQty(l.qty_accepted) : '—'}</td>
                       <td className="py-0 h-10 px-3.5 text-right font-mono tabular-nums text-red-600">{l.qty_rejected != null ? formatQty(l.qty_rejected) : '—'}</td>
-                      <td className="py-0 h-10 px-3.5 pr-5 text-right text-stone-400">{l.uom_code}</td>
+                      <td className="py-0 h-10 px-3.5 pr-5 text-right text-stone-600">{l.uom_code}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -170,7 +170,7 @@ function GRNDetailModal({ grn, onClose }: { grn: GRNDetail; onClose: () => void 
 
           {grn.qc_notes && (
             <div>
-              <div className="text-[12px] font-semibold tracking-[.04em] uppercase text-stone-400 mb-1">หมายเหตุ QC</div>
+              <div className="text-[12px] font-semibold tracking-[.04em] uppercase text-stone-600 mb-1">หมายเหตุ QC</div>
               <p className="text-[13px] text-stone-600 bg-stone-50 rounded-[8px] px-3 py-2.5 border border-stone-200">{grn.qc_notes}</p>
             </div>
           )}
@@ -275,7 +275,7 @@ export default function GRNPage() {
               className={`px-3.5 py-2.5 text-[13.5px] font-medium border-b-2 -mb-px transition-colors ${
                 tab === t.id
                   ? 'text-stone-950 border-stone-950'
-                  : 'text-stone-400 border-transparent hover:text-stone-700'
+                  : 'text-stone-600 border-transparent hover:text-stone-700'
               }`}
             >
               {t.label}
@@ -289,7 +289,7 @@ export default function GRNPage() {
             <thead>
               <tr>
                 {['เลข GRN', 'เอกสารอ้างอิง / Ref.', 'คลังสินค้า', 'ผู้รับ', 'วันที่รับ', 'รายการ', 'สถานะ', ''].map((h, i) => (
-                  <th key={i} className={`text-left py-2.5 px-3.5 text-[11.5px] font-medium tracking-[.04em] uppercase text-stone-400 bg-stone-50 border-b border-y border-stone-200 first:pl-5 last:pr-5 ${i === 5 ? 'text-center' : ''} ${[2,3,4,5].includes(i) ? 'hidden lg:table-cell' : ''}`}>
+                  <th key={i} className={`text-left py-2.5 px-3.5 text-[11.5px] font-medium tracking-[.04em] uppercase text-stone-600 bg-stone-50 border-b border-y border-stone-200 first:pl-5 last:pr-5 ${i === 5 ? 'text-center' : ''} ${[2,3,4,5].includes(i) ? 'hidden lg:table-cell' : ''}`}>
                     {h}
                   </th>
                 ))}
@@ -297,9 +297,9 @@ export default function GRNPage() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={8} className="py-12 text-center text-[13px] text-stone-400">กำลังโหลด...</td></tr>
+                <tr><td colSpan={8} className="py-12 text-center text-[13px] text-stone-600">กำลังโหลด...</td></tr>
               ) : data?.data.length === 0 ? (
-                <tr><td colSpan={8} className="py-12 text-center text-[13px] text-stone-400">ไม่พบรายการ</td></tr>
+                <tr><td colSpan={8} className="py-12 text-center text-[13px] text-stone-600">ไม่พบรายการ</td></tr>
               ) : data?.data.map((g) => (
                 <tr
                   key={g.id}

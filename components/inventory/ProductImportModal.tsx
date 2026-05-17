@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/ui/Modal';
+import { Modal, ModalBody, ModalFooter } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { importProducts, type ImportResult } from '@/lib/api-client';

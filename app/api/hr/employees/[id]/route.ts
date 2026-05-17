@@ -63,3 +63,22 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   await queryOne(`UPDATE users SET ${sets.join(', ')} WHERE id = $${idx}`, vals);
   return apiSuccess({ ok: true });
 }
+
+export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = await auth();
+  if (!session?.user) return apiError('Unauthorized', 401);
+  const u = session.user as unknown as SessionUser;
+  try { assertRole(u, ['admin']); } catch { return apiError('Forbidden', 403); }
+  const { id } = await params;
+
+  if (id === u.id) return apiError('Cannot delete yourself', 400);
+
+  try {
+    await queryOne('DELETE FROM users WHERE id = $1', [id]);
+    return apiSuccess({ ok: true });
+  } catch (err) {
+    console.error(err);
+    return apiError('Failed to delete employee. They may have related records (PO, GRN, etc).', 409);
+  }
+}
+

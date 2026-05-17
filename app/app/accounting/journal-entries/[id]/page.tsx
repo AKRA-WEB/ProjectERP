@@ -65,7 +65,7 @@ export default function JournalEntryDetailPage() {
     <div className="max-w-5xl mx-auto space-y-6 pb-12">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link href="/app/accounting/journal-entries" className="text-stone-400 hover:text-stone-600">←</Link>
+          <Link href="/app/accounting/journal-entries" className="text-stone-600 hover:text-stone-600">←</Link>
           <div>
             <h1 className="text-2xl font-semibold text-stone-900 flex items-center gap-3">
               {je.entry_number}
@@ -91,26 +91,26 @@ export default function JournalEntryDetailPage() {
       <div className={`${CARD} p-6 space-y-4`}>
          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm">
             <div>
-               <p className="text-stone-400 uppercase font-bold tracking-widest text-[10px] mb-1">วันที่รายการ / Date</p>
+               <p className="text-stone-600 uppercase font-bold tracking-widest text-[10px] mb-1">วันที่รายการ / Date</p>
                <p className="font-medium">{new Date(je.entry_date).toLocaleDateString('th-TH')}</p>
             </div>
             <div>
-               <p className="text-stone-400 uppercase font-bold tracking-widest text-[10px] mb-1">ผู้บันทึก / Created By</p>
+               <p className="text-stone-600 uppercase font-bold tracking-widest text-[10px] mb-1">ผู้บันทึก / Created By</p>
                <p className="font-medium">{je.created_by_name}</p>
             </div>
             {je.posted_at && (
               <div>
-                 <p className="text-stone-400 uppercase font-bold tracking-widest text-[10px] mb-1">วันที่โพสต์ / Posted At</p>
+                 <p className="text-stone-600 uppercase font-bold tracking-widest text-[10px] mb-1">วันที่โพสต์ / Posted At</p>
                  <p className="font-medium">{new Date(je.posted_at).toLocaleString('th-TH')}</p>
               </div>
             )}
             <div>
-               <p className="text-stone-400 uppercase font-bold tracking-widest text-[10px] mb-1">อ้างอิง / Reference</p>
+               <p className="text-stone-600 uppercase font-bold tracking-widest text-[10px] mb-1">อ้างอิง / Reference</p>
                <p className="font-medium">{je.reference_type ? `${je.reference_type} (${je.reference_id})` : '-'}</p>
             </div>
          </div>
          <div className="pt-4 border-t border-stone-100">
-            <p className="text-stone-400 uppercase font-bold tracking-widest text-[10px] mb-1">คำอธิบาย / Description</p>
+            <p className="text-stone-600 uppercase font-bold tracking-widest text-[10px] mb-1">คำอธิบาย / Description</p>
             <p className="text-stone-900">{je.description}</p>
          </div>
          {je.status === 'void' && (
@@ -125,7 +125,7 @@ export default function JournalEntryDetailPage() {
           <h3 className="font-semibold text-stone-900">รายการแยกประเภท / Ledger Lines</h3>
         </div>
         <table className="w-full text-sm">
-          <thead className="text-stone-400 uppercase text-[11px] font-bold border-b border-stone-100">
+          <thead className="text-stone-600 uppercase text-[11px] font-bold border-b border-stone-100">
             <tr>
               <th className="px-6 py-3 text-left">บัญชี / Account</th>
               <th className="px-6 py-3 text-left">คำอธิบาย / Memo</th>
@@ -152,7 +152,7 @@ export default function JournalEntryDetailPage() {
           </tbody>
           <tfoot className="bg-stone-50/50 font-bold border-t border-stone-200">
             <tr>
-              <td colSpan={2} className="px-6 py-4 text-right uppercase text-[11px] tracking-widest text-stone-400">Total</td>
+              <td colSpan={2} className="px-6 py-4 text-right uppercase text-[11px] tracking-widest text-stone-600">Total</td>
               <td className="px-6 py-4 text-right font-mono text-lg">{formatCurrency(je.total_debit)}</td>
               <td className="px-6 py-4 text-right font-mono text-lg">{formatCurrency(je.total_credit)}</td>
             </tr>

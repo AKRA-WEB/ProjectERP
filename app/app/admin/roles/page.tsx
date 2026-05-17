@@ -57,13 +57,13 @@ export default function RolesPage() {
           </Thead>
           <Tbody>
             {loading ? (
-              <tr><Td colSpan={5}><div className="py-8 text-center text-gray-400">กำลังโหลด...</div></Td></tr>
+              <tr><Td colSpan={5}><div className="py-8 text-center text-gray-600">กำลังโหลด...</div></Td></tr>
             ) : roles.map((r) => (
               <tr key={r.id} className="hover:bg-gray-50">
                 <Td className="font-mono text-sm font-medium">{r.code}</Td>
                 <Td>
                   <div className="font-medium text-gray-900">{r.name_th}</div>
-                  <div className="text-xs text-gray-400">{r.name_en}</div>
+                  <div className="text-xs text-gray-600">{r.name_en}</div>
                 </Td>
                 <Td className="text-center">
                   <Badge variant="blue">{r.permission_count}</Badge>

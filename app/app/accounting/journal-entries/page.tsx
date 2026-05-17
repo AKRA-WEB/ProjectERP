@@ -109,7 +109,7 @@ export default function JournalEntriesPage() {
                 {new Date(je.entry_date).toLocaleDateString('th-TH')}
               </td>
               <td className="px-5 py-4 text-stone-600 max-w-[250px] truncate">{je.description}</td>
-              <td className="px-5 py-4 uppercase text-[10px] font-bold text-stone-400">{je.entry_type}</td>
+              <td className="px-5 py-4 uppercase text-[10px] font-bold text-stone-600">{je.entry_type}</td>
               <td className="px-5 py-4"><StatusBadge status={je.status} /></td>
               <td className="px-5 py-4 font-mono text-right font-bold">{formatCurrency(je.total_debit)}</td>
               <td className="px-5 py-4 font-mono text-right font-bold">{formatCurrency(je.total_credit)}</td>
@@ -121,7 +121,7 @@ export default function JournalEntriesPage() {
             </tr>
           ))}
           {data?.data.length === 0 && !loading && (
-            <tr><td colSpan={8} className="px-5 py-12 text-center text-stone-400 italic">ไม่พบรายการบัญชี</td></tr>
+            <tr><td colSpan={8} className="px-5 py-12 text-center text-stone-600 italic">ไม่พบรายการบัญชี</td></tr>
           )}
         </Table>
 

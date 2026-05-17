@@ -98,7 +98,7 @@ function EditModal({ vendor, onClose, onSaved }: { vendor: Vendor; onClose: () =
         </div>
 
         <div className="px-[22px] py-[18px] overflow-auto flex flex-col gap-4">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {([
               ['ชื่อ (ไทย) *', 'name_th'],
               ['ชื่อ (อังกฤษ)', 'name_en'],
@@ -234,7 +234,7 @@ function AddCatalogModal({ vendorId, onClose, onSaved }: { vendorId: string; onC
           </div>
 
           {selected && (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className={LABEL_CLS}>รหัสสินค้า (Vendor SKU)</label>
                 <input value={form.vendor_sku} onChange={(e) => setForm((f) => ({ ...f, vendor_sku: e.target.value }))} className={FIELD_CLS} placeholder="ไม่บังคับ" />
@@ -353,7 +353,7 @@ export default function VendorDetailPage() {
           </div>
 
           {/* Info grid */}
-          <div className="mt-5 grid grid-cols-2 lg:grid-cols-4 gap-4 pt-5 border-t border-stone-100">
+          <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-5 border-t border-stone-100">
             {[
               { label: 'รหัส', value: vendor.code, mono: true },
               { label: 'เลขผู้เสียภาษี', value: vendor.tax_id ?? '—', mono: true },
@@ -368,7 +368,7 @@ export default function VendorDetailPage() {
           </div>
 
           {(vendor.contact_name || vendor.phone || vendor.email || vendor.address_th) && (
-            <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-stone-100">
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-stone-100">
               {vendor.contact_name && (
                 <div>
                   <div className="text-[11.5px] text-stone-400 mb-1">ผู้ติดต่อ</div>

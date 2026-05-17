@@ -89,6 +89,21 @@ export async function POST(req: Request) {
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) return apiValidationError(parsed.error);
 
+  // MF-1: Verify all linked PRs are admin_approved
+  if (parsed.data.pr_ids?.length) {
+    const prs = await query<{ id: string, status: string }>(
+      'SELECT id, status FROM purchase_requisitions WHERE id = ANY($1::uuid[])',
+      [parsed.data.pr_ids]
+    );
+    if (prs.length !== parsed.data.pr_ids.length) {
+      return apiError('One or more purchase requests not found', 404);
+    }
+    const invalidPrs = prs.filter(pr => pr.status !== 'admin_approved');
+    if (invalidPrs.length > 0) {
+      return apiError('All purchase requests must be in admin_approved status to convert to PO', 422);
+    }
+  }
+
   const subtotal = parsed.data.lines.reduce((sum, l) => sum + l.qty_ordered * l.unit_price, 0);
   const vat = Math.round(subtotal * VAT_RATE * 100) / 100;
   const total = Math.round((subtotal + vat) * 100) / 100;

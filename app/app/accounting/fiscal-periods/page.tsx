@@ -101,7 +101,7 @@ export default function FiscalPeriodsPage() {
             </tr>
           ))}
           {periods.length === 0 && !loading && (
-            <tr><td colSpan={7} className="px-5 py-12 text-center text-stone-400 italic">ยังไม่มีรอบบัญชีในระบบ</td></tr>
+            <tr><td colSpan={7} className="px-5 py-12 text-center text-stone-600 italic">ยังไม่มีรอบบัญชีในระบบ</td></tr>
           )}
         </Table>
       </div>

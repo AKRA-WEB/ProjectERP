@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button, StatusBadge, Input, Select } from '@/components/ui';
 import { get, patch } from '@/lib/api-client';
@@ -39,12 +39,12 @@ export default function ClaimDetailPage() {
     resolution_notes: '',
   });
 
-  async function fetchClaim() {
+  const fetchClaim = useCallback(async () => {
     setLoading(true);
     try { setClaim(await get<ClaimDetail>(`/api/vendor-claims/${id}`)); } finally { setLoading(false); }
-  }
+  }, [id]);
 
-  useEffect(() => { fetchClaim(); }, [id]);
+  useEffect(() => { fetchClaim(); }, [fetchClaim]);
 
   async function action(body: object) {
     setError('');

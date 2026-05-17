@@ -19,7 +19,7 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'BUYMORETH ERP',
+  title: 'ระบบ ERP | BUYMORE',
   description: 'ระบบบริหารจัดการองค์กร BUYMORE (THAILAND) COMPANY LIMITED',
 };
 

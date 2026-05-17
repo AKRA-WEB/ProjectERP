@@ -54,11 +54,11 @@ export default function ApAgingPage() {
                 {(row.days_overdue ?? 0) > 0 ? `เกินกำหนด ${row.days_overdue} วัน` : 'ยังไม่ครบกำหนด'}
               </td>
               <td className="px-6 py-4 font-mono font-bold text-right">{formatCurrency(row.amount)}</td>
-              <td className="px-6 py-4 uppercase font-bold text-[10px] tracking-widest text-stone-400">{row.bucket}</td>
+              <td className="px-6 py-4 uppercase font-bold text-[10px] tracking-widest text-stone-600">{row.bucket}</td>
             </tr>
           ))}
           {!loading && data?.rows.length === 0 && (
-            <tr><td colSpan={6} className="px-6 py-12 text-center text-stone-400 italic">ไม่มีเจ้าหนี้ค้างชำระในขณะนี้</td></tr>
+            <tr><td colSpan={6} className="px-6 py-12 text-center text-stone-600 italic">ไม่มีเจ้าหนี้ค้างชำระในขณะนี้</td></tr>
           )}
         </Table>
 
@@ -67,7 +67,7 @@ export default function ApAgingPage() {
              <div className="grid grid-cols-5 gap-4">
                 {['current', '1-30', '31-60', '61-90', '90+'].map(b => (
                    <div key={b} className="p-4 bg-white border border-stone-200 rounded-lg shadow-sm">
-                      <p className="text-[10px] uppercase font-bold text-stone-400 mb-1">{b} days</p>
+                      <p className="text-[10px] uppercase font-bold text-stone-600 mb-1">{b} days</p>
                       <p className="text-lg font-mono font-bold text-stone-900">{formatCurrency(bucketTotals[b] || 0)}</p>
                    </div>
                 ))}

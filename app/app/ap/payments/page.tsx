@@ -58,7 +58,7 @@ export default function ApPaymentsPage() {
           <thead>
             <tr>
               {['เลขที่ชำระ', 'Vendor', 'วันที่ชำระ', 'ยอดชำระ', 'อ้างอิงธนาคาร', 'ผู้บันทึก', ''].map((h, i) => (
-                <th key={i} className={`text-left py-2.5 px-3.5 text-[11.5px] font-medium tracking-[.04em] uppercase text-stone-400 bg-stone-50 border-b border-y border-stone-200 first:pl-5 last:pr-5 ${i === 3 ? 'text-right' : ''} ${[2, 4, 5].includes(i) ? 'hidden lg:table-cell' : ''}`}>
+                <th key={i} className={`text-left py-2.5 px-3.5 text-[11.5px] font-medium tracking-[.04em] uppercase text-stone-600 bg-stone-50 border-b border-y border-stone-200 first:pl-5 last:pr-5 ${i === 3 ? 'text-right' : ''} ${[2, 4, 5].includes(i) ? 'hidden lg:table-cell' : ''}`}>
                   {h}
                 </th>
               ))}
@@ -66,9 +66,9 @@ export default function ApPaymentsPage() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={7} className="py-12 text-center text-stone-400">กำลังโหลด...</td></tr>
+              <tr><td colSpan={7} className="py-12 text-center text-stone-600">กำลังโหลด...</td></tr>
             ) : data?.payments.length === 0 ? (
-              <tr><td colSpan={7} className="py-12 text-center text-stone-400">ไม่พบรายการ</td></tr>
+              <tr><td colSpan={7} className="py-12 text-center text-stone-600">ไม่พบรายการ</td></tr>
             ) : data?.payments.map((pmt) => (
               <tr
                 key={pmt.id}
@@ -86,7 +86,7 @@ export default function ApPaymentsPage() {
                 <td className="py-0 h-11 px-3.5 text-right font-mono tabular-nums text-emerald-700 font-semibold">{formatCurrency(pmt.total_amount)}</td>
                 <td className="py-0 h-11 px-3.5 text-stone-500 truncate max-w-[200px] hidden lg:table-cell">{pmt.bank_ref || '—'}</td>
                 <td className="py-0 h-11 px-3.5 text-stone-500 hidden lg:table-cell">{pmt.paid_by_name}</td>
-                <td className="py-0 h-11 px-3.5 pr-5 text-stone-300 group-hover:text-stone-400 text-right">
+                <td className="py-0 h-11 px-3.5 pr-5 text-stone-300 group-hover:text-stone-600 text-right">
                   <Link href={`/app/ap/payments/${pmt.id}`} transitionTypes={['nav-forward']}>
                     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="inline"><path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   </Link>

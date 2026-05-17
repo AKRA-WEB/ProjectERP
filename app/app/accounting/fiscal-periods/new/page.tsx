@@ -49,7 +49,7 @@ export default function NewFiscalPeriodPage() {
   return (
     <div className="max-w-xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/app/accounting/fiscal-periods" className="text-stone-400 hover:text-stone-600">←</Link>
+        <Link href="/app/accounting/fiscal-periods" className="text-stone-600 hover:text-stone-600">←</Link>
         <h1 className="text-2xl font-semibold text-stone-900">สร้างรอบบัญชีใหม่ / New Period</h1>
       </div>
 

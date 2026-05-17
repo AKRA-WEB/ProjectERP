@@ -32,7 +32,7 @@ export function Pagination({ page, currentPage, totalPages, onPageChange, limit,
           ))}
         </select>
       )}
-      <div className="flex items-center gap-1 ml-auto">
+      <div className="flex items-center gap-1 ml-auto overflow-x-auto">
         <button
           onClick={() => onPageChange(activePage - 1)}
           disabled={activePage <= 1}

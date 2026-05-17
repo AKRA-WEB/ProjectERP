@@ -105,7 +105,7 @@ function RecordPaymentPageContent() {
           <h1 className="text-2xl font-bold text-stone-900 leading-tight">บันทึกการชำระเงินเจ้าหนี้</h1>
           <p className="text-sm text-stone-500 mt-0.5">Record AP Payment & Invoice Allocation</p>
         </div>
-        <button onClick={() => router.back()} className="text-sm text-stone-400 hover:text-stone-700">← ย้อนกลับ</button>
+        <button onClick={() => router.back()} className="text-sm text-stone-600 hover:text-stone-700">← ย้อนกลับ</button>
       </div>
 
       {error && (
@@ -164,11 +164,11 @@ function RecordPaymentPageContent() {
           </div>
 
           <div className={`${CARD} p-6 bg-stone-900 text-white`}>
-            <h3 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-4">ยอดชำระรวม</h3>
+            <h3 className="text-xs font-bold text-stone-600 uppercase tracking-widest mb-4">ยอดชำระรวม</h3>
             <div className="text-3xl font-bold font-mono">
               {formatCurrency(totalPayment)}
             </div>
-            <p className="text-[11px] text-stone-400 mt-2 uppercase tracking-wide">Total Allocated Amount</p>
+            <p className="text-[11px] text-stone-600 mt-2 uppercase tracking-wide">Total Allocated Amount</p>
             <div className="mt-6">
               <Button
                 onClick={handleSubmit}
@@ -187,7 +187,7 @@ function RecordPaymentPageContent() {
             <div className="p-6 border-b border-stone-100 bg-stone-50/50">
               <h2 className="text-[14px] font-semibold text-stone-800 flex items-center justify-between">
                 เลือกใบแจ้งหนี้ที่ต้องการชำระ
-                {loading && <span className="text-xs font-normal text-stone-400 animate-pulse">กำลังโหลด…</span>}
+                {loading && <span className="text-xs font-normal text-stone-600 animate-pulse">กำลังโหลด…</span>}
               </h2>
             </div>
             <div className="overflow-x-auto">
@@ -204,15 +204,15 @@ function RecordPaymentPageContent() {
                 <tbody>
                   {!vendorId ? (
                     <tr>
-                      <td colSpan={5} className="py-12 text-center text-stone-400 italic">กรุณาเลือกผู้จำหน่ายเพื่อดูรายการใบแจ้งหนี้</td>
+                      <td colSpan={5} className="py-12 text-center text-stone-600 italic">กรุณาเลือกผู้จำหน่ายเพื่อดูรายการใบแจ้งหนี้</td>
                     </tr>
                   ) : loading ? (
                     <tr>
-                      <td colSpan={5} className="py-12 text-center text-stone-400">กำลังดึงข้อมูลใบแจ้งหนี้…</td>
+                      <td colSpan={5} className="py-12 text-center text-stone-600">กำลังดึงข้อมูลใบแจ้งหนี้…</td>
                     </tr>
                   ) : invoices.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="py-12 text-center text-stone-400 italic">ไม่พบใบแจ้งหนี้ที่ค้างชำระสำหรับผู้จำหน่ายรายนี้</td>
+                      <td colSpan={5} className="py-12 text-center text-stone-600 italic">ไม่พบใบแจ้งหนี้ที่ค้างชำระสำหรับผู้จำหน่ายรายนี้</td>
                     </tr>
                   ) : invoices.map((inv) => {
                     const isSelected = selectedInvoices[inv.id] !== undefined;
@@ -267,7 +267,7 @@ function RecordPaymentPageContent() {
 
 export default function RecordPaymentPage() {
   return (
-    <Suspense fallback={<div className="p-12 text-center text-stone-400">กำลังโหลด...</div>}>
+    <Suspense fallback={<div className="p-12 text-center text-stone-600">กำลังโหลด...</div>}>
       <RecordPaymentPageContent />
     </Suspense>
   );

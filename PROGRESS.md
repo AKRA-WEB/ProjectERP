@@ -2,6 +2,36 @@
 
 ---
 
+## Session: 2026-05-17 (Session 11 — Full QA Sweep + Rework Plans)
+
+### สิ่งที่ทำวันนี้
+
+#### 1. QA Audit ครบ 34 tracks — ✅ เสร็จสมบูรณ์
+รัน Billy QA agents 7 ตัวพร้อมกัน ครอบคลุมทุก track ที่มีสถานะ "Completed":
+- Batch 1: WMS Core (5 tracks) · Batch 2: Inventory/Stock (5) · Batch 3: POS/Sales (4)
+- Batch 4: Finance/HR/BOM (4) · Batch 5: UI/Nav (5) · Batch 6: UoM/Vendors/i18n (5)
+- Batch 7: UI Improvements + Recent (6)
+
+**ผลลัพธ์:** Rework Required = 21, Optimization Suggested = 10, Verified = 1
+
+#### 2. Critical Findings
+- `fix-over-receipt`: over-receipt guard ไม่มีเลย
+- `accounting-module`: float equality ทำให้ double-entry balance check ผิดพลาด
+- `bom-module`: recursive CTE ไม่มี depth limit → circular BOM ทำให้ DB hang
+- `audit-pr-po-grn`: warehouse scope leak + PR state machine bypass
+- `inventory-valuation-report`: staff role อ่าน cost data ได้ (ต้องเป็น manager+)
+
+#### 3. Rework Plans เขียนครบ — ✅ เสร็จสมบูรณ์
+เขียน rework-plan.md ให้ 18 tracks ใหม่ + 2 pre-existing = ครอบคลุมทุก Rework Required track
+
+#### 4. conductor/index.md อัพเดท — ✅ เสร็จสมบูรณ์
+สถานะทุก track แก้ไขให้ตรงกับผล QA จริง
+
+### สถานะ
+✅ STABLE — rework plans ทั้งหมดพร้อมให้ Gemini CLI implement
+
+---
+
 ## Session: 2026-05-16 (Session 10 — Project Health Check + UI Bug Fixes)
 
 ### สิ่งที่ทำวันนี้

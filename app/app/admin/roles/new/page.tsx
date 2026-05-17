@@ -50,7 +50,7 @@ export default function NewRolePage() {
     }
   }
 
-  if (loading) return <div className="py-16 text-center text-gray-400">กำลังโหลด...</div>;
+  if (loading) return <div className="py-16 text-center text-gray-600">กำลังโหลด...</div>;
 
   const MODULE_LABELS: Record<string, string> = {
     inbound_order: 'Inbound Order (รับสินค้า LINE)',
@@ -85,14 +85,14 @@ export default function NewRolePage() {
           <div className="space-y-8">
             {Object.entries(catalog).map(([module, perms]) => (
               <div key={module}>
-                <h3 className="text-xs font-bold text-gray-400 uppercase mb-3 bg-gray-50 px-2 py-1 inline-block rounded">{MODULE_LABELS[module] ?? module.replace(/_/g, ' ')}</h3>
+                <h3 className="text-xs font-bold text-gray-600 uppercase mb-3 bg-gray-50 px-2 py-1 inline-block rounded">{MODULE_LABELS[module] ?? module.replace(/_/g, ' ')}</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {perms.map((p) => (
                     <label key={p.id} className="flex items-start gap-3 p-3 rounded-lg border border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors">
                       <input type="checkbox" className="mt-1 rounded" checked={selectedPerms.includes(p.id)} onChange={() => togglePerm(p.id)} />
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-gray-900">{p.name_th}</p>
-                        <p className="text-xs text-gray-400 truncate">{p.id}</p>
+                        <p className="text-xs text-gray-600 truncate">{p.id}</p>
                       </div>
                     </label>
                   ))}

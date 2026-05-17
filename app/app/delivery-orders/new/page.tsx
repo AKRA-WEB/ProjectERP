@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { get, post } from '@/lib/api-client';
 import { Button } from '@/components/ui/Button';
@@ -26,15 +26,7 @@ function NewDeliveryOrderPageInner() {
   const [shippingAddress, setShippingAddress] = useState('');
   const [notes, setNotes] = useState('');
 
-  useEffect(() => {
-    if (!soId) {
-      router.push('/app/sales-orders');
-      return;
-    }
-    fetchSOAndStock(soId);
-  }, [soId]);
-
-  async function fetchSOAndStock(id: string) {
+  const fetchSOAndStock = useCallback(async (id: string) => {
     try {
       const soRes = await get<SalesOrder & { lines: SoLineItem[] }>(`/api/sales-orders/${id}`);
       setSo(soRes);
@@ -69,7 +61,15 @@ function NewDeliveryOrderPageInner() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [router]);
+
+  useEffect(() => {
+    if (!soId) {
+      router.push('/app/sales-orders');
+      return;
+    }
+    fetchSOAndStock(soId);
+  }, [soId, fetchSOAndStock, router]);
 
   function updateQtyToDeliver(id: string, val: string) {
     const qty = Number(val);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button, StatusBadge, Input } from '@/components/ui';
 import { get, patch } from '@/lib/api-client';
@@ -44,12 +44,12 @@ export default function RMADetailPage() {
   const [showResolve, setShowResolve] = useState(false);
   const [resolutionNotes, setResolutionNotes] = useState('');
 
-  async function fetchRMA() {
+  const fetchRMA = useCallback(async () => {
     setLoading(true);
     try { setRma(await get<RMADetail>(`/api/rma/${id}`)); } finally { setLoading(false); }
-  }
+  }, [id]);
 
-  useEffect(() => { fetchRMA(); }, [id]);
+  useEffect(() => { fetchRMA(); }, [fetchRMA]);
 
   async function action(body: object) {
     setError('');

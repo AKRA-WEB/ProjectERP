@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Badge } from '@/components/ui';
 import { get, post, del } from '@/lib/api-client';
 import { formatDate } from '@/lib/format';
@@ -28,7 +28,7 @@ export default function UserRoleModal({ user, onClose }: Props) {
   const [selectedRoleId, setSelectedRoleId] = useState('');
   const [saving, setSaving] = useState(false);
 
-  async function fetchData() {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const [assigned, roles] = await Promise.all([
@@ -40,9 +40,9 @@ export default function UserRoleModal({ user, onClose }: Props) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user.id]);
 
-  useEffect(() => { fetchData(); }, [user.id]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   async function handleAdd() {
     if (!selectedRoleId) return;
@@ -86,7 +86,7 @@ export default function UserRoleModal({ user, onClose }: Props) {
           <section>
             <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wider">บทบาทปัจจุบัน / Assigned Roles</h3>
             {loading ? (
-              <p className="py-4 text-center text-sm text-gray-400">กำลังโหลด...</p>
+              <p className="py-4 text-center text-sm text-gray-600">กำลังโหลด...</p>
             ) : assignedRoles.length === 0 ? (
               <p className="py-4 text-center text-sm text-gray-400 italic">ยังไม่มีบทบาทที่กำหนดเฉพาะ</p>
             ) : (

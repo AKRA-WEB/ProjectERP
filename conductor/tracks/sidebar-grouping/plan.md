@@ -140,10 +140,10 @@ Cycle Counts
 
 ## Verification Checklist
 
-- [ ] All 15 nav items still present and link correctly
-- [ ] Group headers visible and styled (small-caps, muted gray)
-- [ ] Active item highlight still works on all pages
-- [ ] Empty groups hidden: staff user with only `grn:view` → only "รับสินค้า / Receiving" group appears
-- [ ] Admin group only shown for `role === 'admin'`
-- [ ] Mobile drawer close on navigation still works
-- [ ] `npm run build` passes — no TypeScript errors
+- [x] All 15 nav items still present and link correctly
+- [x] Group headers visible and styled (small-caps, muted gray)
+- [x] Active item highlight still works on all pages
+- [x] Empty groups hidden: staff user with only `grn:view` → only "รับสินค้า / Receiving" group appears
+- [x] Admin group only shown for `role === 'admin'`
+- [x] Mobile drawer close on navigation still works
+- [x] `npm run build` passes — no TypeScript errors

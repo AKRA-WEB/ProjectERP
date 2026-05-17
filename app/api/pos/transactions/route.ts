@@ -144,7 +144,7 @@ export async function POST(req: Request) {
     }
 
     // Recalculate with accurate subtotal if needed, but here they should match
-    const total = subtotalBeforeOrderDiscount_acc - orderDiscount;
+    const total = Math.round((subtotalBeforeOrderDiscount_acc - orderDiscount) * 100) / 100;
     const vatAmount = Math.round(total * VAT_RATE / (1 + VAT_RATE) * 100) / 100;
     const subtotal = total; 
 

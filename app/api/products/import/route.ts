@@ -27,7 +27,7 @@ export async function POST(req: Request) {
 
   try {
     assertRole(u, ['manager', 'admin']);
-  } catch (err) {
+  } catch {
     return apiError('Forbidden', 403);
   }
 

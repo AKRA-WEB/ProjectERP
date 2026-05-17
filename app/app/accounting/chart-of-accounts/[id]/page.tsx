@@ -68,7 +68,7 @@ export default function AccountDetailPage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/app/accounting/chart-of-accounts" className="text-stone-400 hover:text-stone-600">←</Link>
+        <Link href="/app/accounting/chart-of-accounts" className="text-stone-600 hover:text-stone-600">←</Link>
         <div>
           <h1 className="text-2xl font-semibold text-stone-900">{account.name_th}</h1>
           <p className="text-stone-500 font-mono text-sm">{account.account_code}</p>
@@ -78,19 +78,19 @@ export default function AccountDetailPage() {
       <form onSubmit={handleSave} className={`${CARD} p-6 space-y-6`}>
         <div className="grid grid-cols-2 gap-4 bg-stone-50 p-4 rounded-lg border border-stone-100">
            <div>
-              <p className="text-xs text-stone-400 uppercase font-bold tracking-wider">Account Type</p>
+              <p className="text-xs text-stone-600 uppercase font-bold tracking-wider">Account Type</p>
               <p className="font-medium uppercase">{account.account_type}</p>
            </div>
            <div>
-              <p className="text-xs text-stone-400 uppercase font-bold tracking-wider">Normal Balance</p>
+              <p className="text-xs text-stone-600 uppercase font-bold tracking-wider">Normal Balance</p>
               <p className="font-medium uppercase">{account.normal_balance}</p>
            </div>
            <div>
-              <p className="text-xs text-stone-400 uppercase font-bold tracking-wider">Allows Direct Posting</p>
+              <p className="text-xs text-stone-600 uppercase font-bold tracking-wider">Allows Direct Posting</p>
               <p className="font-medium">{account.allows_direct_posting ? 'Yes' : 'No (Group Account)'}</p>
            </div>
            <div>
-              <p className="text-xs text-stone-400 uppercase font-bold tracking-wider">Parent Account</p>
+              <p className="text-xs text-stone-600 uppercase font-bold tracking-wider">Parent Account</p>
               <p className="font-medium">{account.parent_code ? `${account.parent_code} - ${account.parent_name_th}` : '-'}</p>
            </div>
         </div>

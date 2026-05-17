@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Button, Input, Select } from '@/components/ui';
@@ -33,38 +33,27 @@ export default function NewPickListPage() {
 
   const searchTimers = useRef<Map<number, NodeJS.Timeout>>(new Map());
 
-  useEffect(() => {
-    if (currentUser?.role === 'staff') {
-      router.replace('/app/picking');
-      return;
-    }
-
-    get<Warehouse[]>('/api/admin/warehouses').then((data) =>
-      setWarehouses(data.map((w) => ({ value: w.id, label: `${w.code} — ${w.name_th}` })))
-    );
-  }, [session, router]);
-
-  const addLine = () => {
-    setLines([...lines, {
+  const addLine = useCallback(() => {
+    setLines((prev) => [...prev, {
       product_id: '', qty_requested: 1, storage_location: '',
       product_label: '', product_sku: '', qty_available: 0,
       search: '', search_results: [], searching: false,
     }]);
-  };
+  }, []);
 
-  const removeLine = (i: number) => {
+  const removeLine = useCallback((i: number) => {
     if (searchTimers.current.has(i)) {
       clearTimeout(searchTimers.current.get(i));
       searchTimers.current.delete(i);
     }
-    setLines(lines.filter((_, idx) => idx !== i));
-  };
+    setLines((prev) => prev.filter((_, idx) => idx !== i));
+  }, []);
 
-  const updateLine = <K extends keyof PickLine>(i: number, key: K, val: PickLine[K]) => {
+  const updateLine = useCallback(<K extends keyof PickLine>(i: number, key: K, val: PickLine[K]) => {
     setLines((prev) => prev.map((l, idx) => idx === i ? { ...l, [key]: val } : l));
-  };
+  }, []);
 
-  const fetchAvailability = async (i: number, productId: string, sku: string) => {
+  const fetchAvailability = useCallback(async (i: number, productId: string, sku: string) => {
     if (!warehouseId || !productId) return;
     try {
       const res = await get<{ data: { product_id: string; qty_available: string | number }[] }>(`/api/stock?warehouse_id=${warehouseId}&search=${encodeURIComponent(sku)}`);
@@ -77,7 +66,18 @@ export default function NewPickListPage() {
     } catch (err) {
       console.error('Failed to fetch availability:', err);
     }
-  };
+  }, [warehouseId, updateLine]);
+
+  useEffect(() => {
+    if (currentUser?.role === 'staff') {
+      router.replace('/app/picking');
+      return;
+    }
+
+    get<Warehouse[]>('/api/admin/warehouses').then((data) =>
+      setWarehouses(data.map((w) => ({ value: w.id, label: `${w.code} — ${w.name_th}` })))
+    );
+  }, [currentUser?.role, router]);
 
   const searchProducts = async (i: number, q: string) => {
     updateLine(i, 'search', q);

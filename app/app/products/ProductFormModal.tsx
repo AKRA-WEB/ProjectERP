@@ -152,7 +152,7 @@ export default function ProductFormModal({ product, onClose, onSaved }: Props) {
       <ModalBody>
         {activeTab === 'info' ? (
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input label="SKU *" value={form.sku} onChange={(e) => set('sku', e.target.value)} disabled={isEdit} />
               <Input label="Barcode" value={form.barcode} onChange={(e) => set('barcode', e.target.value)} />
               <Input label="ชื่อสินค้า (TH) *" value={form.name_th} onChange={(e) => set('name_th', e.target.value)} />
@@ -240,7 +240,7 @@ export default function ProductFormModal({ product, onClose, onSaved }: Props) {
 
              {showAddUom && (
                <div className="p-4 bg-stone-50 rounded-xl border border-stone-200 space-y-4">
-                 <div className="grid grid-cols-2 gap-4">
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                    <Select
                      label="หน่วยนับ *"
                      value={uomForm.uom_id}

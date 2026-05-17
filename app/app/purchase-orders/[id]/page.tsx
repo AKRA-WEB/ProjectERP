@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button, StatusBadge, Badge } from '@/components/ui';
 import { get, post } from '@/lib/api-client';
@@ -54,12 +54,12 @@ export default function PODetailPage() {
   const [acting, setActing] = useState(false);
   const [error, setError] = useState('');
 
-  async function fetchPO() {
+  const fetchPO = useCallback(async () => {
     setLoading(true);
     try { setPo(await get<PODetail>(`/api/purchase-orders/${id}`)); } finally { setLoading(false); }
-  }
+  }, [id]);
 
-  useEffect(() => { fetchPO(); }, [id]);
+  useEffect(() => { fetchPO(); }, [fetchPO]);
 
   async function action(path: string) {
     setError('');

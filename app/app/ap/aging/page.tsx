@@ -78,16 +78,16 @@ export default function ApAgingReportPage() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={8} className="py-12 text-center text-stone-400">กำลังโหลด...</td></tr>
+                <tr><td colSpan={8} className="py-12 text-center text-stone-600">กำลังโหลด...</td></tr>
               ) : data.length === 0 ? (
-                <tr><td colSpan={8} className="py-12 text-center text-stone-400">ไม่มีรายการค้างชำระ</td></tr>
+                <tr><td colSpan={8} className="py-12 text-center text-stone-600">ไม่มีรายการค้างชำระ</td></tr>
               ) : data.map((row) => (
                 <tr key={row.vendor_id} className="border-b border-stone-50 hover:bg-stone-50/60 transition-colors">
                   <td className="py-3 px-4">
                     <Link href={`/app/vendors/${row.vendor_id}`} className="font-medium text-stone-900 hover:text-blue-600 hover:underline">
                       {row.vendor_name_th}
                     </Link>
-                    <div className="text-[11px] text-stone-400 font-mono">{row.vendor_code}</div>
+                    <div className="text-[11px] text-stone-600 font-mono">{row.vendor_code}</div>
                   </td>
                   <td className="py-3 px-4 text-right font-mono font-semibold text-stone-900">{formatCurrency(row.total_outstanding)}</td>
                   <td className="py-3 px-4 text-right font-mono text-stone-500">{formatCurrency(row.current_amount)}</td>

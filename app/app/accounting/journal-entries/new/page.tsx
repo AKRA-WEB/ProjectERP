@@ -114,7 +114,7 @@ export default function NewJournalEntryPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-24">
       <div className="flex items-center gap-4">
-        <Link href="/app/accounting/journal-entries" className="text-stone-400 hover:text-stone-600">←</Link>
+        <Link href="/app/accounting/journal-entries" className="text-stone-600 hover:text-stone-600">←</Link>
         <h1 className="text-2xl font-semibold text-stone-900">บันทึกรายการบัญชีใหม่ / New Journal Entry</h1>
       </div>
 
@@ -135,13 +135,13 @@ export default function NewJournalEntryPage() {
 
         <div className={CARD}>
           <div className="p-4 border-b border-stone-100 flex justify-between items-center bg-stone-50/50">
-            <h2 className="text-sm font-bold text-stone-400 uppercase tracking-widest">รายการแยกประเภท / Ledger Lines</h2>
+            <h2 className="text-sm font-bold text-stone-600 uppercase tracking-widest">รายการแยกประเภท / Ledger Lines</h2>
             <Button type="button" variant="outline" size="sm" onClick={addLine}>+ เพิ่มบรรทัด</Button>
           </div>
 
           <div className="p-4">
             <table className="w-full text-sm">
-              <thead className="text-stone-400 text-left uppercase text-[11px] font-bold">
+              <thead className="text-stone-600 text-left uppercase text-[11px] font-bold">
                 <tr>
                   <th className="p-2 w-1/3">บัญชี / Account</th>
                   <th className="p-2">คำอธิบายย่อย / Memo</th>
@@ -212,7 +212,7 @@ export default function NewJournalEntryPage() {
         <div className="flex items-center justify-between p-4 bg-stone-900 text-white rounded-xl shadow-xl fixed bottom-6 left-1/2 -translate-x-1/2 w-full max-w-4xl z-50">
           <div className="flex items-center gap-6 px-4">
              <div className="flex flex-col">
-                <span className="text-[10px] uppercase text-stone-400 font-bold">ผลต่าง / Balance Diff</span>
+                <span className="text-[10px] uppercase text-stone-600 font-bold">ผลต่าง / Balance Diff</span>
                 <span className={`text-lg font-mono font-bold ${diff < 0.01 ? 'text-emerald-400' : 'text-red-400'}`}>
                   {formatCurrency(diff)}
                 </span>

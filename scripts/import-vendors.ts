@@ -21,15 +21,23 @@ interface VendorRow {
 function readExcel(filePath: string): VendorRow[] {
   const wb = XLSX.readFile(filePath);
   const ws = wb.Sheets[wb.SheetNames[0]];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const raw = XLSX.utils.sheet_to_json<any[]>(ws, { header: 1 });
+  const raw = XLSX.utils.sheet_to_json<string[]>(ws, { header: 1 });
+
+  if (raw.length === 0) return [];
+  
+  // Basic schema validation: check first row for keywords
+  const header = raw[0];
+  const hasCode = String(header[0]).toLowerCase().includes('code');
+  const hasName = String(header[1]).toLowerCase().includes('name') || String(header[1]).includes('ชื่อ');
+  
+  if (!hasCode || !hasName) {
+    console.warn('Warning: Excel headers may not match expected format (Code, Name)');
+  }
 
   return raw
     .slice(1)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .filter((r: any[]) => r[0] && r[1])
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .map((r: any[]) => ({
+    .filter((r) => r[0] && r[1])
+    .map((r) => ({
       code:    String(r[0]).trim(),
       name_th: String(r[1]).trim(),
     }));

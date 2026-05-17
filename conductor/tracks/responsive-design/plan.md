@@ -307,8 +307,8 @@ Detail pages (e.g., `purchase-requests/[id]`, `grn/[id]`) typically have a two-c
 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 ```
 
-- [ ] Apply single-column base to detail page info grids (all `[id]` pages)
-- [ ] Apply single-column base to `new` form pages where 2-column grids exist
+- [x] Apply single-column base to detail page info grids (all `[id]` pages)
+- [x] Apply single-column base to `new` form pages where 2-column grids exist
 
 ---
 
@@ -325,7 +325,7 @@ Wrap the page-number buttons with a responsive container and limit visible pages
 
 No logic change needed — the `overflow-x-auto` on the buttons div lets users scroll page numbers on tiny screens.
 
-- [ ] Add `overflow-x-auto` to page-number button container in `Pagination.tsx`
+- [x] Add `overflow-x-auto` to page-number button container in `Pagination.tsx`
 
 ---
 

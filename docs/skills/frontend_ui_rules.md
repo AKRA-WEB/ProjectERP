@@ -123,4 +123,28 @@ import { formatDatetime } from '@/lib/format';
 **Fix:** Always ensure class names are single, uninterrupted strings: `text-ink`, `bg-primary`.
 **Found in:** task [4] of track [product-import] (2026-05-17)
 
+## ✅ Pattern — Persistent Collapsible State
+**Context:** When implementing collapsible sections (like sidebar groups) that should remember their state across page reloads in a Next.js client component.
+**Correct way:**
+Initialize state to `true` (default open) to ensure SSR matches the common default, then use `useEffect` to load the persisted state from `localStorage` on the client.
+```typescript
+const [isOpen, setIsOpen] = useState(true);
+
+useEffect(() => {
+  try {
+    const stored = localStorage.getItem(`storage-key`);
+    if (stored !== null) setIsOpen(JSON.parse(stored));
+  } catch (e) {
+    console.error('Failed to load state', e);
+  }
+}, [key]);
+
+const toggle = () => {
+  const next = !isOpen;
+  setIsOpen(next);
+  localStorage.setItem(`storage-key`, JSON.stringify(next));
+};
+```
+**Found in:** task [1] of track [sidebar-grouping] (2026-05-18)
+
 

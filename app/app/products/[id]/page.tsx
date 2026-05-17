@@ -96,7 +96,7 @@ export default function ProductDetailPage() {
         </div>
 
         {tab === 'info' && (
-          <div className={`${CARD} p-6 grid grid-cols-2 gap-x-8 gap-y-4`}>
+          <div className={`${CARD} p-6 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4`}>
             <div>
               <p className={LABEL_CLS}>รหัสสินค้า / SKU</p>
               <p className="text-[14px] text-stone-900 font-mono">{product.sku}</p>

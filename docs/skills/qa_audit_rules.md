@@ -103,6 +103,9 @@ load-when: "QA, audit, rework-plan, lint, build, review"
 
 ## Patterns & Traps — Captured in Field
 
-<!-- Claude and Gemini append here after each task. Format:
-## ✅ Pattern — [name]   or   ## ❌ Trap — [name]
--->
+## ❌ Trap — Multiple replacements in one turn
+**Symptom:** Code changes are missing or partially reverted after a turn with multiple `replace` calls to the same file.
+**Root cause:** If multiple `replace` tools are called for the same file in one turn, and they all use `old_string` from the *original* file content, the later ones might not account for changes made by the earlier ones, or they might race.
+**Fix:** Avoid multiple `replace` calls for the same file in a single turn. Either consolidate them into one `replace` or `write_file`, or perform them in sequential turns.
+**Found in:** task [N/A] of track [dynamic-sidebar] rework
+

@@ -1,6 +1,6 @@
 import { auth } from '@/auth';
 import { apiSuccess, apiError, apiValidationError } from '@/lib/api-response';
-import { assertPermission } from '@/lib/authz';
+import { assertPermission, buildWarehouseScopeClause } from '@/lib/authz';
 import pool, { query } from '@/lib/db/client';
 import { z } from 'zod';
 import { DEFAULT_PAGE_SIZE } from '@/lib/constants';
@@ -31,15 +31,20 @@ export async function GET(req: Request) {
   const params: unknown[] = [];
   let idx = 1;
 
-  // Invoice doesn't have warehouse_id directly, we could scope by customer or join SO.
-  // For simplicity and matching the plan, we just list them. If warehouse scope is strict, we should join SO.
+  const scope = buildWarehouseScopeClause(u, 'so.warehouse_id', idx);
+  if (scope) {
+    conditions.push(scope.clause);
+    params.push(...scope.params);
+    idx += scope.params.length;
+  }
+
   if (status) {
     conditions.push(`si.status = $${idx++}`);
     params.push(status);
   }
 
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
-  const [totalRes] = await query<{ count: string }>(`SELECT COUNT(*) FROM sales_invoices si ${where}`, params);
+  const [totalRes] = await query<{ count: string }>(`SELECT COUNT(*) FROM sales_invoices si JOIN sales_orders so ON so.id = si.so_id ${where}`, params);
 
   const sis = await query(
     `SELECT si.*, 

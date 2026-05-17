@@ -100,13 +100,19 @@ export async function POST(req: Request) {
     if (!po) return apiError('PO not found', 404);
     if (!['sent', 'partially_received'].includes(po.status)) return apiError('PO must be in sent or partially_received status', 409);
 
-    // Fetch remaining qty per line for this PO
+    // Fetch remaining qty per line for this PO (summing up all existing non-cancelled GRN items)
     const poLines = await query<{
       id: string;
       qty_ordered: number;
-      qty_received: number;
+      already_received: number;
     }>(
-      'SELECT id, qty_ordered, qty_received FROM po_line_items WHERE po_id = $1',
+      `SELECT pol.id, pol.qty_ordered,
+              COALESCE(SUM(gli.qty_received), 0) AS already_received
+       FROM po_line_items pol
+       LEFT JOIN grn_line_items gli ON gli.po_line_item_id = pol.id
+       LEFT JOIN goods_receipt_notes grn ON grn.id = gli.grn_id AND grn.status != 'cancelled'
+       WHERE pol.po_id = $1
+       GROUP BY pol.id`,
       [parsed.data.po_id]
     );
 
@@ -116,10 +122,10 @@ export async function POST(req: Request) {
       if (!line.po_line_item_id) return apiError('po_line_item_id is required for PO-based GRN', 422);
       const poLine = poLineMap.get(line.po_line_item_id);
       if (!poLine) return apiError(`PO line ${line.po_line_item_id} not found`, 422);
-      const remaining = Number(poLine.qty_ordered) - Number(poLine.qty_received);
-      if (line.qty_received > remaining) {
+      const remaining = Number(poLine.qty_ordered) - Number(poLine.already_received);
+      if (line.qty_received > remaining + 0.0001) { // allowance for floating point
         return apiError(
-          `qty_received (${line.qty_received}) exceeds remaining qty (${remaining}) for line ${line.po_line_item_id}`,
+          `qty_received (${line.qty_received}) exceeds remaining qty (${remaining.toFixed(4)}) for line ${line.po_line_item_id}`,
           422
         );
       }
@@ -132,15 +138,35 @@ export async function POST(req: Request) {
     if (!io) return apiError('Inbound Order not found', 404);
     if (!['open', 'receiving'].includes(io.status)) return apiError('Inbound Order must be open or receiving', 409);
 
-    // Validate all submitted line IDs belong to this IO
-    const ioLines = await query<{ id: string }>(
-      'SELECT id FROM inbound_order_lines WHERE io_id = $1',
+    // Fetch remaining qty per line for this IO (summing up all existing non-cancelled GRN items)
+    const ioLines = await query<{
+      id: string;
+      qty_ordered: number;
+      already_received: number;
+    }>(
+      `SELECT iol.id, iol.qty_ordered,
+              COALESCE(SUM(gli.qty_received), 0) AS already_received
+       FROM inbound_order_lines iol
+       LEFT JOIN grn_line_items gli ON gli.inbound_order_line_id = iol.id
+       LEFT JOIN goods_receipt_notes grn ON grn.id = gli.grn_id AND grn.status != 'cancelled'
+       WHERE iol.io_id = $1
+       GROUP BY iol.id`,
       [parsed.data.inbound_order_id]
     );
-    const ioLineSet = new Set(ioLines.map((l) => l.id));
+
+    const ioLineMap = new Map(ioLines.map((l) => [l.id, l]));
+
     for (const line of parsed.data.lines) {
       if (!line.inbound_order_line_id) return apiError('inbound_order_line_id is required for IO-based GRN', 422);
-      if (!ioLineSet.has(line.inbound_order_line_id)) return apiError(`IO line ${line.inbound_order_line_id} not found`, 422);
+      const ioLine = ioLineMap.get(line.inbound_order_line_id);
+      if (!ioLine) return apiError(`IO line ${line.inbound_order_line_id} not found`, 422);
+      const remaining = Number(ioLine.qty_ordered) - Number(ioLine.already_received);
+      if (line.qty_received > remaining + 0.0001) { // allowance for floating point
+        return apiError(
+          `qty_received (${line.qty_received}) exceeds remaining qty (${remaining.toFixed(4)}) for line ${line.inbound_order_line_id}`,
+          422
+        );
+      }
     }
   }
 

@@ -147,7 +147,7 @@ export default function NewBomPage() {
                       <div className="font-mono text-xs text-stone-500">{selectedProduct.sku}</div>
                       <div className="text-sm font-medium">{selectedProduct.name_th}</div>
                     </div>
-                    <button onClick={() => setSelectedProduct(null)} className="text-stone-400 hover:text-red-600 px-2">✕</button>
+                    <button onClick={() => setSelectedProduct(null)} className="text-stone-600 hover:text-red-600 px-2">✕</button>
                   </div>
                 ) : (
                   <>
@@ -277,7 +277,7 @@ export default function NewBomPage() {
                 <tbody className="divide-y divide-stone-100">
                   {lines.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="p-12 text-center text-stone-400 italic">
+                      <td colSpan={6} className="p-12 text-center text-stone-600 italic">
                         ยังไม่มีรายการส่วนประกอบ กรุณาค้นหาและเพิ่มรายการ
                       </td>
                     </tr>
@@ -291,7 +291,7 @@ export default function NewBomPage() {
                             placeholder="หมายเหตุรายการ..."
                             value={l.notes}
                             onChange={(e) => updateLine(i, 'notes', e.target.value)}
-                            className="text-[11px] text-stone-400 bg-transparent outline-none w-full mt-0.5"
+                            className="text-[11px] text-stone-600 bg-transparent outline-none w-full mt-0.5"
                           />
                         </td>
                         <td className="p-2">
