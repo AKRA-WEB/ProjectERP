@@ -154,24 +154,14 @@ ALTER TABLE grn_line_items
 **Fix:** Always check for all possible source FKs in SELECT and include them in INSERT for split/clone operations.
 **Found in:** task [2-5] of track [inbound-receive-fix]
 
-## ❌ Trap — Database Pool Import (Named vs Default)
-**Symptom:** `TypeError: client.connect is not a function` or `undefined` pool.
-**Root cause:** Importing `pool` as a named export (`import { pool } from ...`) when it is exported as a default export (`export default pool`).
-**Fix:** Always use default import for the database pool:
-```typescript
-import pool from '@/lib/db/client';
-```
-**Found in:** task [2] of track [po-immediate-approval]
-
-## ✅ Pattern — Authoritative Amount Calculation
-**Context:** Calculating PO/Invoice totals with line discounts, bill discounts, and VAT.
+## ✅ Pattern — Bidirectional Document Linking
+**Context:** When documents can be created out of order (e.g., Receive goods first, then create PO).
 **Correct way:**
-```typescript
-subtotal            = sum(qty * price)       -- gross
-total_line_discount = sum(line_discount)
-after_line_discount = subtotal - total_line_discount
-pre_vat_amount      = after_line_discount - bill_discount - non_vat_amount
-vat_amount          = pre_vat_amount * VAT_RATE
-total_amount        = pre_vat_amount + vat_amount + non_vat_amount
-```
-**Found in:** task [3] of track [po-immediate-approval]
+Link both ways using nullable foreign keys. Use `po_id` on GRN for normal flows, and `source_grn_id` on PO for retrospective flows.
+**Found in:** track [gr-first-workflow]
+
+## ❌ Trap — Missing Financial Columns in Receipts
+**Symptom:** Inability to calculate inventory valuation or match receipt costs to vendor invoices.
+**Root cause:** Assuming `grn_line_items` only needs SKU and Quantity. Goods receipts need `unit_cost` and `line_total` to track value at point of entry, especially for standalone receipts without a PO.
+**Fix:** Add `unit_cost` and `line_total` (GENERATED) to `grn_line_items`.
+**Found in:** track [gr-first-workflow]

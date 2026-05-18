@@ -141,6 +141,21 @@ SELECT * FROM (
 ```
 **Found in:** task [T-9] of track [ui-improvement-dashboard]
 
+## ✅ Pattern — Locale-Aware API Logic
+**Context:** Handling language-specific formatting or logic in API responses.
+**Correct way:**
+Accept a `lang` parameter or header, and pass it to utility functions like `formatCurrency` or `formatDate` from `lib/format.ts`.
+```typescript
+const { searchParams } = new URL(req.url);
+const lang = (searchParams.get('lang') as Locale) ?? 'th';
+// ...
+return apiSuccess({
+  ...data,
+  formatted_amount: formatCurrency(data.amount, lang)
+});
+```
+**Found in:** track [i18n-language-switch]
+
 ## ❌ Trap — SessionUser defined in lib/authz.ts causes circular imports
 **Symptom:** `Module declares 'SessionUser' locally, but it is not exported` — TypeScript loses track of exports during build optimization.
 **Root cause:** Defining `SessionUser` and `UserRole` in `lib/authz.ts` creates circular dependency chains when other modules import from authz while authz imports from them.

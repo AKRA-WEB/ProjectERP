@@ -39,6 +39,18 @@
 - **ที่ถูกต้อง:** SELECT + INSERT ต้องรวม `inbound_order_id` สำหรับ IO-based GRN
 - **ผลเสีย:** IO receive ล้มเหลวทุกครั้งที่ partial receipt
 
+### 7. Missing Financial Columns in grn_line_items
+- **สิ่งที่เกิดขึ้น:** พยายามคำนวณราคาต้นทุนหรือยอดรวมใน GRN โดยไม่มี column `unit_cost`
+- **ความจริง:** `grn_line_items` เริ่มต้นไม่มี `unit_cost` และ `line_total`
+- **ที่ถูกต้อง:** ตรวจสอบ Migration 036 — ต้องระบุ `unit_cost` ทุกครั้งที่สร้าง GRN (โดยเฉพาะ Standalone)
+- **ผลเสีย:** ระบบบัญชีประเมินมูลค่าสินค้าไม่ได้
+
+### 8. i18n Infrastructure — .ts vs .tsx
+- **สิ่งที่เกิดขึ้น:** ตั้งชื่อไฟล์ Provider เป็น `.ts`
+- **ความจริง:** มีการใช้ JSX/Context ในไฟล์
+- **ที่ถูกต้อง:** ต้องใช้นามสกุล `.tsx` และระบุ `'use client'` ที่บรรทัดแรกเสมอ
+- **ผลเสีย:** Build Error — TypeScript compiler ไม่รู้จัก angle brackets
+
 ---
 
 ## Best Practices
