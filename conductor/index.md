@@ -25,8 +25,7 @@
 
 | Track | Rework Plan |
 |-------|-------------|
-| [View Transitions — App-wide Implementation](./tracks/view-transitions/rework-plan.md) | [rework-plan](./tracks/view-transitions/rework-plan.md) |
-| [PO Immediate Approval — Discount + Financial Summary + Auto-GRN](./tracks/po-immediate-approval/rework-plan.md) | [rework-plan](./tracks/po-immediate-approval/rework-plan.md) |
+| *(none)* | — |
 
 ## All Tracks
 
@@ -39,7 +38,7 @@
 | [GR Staff Workflow](./tracks/gr-staff-workflow/plan.md) | Completed | 2026-05-10 | 2026-05-17 |
 | [Inbound Order Workflow](./tracks/inbound-order-workflow/plan.md) | Completed | 2026-05-10 | 2026-05-17 |
 | [Employee Management + RBAC](./tracks/employee-rbac/plan.md) | Completed | 2026-05-10 | 2026-05-17 |
-| [IO Product Search + Remove Unit Cost](./tracks/io-product-search/plan.md) | Optimization Suggested | 2026-05-10 | 2026-05-17 |
+| [IO Product Search + Remove Unit Cost](./tracks/io-product-search/plan.md) | Completed | 2026-05-10 | 2026-05-18 |
 | [Sidebar Navigation Grouping](./tracks/sidebar-grouping/plan.md) | Completed | 2026-05-10 | 2026-05-18 |
 | [i18n Label Fix — Thai Status/Entry Labels](./tracks/i18n-label-fix/plan.md) | Optimization Suggested | 2026-05-10 | 2026-05-17 |
 | [Thai Double-Encoding Fix (TIS-620 re-encode)](./tracks/encoding-fix/plan.md) | Optimization Suggested | 2026-05-10 | 2026-05-17 |
@@ -78,6 +77,7 @@
 | [View Transitions — App-wide Implementation](./tracks/view-transitions/plan.md) | Completed | 2026-05-15 | 2026-05-18 |
 | [Hamburger Sidebar Z-Index Fix](./tracks/hamburger-zindex-fix/plan.md) | Optimization Suggested | 2026-05-16 | 2026-05-17 |
 | [Inbound Receive Fix — IO GRN "Request failed"](./tracks/inbound-receive-fix/plan.md) | Completed | 2026-05-18 | 2026-05-18 |
-| [PO Immediate Approval — Discount + Financial Summary + Auto-GRN](./tracks/po-immediate-approval/plan.md) | Rework Required | 2026-05-18 | 2026-05-18 |
+| [PO Immediate Approval — Discount + Financial Summary + Auto-GRN](./tracks/po-immediate-approval/plan.md) | Completed | 2026-05-18 | 2026-05-18 |
 | [GR-First Workflow — Standalone GR + GR→PO + PR→GR Direct](./tracks/gr-first-workflow/plan.md) | Completed | 2026-05-18 | 2026-05-18 |
 | [i18n Language Switch — Thai ↔ English System-wide](./tracks/i18n-language-switch/plan.md) | Completed | 2026-05-18 | 2026-05-18 |
+| [Chen Plan Enforcement — Architect Trigger Reliability](./tracks/chen-plan-enforcement/plan.md) | Completed | 2026-05-18 | 2026-05-18 |
