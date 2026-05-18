@@ -53,26 +53,38 @@ export async function POST(
     const grnNumRes = await client.query(`SELECT next_doc_number('GRN', 'seq_grn') AS grn_number`);
     const grnNumber: string = grnNumRes.rows[0].grn_number;
 
-    // 4. Create GRN header — po_id satisfies chk_grn_source constraint (if still exists)
-    // source_type is now NOT NULL per migration 035
+    // 4. Create GRN header
     const grnRes = await client.query(
-      `INSERT INTO goods_receipt_notes (grn_number, po_id, warehouse_id, vendor_id, source_type, status, received_date, created_by)
+      `INSERT INTO goods_receipt_notes (grn_number, po_id, warehouse_id, vendor_id, source_type, status, received_date, received_by)
        VALUES ($1, $2, $3, $4, 'po', 'stocked', NOW(), $5) RETURNING id`,
       [grnNumber, id, po.warehouse_id, po.vendor_id, u.id]
     );
     const grnId: string = grnRes.rows[0].id;
 
     // 5. Create GRN lines + stock ledger entries
-    for (const line of lines) {
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      
+      // 5a. Insert GRN line
       await client.query(
-        `INSERT INTO grn_line_items (grn_id, po_line_item_id, product_id, qty_received, unit_cost, source_type)
-         VALUES ($1, $2, $3, $4, $5, 'po')`,
-        [grnId, line.id, line.product_id, line.qty_ordered, line.unit_price]
+        `INSERT INTO grn_line_items (grn_id, po_line_item_id, product_id, qty_received, unit_cost, source_type, line_number)
+         VALUES ($1, $2, $3, $4, $5, 'po', $6)`,
+        [grnId, line.id, line.product_id, line.qty_ordered, line.unit_price, i + 1]
       );
+
+      // 5b. Get current stock balance for qty_after
+      const balanceRes = await client.query(
+        `SELECT qty_on_hand FROM stock_balances WHERE warehouse_id = $1 AND product_id = $2 FOR UPDATE`,
+        [po.warehouse_id, line.product_id]
+      );
+      const currentQty = Number(balanceRes.rows[0]?.qty_on_hand || 0);
+      const qtyAfter = currentQty + Number(line.qty_ordered);
+
+      // 5c. Insert stock ledger
       await client.query(
-        `INSERT INTO stock_ledger (product_id, warehouse_id, direction, qty, unit_cost, reference_type, reference_id, created_by)
-         VALUES ($1, $2, 'in', $3, $4, 'grn', $5, $6)`,
-        [line.product_id, po.warehouse_id, line.qty_ordered, line.unit_price, grnId, u.id]
+        `INSERT INTO stock_ledger (warehouse_id, product_id, entry_type, reference_type, reference_id, qty_change, qty_after, unit_cost, created_by)
+         VALUES ($1, $2, 'grn_receipt', 'grn', $3, $4, $5, $6, $7)`,
+        [po.warehouse_id, line.product_id, grnId, line.qty_ordered, qtyAfter, line.unit_price, u.id]
       );
     }
 

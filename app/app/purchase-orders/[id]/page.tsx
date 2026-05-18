@@ -65,6 +65,7 @@ export default function PODetailPage() {
     } catch (e: unknown) {
       const err = e as { message?: string };
       setError(err.message ?? t('error.server'));
+      setShowApproval(false);
     } finally {
       setActing(false);
     }

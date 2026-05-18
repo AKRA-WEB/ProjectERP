@@ -59,7 +59,7 @@ export async function POST(req: Request) {
     const poId = poRes.rows[0].id;
 
     // 2. Create PO lines + collect po_line ids for GRN
-    const poLineIds: { poLineId: string; productId: string; qty: number }[] = [];
+    const poLineIds: { poLineId: string; productId: string; qty: number; unitPrice: number }[] = [];
     for (let i = 0; i < parsed.data.lines.length; i++) {
       const l = parsed.data.lines[i];
       const poLine = await client.query<{ id: string }>(
@@ -68,7 +68,7 @@ export async function POST(req: Request) {
          RETURNING id`,
         [poId, l.product_id, l.qty_ordered, l.unit_price, i + 1]
       );
-      poLineIds.push({ poLineId: poLine.rows[0].id, productId: l.product_id, qty: l.qty_ordered });
+      poLineIds.push({ poLineId: poLine.rows[0].id, productId: l.product_id, qty: l.qty_ordered, unitPrice: l.unit_price });
     }
 
     // 3. Upsert vendor_products — record which vendor supplies each product
@@ -96,9 +96,9 @@ export async function POST(req: Request) {
       const pl = poLineIds[i];
       await client.query(
         `INSERT INTO grn_line_items
-           (grn_id, po_line_item_id, product_id, qty_received, qty_expected, line_number, source_type)
-         VALUES ($1, $2, $3, 0, $4, $5, 'po')`,
-        [grnId, pl.poLineId, pl.productId, pl.qty, i + 1]
+           (grn_id, po_line_item_id, product_id, qty_received, qty_expected, unit_cost, line_number, source_type)
+         VALUES ($1, $2, $3, 0, $4, $5, $6, 'po')`,
+        [grnId, pl.poLineId, pl.productId, pl.qty, pl.unitPrice, i + 1]
       );
     }
 

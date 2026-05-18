@@ -69,9 +69,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     inbound_order_line_id: string | null;
     pr_line_item_id: string | null;
     qty_expected: number | null;
+    unit_cost: number;
     line_number: number;
   }>(
-    `SELECT id, product_id, po_line_item_id, inbound_order_line_id, pr_line_item_id, qty_expected, line_number
+    `SELECT id, product_id, po_line_item_id, inbound_order_line_id, pr_line_item_id, qty_expected, unit_cost, line_number
      FROM grn_line_items WHERE grn_id = $1`,
     [id]
   );
@@ -105,12 +106,15 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (parsed.data.extra_lines?.length) {
       for (let i = 0; i < parsed.data.extra_lines.length; i++) {
         const el = parsed.data.extra_lines[i];
+        const prod = await client.query<{ unit_cost: number }>('SELECT unit_cost FROM products WHERE id = $1', [el.product_id]);
+        const unitCost = Number(prod.rows[0]?.unit_cost || 0);
+
         await client.query(
           `INSERT INTO grn_line_items
              (grn_id, product_id, qty_received, qty_accepted, qty_expected,
-              storage_location, line_number, source_type)
-           VALUES ($1, $2, $3, $3, NULL, $4, $5, $6)`,
-          [id, el.product_id, el.qty_received, el.storage_location ?? null, nextLineNumber + i, grn.source_type]
+              unit_cost, storage_location, line_number, source_type)
+           VALUES ($1, $2, $3, $3, NULL, $4, $5, $6, $7)`,
+          [id, el.product_id, el.qty_received, unitCost, el.storage_location ?? null, nextLineNumber + i, grn.source_type]
         );
       }
     }
@@ -166,9 +170,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         const sl = splitLines[i];
         await client.query(
           `INSERT INTO grn_line_items
-             (grn_id, po_line_item_id, inbound_order_line_id, pr_line_item_id, product_id, qty_received, qty_expected, line_number, source_type)
-           VALUES ($1, $2, $3, $4, $5, 0, $6, $7, $8)`,
-          [splitGrnId, sl.po_line_item_id ?? null, sl.inbound_order_line_id ?? null, sl.pr_line_item_id ?? null, sl.product_id, sl.qty_expected, i + 1, grn.source_type]
+             (grn_id, po_line_item_id, inbound_order_line_id, pr_line_item_id, product_id, qty_received, qty_expected, unit_cost, line_number, source_type)
+           VALUES ($1, $2, $3, $4, $5, 0, $6, $7, $8, $9)`,
+          [splitGrnId, sl.po_line_item_id ?? null, sl.inbound_order_line_id ?? null, sl.pr_line_item_id ?? null, sl.product_id, sl.qty_expected, sl.unit_cost, i + 1, grn.source_type]
         );
       }
     }

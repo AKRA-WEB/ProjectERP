@@ -132,16 +132,26 @@ export async function POST(req: Request) {
 
       for (let i = 0; i < parsed.data.lines.length; i++) {
         const l = parsed.data.lines[i];
+        // 2a. Insert GRN line
         await client.query(
           `INSERT INTO grn_line_items (grn_id, product_id, qty_received, unit_cost, source_type, line_number)
            VALUES ($1, $2, $3, $4, 'standalone', $5)`,
           [grn.id, l.product_id, l.qty_received, l.unit_cost, i + 1]
         );
 
+        // 2b. Get current stock balance for qty_after
+        const balanceRes = await client.query(
+          `SELECT qty_on_hand FROM stock_balances WHERE warehouse_id = $1 AND product_id = $2 FOR UPDATE`,
+          [parsed.data.warehouse_id, l.product_id]
+        );
+        const currentQty = Number(balanceRes.rows[0]?.qty_on_hand || 0);
+        const qtyAfter = currentQty + Number(l.qty_received);
+
+        // 2c. Insert stock ledger
         await client.query(
-          `INSERT INTO stock_ledger (product_id, warehouse_id, direction, qty, unit_cost, reference_type, reference_id, created_by)
-           VALUES ($1, $2, 'in', $3, $4, 'grn', $5, $6)`,
-          [l.product_id, parsed.data.warehouse_id, l.qty_received, l.unit_cost, grn.id, u.id]
+          `INSERT INTO stock_ledger (warehouse_id, product_id, entry_type, reference_type, reference_id, qty_change, qty_after, unit_cost, created_by)
+           VALUES ($1, $2, 'grn_receipt', 'grn', $3, $4, $5, $6, $7)`,
+          [parsed.data.warehouse_id, l.product_id, grn.id, l.qty_received, qtyAfter, l.unit_cost, u.id]
         );
       }
 
