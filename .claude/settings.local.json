@@ -36,7 +36,9 @@
       "Bash(New-Item -ItemType Directory -Path \"C:\\\\Users\\\\AKRA-Panich-Front\\\\OneDrive\\\\Desktop\\\\projectERP\\\\conductor\\\\tracks\\\\po-immediate-approval\" -Force)",
       "Bash(Out-Null)",
       "Bash(Write-Output \"ok\")",
-      "PowerShell(New-Item *)"
+      "PowerShell(New-Item *)",
+      "Bash(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\AKRA-Panich-Front\\\\OneDrive\\\\Desktop\\\\projectERP\\\\conductor\\\\tracks\\\\chen-plan-enforcement\")",
+      "Skill(superpowers:executing-plans)"
     ]
   },
   "hooks": {
@@ -47,6 +49,16 @@
           {
             "type": "command",
             "command": "powershell -ExecutionPolicy Bypass -File C:\\Users\\AKRA-Panich-Front\\OneDrive\\Desktop\\projectERP\\.claude\\hooks\\obsidian-sync.ps1"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -ExecutionPolicy Bypass -File C:\\Users\\AKRA-Panich-Front\\OneDrive\\Desktop\\projectERP\\.claude\\hooks\\enforce-architect-spawn.ps1"
           }
         ]
       }
