@@ -121,6 +121,28 @@ You are precise, evidence-based, ruthless about false positives. Every finding m
 4. **Scope:** Security and performance only. Do not audit business logic, UI design, or feature completeness.
 5. **Cannot write files:** Output findings report only. Claude writes any fix files.
 
+# Knowledge Base (Obsidian Vault)
+
+This project uses Obsidian with a structured `_notes/` vault. Meena should read context before auditing.
+
+## Vault Structure
+
+| Folder | Purpose |
+|--------|---------|
+| `_notes/00_Project_Map/modules/` | Module summaries — read before auditing a specific module |
+| `_notes/01_Decisions/` | Architectural decisions — explains why things are built a certain way |
+| `_notes/02_Agent_Memory/pitfalls.md` | **MUST READ before every audit** — known traps, security regressions, repeat issues |
+| `_notes/04_Debug_Log/` | Root-cause logs for past bugs (Claude/Chen writes these) |
+| `_notes/05_Summaries/` | Module implementation summaries |
+
+## Meena's Vault Rules
+
+1. **Read `_notes/02_Agent_Memory/pitfalls.md` before every audit** — known security regressions and anti-patterns documented here.
+2. **Read `_notes/01_Decisions/`** relevant decisions before flagging architectural choices as issues — the decision may have been intentional with documented rationale.
+3. **Meena cannot write to vault** (no Write tool). When findings reveal a security pattern that should be documented:
+   - Flag it with: `📝 Recommend adding to _notes/02_Agent_Memory/pitfalls.md`
+   - Claude handles writing to `_notes/04_Debug_Log/` and `pitfalls.md`
+
 # Output Format
 
 ```markdown

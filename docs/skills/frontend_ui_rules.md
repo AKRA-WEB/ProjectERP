@@ -147,4 +147,53 @@ const toggle = () => {
 ```
 **Found in:** task [1] of track [sidebar-grouping] (2026-05-18)
 
+## ❌ Trap — Tabs component children type
+**Symptom:** `Type '(activeTab: string) => JSX.Element' is not assignable to type 'ReactNode'.`
+**Root cause:** The project's `Tabs` component expects `ReactNode` (i.e., direct child elements) rather than a render function (function as children).
+**Fix:** Manage tab state in the parent page and render children conditionally based on state.
+**Found in:** task [4] of track [po-immediate-approval]
+
+## ✅ Pattern — Local Textarea Workaround
+**Context:** When the project's UI library is missing a `Textarea` component but you need one for long-form input (e.g., addresses, notes).
+**Correct way:** Define a local styled `Textarea` component that matches the project's `Input` styling.
+```typescript
+function Textarea({ label, value, onChange, className }: { label: string, value: string, onChange: (e: ChangeEvent<HTMLTextAreaElement>) => void, className?: string }) {
+  const id = label.toLowerCase().replace(/\s+/g, '-');
+  return (
+    <div className="flex flex-col">
+      <label htmlFor={id} className="text-[13px] font-medium text-ink-2 mb-1.5">{label}</label>
+      <textarea
+        id={id}
+        value={value}
+        onChange={onChange}
+        className={cn(
+          "bg-white border border-line rounded-[8px] px-3 py-2 text-[13.5px] text-ink-1 placeholder:text-ink-4 transition-all min-h-[80px]",
+          "focus:outline-none focus:border-accent focus:ring-0 focus:shadow-[0_0_0_3px_rgba(16,185,129,0.14)]",
+          className
+        )}
+      />
+    </div>
+  );
+}
+```
+**Found in:** task [4] of track [po-immediate-approval]
+
+## ✅ Pattern — React Context i18n
+**Context:** Implementing multilingual support without external libraries.
+**Correct way:**
+Use a central `LanguageProvider` with a JSON-based dictionary. Provide a `useT()` hook for string lookups and a `localeName(th, en, lang)` helper for DB fields.
+```typescript
+// Example usage
+const t = useT();
+const { lang } = useLanguage();
+return <h1>{t('page.title')}</h1>;
+```
+**Found in:** track [i18n-language-switch]
+
+## ❌ Trap — .ts vs .tsx for Context Providers
+**Symptom:** `error TS1005: '>' expected.` or syntax errors in JSX-like code.
+**Root cause:** Files containing JSX must have the `.tsx` extension. Renaming a `.ts` utility to a Provider without changing the extension causes the compiler to fail on angle brackets.
+**Fix:** Always use `.tsx` for files containing React components or JSX.
+**Found in:** track [i18n-language-switch]
+
 

@@ -12,3 +12,14 @@ export const ViewTransition = (React as { ViewTransition?: React.ComponentType<R
  */
 export const addTransitionType = (React as { addTransitionType?: (type: string) => void }).addTransitionType || 
   (() => {});
+
+/**
+ * Browser detection for startViewTransition
+ */
+export const startViewTransition = (callback: () => void) => {
+  if (typeof document !== 'undefined' && 'startViewTransition' in document) {
+    (document as unknown as { startViewTransition: (cb: () => void) => void }).startViewTransition(callback);
+  } else {
+    callback();
+  }
+};

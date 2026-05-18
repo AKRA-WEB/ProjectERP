@@ -2,10 +2,10 @@
 
 This document summarizes the full implementation of the HR Module within the ERP system.
 
-## 🚀 Overview
+## Overview
 The HR Module provides a comprehensive suite of tools for managing employees, leave, attendance, and payroll, fully integrated with the system's Accounting and RBAC modules.
 
-## ✨ Key Features
+## Key Features
 
 ### 1. Employee & Org Management
 - **Extended User Profiles**: Added department, position, salary grade, and employment status.
@@ -32,14 +32,14 @@ The HR Module provides a comprehensive suite of tools for managing employees, le
 - **Granular Permissions**: 13 new permissions (e.g., `hr:payroll:run`, `hr:leave:approve`).
 - **Role Integration**: Pre-configured access for System Admins, Managers, and Staff.
 
-## 🛠 Technical Details
-- **Framework**: Next.js 15 (App Router).
-- **Database**: PostgreSQL (Raw `pg` queries).
-- **Validation**: Zod schema validation for all API inputs.
-- **Design**: Consistent with the project's Tailwind-based UI system.
+## Technical Details
+- **Framework**: Next.js 15 (App Router)
+- **Database**: PostgreSQL (Raw `pg` queries)
+- **Validation**: Zod schema validation for all API inputs
+- **Design**: Consistent with the project's Tailwind-based UI system
 
-## 📂 Important Files
-- **Migration**: `migrations/019_hr_departments.sql` to `023_hr_permissions.sql`.
+## Important Files
+- **Migration**: `migrations/019_hr_departments.sql` to `023_hr_permissions.sql`
 - **API**: `app/api/hr/`
 - **UI**: `app/app/hr/`
 - **Logic**: `lib/hr/payroll-calc.ts`

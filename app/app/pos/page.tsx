@@ -14,6 +14,7 @@ import type { PosSession, Warehouse, PosShift } from '@/types';
 import { useRouter } from 'next/navigation';
 import { DirectionalTransition } from '@/components/ui/directional-transition';
 import { addTransitionType } from '@/lib/react-vts';
+import { useT, useLanguage, localeName } from '@/lib/i18n';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden';
 
@@ -25,6 +26,8 @@ export default function PosHomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
+  const t = useT();
+  const { lang } = useLanguage();
 
   // Form state
   const [warehouseId, setWarehouseId] = useState('');
@@ -70,7 +73,7 @@ export default function PosHomePage() {
         router.push(`/app/pos/session/${res.id}`);
       });
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Failed to open session');
+      alert(error instanceof Error ? error.message : t('error.server'));
     } finally {
       setSubmitting(false);
     }
@@ -81,19 +84,19 @@ export default function PosHomePage() {
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-stone-900">ขายหน้าร้าน / POS</h1>
+            <h1 className="text-2xl font-semibold text-stone-900">{t('page.pos_terminal')}</h1>
             <p className="text-stone-500 text-sm">จัดการรอบการขายและเปิดเครื่องบันทึกเงินสด</p>
           </div>
           <div className="flex gap-2">
             <Link href="/app/pos/sessions" transitionTypes={['nav-forward']}>
-              <Button variant="outline">ประวัติรอบ / History</Button>
+              <Button variant="outline">{t('page.sessions')}</Button>
             </Link>
-            <Button onClick={() => setIsModalOpen(true)}>เปิดรอบใหม่ / Open Session</Button>
+            <Button onClick={() => setIsModalOpen(true)}>{t('action.create')} {t('page.sessions')}</Button>
           </div>
         </div>
 
         <div className="grid gap-4">
-          <h2 className="text-sm font-medium text-stone-500 uppercase tracking-wider">รอบที่กำลังเปิดอยู่ / Active Sessions</h2>
+          <h2 className="text-sm font-medium text-stone-500 uppercase tracking-wider">{t('status.open')}</h2>
           
           {loading ? (
             <div className="flex justify-center py-12">
@@ -102,13 +105,13 @@ export default function PosHomePage() {
           ) : sessions.length === 0 ? (
             <div className={`${CARD} p-12 text-center`}>
               <div className="text-4xl mb-3">🏪</div>
-              <p className="text-stone-500">ยังไม่มีรอบการขายที่เปิดอยู่</p>
+              <p className="text-stone-500">{t('label.no_data')}</p>
               <Button 
                 variant="outline" 
                 className="mt-4"
                 onClick={() => setIsModalOpen(true)}
               >
-                คลิกที่นี่เพื่อเริ่มรอบใหม่
+                {t('action.create')}
               </Button>
             </div>
           ) : (
@@ -123,22 +126,22 @@ export default function PosHomePage() {
                           <StatusBadge status="open" />
                         </div>
                         <p className="text-sm text-stone-600">
-                          คลัง: <span className="font-medium text-stone-900">{s.warehouse_name_th}</span>
-                          {s.shift_name_th && <span className="ml-2 text-emerald-600">| กะ: <span className="font-bold">{s.shift_name_th}</span></span>}
+                          {t('label.warehouse')}: <span className="font-medium text-stone-900">{localeName(s.warehouse_name_th, s.warehouse_name_en, lang)}</span>
+                          {s.shift_name_th && <span className="ml-2 text-emerald-600">| {t('page.shifts')}: <span className="font-bold">{localeName(s.shift_name_th, s.shift_name_en, lang)}</span></span>}
                         </p>
                         <p className="text-xs text-stone-400">
-                          เปิดเมื่อ: {formatDatetime(s.opened_at)} โดย {s.opened_by_name}
+                          {t('status.open')}: {formatDatetime(s.opened_at, lang)} โดย {s.opened_by_name}
                         </p>
                       </div>
                       <div className="text-right space-y-2">
-                        <div className="text-xs text-stone-400 uppercase font-medium">ยอดขายปัจจุบัน</div>
-                        <div className="text-xl font-bold text-emerald-600">{formatCurrency(s.total_sales ?? 0)}</div>
-                        <div className="text-xs text-stone-400">{s.transaction_count ?? 0} รายการ</div>
+                        <div className="text-xs text-stone-400 uppercase font-medium">{t('label.total')}</div>
+                        <div className="text-xl font-bold text-emerald-600">{formatCurrency(s.total_sales ?? 0, lang)}</div>
+                        <div className="text-xs text-stone-400">{s.transaction_count ?? 0} {t('label.qty')}</div>
                       </div>
                     </div>
                     <div className="mt-4 pt-4 border-t border-stone-100 flex justify-end">
                       <span className="text-sm font-medium text-emerald-600 group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
-                        เข้าสู่หน้าขาย / Go to Terminal →
+                        {t('action.view')} →
                       </span>
                     </div>
                   </div>
@@ -151,37 +154,37 @@ export default function PosHomePage() {
         <Modal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
-          title="เปิดรอบการขายใหม่ / Open POS Session"
+          title={t('action.create')}
         >
           <form onSubmit={handleOpenSession} className="space-y-4 pt-2">
             <Select
-              label="เลือกคลังสินค้า / Warehouse"
+              label={t('label.warehouse')}
               value={warehouseId}
               onChange={(e) => setWarehouseId(e.target.value)}
               required
             >
               {warehouses.map((w) => (
                 <option key={w.id} value={w.id}>
-                  {w.code} — {w.name_th}
+                  {w.code} — {localeName(w.name_th, w.name_en, lang)}
                 </option>
               ))}
             </Select>
 
             <Select
-              label="เลือกกะการทำงาน / Shift (Optional)"
+              label={t('page.shifts')}
               value={shiftId}
               onChange={(e) => setShiftId(e.target.value)}
             >
-              <option value="">-- ไม่ระบุกะ --</option>
+              <option value="">-- {t('label.all')} --</option>
               {shifts.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.name_th} ({s.start_time} - {s.end_time})
+                  {localeName(s.name_th, s.name_en, lang)} ({s.start_time} - {s.end_time})
                 </option>
               ))}
             </Select>
 
             <Input
-              label="เงินทอนเริ่มต้น / Opening Float"
+              label={t('label.amount')}
               type="number"
               value={openingFloat}
               onChange={(e) => setOpeningFloat(e.target.value)}
@@ -191,10 +194,10 @@ export default function PosHomePage() {
             />
 
             <Input
-              label="หมายเหตุ / Notes"
+              label={t('label.note')}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="เช่น รอบเช้า, ตู้ที่ 1"
+              placeholder="..."
             />
 
             <div className="flex justify-end gap-2 pt-4">
@@ -204,10 +207,10 @@ export default function PosHomePage() {
                 disabled={submitting}
                 className="h-9 px-4 rounded-md border border-stone-200 bg-white text-sm font-medium hover:bg-stone-50 disabled:opacity-50"
               >
-                ยกเลิก / Cancel
+                {t('action.cancel')}
               </button>
               <Button type="submit" loading={submitting}>
-                ยืนยันเปิดรอบ / Open Session
+                {t('action.confirm')}
               </Button>
             </div>
           </form>

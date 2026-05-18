@@ -1,19 +1,23 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useMemo, ChangeEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Button, Input, Select } from '@/components/ui';
+import { Button, Input, Select, Tabs, Tab } from '@/components/ui';
 import { get, post } from '@/lib/api-client';
 import { formatCurrency } from '@/lib/format';
 import { VAT_RATE } from '@/lib/constants';
 import type { PaginatedResponse, Product, Warehouse } from '@/types';
+import { ApprovalDialog } from '@/components/purchase-orders/ApprovalDialog';
+import { cn } from '@/lib/utils';
 
-interface POLine {
+interface LineItem {
   product_id: string;
-  product_label: string;
-  pr_line_item_id?: string;
+  sku: string;
+  name_th: string;
+  selling_price: number;
   qty_ordered: number;
   unit_price: number;
+  line_discount: number;
 }
 
 interface Vendor {
@@ -36,6 +40,25 @@ interface PRDetail {
   lines: PRLine[];
 }
 
+function Textarea({ label, value, onChange, className }: { label: string, value: string, onChange: (e: ChangeEvent<HTMLTextAreaElement>) => void, className?: string }) {
+  const id = label.toLowerCase().replace(/\s+/g, '-');
+  return (
+    <div className="flex flex-col">
+      <label htmlFor={id} className="text-[13px] font-medium text-ink-2 mb-1.5">{label}</label>
+      <textarea
+        id={id}
+        value={value}
+        onChange={onChange}
+        className={cn(
+          "bg-white border border-line rounded-[8px] px-3 py-2 text-[13.5px] text-ink-1 placeholder:text-ink-4 transition-all min-h-[80px]",
+          "focus:outline-none focus:border-accent focus:ring-0 focus:shadow-[0_0_0_3px_rgba(16,185,129,0.14)]",
+          className
+        )}
+      />
+    </div>
+  );
+}
+
 function NewPurchaseOrderPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -43,12 +66,30 @@ function NewPurchaseOrderPageInner() {
 
   const [vendors, setVendors] = useState<{ value: string; label: string }[]>([]);
   const [warehouses, setWarehouses] = useState<{ value: string; label: string }[]>([]);
-  const [form, setForm] = useState({ vendor_id: '', warehouse_id: '', expected_date: '', payment_terms_days: '30', notes: '' });
-  const [lines, setLines] = useState<POLine[]>([]);
+  const [activeTab, setActiveTab] = useState('items');
+  const [form, setForm] = useState({
+    vendor_id: '',
+    warehouse_id: '',
+    bill_discount: 0,
+    non_vat_amount: 0,
+    include_vat: false,
+    doc_date: new Date().toISOString().split('T')[0],
+    expiry_date: '',
+    delivery_date: '',
+    from_address: '',
+    to_address: '',
+    reference: '',
+    payment_terms_days: 30,
+    notes: '',
+    expected_date: '',
+  });
+
+  const [lines, setLines] = useState<LineItem[]>([]);
   const [productSearch, setProductSearch] = useState('');
   const [productResults, setProductResults] = useState<Product[]>([]);
   const [vendorCatalog, setVendorCatalog] = useState<Record<string, number>>({});
   const [saving, setSaving] = useState(false);
+  const [showApproval, setShowApproval] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -75,16 +116,38 @@ function NewPurchaseOrderPageInner() {
         setForm((f) => ({ ...f, warehouse_id: pr.warehouse_id }));
         setLines(pr.lines.map((l) => ({
           product_id: l.product_id,
-          product_label: `${l.sku} — ${l.name_th}`,
-          pr_line_item_id: l.id,
-          qty_ordered: l.qty_requested,
-          unit_price: l.unit_cost,
+          sku: l.sku,
+          name_th: l.name_th,
+          selling_price: 0,
+          qty_ordered: Number(l.qty_requested),
+          unit_price: Number(l.unit_cost),
+          line_discount: 0,
         })));
       });
     }
   }, [prId]);
 
-  function setF(key: string, val: string) { setForm((f) => ({ ...f, [key]: val })); }
+  const summary = useMemo(() => {
+    const subtotal = lines.reduce((s, l) => s + l.qty_ordered * l.unit_price, 0);
+    const totalLineDiscount = lines.reduce((s, l) => s + l.line_discount, 0);
+    const afterLineDiscount = subtotal - totalLineDiscount;
+    const preVat = afterLineDiscount - form.bill_discount - form.non_vat_amount;
+    const vat = form.include_vat ? 0 : Math.round(preVat * VAT_RATE * 100) / 100;
+    const netTotal = preVat + vat + form.non_vat_amount;
+
+    return {
+      subtotal,
+      totalLineDiscount,
+      afterLineDiscount,
+      billDiscount: form.bill_discount,
+      nonVatAmount: form.non_vat_amount,
+      preVat,
+      vat,
+      netTotal,
+    };
+  }, [lines, form.bill_discount, form.non_vat_amount, form.include_vat]);
+
+  function setF(key: string, val: string | number | boolean) { setForm((f) => ({ ...f, [key]: val })); }
 
   async function searchProducts(q: string) {
     setProductSearch(q);
@@ -96,22 +159,26 @@ function NewPurchaseOrderPageInner() {
   function addProduct(p: Product) {
     const vendorPrice = vendorCatalog[p.id];
     const unit_price = vendorPrice !== undefined ? vendorPrice : (Number(p.unit_cost) || 0);
-    setLines((prev) => [...prev, { product_id: p.id, product_label: `${p.sku} — ${p.name_th}`, qty_ordered: 1, unit_price }]);
+    setLines((prev) => [...prev, {
+      product_id: p.id,
+      sku: p.sku,
+      name_th: p.name_th,
+      selling_price: Number(p.unit_cost) * 1.5,
+      qty_ordered: 1,
+      unit_price,
+      line_discount: 0
+    }]);
     setProductSearch('');
     setProductResults([]);
   }
 
-  function updateLine(i: number, key: keyof POLine, val: number) {
+  function updateLine(i: number, key: keyof LineItem, val: string | number) {
     setLines((prev) => prev.map((l, idx) => idx === i ? { ...l, [key]: val } : l));
   }
 
   function removeLine(i: number) { setLines((prev) => prev.filter((_, idx) => idx !== i)); }
 
-  const subtotal = lines.reduce((s, l) => s + l.qty_ordered * l.unit_price, 0);
-  const vat = subtotal * VAT_RATE;
-  const total = subtotal + vat;
-
-  async function handleSubmit(send: boolean) {
+  async function handleSubmit(approveImmediately: boolean) {
     if (!form.vendor_id) { setError('กรุณาเลือกผู้จำหน่าย'); return; }
     if (!form.warehouse_id) { setError('กรุณาเลือกคลังสินค้า'); return; }
     if (lines.length === 0) { setError('กรุณาเพิ่มรายการสินค้า'); return; }
@@ -120,116 +187,213 @@ function NewPurchaseOrderPageInner() {
     try {
       const po = await post<{ id: string }>('/api/purchase-orders', {
         ...form,
-        payment_terms_days: parseInt(form.payment_terms_days),
-        expected_date: form.expected_date || undefined,
         pr_ids: prId ? [prId] : undefined,
-        lines: lines.map((l) => ({ product_id: l.product_id, pr_line_item_id: l.pr_line_item_id, qty_ordered: l.qty_ordered, unit_price: l.unit_price })),
+        lines: lines.map((l) => ({
+          product_id: l.product_id,
+          qty_ordered: l.qty_ordered,
+          unit_price: l.unit_price,
+          line_discount: l.line_discount,
+        })),
       });
-      if (send) {
-        await post(`/api/purchase-orders/${po.id}/send`, {});
+
+      if (approveImmediately) {
+        await post(`/api/purchase-orders/${po.id}/approve`, {});
       }
+
       router.push(`/app/purchase-orders/${po.id}`);
     } catch (e: unknown) {
       const err = e as { message?: string };
       setError(err.message ?? 'เกิดข้อผิดพลาด');
-    } finally {
       setSaving(false);
     }
   }
 
+  const vendorName = vendors.find(v => v.value === form.vendor_id)?.label.split(' — ')[1] || '';
+
   return (
-    <div className="max-w-4xl">
+    <div className="max-w-7xl mx-auto">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-gray-900">สร้างใบสั่งซื้อใหม่</h1>
         <button className="text-sm text-gray-500 hover:underline" onClick={() => router.back()}>← ย้อนกลับ</button>
       </div>
-      {prId && <div className="mb-4 rounded-lg bg-blue-50 border border-blue-200 px-4 py-2 text-sm text-blue-700">สร้างจาก PR: {prId}</div>}
 
-      <div className="rounded-xl bg-white shadow-sm border border-gray-100 p-6 space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Select label="ผู้จำหน่าย *" value={form.vendor_id} onChange={(e) => setF('vendor_id', e.target.value)} options={vendors} placeholder="เลือกผู้จำหน่าย" />
-          <Select label="คลังสินค้า *" value={form.warehouse_id} onChange={(e) => setF('warehouse_id', e.target.value)} options={warehouses} placeholder="เลือกคลังสินค้า" />
-          <Input label="วันที่คาดรับ" type="date" value={form.expected_date} onChange={(e) => setF('expected_date', e.target.value)} />
-          <Input label="เงื่อนไขการชำระ (วัน)" type="number" value={form.payment_terms_days} onChange={(e) => setF('payment_terms_days', e.target.value)} />
-          <div className="col-span-2">
-            <Input label="หมายเหตุ" value={form.notes} onChange={(e) => setF('notes', e.target.value)} />
-          </div>
-        </div>
-
-        <div>
-          <h2 className="text-sm font-semibold text-gray-700 mb-3">รายการสินค้า</h2>
-          <div className="relative mb-4">
-            <Input label="ค้นหาสินค้า" value={productSearch} onChange={(e) => searchProducts(e.target.value)} placeholder="พิมพ์ SKU หรือชื่อสินค้า..." />
-            {productResults.length > 0 && (
-              <div className="absolute z-10 mt-1 w-full rounded-lg border bg-white shadow-lg">
-                {productResults.map((p) => (
-                  <button key={p.id} type="button" className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm" onClick={() => addProduct(p)}>
-                    <span className="font-mono font-medium">{p.sku}</span> — {p.name_th}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {lines.length > 0 && (
-            <div className="border rounded-lg overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="text-left p-3 font-medium text-gray-600">สินค้า</th>
-                    <th className="text-right p-3 font-medium text-gray-600 w-28">จำนวน</th>
-                    <th className="text-right p-3 font-medium text-gray-600 w-32">ราคา/หน่วย</th>
-                    <th className="text-right p-3 font-medium text-gray-600 w-32">รวม</th>
-                    <th className="w-10"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {lines.map((l, i) => (
-                    <tr key={i} className="border-t">
-                      <td className="p-3">{l.product_label}</td>
-                      <td className="p-2"><input type="number" min="0.01" step="any" value={l.qty_ordered} onChange={(e) => updateLine(i, 'qty_ordered', parseFloat(e.target.value) || 0)} className="w-full text-right rounded border px-2 py-1" /></td>
-                      <td className="p-2"><input type="number" min="0" step="any" value={l.unit_price} onChange={(e) => updateLine(i, 'unit_price', parseFloat(e.target.value) || 0)} className="w-full text-right rounded border px-2 py-1" /></td>
-                      <td className="p-3 text-right">{formatCurrency(l.qty_ordered * l.unit_price)}</td>
-                      <td className="p-2 text-center"><button onClick={() => removeLine(i)} className="text-red-400 hover:text-red-600">✕</button></td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot className="border-t bg-gray-50">
-                  <tr>
-                    <td colSpan={3} className="p-3 text-right text-sm text-gray-500">ก่อน VAT</td>
-                    <td className="p-3 text-right text-sm font-medium">{formatCurrency(subtotal)}</td>
-                    <td></td>
-                  </tr>
-                  <tr>
-                    <td colSpan={3} className="p-3 text-right text-sm text-gray-500">VAT 7%</td>
-                    <td className="p-3 text-right text-sm">{formatCurrency(vat)}</td>
-                    <td></td>
-                  </tr>
-                  <tr>
-                    <td colSpan={3} className="p-3 text-right font-semibold">รวมทั้งสิ้น</td>
-                    <td className="p-3 text-right font-bold text-lg">{formatCurrency(total)}</td>
-                    <td></td>
-                  </tr>
-                </tfoot>
-              </table>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        <div className="lg:col-span-2 space-y-6">
+          <div className="rounded-xl bg-white shadow-sm border border-gray-100 p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+              <Select label="ผู้จำหน่าย *" value={form.vendor_id} onChange={(e) => setF('vendor_id', e.target.value)} options={vendors} placeholder="เลือกผู้จำหน่าย" />
+              <Select label="คลังสินค้า *" value={form.warehouse_id} onChange={(e) => setF('warehouse_id', e.target.value)} options={warehouses} placeholder="เลือกคลังสินค้า" />
             </div>
-          )}
+
+            <Tabs>
+              <Tab active={activeTab === 'items'} onClick={() => setActiveTab('items')}>สินค้านำเข้า</Tab>
+              <Tab active={activeTab === 'details'} onClick={() => setActiveTab('details')}>รายละเอียด</Tab>
+            </Tabs>
+
+            <div className="mt-4">
+              {activeTab === 'items' && (
+                <div className="space-y-4">
+                  <div className="relative">
+                    <Input label="ค้นหาสินค้า" value={productSearch} onChange={(e) => searchProducts(e.target.value)} placeholder="พิมพ์ SKU หรือชื่อสินค้า..." />
+                    {productResults.length > 0 && (
+                      <div className="absolute z-10 mt-1 w-full rounded-lg border bg-white shadow-lg max-h-60 overflow-y-auto">
+                        {productResults.map((p) => (
+                          <button key={p.id} type="button" className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm" onClick={() => addProduct(p)}>
+                            <span className="font-mono font-medium">{p.sku}</span> — {p.name_th}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="border rounded-lg overflow-hidden">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="text-left p-3 font-medium text-gray-600">สินค้า</th>
+                          <th className="text-right p-3 font-medium text-gray-600 w-24">จำนวน</th>
+                          <th className="text-right p-3 font-medium text-gray-600 w-32">ราคา/หน่วย</th>
+                          <th className="text-right p-3 font-medium text-gray-600 w-32">ส่วนลดรวม</th>
+                          <th className="text-right p-3 font-medium text-gray-600 w-32">รวม</th>
+                          <th className="w-10"></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {lines.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="p-8 text-center text-gray-400 italic">ยังไม่มีรายการสินค้า</td>
+                          </tr>
+                        ) : (
+                          lines.map((l, i) => (
+                            <tr key={i} className="border-t">
+                              <td className="p-3">
+                                <div className="font-mono text-xs text-gray-500">{l.sku}</div>
+                                <div className="font-medium">{l.name_th}</div>
+                              </td>
+                              <td className="p-2"><input type="number" min="0.01" step="any" value={l.qty_ordered} onChange={(e) => updateLine(i, 'qty_ordered', parseFloat(e.target.value) || 0)} className="w-full text-right rounded border px-2 py-1 font-mono" /></td>
+                              <td className="p-2"><input type="number" min="0" step="any" value={l.unit_price} onChange={(e) => updateLine(i, 'unit_price', parseFloat(e.target.value) || 0)} className="w-full text-right rounded border px-2 py-1 font-mono" /></td>
+                              <td className="p-2"><input type="number" min="0" step="any" value={l.line_discount} onChange={(e) => updateLine(i, 'line_discount', parseFloat(e.target.value) || 0)} className="w-full text-right rounded border px-2 py-1 font-mono text-red-600" /></td>
+                              <td className="p-3 text-right font-mono">{formatCurrency(l.qty_ordered * l.unit_price - l.line_discount)}</td>
+                              <td className="p-2 text-center"><button onClick={() => removeLine(i)} className="text-red-400 hover:text-red-600">✕</button></td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'details' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Input label="วันที่เอกสาร" type="date" value={form.doc_date} onChange={(e) => setF('doc_date', e.target.value)} />
+                  <Input label="วันที่คาดรับ" type="date" value={form.expected_date} onChange={(e) => setF('expected_date', e.target.value)} />
+                  <Input label="วันครบกำหนด" type="date" value={form.expiry_date} onChange={(e) => setF('expiry_date', e.target.value)} />
+                  <Input label="วันที่ส่งของ" type="date" value={form.delivery_date} onChange={(e) => setF('delivery_date', e.target.value)} />
+                  <Input label="เงื่อนไขการชำระ (วัน)" type="number" value={form.payment_terms_days} onChange={(e) => setF('payment_terms_days', parseInt(e.target.value) || 0)} />
+                  <Input label="อ้างอิง" value={form.reference} onChange={(e) => setF('reference', e.target.value)} />
+                  <div className="col-span-2">
+                    <Textarea label="ที่อยู่ผู้ส่ง" value={form.from_address} onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setF('from_address', e.target.value)} />
+                  </div>
+                  <div className="col-span-2">
+                    <Textarea label="ที่อยู่ผู้รับ" value={form.to_address} onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setF('to_address', e.target.value)} />
+                  </div>
+                  <div className="col-span-2">
+                    <Textarea label="หมายเหตุ" value={form.notes} onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setF('notes', e.target.value)} />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        <div className="sticky top-6 space-y-4">
+          <div className="rounded-xl bg-white shadow-sm border border-gray-100 p-6 space-y-4">
+            <h2 className="font-semibold text-gray-900 border-b pb-2">สรุปยอดเงิน</h2>
+            
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-500">ยอดรวม (ก่อนหัก):</span>
+                <span className="font-mono">{formatCurrency(summary.subtotal)}</span>
+              </div>
+              <div className="flex justify-between text-red-600">
+                <span>ส่วนลดรวมรายการ:</span>
+                <span className="font-mono">-{formatCurrency(summary.totalLineDiscount)}</span>
+              </div>
+              <div className="flex justify-between font-medium pt-1 border-t">
+                <span>ยอดหลังหักส่วนลด:</span>
+                <span className="font-mono">{formatCurrency(summary.afterLineDiscount)}</span>
+              </div>
+              
+              <div className="pt-2 space-y-3">
+                <Input
+                  label="ส่วนลดท้ายบิล"
+                  type="number"
+                  value={form.bill_discount}
+                  onChange={(e) => setF('bill_discount', parseFloat(e.target.value) || 0)}
+                  className="font-mono text-right"
+                />
+                <Input
+                  label="ยอดไม่เสียภาษี"
+                  type="number"
+                  value={form.non_vat_amount}
+                  onChange={(e) => setF('non_vat_amount', parseFloat(e.target.value) || 0)}
+                  className="font-mono text-right"
+                />
+              </div>
 
-        <div className="flex gap-3 justify-end">
-          <Button variant="secondary" onClick={() => handleSubmit(false)} loading={saving}>บันทึกร่าง</Button>
-          <Button onClick={() => handleSubmit(true)} loading={saving}>บันทึกและส่ง</Button>
+              <div className="flex justify-between pt-2 border-t">
+                <span className="text-gray-500">ยอดก่อนภาษี:</span>
+                <span className="font-mono">{formatCurrency(summary.preVat)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">ภาษีมูลค่าเพิ่ม (7%):</span>
+                <span className="font-mono">{formatCurrency(summary.vat)}</span>
+              </div>
+              
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="include_vat"
+                  checked={form.include_vat}
+                  onChange={(e) => setF('include_vat', e.target.checked)}
+                  className="rounded border-gray-300"
+                />
+                <label htmlFor="include_vat" className="text-xs text-gray-600 cursor-pointer select-none">ราคารวม VAT แล้ว</label>
+              </div>
+
+              <div className="flex justify-between text-xl font-bold text-blue-700 pt-3 border-t">
+                <span>ยอดสุทธิ:</span>
+                <span className="font-mono">{formatCurrency(summary.netTotal)}</span>
+              </div>
+            </div>
+
+            {error && <p className="text-sm text-red-600">{error}</p>}
+
+            <div className="grid grid-cols-2 gap-3 pt-4">
+              <Button variant="secondary" onClick={() => handleSubmit(false)} loading={saving}>ขอบบิล</Button>
+              <Button onClick={() => setShowApproval(true)} disabled={saving}>อนุมัติกัน</Button>
+            </div>
+          </div>
         </div>
       </div>
+
+      <ApprovalDialog
+        open={showApproval}
+        onClose={() => setShowApproval(false)}
+        vendorName={vendorName}
+        lines={lines}
+        summary={summary}
+        onConfirm={() => handleSubmit(true)}
+        loading={saving}
+      />
     </div>
   );
 }
 
 export default function NewPurchaseOrderPage() {
   return (
-    <Suspense>
+    <Suspense fallback={<div className="py-16 text-center text-gray-400">กำลังโหลด...</div>}>
       <NewPurchaseOrderPageInner />
     </Suspense>
   );

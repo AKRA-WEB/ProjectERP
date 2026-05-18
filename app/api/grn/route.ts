@@ -1,10 +1,10 @@
 import { auth } from '@/auth';
 import { apiSuccess, apiError, apiValidationError } from '@/lib/api-response';
-import { buildWarehouseScopeClause } from '@/lib/authz';
-import { query, queryOne } from '@/lib/db/client';
+import { buildWarehouseScopeClause, assertRole } from '@/lib/authz';
+import pool, { query, queryOne } from '@/lib/db/client';
 import { z } from 'zod';
 import { DEFAULT_PAGE_SIZE } from '@/lib/constants';
-import type { SessionUser } from '@/lib/authz';
+import type { SessionUser } from '@/types';
 
 const lineSchema = z.object({
   po_line_item_id: z.string().uuid().optional(),
@@ -29,6 +29,18 @@ const createSchema = z.object({
   (d) => (d.po_id != null) !== (d.inbound_order_id != null),
   { message: 'Provide exactly one of po_id or inbound_order_id' }
 );
+
+const standaloneGRNSchema = z.object({
+  vendor_id: z.string().uuid(),
+  warehouse_id: z.string().uuid(),
+  received_date: z.string().optional(),
+  notes: z.string().optional(),
+  lines: z.array(z.object({
+    product_id: z.string().uuid(),
+    qty_received: z.number().positive(),
+    unit_cost: z.number().positive(),
+  })).min(1),
+});
 
 export async function GET(req: Request) {
   const session = await auth();
@@ -89,10 +101,71 @@ export async function POST(req: Request) {
 
   const body = await req.json().catch(() => null);
   if (!body) return apiError('Invalid JSON', 400);
+
+  // Standalone GRN path
+  if (!body.po_id && !body.inbound_order_id && body.vendor_id) {
+    try {
+      assertRole(u, ['manager', 'admin']);
+    } catch (e) {
+      const error = e as Error & { status?: number };
+      return apiError(error.message, error.status || 403);
+    }
+    const parsed = standaloneGRNSchema.safeParse(body);
+    if (!parsed.success) return apiValidationError(parsed.error);
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const grnResult = await client.query(
+        `INSERT INTO goods_receipt_notes (grn_number, warehouse_id, vendor_id, source_type, status, received_by, received_date, notes)
+         VALUES (next_doc_number('GRN', 'seq_grn'), $1, $2, 'standalone', 'stocked', $3, $4, $5)
+         RETURNING id, grn_number`,
+        [
+          parsed.data.warehouse_id,
+          parsed.data.vendor_id,
+          u.id,
+          parsed.data.received_date ?? new Date().toISOString().split('T')[0],
+          parsed.data.notes ?? null
+        ]
+      );
+      const grn = grnResult.rows[0];
+
+      for (let i = 0; i < parsed.data.lines.length; i++) {
+        const l = parsed.data.lines[i];
+        await client.query(
+          `INSERT INTO grn_line_items (grn_id, product_id, qty_received, unit_cost, source_type, line_number)
+           VALUES ($1, $2, $3, $4, 'standalone', $5)`,
+          [grn.id, l.product_id, l.qty_received, l.unit_cost, i + 1]
+        );
+
+        await client.query(
+          `INSERT INTO stock_ledger (product_id, warehouse_id, direction, qty, unit_cost, reference_type, reference_id, created_by)
+           VALUES ($1, $2, 'in', $3, $4, 'grn', $5, $6)`,
+          [l.product_id, parsed.data.warehouse_id, l.qty_received, l.unit_cost, grn.id, u.id]
+        );
+      }
+
+      await client.query('COMMIT');
+      return apiSuccess({ grn_id: grn.id, grn_number: grn.grn_number }, 201);
+    } catch (e) {
+      const error = e as Error & { status?: number };
+      await client.query('ROLLBACK');
+      console.error('Standalone GRN Error:', error);
+      return apiError(error.message || 'Failed to create standalone GRN', error.status || 500);
+    } finally {
+      client.release();
+    }
+  }
+
+  // PO/IO-based GRN path
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) return apiValidationError(parsed.error);
 
+  let sourceType: 'po' | 'inbound_order' = 'po';
+  const unitCosts = new Map<string, number>();
+
   if (parsed.data.po_id) {
+    sourceType = 'po';
     const po = await queryOne<{ status: string; warehouse_id: string }>(
       'SELECT status, warehouse_id FROM purchase_orders WHERE id = $1',
       [parsed.data.po_id]
@@ -100,13 +173,13 @@ export async function POST(req: Request) {
     if (!po) return apiError('PO not found', 404);
     if (!['sent', 'partially_received'].includes(po.status)) return apiError('PO must be in sent or partially_received status', 409);
 
-    // Fetch remaining qty per line for this PO (summing up all existing non-cancelled GRN items)
     const poLines = await query<{
       id: string;
       qty_ordered: number;
       already_received: number;
+      unit_price: number;
     }>(
-      `SELECT pol.id, pol.qty_ordered,
+      `SELECT pol.id, pol.qty_ordered, pol.unit_price,
               COALESCE(SUM(gli.qty_received), 0) AS already_received
        FROM po_line_items pol
        LEFT JOIN grn_line_items gli ON gli.po_line_item_id = pol.id
@@ -123,14 +196,16 @@ export async function POST(req: Request) {
       const poLine = poLineMap.get(line.po_line_item_id);
       if (!poLine) return apiError(`PO line ${line.po_line_item_id} not found`, 422);
       const remaining = Number(poLine.qty_ordered) - Number(poLine.already_received);
-      if (line.qty_received > remaining + 0.0001) { // allowance for floating point
+      if (line.qty_received > remaining + 0.0001) {
         return apiError(
           `qty_received (${line.qty_received}) exceeds remaining qty (${remaining.toFixed(4)}) for line ${line.po_line_item_id}`,
           422
         );
       }
+      unitCosts.set(line.po_line_item_id, Number(poLine.unit_price));
     }
   } else if (parsed.data.inbound_order_id) {
+    sourceType = 'inbound_order';
     const io = await queryOne<{ status: string; warehouse_id: string }>(
       'SELECT status, warehouse_id FROM inbound_orders WHERE id = $1',
       [parsed.data.inbound_order_id]
@@ -138,13 +213,13 @@ export async function POST(req: Request) {
     if (!io) return apiError('Inbound Order not found', 404);
     if (!['open', 'receiving'].includes(io.status)) return apiError('Inbound Order must be open or receiving', 409);
 
-    // Fetch remaining qty per line for this IO (summing up all existing non-cancelled GRN items)
     const ioLines = await query<{
       id: string;
       qty_ordered: number;
       already_received: number;
+      unit_cost: number;
     }>(
-      `SELECT iol.id, iol.qty_ordered,
+      `SELECT iol.id, iol.qty_ordered, iol.unit_cost,
               COALESCE(SUM(gli.qty_received), 0) AS already_received
        FROM inbound_order_lines iol
        LEFT JOIN grn_line_items gli ON gli.inbound_order_line_id = iol.id
@@ -161,12 +236,13 @@ export async function POST(req: Request) {
       const ioLine = ioLineMap.get(line.inbound_order_line_id);
       if (!ioLine) return apiError(`IO line ${line.inbound_order_line_id} not found`, 422);
       const remaining = Number(ioLine.qty_ordered) - Number(ioLine.already_received);
-      if (line.qty_received > remaining + 0.0001) { // allowance for floating point
+      if (line.qty_received > remaining + 0.0001) {
         return apiError(
           `qty_received (${line.qty_received}) exceeds remaining qty (${remaining.toFixed(4)}) for line ${line.inbound_order_line_id}`,
           422
         );
       }
+      unitCosts.set(line.inbound_order_line_id, Number(ioLine.unit_cost));
     }
   }
 
@@ -174,25 +250,27 @@ export async function POST(req: Request) {
     return apiError('No access to this warehouse', 403);
   }
 
-  const grn = await queryOne<{ id: string }>(
-    `INSERT INTO goods_receipt_notes (po_id, inbound_order_id, warehouse_id, received_by, received_date, notes)
-     VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, grn_number, status`,
+  const grn = await queryOne<{ id: string; grn_number: string; status: string }>(
+    `INSERT INTO goods_receipt_notes (po_id, inbound_order_id, warehouse_id, received_by, received_date, notes, source_type)
+     VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, grn_number, status`,
     [
       parsed.data.po_id ?? null,
       parsed.data.inbound_order_id ?? null,
       parsed.data.warehouse_id,
       u.id,
       parsed.data.received_date,
-      parsed.data.notes ?? null
+      parsed.data.notes ?? null,
+      sourceType
     ]
   );
   if (!grn) return apiError('Failed to create GRN', 500);
 
   const lineValues = parsed.data.lines
-    .map((_, i) => `($1, $${i * 8 + 2}, $${i * 8 + 3}, $${i * 8 + 4}, $${i * 8 + 5}, $${i * 8 + 6}, $${i * 8 + 7}, $${i * 8 + 8}, $${i * 8 + 9}, ${i + 1})`)
+    .map((_, i) => `($1, $${i * 9 + 2}, $${i * 9 + 3}, $${i * 9 + 4}, $${i * 9 + 5}, $${i * 9 + 6}, $${i * 9 + 7}, $${i * 9 + 8}, $${i * 9 + 9}, $${i * 9 + 10}, ${i + 1})`)
     .join(', ');
   const lineParams: unknown[] = [grn.id];
   for (const l of parsed.data.lines) {
+    const cost = unitCosts.get(l.po_line_item_id || l.inbound_order_line_id || '') || 0;
     lineParams.push(
       l.po_line_item_id ?? null,
       l.inbound_order_line_id ?? null,
@@ -201,11 +279,13 @@ export async function POST(req: Request) {
       l.lot_number ?? null,
       l.serial_number ?? null,
       l.expiry_date ?? null,
-      l.storage_location ?? null
+      l.storage_location ?? null,
+      sourceType,
+      cost
     );
   }
   await query(
-    `INSERT INTO grn_line_items (grn_id, po_line_item_id, inbound_order_line_id, product_id, qty_received, lot_number, serial_number, expiry_date, storage_location, line_number)
+    `INSERT INTO grn_line_items (grn_id, po_line_item_id, inbound_order_line_id, product_id, qty_received, lot_number, serial_number, expiry_date, storage_location, source_type, unit_cost, line_number)
      VALUES ${lineValues}`,
     lineParams
   );

@@ -6,6 +6,7 @@ import { formatCurrency, formatQty } from '@/lib/format';
 import { SearchInput, Pagination } from '@/components/ui';
 import { Filter, Download, ScanLine, Home, ArrowLeftRight, ClipboardList, Boxes, Upload } from 'lucide-react';
 import ProductImportModal from '@/components/inventory/ProductImportModal';
+import { useT, useLanguage, localeName } from '@/lib/i18n';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -36,6 +37,7 @@ interface InventoryData {
 // ─── Status pill ─────────────────────────────────────────────────────────────
 
 function StockStatusPill({ item }: { item: StockItem }) {
+  const t = useT();
   if (item.qty_available <= 0)
     return (
       <span className="text-[11px] font-bold text-red-700 border border-red-200 bg-red-50 rounded-full px-2 py-0.5">
@@ -50,7 +52,7 @@ function StockStatusPill({ item }: { item: StockItem }) {
     );
   return (
     <span className="text-[11px] font-bold text-emerald-700 border border-emerald-200 bg-emerald-50 rounded-full px-2 py-0.5">
-      ปกติ
+      {t('status.active')}
     </span>
   );
 }
@@ -59,11 +61,12 @@ function StockStatusPill({ item }: { item: StockItem }) {
 
 function BottomTabBar() {
   const router = useRouter();
+  const t = useT();
   const tabs = [
-    { key: 'home', label: 'หน้าหลัก', icon: Home, href: '/app' },
-    { key: 'stock', label: 'สต็อก', icon: Boxes, href: '/app/inventory', active: true },
-    { key: 'transfer', label: 'โอนย้าย', icon: ArrowLeftRight, href: '/app/transfer' },
-    { key: 'count', label: 'นับสต็อก', icon: ClipboardList, href: '/app/cycle-count' },
+    { key: 'home', label: t('nav.overview'), icon: Home, href: '/app' },
+    { key: 'stock', label: t('nav.inventory'), icon: Boxes, href: '/app/inventory', active: true },
+    { key: 'transfer', label: t('page.transfers'), icon: ArrowLeftRight, href: '/app/transfer' },
+    { key: 'count', label: t('page.cycle_counts'), icon: ClipboardList, href: '/app/cycle-count' },
   ];
   return (
     <div className="fixed bottom-0 inset-x-0 h-16 bg-white border-t border-stone-200 flex md:hidden z-40">
@@ -90,6 +93,8 @@ function BottomTabBar() {
 
 export default function InventoryPage() {
   const router = useRouter();
+  const t = useT();
+  const { lang } = useLanguage();
 
   const [inventoryData, setInventoryData] = useState<InventoryData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -142,8 +147,8 @@ export default function InventoryPage() {
 
   // ── Export CSV ──
   function exportCSV() {
-    const headers = ['SKU', 'ชื่อสินค้า', 'คลัง', 'คงเหลือ', 'พร้อมใช้', 'Reorder'];
-    const rows = allItems.map((i) => [i.sku, i.name_th, i.warehouse_code, formatQty(i.qty_on_hand), formatQty(i.qty_available), formatQty(i.reorder_point)]);
+    const headers = ['SKU', t('label.product'), t('label.warehouse'), t('status.received'), t('label.qty'), 'Reorder'];
+    const rows = allItems.map((i) => [i.sku, localeName(i.name_th, i.name_en, lang), i.warehouse_code, formatQty(i.qty_on_hand), formatQty(i.qty_available), formatQty(i.reorder_point)]);
     const csv = [headers, ...rows].map((r) => r.join(',')).join('\n');
     const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -170,7 +175,7 @@ export default function InventoryPage() {
         <div className="flex items-start justify-between gap-2 mb-2">
           <div className="flex-1 min-w-0">
             <p className="text-[11px] font-mono text-stone-400 tabular-nums">{item.sku} · {item.warehouse_code}</p>
-            <p className="text-[14px] font-semibold text-stone-900 leading-snug mt-0.5 truncate">{item.name_th}</p>
+            <p className="text-[14px] font-semibold text-stone-900 leading-snug mt-0.5 truncate">{localeName(item.name_th, item.name_en, lang)}</p>
           </div>
           <StockStatusPill item={item} />
         </div>
@@ -202,18 +207,18 @@ export default function InventoryPage() {
         <div className="px-4 pt-4 pb-3 bg-white border-b border-stone-100">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-[17px] font-bold text-stone-900">สต็อกสินค้า</h1>
-              <p className="text-[12px] text-stone-400 mt-0.5 font-mono">{skuCount} รายการ</p>
+              <h1 className="text-[17px] font-bold text-stone-900">{t('page.inventory')}</h1>
+              <p className="text-[12px] text-stone-400 mt-0.5 font-mono">{skuCount} {t('label.total')}</p>
             </div>
             <div className="flex items-center gap-1">
               <button 
                 onClick={() => setShowImport(true)}
                 className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-stone-100" 
-                aria-label="นำเข้า"
+                aria-label={t('action.import')}
               >
                 <Upload className="w-4 h-4 text-stone-600" />
               </button>
-              <button className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-stone-100" aria-label="กรอง">
+              <button className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-stone-100" aria-label={t('action.filter')}>
                 <Filter className="w-4 h-4 text-stone-600" />
               </button>
             </div>
@@ -229,7 +234,7 @@ export default function InventoryPage() {
                 type="text"
                 value={search}
                 onChange={(e) => handleSearch(e.target.value)}
-                placeholder="ค้นหาสินค้า, SKU..."
+                placeholder={t('label.search_placeholder')}
                 className="w-full h-11 pl-4 pr-4 border border-stone-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-stone-300"
               />
             </div>
@@ -246,7 +251,7 @@ export default function InventoryPage() {
                 !warehouseFilter ? 'bg-emerald-600 text-white shadow-sm' : 'bg-stone-100 text-stone-600'
               }`}
             >
-              ทุกคลัง
+              {t('label.all')}
             </button>
             {warehouses.map((wh) => (
               <button
@@ -276,8 +281,8 @@ export default function InventoryPage() {
               <p className="text-lg font-mono font-bold tabular-nums text-stone-900 mt-1">{skuCount.toLocaleString()}</p>
             </div>
             <div className="w-36 flex-shrink-0 p-3 bg-white border border-stone-200 rounded-xl">
-              <p className="text-[10px] text-stone-400">ยอดคงเหลือ (฿)</p>
-              <p className="text-lg font-mono font-bold tabular-nums text-stone-900 mt-1 truncate">{formatCurrency(totalValue)}</p>
+              <p className="text-[10px] text-stone-400">{t('label.total')} (฿)</p>
+              <p className="text-lg font-mono font-bold tabular-nums text-stone-900 mt-1 truncate">{formatCurrency(totalValue, lang)}</p>
             </div>
             <div className="w-36 flex-shrink-0 p-3 bg-white border border-amber-200 rounded-xl">
               <p className="text-[10px] text-stone-400">ต่ำกว่า Reorder</p>
@@ -291,9 +296,9 @@ export default function InventoryPage() {
 
           {/* Stock card list */}
           {loading ? (
-            <div className="text-center py-12 text-stone-400 text-sm">กำลังโหลด...</div>
+            <div className="text-center py-12 text-stone-400 text-sm">{t('label.loading')}</div>
           ) : allItems.length === 0 ? (
-            <div className="text-center py-12 text-stone-400 text-sm">ไม่พบรายการ</div>
+            <div className="text-center py-12 text-stone-400 text-sm">{t('label.no_data')}</div>
           ) : (
             <div>
               {allItems.map((item) => (
@@ -312,8 +317,8 @@ export default function InventoryPage() {
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h1 className="text-xl font-bold text-stone-900">สต็อกสินค้า</h1>
-            <p className="text-sm text-stone-400 mt-0.5">Inventory · {skuCount.toLocaleString()} รายการ</p>
+            <h1 className="text-xl font-bold text-stone-900">{t('page.inventory')}</h1>
+            <p className="text-sm text-stone-400 mt-0.5">Inventory · {skuCount.toLocaleString()} {t('label.total')}</p>
           </div>
           <div className="flex items-center gap-2">
             {/* View toggle */}
@@ -326,7 +331,7 @@ export default function InventoryPage() {
                     view === v ? 'bg-stone-950 text-white' : 'text-stone-600 hover:bg-stone-50'
                   }`}
                 >
-                  {v === 'table' ? 'ตาราง' : 'การ์ด'}
+                  {v === 'table' ? t('action.view') : 'การ์ด'}
                 </button>
                 ))}
                 </div>
@@ -335,14 +340,14 @@ export default function InventoryPage() {
                 className="flex items-center gap-1.5 border border-emerald-200 bg-emerald-50 text-emerald-700 rounded-md px-3 py-1.5 text-sm font-medium hover:bg-emerald-100 shadow-sm"
                 >
                 <Upload className="w-3.5 h-3.5" />
-                นำเข้าสินค้า (Excel)
+                {t('action.import')} (Excel)
                 </button>
                 <button
                 onClick={exportCSV}
                 className="flex items-center gap-1.5 border border-stone-200 bg-white rounded-md px-3 py-1.5 text-sm text-stone-700 hover:bg-stone-50 shadow-sm"
                 >
                 <Download className="w-3.5 h-3.5" />
-                Export CSV
+                {t('action.export')} CSV
               </button>
             </div>
           </div>
@@ -354,8 +359,8 @@ export default function InventoryPage() {
             <p className="text-2xl font-mono font-bold tabular-nums text-stone-900">{skuCount.toLocaleString()}</p>
           </div>
           <div className="flex-1 px-6 py-4">
-            <p className="text-xs text-stone-400 mt-0.5">ยอดคงเหลือ (฿)</p>
-            <p className="text-2xl font-mono font-bold tabular-nums text-stone-900">{formatCurrency(totalValue)}</p>
+            <p className="text-xs text-stone-400 mt-0.5">{t('label.total')} (฿)</p>
+            <p className="text-2xl font-mono font-bold tabular-nums text-stone-900">{formatCurrency(totalValue, lang)}</p>
           </div>
           <div className="flex-1 px-6 py-4">
             <p className="text-xs text-stone-400 mt-0.5">ต่ำกว่า Reorder</p>
@@ -373,7 +378,7 @@ export default function InventoryPage() {
             <SearchInput
               value={search}
               onSearch={handleSearch}
-              placeholder="ค้นหาสินค้า, SKU, ชื่อ..."
+              placeholder={t('label.search_placeholder')}
             />
           </div>
           <select
@@ -381,7 +386,7 @@ export default function InventoryPage() {
             onChange={(e) => { setWarehouseFilter(e.target.value); setPage(1); }}
             className="h-9 border border-stone-200 rounded-lg px-3 text-sm text-stone-700 bg-white focus:outline-none focus:ring-2 focus:ring-stone-300"
           >
-            <option value="">ทุกคลัง</option>
+            <option value="">{t('label.all')}</option>
             {warehouses.map((wh) => (
               <option key={wh.id} value={wh.id}>{wh.code} – {wh.name}</option>
             ))}
@@ -402,21 +407,21 @@ export default function InventoryPage() {
             <table className="w-full text-sm">
               <thead className="bg-stone-50 border-b border-stone-200">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wide">SKU</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wide">ชื่อสินค้า</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wide">คลัง</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('label.sku')}</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('label.product')}</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('label.warehouse')}</th>
                   <th className="px-4 py-3 text-right text-xs font-semibold text-stone-500 uppercase tracking-wide">คงเหลือ</th>
                   <th className="px-4 py-3 text-right text-xs font-semibold text-stone-500 uppercase tracking-wide">พร้อมใช้</th>
                   <th className="px-4 py-3 text-right text-xs font-semibold text-stone-500 uppercase tracking-wide">Reorder</th>
                   <th className="px-4 py-3 text-right text-xs font-semibold text-stone-500 uppercase tracking-wide">มูลค่า</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-stone-500 uppercase tracking-wide">สถานะ</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('label.status')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100">
                 {loading ? (
-                  <tr><td colSpan={8} className="px-4 py-8 text-center text-stone-400 text-sm">กำลังโหลด...</td></tr>
+                  <tr><td colSpan={8} className="px-4 py-8 text-center text-stone-400 text-sm">{t('label.loading')}</td></tr>
                 ) : allItems.length === 0 ? (
-                  <tr><td colSpan={8} className="px-4 py-8 text-center text-stone-400 text-sm">ไม่พบรายการ</td></tr>
+                  <tr><td colSpan={8} className="px-4 py-8 text-center text-stone-400 text-sm">{t('label.no_data')}</td></tr>
                 ) : (
                   allItems.map((item) => (
                     <tr
@@ -427,12 +432,12 @@ export default function InventoryPage() {
                       }`}
                     >
                       <td className="px-4 py-3 font-mono text-xs text-stone-600">{item.sku}</td>
-                      <td className="px-4 py-3 text-stone-800 font-medium max-w-[220px] truncate">{item.name_th}</td>
+                      <td className="px-4 py-3 text-stone-800 font-medium max-w-[220px] truncate">{localeName(item.name_th, item.name_en, lang)}</td>
                       <td className="px-4 py-3 font-mono text-xs text-stone-500">{item.warehouse_code}</td>
                       <td className="px-4 py-3 text-right font-mono tabular-nums text-stone-700">{formatQty(item.qty_on_hand)}</td>
                       <td className="px-4 py-3 text-right font-mono tabular-nums text-stone-700">{formatQty(item.qty_available)}</td>
                       <td className="px-4 py-3 text-right font-mono tabular-nums text-stone-500">{formatQty(item.reorder_point)}</td>
-                      <td className="px-4 py-3 text-right font-mono tabular-nums text-stone-600">{formatCurrency(item.qty_on_hand * item.unit_cost)}</td>
+                      <td className="px-4 py-3 text-right font-mono tabular-nums text-stone-600">{formatCurrency(item.qty_on_hand * item.unit_cost, lang)}</td>
                       <td className="px-4 py-3 text-center"><StockStatusPill item={item} /></td>
                     </tr>
                   ))
@@ -444,7 +449,7 @@ export default function InventoryPage() {
           /* Card view */
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
             {loading ? (
-              <div className="col-span-4 text-center py-12 text-stone-400 text-sm">กำลังโหลด...</div>
+              <div className="col-span-4 text-center py-12 text-stone-400 text-sm">{t('label.loading')}</div>
             ) : allItems.map((item) => {
               const isOut = item.qty_available <= 0;
               const isLow = !isOut && item.qty_available <= item.reorder_point;
@@ -457,7 +462,7 @@ export default function InventoryPage() {
                   }`}
                 >
                   <p className="text-[10px] font-mono text-stone-400 tabular-nums">{item.sku} · {item.warehouse_code}</p>
-                  <p className="text-[14px] font-semibold text-stone-900 mt-1 leading-snug line-clamp-2">{item.name_th}</p>
+                  <p className="text-[14px] font-semibold text-stone-900 mt-1 leading-snug line-clamp-2">{localeName(item.name_th, item.name_en, lang)}</p>
                   <div className="mt-3 flex justify-between items-end">
                     <div>
                       <p className="text-[10px] text-stone-400">พร้อมใช้</p>

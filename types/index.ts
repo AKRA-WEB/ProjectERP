@@ -1,4 +1,5 @@
 export type UserRole = 'admin' | 'manager' | 'staff';
+export type Locale = 'th' | 'en';
 
 export interface SessionUser {
   id: string;
@@ -13,10 +14,46 @@ export type ClaimResolutionType = 'credit_note' | 'replacement_shipment' | 'both
 export type TransferStatus = 'pending' | 'completed' | 'cancelled';
 export type InboundOrderStatus = 'open' | 'receiving' | 'pending_verification' | 'verified' | 'closed';
 export type GrnStatus = 'draft' | 'received' | 'verified' | 'qc_pending' | 'qc_passed' | 'qc_failed' | 'stocked';
-export type PrStatus = 'draft' | 'submitted' | 'manager_approved' | 'admin_approved' | 'rejected' | 'converted_to_po';
+export type PrStatus = 'draft' | 'submitted' | 'manager_approved' | 'admin_approved' | 'rejected' | 'converted_to_po' | 'received';
 export type PoStatus = 'draft' | 'sent' | 'partially_received' | 'fully_received' | 'invoiced' | 'paid' | 'closed' | 'cancelled';
 export type CycleCountStatus = 'open' | 'counting' | 'pending_approval' | 'approved' | 'closed';
 export type LedgerEntryType = 'grn_receipt' | 'grn_qc_reject' | 'rma_return' | 'rma_vendor_return' | 'transfer_out' | 'transfer_in' | 'cycle_count_adjustment' | 'po_reversal' | 'manual_adjustment' | 'pos_sale' | 'pos_void' | 'pick_dispatch';
+
+export type GrnSourceType = 'po' | 'inbound_order' | 'standalone' | 'pr_direct';
+
+export interface GRNLine {
+  id: string;
+  grn_id: string;
+  product_id: string;
+  sku: string;
+  name_th: string;
+  qty_received: number;
+  unit_cost: number;
+  line_total: number;
+  po_line_item_id: string | null;
+  pr_line_item_id: string | null;
+  source_type: GrnSourceType;
+}
+
+export interface GRNDetail {
+  id: string;
+  grn_number: string;
+  source_type: GrnSourceType;
+  status: GrnStatus;
+  vendor_id: string | null;
+  vendor_name: string | null;
+  warehouse_id: string;
+  warehouse_name: string;
+  po_id: string | null;
+  po_number: string | null;
+  pr_id: string | null;
+  pr_number: string | null;
+  received_date: string | null;
+  notes: string | null;
+  created_by: string;
+  created_at: string;
+  lines: GRNLine[];
+}
 
 export type PosSessionStatus = 'open' | 'closed';
 export type PosTransactionStatus = 'completed' | 'voided';

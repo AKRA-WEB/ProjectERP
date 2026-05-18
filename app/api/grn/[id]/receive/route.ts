@@ -31,8 +31,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const u = session.user as unknown as SessionUser;
 
   const { id } = await params;
-  const grn = await queryOne<{ status: string; po_id: string; warehouse_id: string; split_from_grn_id: string | null }>(
-    'SELECT status, po_id, warehouse_id, split_from_grn_id FROM goods_receipt_notes WHERE id = $1',
+  const grn = await queryOne<{ status: string; po_id: string | null; inbound_order_id: string | null; warehouse_id: string; split_from_grn_id: string | null }>(
+    'SELECT status, po_id, inbound_order_id, warehouse_id, split_from_grn_id FROM goods_receipt_notes WHERE id = $1',
     [id]
   );
   if (!grn) return apiError('GRN not found', 404);
@@ -56,11 +56,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const grnLines = await query<{
     id: string;
     product_id: string;
-    po_line_item_id: string;
+    po_line_item_id: string | null;
+    inbound_order_line_id: string | null;
     qty_expected: number | null;
     line_number: number;
   }>(
-    `SELECT id, product_id, po_line_item_id, qty_expected, line_number
+    `SELECT id, product_id, po_line_item_id, inbound_order_line_id, qty_expected, line_number
      FROM grn_line_items WHERE grn_id = $1`,
     [id]
   );
@@ -134,11 +135,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       // Create split GRN (same PO, same warehouse, draft status)
       const splitGrn = await client.query<{ id: string; grn_number: string }>(
         `INSERT INTO goods_receipt_notes
-           (po_id, warehouse_id, received_by, split_from_grn_id, notes, status)
-         VALUES ($1, $2, $3, $4, $5, 'draft')
+           (po_id, inbound_order_id, warehouse_id, received_by, split_from_grn_id, notes, status)
+         VALUES ($1, $2, $3, $4, $5, $6, 'draft')
          RETURNING id, grn_number`,
         [
-          grn.po_id,
+          grn.po_id ?? null,
+          grn.inbound_order_id ?? null,
           effectiveWarehouseId,
           u.id,
           id, // this GRN is the parent
@@ -151,9 +153,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         const sl = splitLines[i];
         await client.query(
           `INSERT INTO grn_line_items
-             (grn_id, po_line_item_id, product_id, qty_received, qty_expected, line_number)
-           VALUES ($1, $2, $3, 0, $4, $5)`,
-          [splitGrnId, sl.po_line_item_id, sl.product_id, sl.qty_expected, i + 1]
+             (grn_id, po_line_item_id, inbound_order_line_id, product_id, qty_received, qty_expected, line_number)
+           VALUES ($1, $2, $3, $4, 0, $5, $6)`,
+          [splitGrnId, sl.po_line_item_id ?? null, sl.inbound_order_line_id ?? null, sl.product_id, sl.qty_expected, i + 1]
         );
       }
     }

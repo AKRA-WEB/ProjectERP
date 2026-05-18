@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Button, StatusBadge, Badge, Input, Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/ui';
+import { Button, StatusBadge, Badge, Input, Modal, ModalHeader, ModalBody, ModalFooter, Select, useToast } from '@/components/ui';
 import { get, post } from '@/lib/api-client';
-import { formatDate, formatQty } from '@/lib/format';
+import { formatDate, formatQty, formatCurrency } from '@/lib/format';
 import { useSession } from 'next-auth/react';
-import type { GrnStatus } from '@/types';
+import type { GrnStatus, Vendor, PaginatedResponse } from '@/types';
 import Link from 'next/link';
-import { Search, ScanLine, Plus, Trash2 } from 'lucide-react';
+import { Search, ScanLine, Plus, Trash2, ShoppingCart } from 'lucide-react';
 
 const LABEL_CLS = "block text-[13px] font-medium text-stone-500 mb-1";
 const FIELD_CLS = "w-full bg-white border border-stone-200 rounded-[7px] px-3 py-2 text-[14px] outline-none focus:border-emerald-500 transition-colors";
@@ -47,15 +47,20 @@ interface GRNLine {
   storage_location: string | null;
   qc_status: string | null;
   qc_notes: string | null;
+  unit_cost: number;
+  line_total: number;
 }
 
 interface GRNDetail {
   id: string;
   grn_number: string;
   status: GrnStatus;
+  source_type: string;
+  po_id: string | null;
   po_number: string | null;
   io_number: string | null;
   inbound_order_id: string | null;
+  vendor_id: string | null;
   warehouse_id: string;
   warehouse_code: string;
   warehouse_name: string;
@@ -76,6 +81,7 @@ export default function GRNDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { data: session } = useSession();
+  const toast = useToast();
   const [grn, setGrn] = useState<GRNDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState(false);
@@ -85,6 +91,15 @@ export default function GRNDetailPage() {
   const [showVerify, setShowVerify] = useState(false);
   const [qcNotes, setQcNotes] = useState('');
   const [verifyNotes, setVerifyNotes] = useState('');
+
+  // Retrospective PO States
+  const [showCreatePO, setShowCreatePO] = useState(false);
+  const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [poData, setPoData] = useState({
+    vendor_id: '',
+    payment_terms_days: 0,
+    notes: '',
+  });
 
   // Work Card States
   const [extraLines, setExtraLines] = useState<ExtraLine[]>([]);
@@ -123,6 +138,11 @@ export default function GRNDetailPage() {
           storage_location: l.storage_location ?? '',
         })),
       }));
+
+      // Set initial PO data if vendor exists
+      if (data.vendor_id) {
+        setPoData(prev => ({ ...prev, vendor_id: data.vendor_id || '' }));
+      }
     } finally {
       setLoading(false);
     }
@@ -132,6 +152,7 @@ export default function GRNDetailPage() {
 
   useEffect(() => {
     get<Warehouse[]>('/api/admin/warehouses').then(setWarehouses).catch(() => {});
+    get<PaginatedResponse<Vendor>>('/api/vendors?limit=100').then((r) => setVendors(r.data)).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -203,6 +224,23 @@ export default function GRNDetailPage() {
     }
   }
 
+  async function handleCreatePO() {
+    if (!poData.vendor_id) { setError('กรุณาเลือกผู้จำหน่าย'); return; }
+    setError('');
+    setActing(true);
+    try {
+      const result = await post<{ po_id: string; po_number: string }>(`/api/grn/${id}/create-po`, poData);
+      toast('success', `สร้าง PO เลขที่ ${result.po_number} แล้ว`);
+      setShowCreatePO(false);
+      await fetchGRN();
+    } catch (e: unknown) {
+      const err = e as { message?: string };
+      setError(err.message ?? 'เกิดข้อผิดพลาด');
+    } finally {
+      setActing(false);
+    }
+  }
+
   function updateQcLine(i: number, key: keyof QCLineUpdate, val: number | string) {
     setQcLines((prev) => prev.map((l, idx) => idx === i ? { ...l, [key]: val } : l));
   }
@@ -211,6 +249,7 @@ export default function GRNDetailPage() {
   if (!grn) return <div className="py-16 text-center text-gray-400">ไม่พบข้อมูล</div>;
 
   const isManager = session?.user && ['manager', 'admin'].includes((session.user as { role?: string }).role ?? '');
+  const canCreatePO = (grn.source_type === 'standalone' || grn.source_type === 'pr_direct') && grn.status === 'stocked' && !grn.po_id;
 
   return (
     <div className="max-w-5xl">
@@ -224,7 +263,7 @@ export default function GRNDetailPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: grn.inbound_order_id ? 'เลข IO' : 'เลข PO', value: grn.io_number ?? grn.po_number, href: grn.inbound_order_id ? `/app/inbound-orders/${grn.inbound_order_id}` : undefined },
+          { label: grn.inbound_order_id ? 'เลข IO' : 'เลข PO', value: grn.io_number ?? grn.po_number, href: grn.inbound_order_id ? `/app/inbound-orders/${grn.inbound_order_id}` : (grn.po_id ? `/app/purchase-orders/${grn.po_id}` : undefined) },
           { label: 'คลังสินค้า', value: `${grn.warehouse_code} — ${grn.warehouse_name}` },
           { label: 'ผู้รับ', value: grn.received_by_name },
           { label: 'วันที่รับ', value: formatDate(grn.received_date) },
@@ -234,7 +273,7 @@ export default function GRNDetailPage() {
             {f.href ? (
               <Link href={f.href} className="text-sm font-medium text-blue-600 hover:underline font-mono">{f.value}</Link>
             ) : (
-              <p className="text-sm font-medium">{f.value}</p>
+              <p className="text-sm font-medium">{f.value || '—'}</p>
             )}
           </div>
         ))}
@@ -464,8 +503,9 @@ export default function GRNDetailPage() {
                 <th className="text-right p-3 font-medium">รับมา</th>
                 <th className="text-right p-3 font-medium">ยอมรับ</th>
                 <th className="text-right p-3 font-medium">ปฏิเสธ</th>
+                <th className="text-right p-3 font-medium">ต้นทุน</th>
+                <th className="text-right p-3 font-medium">รวม</th>
                 <th className="p-3 font-medium">Lot</th>
-                <th className="p-3 font-medium">ตำแหน่งเก็บ</th>
                 <th className="p-3 font-medium text-center">QC</th>
               </tr>
             </thead>
@@ -479,8 +519,9 @@ export default function GRNDetailPage() {
                   <td className="p-3 text-right">{formatQty(l.qty_received)} {l.uom_code}</td>
                   <td className="p-3 text-right text-green-600">{l.qty_accepted != null ? formatQty(l.qty_accepted) : '—'}</td>
                   <td className="p-3 text-right text-red-500">{l.qty_rejected != null ? formatQty(l.qty_rejected) : '—'}</td>
+                  <td className="p-3 text-right font-mono text-stone-600">{formatCurrency(l.unit_cost)}</td>
+                  <td className="p-3 text-right font-mono font-medium text-stone-900">{formatCurrency(l.line_total)}</td>
                   <td className="p-3 text-xs text-gray-500 font-mono">{l.lot_number ?? '—'}</td>
-                  <td className="p-3 text-xs text-gray-500 font-medium">{l.storage_location ?? '—'}</td>
                   <td className="p-3 text-center">
                     {l.qc_status ? (
                       <Badge variant={l.qc_status === 'pass' ? 'green' : l.qc_status === 'partial' ? 'yellow' : 'red'}>
@@ -497,7 +538,16 @@ export default function GRNDetailPage() {
 
       {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
 
-      <div className="flex gap-3 justify-end">
+      <div className="flex gap-3 justify-end flex-wrap">
+        {canCreatePO && (
+          <Button
+            onClick={() => setShowCreatePO(true)}
+            className="bg-stone-900 hover:bg-stone-800 text-white flex items-center gap-2"
+          >
+            <ShoppingCart className="w-4 h-4" /> สร้าง PO จาก GR นี้
+          </Button>
+        )}
+
         {grn.status === 'received' && (
           <>
             {grn.inbound_order_id ? (
@@ -527,6 +577,40 @@ export default function GRNDetailPage() {
           <ModalFooter>
             <Button variant="ghost" onClick={() => setShowVerify(false)}>ยกเลิก</Button>
             <Button onClick={() => action('verify', { verification_notes: verifyNotes })} loading={acting}>ยืนยันความถูกต้อง</Button>
+          </ModalFooter>
+        </Modal>
+      )}
+
+      {showCreatePO && (
+        <Modal open={showCreatePO} onClose={() => setShowCreatePO(false)} size="md">
+          <ModalHeader onClose={() => setShowCreatePO(false)}>สร้างใบสั่งซื้อย้อนหลัง (Retrospective PO)</ModalHeader>
+          <ModalBody>
+            <div className="space-y-4">
+              <p className="text-sm text-stone-600">สร้างใบสั่งซื้อเพื่อจับคู่กับยอดรับสินค้านี้ สต็อกจะไม่ถูกเพิ่มซ้ำ</p>
+              <Select
+                label="ผู้จำหน่าย / Vendor *"
+                value={poData.vendor_id}
+                onChange={(e) => setPoData(prev => ({ ...prev, vendor_id: e.target.value }))}
+                options={vendors.map(v => ({ value: v.id, label: `${v.code} — ${v.name_th}` }))}
+                disabled={!!grn.vendor_id}
+              />
+              <Input
+                label="เครดิต (จำนวนวัน)"
+                type="number"
+                value={poData.payment_terms_days}
+                onChange={(e) => setPoData(prev => ({ ...prev, payment_terms_days: parseInt(e.target.value) || 0 }))}
+              />
+              <Input
+                label="หมายเหตุ PO"
+                value={poData.notes}
+                onChange={(e) => setPoData(prev => ({ ...prev, notes: e.target.value }))}
+                placeholder="ระบุเหตุผลหรือเลขอ้างอิงบิล..."
+              />
+            </div>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="ghost" onClick={() => setShowCreatePO(false)}>ยกเลิก</Button>
+            <Button onClick={handleCreatePO} loading={acting} className="bg-stone-900 text-white">ยืนยันสร้าง PO</Button>
           </ModalFooter>
         </Modal>
       )}

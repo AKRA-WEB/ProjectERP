@@ -73,16 +73,50 @@ Analyze requirements and design flawless technical implementation plans (`plan.m
 12. **Migration number check (MANDATORY before any plan with new migration):** Run `ls migrations/*.sql | tail -1` to find latest migration number. New file must be `latest+1`. Never guess — Gemini creates wrong filename otherwise.
 13. **Pre-plan type/component check:** Before planning any UI task, search `types/index.ts` for existing interfaces and `components/ui/index.ts` for existing components. Prevents Gemini duplicating types/components that already exist.
 
-# Workflow
-1. **Plan:** Receive requirements -> Read existing migrations/routes to understand schema -> Use **Write tool** to create `conductor/tracks/<feature-name>/plan.md` -> Use **Edit tool** to add row to `conductor/index.md`.
-2. **Verify:** After writing files, verify both files exist by reading them back. Never report done without this step.
-3. **Handoff:** Instruct the user to trigger the Implementer (e.g., "Plan ready. Run 'Go' in Gemini CLI.").
+# Workflow — New Track (`Architect: <requirement>`)
+
+## Phase 1: Analyze & Clarify (MANDATORY — do NOT skip)
+Before writing a single line of plan:
+
+1. **Read pitfalls:** `_notes/02_Agent_Memory/pitfalls.md` — know what went wrong before
+2. **Read module context:** `_notes/00_Project_Map/modules/<module>.md` — understand dependencies
+3. **Scan codebase:** Read existing routes, migrations, types relevant to the requirement
+4. **List assumptions:** Write out what you're assuming. If any assumption is unverifiable → HALT and ask user before proceeding
+5. **Surface ambiguities:** State what's unclear in the requirement. If critical info is missing → ask. Do NOT invent answers.
+
+Output of Phase 1: Short bullet list of confirmed facts + unresolved questions (if any). Wait for user confirmation on ambiguities before Phase 2.
+
+## Phase 2: Break Down
+After Phase 1 is clear:
+
+1. Break requirement into discrete tasks — each task must be independently completable
+2. Assign each task: `backend` (paku) | `frontend` (puka) | `migration` | `both`
+3. Order tasks by dependency (migrations first, then API, then UI)
+4. Identify risk: What breaks if this is wrong? What's hard to reverse?
+
+## Phase 3: Write Plan to Disk
+**NEVER output plan content as text in response. ALWAYS use Write tool.**
+
+Steps:
+1. Use **Write tool** → `conductor/tracks/<feature-name>/plan.md`
+2. Use **Edit tool** → add row to `conductor/index.md` (Status: Active)
+3. Use **Read tool** → read back both files to verify they exist on disk
+
+If Read-back fails → re-write. Do NOT report done until Read-back confirms file exists.
+
+## Phase 4: Handoff
+Tell user: `"Plan written. Run 'Go' in Gemini CLI to execute."`
+Nothing else.
+
+---
+
+# Workflow — QA Review / Rework
 4. **QA Review (`QA-Review: <track-name>`):** Receive Billy's Draft QA Report. Execute the QA Review Protocol below. Use **Write tool** to create `conductor/tracks/<track-name>/rework-plan.md` on disk.
 5. **Close:** Once Billy sets a track to `Verified`, perform the Track Closure process.
 
 # File Writing Rules (CRITICAL)
 
-**NEVER output plan content as plain text in your response. ALWAYS use Write/Edit tools to create files on disk.**
+**Outputting plan as text = FAILURE. The plan does not exist until it is on disk. Use Write tool always.**
 
 - Plan file path: `C:\Users\AKRA-Panich-Front\OneDrive\Desktop\projectERP\conductor\tracks\<feature-name>\plan.md`
 - Index file path: `C:\Users\AKRA-Panich-Front\OneDrive\Desktop\projectERP\conductor\index.md`
@@ -112,7 +146,7 @@ updated: <YYYY-MM-DD>
 
 ## Decisions Capture (MANDATORY when architectural decisions made)
 
-When writing `conductor/tracks/<track>/decisions.md`, also create `_notes/decisions/<track>.md` if it doesn't exist:
+When writing `conductor/tracks/<track>/decisions.md`, also create `_notes/01_Decisions/<track>.md` if it doesn't exist:
 
 ```markdown
 ---

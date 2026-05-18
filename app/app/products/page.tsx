@@ -9,6 +9,7 @@ import ProductImportModal from '@/components/inventory/ProductImportModal';
 import Link from 'next/link';
 
 import { DirectionalTransition } from '@/components/ui/directional-transition';
+import { useT, useLanguage, localeName } from '@/lib/i18n';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-[0_1px_0_rgba(15,23,42,.03),0_1px_2px_rgba(15,23,42,.04)]';
 
@@ -20,6 +21,8 @@ export default function ProductsPage() {
   const [showForm, setShowForm] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [selected, setSelected] = useState<Product | undefined>(undefined);
+  const t = useT();
+  const { lang } = useLanguage();
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
@@ -52,10 +55,10 @@ export default function ProductsPage() {
         <div className="flex items-end justify-between gap-6 flex-wrap">
           <div>
             <h1 className="text-[26px] font-semibold tracking-tight text-stone-950 leading-tight mb-1">
-              สินค้า
+              {t('page.products')}
             </h1>
             <p className="text-[13.5px] text-stone-500">
-              Products · {loading ? '—' : (data?.total ?? 0).toLocaleString('th-TH')} รายการ
+              Products · {loading ? '—' : (data?.total ?? 0).toLocaleString(lang === 'th' ? 'th-TH' : 'en-US')} {t('label.total').toLowerCase()}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -63,13 +66,13 @@ export default function ProductsPage() {
               onClick={() => setShowImport(true)}
               className="inline-flex items-center gap-1.5 h-8 px-3 rounded-[7px] border border-stone-200 text-stone-700 text-[13px] font-medium hover:bg-stone-50 transition-colors"
             >
-              นำเข้าสินค้า
+              {t('action.import')}
             </button>
             <button
               onClick={openNew}
               className="inline-flex items-center gap-1.5 h-8 px-3 rounded-[7px] bg-stone-950 text-white text-[13px] font-medium shadow-sm hover:bg-stone-800 transition-colors"
             >
-              + เพิ่มสินค้า
+              + {t('action.create')}
             </button>
           </div>
         </div>
@@ -81,7 +84,7 @@ export default function ProductsPage() {
             <path d="M10 10l2.5 2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
           </svg>
           <input
-            placeholder="ค้นหารหัสหรือชื่อสินค้า..."
+            placeholder={t('label.search_placeholder')}
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             className="flex-1 bg-transparent border-0 outline-none text-stone-700 placeholder:text-stone-400 text-[13px]"
@@ -94,12 +97,12 @@ export default function ProductsPage() {
             <thead>
               <tr>
                 {[
-                  { h: 'รหัส SKU', sm: false },
-                  { h: 'ชื่อสินค้า', sm: false },
-                  { h: 'หมวดหมู่', sm: true },
-                  { h: 'หน่วยนับ', sm: true },
-                  { h: 'ต้นทุน',   sm: true },
-                  { h: 'สถานะ',   sm: false },
+                  { h: t('label.sku'), sm: false },
+                  { h: t('label.product'), sm: false },
+                  { h: t('label.department'), sm: true },
+                  { h: t('label.unit'), sm: true },
+                  { h: t('label.price'),   sm: true },
+                  { h: t('label.status'),   sm: false },
                   { h: '',        sm: false },
                 ].map(({ h, sm }, i) => (
                   <th key={i} className={`text-left py-2.5 px-3.5 text-[11.5px] font-medium tracking-[.04em] uppercase text-stone-400 bg-stone-50 border-y border-stone-200 first:pl-5 last:pr-5 ${sm ? 'hidden lg:table-cell' : ''} ${i === 4 ? 'text-right' : ''}`}>
@@ -110,9 +113,9 @@ export default function ProductsPage() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={7} className="py-12 text-center text-[13px] text-stone-400">กำลังโหลด...</td></tr>
+                <tr><td colSpan={7} className="py-12 text-center text-[13px] text-stone-400">{t('label.loading')}</td></tr>
               ) : data?.data.length === 0 ? (
-                <tr><td colSpan={7} className="py-12 text-center text-[13px] text-stone-400">ไม่พบสินค้า</td></tr>
+                <tr><td colSpan={7} className="py-12 text-center text-[13px] text-stone-400">{t('label.no_data')}</td></tr>
               ) : data?.data.map((p) => (
                 <tr key={p.id} className="border-b border-stone-50 last:border-0 hover:bg-stone-50/60 cursor-default transition-colors group">
                   <td className="py-0 h-11 px-3.5 pl-5">
@@ -122,24 +125,24 @@ export default function ProductsPage() {
                   </td>
                   <td className="py-0 h-11 px-3.5">
                     <Link href={`/app/products/${p.id}`} transitionTypes={['nav-forward']} className="font-medium text-stone-900 truncate max-w-[200px] hover:text-emerald-700 block transition-colors">
-                      {p.name_th}
+                      {localeName(p.name_th, p.name_en, lang)}
                     </Link>
-                    {p.name_en && <div className="text-[11px] text-stone-400 truncate max-w-[200px]">{p.name_en}</div>}
+                    {lang === 'th' && p.name_en && <div className="text-[11px] text-stone-400 truncate max-w-[200px]">{p.name_en}</div>}
                   </td>
                   <td className="py-0 h-11 px-3.5 text-stone-500 hidden lg:table-cell">{p.category_name ?? '—'}</td>
                   <td className="py-0 h-11 px-3.5 text-stone-500 hidden lg:table-cell">{p.uom_code}</td>
                   <td className="py-0 h-11 px-3.5 text-right font-mono tabular-nums font-medium text-stone-900 hidden lg:table-cell">
-                    {formatCurrency(p.unit_cost)}
+                    {formatCurrency(p.unit_cost, lang)}
                   </td>
                   <td className="py-0 h-11 px-3.5">
                     <span className={`inline-flex items-center gap-[5px] px-2 py-[2px] text-[11.5px] font-medium rounded-full border leading-[1.5] before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:bg-current ${p.is_active ? 'text-emerald-700 border-emerald-200 bg-emerald-50' : 'text-stone-500 border-stone-200 bg-stone-50'}`}>
-                      {p.is_active ? 'ใช้งาน' : 'ปิดใช้'}
+                      {p.is_active ? t('status.active') : t('status.inactive')}
                     </span>
                   </td>
                   <td className="py-0 h-11 px-3.5 pr-5 text-right">
                     <div className="flex items-center justify-end gap-3">
                       <button onClick={() => openEdit(p)} className="text-[12px] text-stone-400 hover:text-emerald-700 transition-colors">
-                        แก้ไข
+                        {t('action.edit')}
                       </button>
                       <Link href={`/app/products/${p.id}`} transitionTypes={['nav-forward']} className="text-stone-300 hover:text-emerald-600 transition-colors">
                         <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -155,15 +158,15 @@ export default function ProductsPage() {
         {/* Pagination */}
         {data && data.total_pages > 1 && (
           <div className="flex items-center justify-between text-[13px] text-stone-500 pt-2">
-            <span>หน้า {page} จาก {data.total_pages}</span>
+            <span>{t('label.all')} {page} {t('label.select_placeholder')} {data.total_pages}</span>
             <div className="flex gap-1">
               <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
                 className="h-8 px-3 rounded-[7px] border border-stone-200 bg-white hover:bg-stone-50 disabled:opacity-40 disabled:pointer-events-none text-[13px]">
-                ← ก่อนหน้า
+                ← {t('action.back')}
               </button>
               <button onClick={() => setPage((p) => Math.min(data.total_pages, p + 1))} disabled={page === data.total_pages}
                 className="h-8 px-3 rounded-[7px] border border-stone-200 bg-white hover:bg-stone-50 disabled:opacity-40 disabled:pointer-events-none text-[13px]">
-                ถัดไป →
+                {t('action.submit')} →
               </button>
             </div>
           </div>

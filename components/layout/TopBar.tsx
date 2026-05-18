@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Home, Search, Bell } from 'lucide-react';
 import { Modal, ModalBody } from '@/components/ui';
+import { useT } from '@/lib/i18n';
 
 interface TopBarProps {
   onMenuToggle?: () => void;
@@ -17,6 +18,7 @@ interface TopBarProps {
 export function TopBar({ onMenuToggle, sidebarOpen, userName, userRole, onSignOut }: TopBarProps) {
   const pathname = usePathname();
   const [showSearch, setShowSearch] = useState(false);
+  const t = useT();
   
   // Generate breadcrumbs from pathname
   const segments = pathname.split('/').filter(Boolean).filter(s => s !== 'app');
@@ -47,7 +49,7 @@ export function TopBar({ onMenuToggle, sidebarOpen, userName, userRole, onSignOu
           <button
             onClick={onMenuToggle}
             className="md:hidden rounded-md p-2 text-ink-3 hover:bg-surface-sunken hover:text-ink transition-colors"
-            aria-label="เปิดเมนู"
+            aria-label={t('topbar.open_menu')}
             aria-expanded={sidebarOpen}
             aria-controls="main-sidebar"
           >
@@ -56,7 +58,7 @@ export function TopBar({ onMenuToggle, sidebarOpen, userName, userRole, onSignOu
 
           {/* Breadcrumbs */}
           <nav className="hidden sm:flex items-center gap-2 text-[13px] font-medium">
-            <Link href="/app/menu" className="text-ink-3 hover:text-ink transition-colors">
+            <Link href="/app/menu" viewTransition className="text-ink-3 hover:text-ink transition-colors">
               <Home className="w-3.5 h-3.5" />
             </Link>
             {breadcrumbs.map((b, i) => (
@@ -64,6 +66,7 @@ export function TopBar({ onMenuToggle, sidebarOpen, userName, userRole, onSignOu
                 <span className="text-line-strong">/</span>
                 <Link 
                   href={b.href} 
+                  viewTransition
                   className={cn(
                     "transition-colors truncate max-w-[120px]",
                     i === breadcrumbs.length - 1 ? "text-ink" : "text-ink-3 hover:text-ink"
@@ -79,7 +82,7 @@ export function TopBar({ onMenuToggle, sidebarOpen, userName, userRole, onSignOu
         {/* Global Search Bar (Center) */}
         <div className="flex-1 max-w-[480px] mx-auto hidden md:flex items-center gap-2 bg-surface-sunken border border-line rounded-lg px-2.5 py-1.5 text-ink-3 text-[13px] cursor-text hover:border-line-strong transition-colors" onClick={() => setShowSearch(true)}>
           <Search className="w-[14px] h-[14px] shrink-0" />
-          <span className="flex-1 text-left">ค้นหา...</span>
+          <span className="flex-1 text-left">{t('topbar.search_placeholder')}</span>
           <kbd className="font-mono text-[10.5px] px-[5px] py-px border border-line rounded bg-white text-ink-3">⌘K</kbd>
         </div>
 
@@ -103,7 +106,7 @@ export function TopBar({ onMenuToggle, sidebarOpen, userName, userRole, onSignOu
             onClick={onSignOut}
             className="h-8 px-3 rounded-md border border-line bg-white text-[12px] font-semibold text-ink-2 shadow-sm hover:bg-surface-soft hover:text-ink transition-all"
           >
-            Sign Out
+            {t('topbar.sign_out')}
           </button>
         </div>
       </header>

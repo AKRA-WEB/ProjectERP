@@ -93,21 +93,55 @@ return apiValidationError(err); // 400
 ## Obsidian Integration
 
 Vault = this folder. Hub: `_notes/HOME.md`. Dashboard: `_notes/dashboard.md`.
+
+### Vault Structure
+```
+_notes/
+├── 00_Project_Map/    ← ภาพรวมระบบ, module summaries, state machines
+├── 01_Decisions/      ← decision log (ทำไมเลือกทางนี้)
+├── 02_Agent_Memory/   ← pitfalls, output guidelines, agents index
+├── 03_Prompts/        ← prompts ที่ใช้ซ้ำ
+├── 04_Debug_Log/      ← bug log, root cause, วิธีแก้
+├── 05_Summaries/      ← summary ของ module / ไฟล์ใหญ่
+├── daily/             ← daily standup notes
+├── weekly/            ← weekly review notes
+└── templates/         ← note templates
+```
+
+### Rules
 - plan.md must have YAML frontmatter (track/status/owner/module/updated) — see `chen.agent.md`
 - GEMINI.md Critical Traps = rolling 8 max (hook-managed)
 - Skill files > 200 lines → prune (see `_notes/skill-changelog.md`)
-- Never write to `_notes/` or `.obsidian/`
+- Never write to `.obsidian/`
+- Claude may write to `_notes/` when explicitly requested by user
 
-## Post-Task Knowledge Capture (Claude)
+## Note-Taking Guide — What Goes Where
 
-After every task answer 3 questions:
+| สิ่งที่พบ | เขียนที่ |
+|----------|---------|
+| Architectural decision (ทำไมเลือกทางนี้) | `_notes/01_Decisions/<track>.md` |
+| Bug root cause / วิธีแก้ที่ non-obvious | `_notes/04_Debug_Log/<YYYY-MM-DD>-<topic>.md` |
+| Anti-pattern / pitfall ห้ามทำซ้ำ | `_notes/02_Agent_Memory/pitfalls.md` (append) |
+| Summary ของ module ใหม่ที่ implement เสร็จ | `_notes/05_Summaries/<module>.md` |
+| Reusable code pattern | `docs/skills/<relevant-skill>.md` (append) |
+| Track plan | `conductor/tracks/<track>/plan.md` |
+| Rework plan | `conductor/tracks/<track>/rework-plan.md` |
 
-**Q1 — New reusable pattern?** → append `## ✅ Pattern — [name]` to relevant `docs/skills/*.md`
-**Q2 — Bug trap that could recur?** → append `## ❌ Trap — [name]` to relevant `docs/skills/*.md`
-**Q3 — Architectural decision?** → append to `conductor/tracks/<track>/decisions.md`
+**ห้ามเขียน unsolicited:** `_notes/daily/` และ `.obsidian/` — เขียนได้ถ้า user ขอ (`.obsidian/` ระวัง JSON syntax)
 
-Skip only when all 3 are NO.
+## Post-Work Knowledge Capture (Claude) — MANDATORY
 
-**Upgrade triggers:**
-- Billy flags same bug category twice → add trap to skill file
-- Chen plan needed schema fix → add rule to `database_sql_rules.md`
+**ทุกครั้งที่ทำงานเสร็จ** (ไม่ว่าจะเป็น bug fix, plan, analysis, restructure) ต้องทำ 3 ข้อนี้ก่อน end turn:
+
+| คำถาม | ถ้าใช่ → เขียนที่ |
+|-------|-----------------|
+| Q1: พบ pattern ที่ใช้ซ้ำได้? | `docs/skills/<skill>.md` — append `## ✅ Pattern — [name]` |
+| Q2: พบ bug/trap ที่อาจเกิดซ้ำ? | `_notes/02_Agent_Memory/pitfalls.md` — append + `docs/skills/<skill>.md` |
+| Q3: ตัดสินใจเรื่อง architecture/schema? | `_notes/01_Decisions/<topic>.md` |
+
+**ไม่มีข้อยกเว้น** — ถ้าตอบ NO ทั้ง 3 ข้อ ให้ระบุสั้นๆ ว่า "No new knowledge captured" ใน response
+
+**Trigger พิเศษ:**
+- วิเคราะห์ bug จาก user report → เขียน `_notes/04_Debug_Log/<date>-<topic>.md` เสมอ
+- Billy flag bug category เดิมซ้ำ → เพิ่ม trap ใน skill file ทันที
+- Chen plan แก้ schema → เพิ่ม rule ใน `docs/skills/database_sql_rules.md`

@@ -16,17 +16,27 @@ This project uses **Obsidian** as a knowledge base opened directly on this folde
 | Folder | Purpose |
 |--------|---------|
 | `conductor/tracks/` | Implementation plans — your primary read target |
-| `conductor/index.md` | Track registry — always check here first |
-| `_notes/` | Human notes (context, decisions, daily log) — read-only for you |
-| `_notes/modules/` | Module summaries useful for context |
-| `_notes/decisions/` | Architectural decisions — read before making design choices |
+| `conductor/index.md` | Track registry — **always check here first** |
+| `_notes/00_Project_Map/modules/` | Module summaries — read for context before touching a module |
+| `_notes/01_Decisions/` | Architectural decisions — read before making design choices |
+| `_notes/02_Agent_Memory/pitfalls.md` | **MUST READ before every track** — critical anti-patterns & known traps |
+| `_notes/04_Debug_Log/` | Write bug root-cause logs here after finding a non-obvious bug |
+| `_notes/05_Summaries/` | Write module summary here after completing a major module |
 | `docs/skills/` | Skill files — load on-demand per task type |
 | `docs/TROUBLESHOOTING.md` | Known issues and fixes |
 
 **Rules:**
-- Never write to `_notes/` — that's the human's workspace
+- **Read `_notes/02_Agent_Memory/pitfalls.md` at the start of every `Go` command** — prevents repeat bugs
 - `conductor/` files are your workspace — update checkboxes and write `execution-summary.md` there
-- `.obsidian/` is Obsidian config — never touch
+- You MAY write to `_notes/01_Decisions/`, `_notes/04_Debug_Log/`, `_notes/05_Summaries/` when relevant
+- Do not write to `_notes/daily/` or `.obsidian/` unless user explicitly requests it
+- `.obsidian/` is JSON config — validate syntax before writing to avoid corrupting the vault
+
+**Knowledge capture (MANDATORY after completing a track):**
+After every full track execution, before stopping:
+1. Q1/Q2/Q3 check — write findings to appropriate `_notes/` or `docs/skills/` file
+2. If major module finished → write/update `_notes/05_Summaries/<module>.md`
+3. If non-obvious bug fixed → write `_notes/04_Debug_Log/<YYYY-MM-DD>-<topic>.md`
 
 **Frontmatter sync (MANDATORY after completing a track):**
 When you finish all tasks in a track and are about to stop, update the `status` field in the plan.md frontmatter to match the track's real status. **Also ensure an `aliases` field exists with the track's full title for Obsidian navigation.**
@@ -55,7 +65,8 @@ This keeps the Obsidian dashboard at `_notes/dashboard.md` accurate and enables 
 ## Execution Rules (Conductor Protocol)
 Refer to `conductor/conductor-protocol-skill.md` for the full skill.
 
-0. **Read Before Edit (MANDATORY):** Before editing ANY file, read its current content first. Never edit from memory or from plan task descriptions alone. If the task says "edit `app/api/pos/route.ts` line 45", still read the full file before touching it. Prevents wrong-line-number edits, accidental overwrites, and context drift.
+0. **Pitfalls First (MANDATORY on every `Go`):** Read `_notes/02_Agent_Memory/pitfalls.md` before executing the first task of any track. Takes 30 seconds. Prevents repeat bugs that cost hours.
+0b. **Read Before Edit (MANDATORY):** Before editing ANY file, read its current content first. Never edit from memory or from plan task descriptions alone. If the task says "edit `app/api/pos/route.ts` line 45", still read the full file before touching it. Prevents wrong-line-number edits, accidental overwrites, and context drift.
 1. **Surgical Execution:** Strictly do not modify files or refactor code unrelated to the current Task.
 2. **Zero Assumptions:** If the plan is ambiguous or contradictory, HALT and ask for clarification.
 3. **Full-Track Execution (NEW):** Execute **the entire track** per `Go` command. After completing all tasks in the track, capture knowledge, update the checkboxes, and **STOP**. Do not proceed to the next track until commanded.
@@ -97,7 +108,7 @@ Examples: a wrong column name, a missing await, an incorrect status transition.
 
 ### Q3 — Did I make an architectural or schema decision not in the plan?
 
-**If YES → also create `_notes/decisions/<track>.md`** (if not exists) with frontmatter:
+**If YES → also create `_notes/01_Decisions/<track>.md`** (if not exists) with frontmatter:
 ```yaml
 ---
 date: <YYYY-MM-DD>
@@ -122,8 +133,9 @@ Examples: chose to ALTER existing table instead of creating a new one, changed a
 **Impact:** [what this affects downstream]
 ```
 
-### Q0 — Nothing noteworthy
-If all 3 answers are NO → skip capture, move to next task immediately. Do not write empty files.
+### Q0 — ไม่พบสิ่งใหม่
+ถ้า Q1+Q2+Q3 ทุกข้อเป็น NO → ระบุสั้นๆ `"No new knowledge this task"` ใน task checkbox แล้วไปต่อ
+**ห้ามข้ามขั้นตอนนี้โดยไม่ตอบ** — การ skip โดยไม่ตรวจ = ผิดกฎ
 
 ---
 
@@ -163,7 +175,9 @@ const val = data?.nested?.value ?? 0;
 
 | Date | Change |
 |------|--------|
-| 2026-05-16 | **Rule 0 added** — Read target file before ANY edit. Never edit from memory. |
+| 2026-05-18 | **Obsidian vault restructured** — `_notes/modules/` → `_notes/00_Project_Map/modules/`, `_notes/decisions/` → `_notes/01_Decisions/`, new folders: `02_Agent_Memory/`, `03_Prompts/`, `04_Debug_Log/`, `05_Summaries/` |
+| 2026-05-18 | **Rule 0 (Pitfalls First)** — Must read `_notes/02_Agent_Memory/pitfalls.md` before every `Go` command |
+| 2026-05-16 | **Rule 0b added** — Read target file before ANY edit. Never edit from memory. |
 | 2026-05-16 | **chen.agent.md Rule 12** — Chen must check latest migration number (`ls migrations/*.sql \| tail -1`) before writing any plan with new migration. |
 | 2026-05-16 | **chen.agent.md Rule 13** — Chen must check `types/index.ts` + `components/ui/index.ts` before UI plan to avoid duplicating existing types/components. |
 | 2026-05-16 | **qa_audit_rules.md** — Billy checklist now includes: `console.log` artifact check + hardcoded VAT rate check. |

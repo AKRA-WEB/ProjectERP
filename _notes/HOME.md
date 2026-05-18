@@ -2,13 +2,25 @@
 
 ## Quick Nav
 - [[_notes/dashboard|📊 Project Dashboard]] — Dataview: status ทุก track
-- [[_notes/canvas/module-map|🗺️ Module Map]] — Canvas: dependency ระหว่าง modules
-- [[_notes/state-machines|⚙️ State Machines]] — Mermaid diagrams ทุก document flow
-- [[_notes/skills-index|📚 Skills Index]] — coding rules quick reference
+- [[_notes/00_Project_Map/module-map|🗺️ Module Map]] — Canvas: dependency ระหว่าง modules
+- [[_notes/00_Project_Map/state-machines|⚙️ State Machines]] — Mermaid diagrams ทุก document flow
+- [[_notes/02_Agent_Memory/agents-index|📚 Agents & Skills Index]] — agents, triggers, skill files
 - [[_notes/skill-changelog|📝 Skill Changelog]] — auto-log ทุก trap/pattern ใหม่
 - [[conductor/index|📋 Track Index]] — conductor tracks ทั้งหมด
 - [[PROGRESS|📈 Progress Log]]
 - [[CLAUDE|⚙️ Architecture Rules]]
+
+---
+
+## Vault Structure
+| โฟลเดอร์ | ใช้สำหรับ |
+|---------|----------|
+| [[_notes/00_Project_Map/README\|00_Project_Map]] | ภาพรวมระบบ, module map, state machines |
+| [[_notes/01_Decisions/README\|01_Decisions]] | Decision log — ทำไมเลือกทางนี้ |
+| [[_notes/02_Agent_Memory/README\|02_Agent_Memory]] | สิ่งที่ agent ควรรู้ก่อนเริ่มงาน, pitfalls |
+| [[_notes/03_Prompts/README\|03_Prompts]] | Prompts ที่ใช้ซ้ำ |
+| [[_notes/04_Debug_Log/README\|04_Debug_Log]] | Bug log, root cause, วิธีแก้ |
+| [[_notes/05_Summaries/README\|05_Summaries]] | Summary ของ module / ไฟล์ใหญ่ |
 
 ---
 
@@ -18,10 +30,9 @@
 > Template: `_notes/templates/daily-standup.md`
 
 ## Weekly Review
-[[_notes/weekly/]] ← สร้างทุกวันจันทร์ → `Alt+T` → เลือก `weekly-review`
+[[_notes/weekly/]] ← สร้างทุกวันจันทร์
 
 > Template: `_notes/templates/weekly-review.md`
-> แสดง Dataview: tracks ที่เสร็จสัปดาห์นี้ + active ที่ค้างอยู่
 
 ---
 
@@ -40,7 +51,7 @@ AND (status = "Active" OR status = "Rework Required")
 
 ```dataview
 TABLE module, track, date
-FROM "_notes/decisions"
+FROM "_notes/01_Decisions"
 WHERE type = "decision"
 SORT date DESC
 LIMIT 5
@@ -55,11 +66,11 @@ LIMIT 5
 ---
 
 ## Module Notes
-- [[_notes/modules/WMS|WMS]] · [[_notes/modules/POS|POS]] · [[_notes/modules/Sales|Sales]]
-- [[_notes/modules/Accounting|Accounting]] · [[_notes/modules/HR|HR]] · [[_notes/modules/BOM|BOM]]
-- [[_notes/modules/Inventory|Inventory]] · [[_notes/modules/Vendors|Vendors]]
-- [[_notes/modules/Security|Security]] · [[_notes/modules/Core|Core]]
-- [[_notes/AI_WISDOM|AI Wisdom & Pitfalls]]
+- [[_notes/00_Project_Map/modules/WMS|WMS]] · [[_notes/00_Project_Map/modules/POS|POS]] · [[_notes/00_Project_Map/modules/Sales|Sales]]
+- [[_notes/00_Project_Map/modules/Accounting|Accounting]] · [[_notes/00_Project_Map/modules/HR|HR]] · [[_notes/00_Project_Map/modules/BOM|BOM]]
+- [[_notes/00_Project_Map/modules/Inventory|Inventory]] · [[_notes/00_Project_Map/modules/Vendors|Vendors]]
+- [[_notes/00_Project_Map/modules/Security|Security]] · [[_notes/00_Project_Map/modules/Core|Core]]
+- [[_notes/02_Agent_Memory/pitfalls|AI Pitfalls & Traps]]
 
 ---
 

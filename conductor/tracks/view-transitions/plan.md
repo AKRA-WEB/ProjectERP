@@ -1,10 +1,10 @@
 ---
 track: view-transitions
 status: Completed
-aliases: ["View Transitions Implementation Plan"]
-owner: puka
+aliases: ["View Transitions — App-wide Implementation"]
+owner: gemini
 module: Core
-updated: 2026-05-15
+updated: 2026-05-18
 ---
 
 # View Transitions Implementation Plan

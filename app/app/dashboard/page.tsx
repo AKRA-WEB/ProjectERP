@@ -8,6 +8,7 @@ import { formatCurrency, formatQty, formatDatetime, formatNumber } from '@/lib/f
 import { KpiCard, KpiGrid } from '@/components/ui';
 import Link from 'next/link';
 import type { Warehouse } from '@/types';
+import { useT, useLanguage, localeName } from '@/lib/i18n';
 
 interface KPIData {
   pr: { pending_approval: number; last_30_days: number };
@@ -76,7 +77,7 @@ function Sparkline({ data, color = '#10b981', w = 64, h = 24 }: {
   return (
     <svg width={w} height={h} style={{ overflow: 'visible' }}>
       <defs>
-        <linearGradient id={id} x1="0" x2="0" y1="0" y2="1">
+        <linearGradient id={id} x1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={color} stopOpacity={0.22} />
           <stop offset="100%" stopColor={color} stopOpacity={0} />
         </linearGradient>
@@ -91,6 +92,7 @@ const MOCK_30D      = [12,18,15,22,28,24,32,20,25,30,18,22,28,35,30,24,38,42,36,
 const MOCK_30D_PREV = [10,14,12,18,22,20,28,18,22,26,15,20,24,30,28,22,34,38,32,25,28,36,34,40,32,44,38,48,44,50];
 
 function TrendChart({ data, prev, height = 200 }: { data: number[]; prev: number[]; height?: number }) {
+  const t = useT();
   const W = 800, H = height, padL = 40, padR = 16, padT = 16, padB = 28;
   const innerW = W - padL - padR, innerH = H - padT - padB;
   const maxV = Math.ceil(Math.max(...data, ...prev) / 10) * 10 + 5;
@@ -109,11 +111,11 @@ function TrendChart({ data, prev, height = 200 }: { data: number[]; prev: number
           <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
         </linearGradient>
       </defs>
-      {yTicks.map((t, i) => (
+      {yTicks.map((tick, i) => (
         <g key={i}>
-          <line x1={padL} x2={W - padR} y1={py(t)} y2={py(t)} stroke="#f1efee" strokeWidth="1" />
-          <text x={padL - 8} y={py(t) + 3.5} fontSize="10.5" textAnchor="end" fill="#a8a29e"
-                fontFamily="ui-monospace,monospace">{t}</text>
+          <line x1={padL} x2={W - padR} y1={py(tick)} y2={py(tick)} stroke="#f1efee" strokeWidth="1" />
+          <text x={padL - 8} y={py(tick) + 3.5} fontSize="10.5" textAnchor="end" fill="#a8a29e"
+                fontFamily="ui-monospace,monospace">{tick}</text>
         </g>
       ))}
       <path d={linePath(prev)} fill="none" stroke="#a8a29e" strokeWidth="1.2"
@@ -126,7 +128,7 @@ function TrendChart({ data, prev, height = 200 }: { data: number[]; prev: number
       {xLabelIdx.map((li, i) => (
         <text key={i} x={px(li)} y={H - 8} fontSize="10.5" fill="#a8a29e"
               textAnchor={i === 0 ? 'start' : i === xLabelIdx.length - 1 ? 'end' : 'middle'}>
-          {30 - li} วัน
+          {30 - li} {t('label.date')}
         </text>
       ))}
     </svg>
@@ -144,11 +146,12 @@ const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-[0_1px_0_rg
 const CARD_H = 'flex items-center justify-between px-5 py-[14px] border-b border-stone-100 gap-3';
 const BTN_SM = 'h-[26px] px-3 rounded-[6px] text-[12px] font-medium text-stone-600 bg-white border border-stone-200 hover:bg-stone-50 shadow-[0_1px_0_rgba(15,23,42,.03)] inline-flex items-center';
 
-function greeting(): string {
+function Greeting() {
   const h = new Date().getHours();
-  if (h < 12) return 'สวัสดีตอนเช้า';
-  if (h < 17) return 'สวัสดีตอนบ่าย';
-  return 'สวัสดีตอนเย็น';
+  const t = useT();
+  if (h < 12) return t('greeting.morning');
+  if (h < 17) return t('greeting.afternoon');
+  return t('greeting.evening');
 }
 
 export default function DashboardPage() {
@@ -157,6 +160,8 @@ export default function DashboardPage() {
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [warehouseId, setWarehouseId] = useState('');
   const [loading, setLoading] = useState(true);
+  const t = useT();
+  const { lang } = useLanguage();
 
   useEffect(() => {
     get<Warehouse[]>('/api/admin/warehouses').then(setWarehouses).catch(() => {});
@@ -185,11 +190,11 @@ export default function DashboardPage() {
         <div className="flex items-end justify-between gap-6 flex-wrap">
           <div>
             <h1 className="text-[26px] font-semibold tracking-tight text-stone-950 leading-tight mb-1">
-              {greeting()}{userName ? `, ${userName}` : ''} 👋
+              <Greeting />{userName ? `, ${userName}` : ''} 👋
             </h1>
             <p className="text-[13.5px] text-stone-500">
-              ภาพรวมคลังสินค้า ·{' '}
-              {new Date().toLocaleDateString('th-TH', {
+              {t('nav.overview')} ·{' '}
+              {new Date().toLocaleDateString(lang === 'th' ? 'th-TH' : 'en-US', {
                 weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
               })}
             </p>
@@ -200,7 +205,7 @@ export default function DashboardPage() {
               onChange={(e) => setWarehouseId(e.target.value)}
               className="h-8 rounded-[7px] border border-stone-200 bg-white px-3 text-[13px] text-stone-700 shadow-[0_1px_0_rgba(15,23,42,.03),0_1px_2px_rgba(15,23,42,.04)] focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400"
             >
-              <option value="">ทุกคลัง</option>
+              <option value="">{t('label.all')}</option>
               {warehouses.map((w) => (
                 <option key={w.id} value={w.id}>{w.code} — {w.name_th}</option>
               ))}
@@ -209,7 +214,7 @@ export default function DashboardPage() {
               href="/app/purchase-requests/new"
               className="inline-flex items-center gap-1.5 h-8 px-3 rounded-[7px] bg-stone-950 text-white text-[13px] font-medium shadow-sm hover:bg-stone-800 transition-colors"
             >
-              + สร้างเอกสาร
+              + {t('action.create')}
             </Link>
           </div>
         </div>
@@ -217,31 +222,31 @@ export default function DashboardPage() {
         {/* KPI Grid */}
         <KpiGrid>
           <KpiCard
-            label="PR รอนุมัติ"
+            label={t('page.purchase_requests') + ' ' + t('status.pending')}
             value={d(kpi?.pr?.pending_approval)}
-            subValue={<>สร้าง 30 วัน: <span className="font-mono">{d(kpi?.pr?.last_30_days)}</span></>}
+            subValue={<>{t('action.create')} 30 {t('label.date')}: <span className="font-mono">{d(kpi?.pr?.last_30_days)}</span></>}
             sparkline={<Sparkline data={SPARK.pr} color="#94a3b8" />}
             href="/app/purchase-requests?status=submitted"
             loading={loading}
           />
           <KpiCard
-            label="PO ส่งแล้ว"
+            label={t('page.purchase_orders') + ' ' + t('status.sent')}
             value={d(kpi?.po?.sent)}
-            subValue={<>มูลค่า 30 วัน: <span className="font-mono text-[10.5px]">{kpi?.po?.value_30_days ? formatCurrency(kpi.po.value_30_days) : '—'}</span></>}
+            subValue={<>{t('label.total')} 30 {t('label.date')}: <span className="font-mono text-[10.5px]">{kpi?.po?.value_30_days ? formatCurrency(kpi.po.value_30_days, lang) : '—'}</span></>}
             sparkline={<Sparkline data={SPARK.po} color="#10b981" />}
             href="/app/purchase-orders?status=sent"
             loading={loading}
           />
           <KpiCard
-            label="GRN รอดำเนินการ"
+            label={t('page.grn') + ' ' + t('status.pending')}
             value={d(kpi?.grn?.pending)}
-            subValue={<>นำเข้าเดือนนี้: <span className="font-mono">{d(kpi?.grn?.stocked_this_month)}</span></>}
+            subValue={<>{t('status.received')} {t('label.all')}: <span className="font-mono">{d(kpi?.grn?.stocked_this_month)}</span></>}
             sparkline={<Sparkline data={SPARK.grn} color="#10b981" />}
             href="/app/grn"
             loading={loading}
           />
           <KpiCard
-            label="สินค้าใกล้หมด"
+            label={t('page.inventory') + ' ' + t('status.pending')}
             value={d(kpi?.low_stock?.length)}
             subValue="ต่ำกว่า reorder point"
             sparkline={<Sparkline data={SPARK.low} color="#d97706" />}
@@ -252,15 +257,15 @@ export default function DashboardPage() {
           <KpiCard
             label="SO รอดำเนินการ"
             value={d(kpi?.sales?.pending_so)}
-            subValue={<>รายได้ 30 วัน: <span className="font-mono text-[10.5px]">{kpi?.sales?.revenue_30d ? formatCurrency(kpi.sales.revenue_30d) : '—'}</span></>}
+            subValue={<>รายได้ 30 วัน: <span className="font-mono text-[10.5px]">{kpi?.sales?.revenue_30d ? formatCurrency(kpi.sales.revenue_30d, lang) : '—'}</span></>}
             sparkline={<Sparkline data={SPARK.pr} color="#6366f1" />}
             href="/app/sales-orders?status=confirmed"
             loading={loading}
           />
           <KpiCard
-            label="POS วันนี้"
-            value={kpi?.pos_today?.revenue ? formatCurrency(kpi.pos_today.revenue) : '—'}
-            subValue={<>จำนวนบิล: <span className="font-mono">{d(kpi?.pos_today?.tx_count)}</span></>}
+            label={t('page.pos_terminal') + ' ' + t('label.date')}
+            value={kpi?.pos_today?.revenue ? formatCurrency(kpi.pos_today.revenue, lang) : '—'}
+            subValue={<>{t('label.total')}: <span className="font-mono">{d(kpi?.pos_today?.tx_count)}</span></>}
             sparkline={<Sparkline data={SPARK.grn} color="#10b981" />}
             href="/app/pos/sessions"
             loading={loading}
@@ -315,20 +320,20 @@ export default function DashboardPage() {
                 <div className="text-[13.5px] font-semibold text-stone-950">สินค้ารับมากสุด</div>
                 <div className="text-[12px] text-stone-500 mt-0.5">5 อันดับแรก · เดือนนี้</div>
               </div>
-              <Link href="/app/inventory/ledger" className={BTN_SM}>ดูทั้งหมด</Link>
+              <Link href="/app/inventory/ledger" className={BTN_SM}>{t('action.view')}{t('label.all')}</Link>
             </div>
             <div>
               {loading ? (
-                <p className="px-5 py-4 text-[13px] text-stone-400">กำลังโหลด...</p>
+                <p className="px-5 py-4 text-[13px] text-stone-400">{t('label.loading')}</p>
               ) : !kpi?.top_received?.length ? (
-                <p className="px-5 py-4 text-[13px] text-stone-400">ยังไม่มีข้อมูลเดือนนี้</p>
+                <p className="px-5 py-4 text-[13px] text-stone-400">{t('label.no_data')}</p>
               ) : kpi.top_received.map((p, i) => (
                 <div key={p.sku} className="flex items-start gap-3 px-5 py-3 border-b border-stone-50 last:border-0 hover:bg-stone-50/60 transition-colors">
                   <div className="w-[18px] shrink-0 pt-[3px] font-mono text-[11.5px] text-stone-400">
                     {String(i + 1).padStart(2, '0')}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-[13px] font-medium text-stone-900 truncate">{p.name_th}</div>
+                    <div className="text-[13px] font-medium text-stone-900 truncate">{localeName(p.name_th, p.name_th, lang)}</div>
                     <div className="flex items-center gap-1.5 text-[11.5px] text-stone-400 mt-0.5">
                       <span className="font-mono">{p.sku}</span>
                       <span>·</span>
@@ -339,7 +344,7 @@ export default function DashboardPage() {
                     <div className="font-mono text-[13px] font-medium text-stone-950 tabular-nums">
                       {formatQty(p.qty_received)}
                     </div>
-                    <div className="text-[11px] text-stone-400 mt-0.5">หน่วย</div>
+                    <div className="text-[11px] text-stone-400 mt-0.5">{t('label.unit')}</div>
                   </div>
                 </div>
               ))}
@@ -356,21 +361,21 @@ export default function DashboardPage() {
             </div>
             <div>
               {loading ? (
-                <p className="px-5 py-4 text-[13px] text-stone-400">กำลังโหลด...</p>
+                <p className="px-5 py-4 text-[13px] text-stone-400">{t('label.loading')}</p>
               ) : !kpi?.top_products?.length ? (
-                <p className="px-5 py-4 text-[13px] text-stone-400">ไม่มีข้อมูล</p>
+                <p className="px-5 py-4 text-[13px] text-stone-400">{t('label.no_data')}</p>
               ) : kpi.top_products.map((p, i) => (
                 <div key={p.sku} className="flex items-center gap-3 px-5 py-3 border-b border-stone-50 last:border-0 hover:bg-stone-50/60 transition-colors">
                   <div className="w-[18px] shrink-0 pt-[3px] font-mono text-[11.5px] text-stone-400">
                     {String(i + 1).padStart(2, '0')}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-[13px] font-medium text-stone-900 truncate">{p.name_th}</div>
+                    <div className="text-[13px] font-medium text-stone-900 truncate">{localeName(p.name_th, p.name_th, lang)}</div>
                     <div className="text-[11.5px] text-stone-400 font-mono mt-0.5">{p.sku}</div>
                   </div>
                   <div className="text-right">
                     <div className="text-[13px] font-mono font-medium text-stone-700 tabular-nums">
-                      {formatNumber(p.qty_sold)}
+                      {formatNumber(p.qty_sold, lang)}
                     </div>
                     <div className="text-[11px] text-stone-400 mt-0.5">{Number(p.tx_count)} บิล</div>
                   </div>
@@ -393,7 +398,7 @@ export default function DashboardPage() {
             </div>
             <div className="px-5 py-4 flex flex-col gap-5">
               {loading ? (
-                <p className="text-[13px] text-stone-400">กำลังโหลด...</p>
+                <p className="text-[13px] text-stone-400">{t('label.loading')}</p>
               ) : !kpi?.warehouse_perf?.length ? (
                 <p className="text-[13px] text-stone-400">ไม่มีข้อมูลคลัง</p>
               ) : kpi.warehouse_perf.map((w) => {
@@ -415,7 +420,7 @@ export default function DashboardPage() {
                            style={{ width: `${pct}%` }} />
                     </div>
                     <div className="flex items-center justify-between mt-1.5 text-[11.5px] text-stone-400">
-                      <span className="font-mono tabular-nums">{formatQty(w.qty_stocked)} หน่วย</span>
+                      <span className="font-mono tabular-nums">{formatQty(w.qty_stocked)} {t('label.unit')}</span>
                       <span>{pct.toFixed(0)}%</span>
                     </div>
                   </div>
@@ -433,11 +438,11 @@ export default function DashboardPage() {
                   <div className="text-[13.5px] font-semibold text-stone-950">Vendor Claims</div>
                   <div className="text-[12px] text-stone-500 mt-0.5">การเรียกร้องที่เปิดอยู่</div>
                 </div>
-                <Link href="/app/claims" className={BTN_SM}>ดูทั้งหมด</Link>
+                <Link href="/app/claims" className={BTN_SM}>{t('action.view')}{t('label.all')}</Link>
               </div>
               <div className="px-5 py-4 flex gap-8">
                 <div>
-                  <div className="text-[12px] text-stone-400 mb-1">จำนวน</div>
+                  <div className="text-[12px] text-stone-400 mb-1">{t('label.qty')}</div>
                   <div className="text-[28px] font-semibold tracking-tight text-stone-950 leading-[1.1] tabular-nums">
                     {loading ? '—' : d(kpi?.claims?.open_claims)}
                   </div>
@@ -445,7 +450,7 @@ export default function DashboardPage() {
                 <div>
                   <div className="text-[12px] text-stone-400 mb-1">มูลค่าคงค้าง</div>
                   <div className="text-[20px] font-semibold tracking-tight text-red-600 leading-[1.1]">
-                    {loading ? '—' : (kpi?.claims?.open_claim_value ? formatCurrency(kpi.claims.open_claim_value) : '—')}
+                    {loading ? '—' : (kpi?.claims?.open_claim_value ? formatCurrency(kpi.claims.open_claim_value, lang) : '—')}
                   </div>
                 </div>
               </div>
@@ -458,17 +463,17 @@ export default function DashboardPage() {
                   <div className="text-[13.5px] font-semibold text-stone-950">Returns (RMA)</div>
                   <div className="text-[12px] text-stone-500 mt-0.5">การคืนสินค้าที่เปิดอยู่</div>
                 </div>
-                <Link href="/app/rma" className={BTN_SM}>ดูทั้งหมด</Link>
+                <Link href="/app/rma" className={BTN_SM}>{t('action.view')}{t('label.all')}</Link>
               </div>
               <div className="px-5 py-4 flex gap-8">
                 <div>
-                  <div className="text-[12px] text-stone-400 mb-1">เปิดทั้งหมด</div>
+                  <div className="text-[12px] text-stone-400 mb-1">{t('label.all')}</div>
                   <div className="text-[28px] font-semibold tracking-tight text-stone-950 leading-[1.1] tabular-nums">
                     {loading ? '—' : d(kpi?.rma?.open_rmas)}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[12px] text-stone-400 mb-1">กำลังพิจารณา</div>
+                  <div className="text-[12px] text-stone-400 mb-1">{t('status.in_review')}</div>
                   <div className="text-[22px] font-semibold tracking-tight text-amber-600 leading-[1.1] tabular-nums">
                     {loading ? '—' : d(kpi?.rma?.in_review)}
                   </div>
@@ -483,10 +488,10 @@ export default function DashboardPage() {
                   <div className="text-[13.5px] font-semibold text-stone-950">GRN QC ไม่ผ่าน</div>
                   <div className="text-[12px] text-stone-500 mt-0.5">เดือนนี้</div>
                 </div>
-                <Link href="/app/grn?status=qc_failed" className={BTN_SM}>ดูรายการ</Link>
+                <Link href="/app/grn?status=qc_failed" className={BTN_SM}>{t('action.view')}</Link>
               </div>
               <div className="px-5 py-4">
-                <div className="text-[12px] text-stone-400 mb-1">จำนวน</div>
+                <div className="text-[12px] text-stone-400 mb-1">{t('label.qty')}</div>
                 <div className="text-[28px] font-semibold tracking-tight text-red-600 leading-[1.1] tabular-nums">
                   {loading ? '—' : d(kpi?.grn?.qc_failed)}
                 </div>
@@ -506,7 +511,7 @@ export default function DashboardPage() {
                   <span className="text-[13.5px] font-semibold text-stone-950">สต็อกใกล้หมด</span>
                   {!loading && kpi && kpi.low_stock.length > 0 && (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border border-amber-200 bg-amber-50 text-amber-700 text-[10.5px] font-medium before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:bg-current">
-                      {kpi.low_stock.length} รายการ
+                      {kpi.low_stock.length} {t('label.total')}
                     </span>
                   )}
                 </div>
@@ -516,7 +521,7 @@ export default function DashboardPage() {
             </div>
             <div>
               {loading ? (
-                <p className="px-5 py-4 text-[13px] text-stone-400">กำลังโหลด...</p>
+                <p className="px-5 py-4 text-[13px] text-stone-400">{t('label.loading')}</p>
               ) : !kpi?.low_stock?.length ? (
                 <p className="px-5 py-4 text-[13px] text-stone-400">ไม่มีสินค้าต่ำกว่า reorder point</p>
               ) : kpi.low_stock.map((s, idx) => {
@@ -524,7 +529,7 @@ export default function DashboardPage() {
                 return (
                   <div key={idx} className="flex items-center gap-3 px-5 py-2.5 border-b border-stone-50 last:border-0 hover:bg-stone-50/60 transition-colors">
                     <div className="flex-1 min-w-0">
-                      <div className="text-[13px] font-medium text-stone-900 truncate">{s.name_th}</div>
+                      <div className="text-[13px] font-medium text-stone-900 truncate">{localeName(s.name_th, s.name_th, lang)}</div>
                       <div className="flex items-center gap-1.5 text-[11.5px] text-stone-400 mt-0.5 flex-wrap">
                         <span className="font-mono">{s.sku}</span>
                         <span>·</span>
@@ -561,9 +566,9 @@ export default function DashboardPage() {
             </div>
             <div className="px-5 py-4 flex flex-col gap-4">
               {loading ? (
-                <p className="text-[13px] text-stone-400">กำลังโหลด...</p>
+                <p className="text-[13px] text-stone-400">{t('label.loading')}</p>
               ) : !kpi?.recent_activity?.length ? (
-                <p className="text-[13px] text-stone-400">ยังไม่มีรายการ</p>
+                <p className="text-[13px] text-stone-400">{t('label.no_data')}</p>
               ) : kpi.recent_activity.map((l, idx) => {
                 const color = l.type === 'grn' ? '#10b981' : l.type === 'so' ? '#6366f1' : '#f59e0b';
                 const typeLabel = l.type === 'grn' ? 'GRN' : l.type === 'so' ? 'SO' : l.type.toUpperCase();
@@ -581,7 +586,7 @@ export default function DashboardPage() {
                         <span className="text-stone-500 text-[12.5px]"> {l.action} </span>
                       </div>
                       <div className="text-[11.5px] text-stone-400 mt-0.5 font-mono">
-                        {formatDatetime(l.created_at)}
+                        {formatDatetime(l.created_at, lang)}
                       </div>
                     </div>
                   </div>

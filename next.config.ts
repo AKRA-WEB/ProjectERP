@@ -10,7 +10,9 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  experimental: { },
+  experimental: {
+    viewTransition: true,
+  },
   async headers() {
     return [
       {

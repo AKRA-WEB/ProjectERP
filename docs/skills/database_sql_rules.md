@@ -134,3 +134,44 @@ const val = data?.nested?.value ?? 0;
 ```
 Run `npx tsc --noEmit` before marking any task done.
 **Found in:** ROOT_CAUSE_REPORT.md (2026-05-16)
+
+## ✅ Pattern — Relaxing XOR Constraint for Extra Items
+**Context:** When a table has multiple source FKs (like `po_line_item_id` and `inbound_order_line_id`) protected by an XOR constraint, but you need to support "extra" items that have no source.
+**Correct way:**
+```sql
+-- Relax from exactly one to "NOT BOTH"
+ALTER TABLE grn_line_items DROP CONSTRAINT IF EXISTS chk_grn_line_source;
+ALTER TABLE grn_line_items
+  ADD CONSTRAINT chk_grn_line_source CHECK (
+    NOT (po_line_item_id IS NOT NULL AND inbound_order_line_id IS NOT NULL)
+  );
+```
+**Found in:** task [1] of track [inbound-receive-fix]
+
+## ❌ Trap — Missing FKs in Split/Clone Logic for New Modules
+**Symptom:** "Request failed" when receiving/splitting a transaction that belongs to a newer module (like Inbound Orders).
+**Root cause:** Existing logic for splitting/cloning records (like creating a split GRN) only copies legacy FKs (e.g., `po_id`) and omits newer module FKs (e.g., `inbound_order_id`), violating DB constraints.
+**Fix:** Always check for all possible source FKs in SELECT and include them in INSERT for split/clone operations.
+**Found in:** task [2-5] of track [inbound-receive-fix]
+
+## ❌ Trap — Database Pool Import (Named vs Default)
+**Symptom:** `TypeError: client.connect is not a function` or `undefined` pool.
+**Root cause:** Importing `pool` as a named export (`import { pool } from ...`) when it is exported as a default export (`export default pool`).
+**Fix:** Always use default import for the database pool:
+```typescript
+import pool from '@/lib/db/client';
+```
+**Found in:** task [2] of track [po-immediate-approval]
+
+## ✅ Pattern — Authoritative Amount Calculation
+**Context:** Calculating PO/Invoice totals with line discounts, bill discounts, and VAT.
+**Correct way:**
+```typescript
+subtotal            = sum(qty * price)       -- gross
+total_line_discount = sum(line_discount)
+after_line_discount = subtotal - total_line_discount
+pre_vat_amount      = after_line_discount - bill_discount - non_vat_amount
+vat_amount          = pre_vat_amount * VAT_RATE
+total_amount        = pre_vat_amount + vat_amount + non_vat_amount
+```
+**Found in:** task [3] of track [po-immediate-approval]

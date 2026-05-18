@@ -13,6 +13,8 @@ import {
   Warehouse, ChevronLeft, ChevronDown, CheckSquare, Square
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { useT } from '@/lib/i18n';
+import { LanguageSwitcher } from '@/components/ui';
 
 type ModuleKey = 'wms' | 'pos' | 'sales' | 'accounting' | 'hr' | 'admin';
 
@@ -22,15 +24,6 @@ interface ModuleMeta {
   icon: LucideIcon;
   entryHref: string;
 }
-
-const MODULE_META: Record<ModuleKey, ModuleMeta> = {
-  wms:        { nameTh: 'คลังสินค้า',        nameEn: 'WMS',        icon: Warehouse, entryHref: '/app/dashboard' },
-  pos:        { nameTh: 'ขายหน้าร้าน',       nameEn: 'POS',        icon: ShoppingBag, entryHref: '/app/pos' },
-  sales:      { nameTh: 'การขาย',            nameEn: 'Sales',      icon: Package, entryHref: '/app/sales-quotations' },
-  accounting: { nameTh: 'การบัญชี',          nameEn: 'Accounting', icon: BarChart3, entryHref: '/app/accounting/chart-of-accounts' },
-  hr:         { nameTh: 'ทรัพยากรบุคคล',    nameEn: 'HR',         icon: Users, entryHref: '/app/hr/employees' },
-  admin:      { nameTh: 'ผู้ดูแลระบบ',       nameEn: 'Admin',      icon: Settings, entryHref: '/app/admin/users' },
-};
 
 interface NavItem {
   href: string;
@@ -44,152 +37,6 @@ interface NavGroup {
   label: string;
   items: NavItem[];
 }
-
-const MODULE_NAV: Record<ModuleKey, NavGroup[]> = {
-  wms: [
-    {
-      label: 'ภาพรวม',
-      items: [
-        { href: '/app/dashboard', label: 'Dashboard', icon: LayoutDashboard, permission: 'dashboard:view' },
-      ],
-    },
-    {
-      label: 'จัดซื้อ / Purchasing',
-      items: [
-        { href: '/app/receiving/new', label: 'เปิดคำสั่งซื้อ', icon: PackagePlus, permission: 'grn:create' },
-        { href: '/app/purchase-requests', label: 'Purchase Requests', icon: ClipboardList, permission: 'pr:view' },
-        { href: '/app/purchase-orders',   label: 'Purchase Orders',   icon: ShoppingCart, permission: 'po:view' },
-        { href: '/app/inbound-orders',    label: 'Inbound Orders',    icon: PackageCheck, permission: 'inbound_orders:view' },
-      ],
-    },
-    {
-      label: 'รับสินค้า / Receiving',
-      items: [
-        { href: '/app/grn',                 label: 'Goods Receive',       icon: PackagePlus, permission: 'grn:view' },
-        { href: '/app/grn/receiving-queue', label: 'คิวรับสินค้า / Queue', icon: ClipboardList, permission: 'grn:view' },
-      ],
-    },
-    {
-      label: 'งานหยิบและจัดส่ง / Outbound',
-      items: [
-        { href: '/app/picking',   label: 'รายการหยิบสินค้า', icon: ClipboardList, permission: 'inventory:view' },
-        { href: '/app/shipments', label: 'รายการจัดส่งสินค้า', icon: Truck,         permission: 'inventory:view' },
-      ],
-    },
-    {
-      label: 'คลังสินค้า / Inventory',
-      items: [
-        { href: '/app/inventory',    label: 'Inventory',     icon: Archive, permission: 'inventory:view' },
-        { href: '/app/inventory/reorder', label: 'Reorder Dashboard', icon: AlertTriangle, permission: 'inventory:view' },
-        { href: '/app/inventory/valuation', label: 'Inventory Valuation', icon: BarChart2, permission: 'inventory:view' },
-        { href: '/app/transfers',    label: 'Transfers',     icon: ArrowLeftRight, permission: 'transfers:view' },
-        { href: '/app/cycle-counts', label: 'Cycle Counts',  icon: Hash, permission: 'cycle_counts:view' },
-      ],
-    },
-    {
-      label: 'หลังการรับ / Post-Receipt',
-      items: [
-        { href: '/app/rma',    label: 'Returns (RMA)',  icon: Undo2, permission: 'rma:view' },
-        { href: '/app/claims', label: 'Vendor Claims',  icon: AlertTriangle, permission: 'claims:view' },
-      ],
-    },
-    {
-      label: 'เจ้าหนี้และการชำระเงิน / AP',
-      items: [
-        { href: '/app/ap',          label: 'ใบแจ้งหนี้เจ้าหนี้',   icon: CreditCard, permission: 'vendors:view' },
-        { href: '/app/ap/payments', label: 'รายการชำระเงิน', icon: History,    permission: 'vendors:view' },
-        { href: '/app/ap/aging',    label: 'รายงานอายุหนี้',   icon: Clock,      permission: 'vendors:view' },
-      ],
-    },
-    {
-      label: 'ข้อมูลหลัก / Master Data',
-      items: [
-        { href: '/app/products', label: 'สินค้า / Products',    icon: Package, permission: 'products:view' },
-        { href: '/app/bom',      label: 'สูตรการผลิต / BOM',   icon: Layers, permission: 'products:view' },
-        { href: '/app/vendors',  label: 'ผู้ขาย / Vendors',     icon: Building2, permission: 'vendors:view' },
-      ],
-    },
-  ],
-
-  pos: [
-    {
-      label: 'ขายหน้าร้าน / POS',
-      items: [
-        { href: '/app/pos',          label: 'POS Terminal',    icon: ShoppingBag, permission: 'pos:cashier' },
-        { href: '/app/pos/sessions', label: 'Session History', icon: History, permission: 'pos:view' },
-        { href: '/app/pos/members',  label: 'สมาชิก / Members', icon: Users, permission: 'pos:members' },
-        { href: '/app/pos/shifts',   label: 'รายงานกะ / Shifts', icon: FileText, permission: 'pos:view' },
-      ],
-    },
-  ],
-
-  sales: [
-    {
-      label: 'ข้อมูลหลัก',
-      items: [
-        { href: '/app/customers', label: 'ลูกค้า / Customers', icon: UserCircle, permission: 'customers:view' },
-      ],
-    },
-    {
-      label: 'การขาย / Sales',
-      items: [
-        { href: '/app/sales-quotations', label: 'ใบเสนอราคา / Quotations',  icon: FileText, permission: 'sq:view' },
-        { href: '/app/sales-orders',     label: 'ใบสั่งขาย / Sales Orders', icon: Receipt, permission: 'so:view' },
-        { href: '/app/delivery-orders',  label: 'ใบส่งสินค้า / Deliveries', icon: Truck, permission: 'do:view' },
-        { href: '/app/sales-invoices',   label: 'ใบแจ้งหนี้ / Invoices',    icon: CreditCard, permission: 'si:view' },
-        { href: '/app/sales-returns',    label: 'รับคืน / Returns',          icon: Undo2, permission: 'sr:view' },
-      ],
-    },
-  ],
-
-  accounting: [
-    {
-      label: 'การบัญชี / Accounting',
-      items: [
-        { href: '/app/accounting/chart-of-accounts',      label: 'ผังบัญชี / CoA',        icon: BarChart3, permission: 'accounts:view' },
-        { href: '/app/accounting/fiscal-periods',         label: 'รอบบัญชี / Periods',    icon: Calendar, permission: 'fiscal_periods:view' },
-        { href: '/app/accounting/journal-entries',        label: 'สมุดรายวัน / Journal',  icon: BookOpen, permission: 'accounting:view' },
-      ],
-    },
-    {
-      label: 'รายงาน / Reports',
-      items: [
-        { href: '/app/accounting/reports/trial-balance', label: 'งบทดลอง / Trial Balance', icon: Scale, permission: 'reports:accounting' },
-        { href: '/app/accounting/reports/profit-loss',   label: 'กำไรขาดทุน / P&L',       icon: TrendingDown, permission: 'reports:accounting' },
-        { href: '/app/accounting/reports/balance-sheet', label: 'งบดุล / Balance Sheet',   icon: Landmark, permission: 'reports:accounting' },
-        { href: '/app/accounting/reports/ar-aging',      label: 'ลูกหนี้ / AR Aging',      icon: Clock, permission: 'reports:accounting' },
-        { href: '/app/accounting/reports/ap-aging',      label: 'เจ้าหนี้ / AP Aging',     icon: Banknote, permission: 'reports:accounting' },
-      ],
-    },
-  ],
-
-  hr: [
-    {
-      label: 'ทรัพยากรบุคคล / HR',
-      items: [
-        { href: '/app/hr',                  label: 'ภาพรวม / Dashboard',   icon: BarChart3, permission: 'hr:employees:view' },
-        { href: '/app/hr/employees',        label: 'พนักงาน / Employees',  icon: Users, permission: 'hr:employees:view' },
-        { href: '/app/hr/departments',      label: 'แผนก / Departments',   icon: Building, permission: 'hr:departments:view' },
-        { href: '/app/hr/leave-requests',   label: 'วันลา / Leave',        icon: Calendar, permission: 'hr:leave:view' },
-        { href: '/app/hr/attendance/my',    label: 'เข้างาน / Attendance', icon: Timer, permission: 'hr:attendance:view' },
-        { href: '/app/hr/payroll',          label: 'เงินเดือน / Payroll',  icon: Wallet, permission: 'hr:payroll:view' },
-        { href: '/app/hr/payroll/settings', label: 'ตั้งค่า Payroll',      icon: Settings, permission: 'admin' },
-      ],
-    },
-  ],
-
-  admin: [
-    {
-      label: 'ผู้ดูแลระบบ / Admin',
-      items: [
-        { href: '/app/admin/users',      label: 'พนักงาน / Employees', icon: Users, roles: ['admin'] },
-        { href: '/app/admin/roles',      label: 'บทบาท / Roles',       icon: KeyRound, roles: ['admin'] },
-        { href: '/app/admin/warehouses', label: 'Warehouses',           icon: Warehouse, roles: ['admin'] },
-        { href: '/app/admin/uom',        label: 'หน่วยนับ / UoM',       icon: Scale,    roles: ['admin'] },
-      ],
-    },
-  ],
-};
 
 function detectModule(pathname: string): ModuleKey | null {
   if (pathname === '/app/menu' || pathname.startsWith('/app/menu/')) return null;
@@ -321,6 +168,7 @@ function SidebarGroup({
                 ) : (
                   <Link
                     href={item.href}
+                    viewTransition
                     className={cn(
                       'flex items-center gap-[10px] py-0 mx-2 h-[34px] rounded-md text-[13.5px] font-medium transition-all group overflow-hidden',
                       collapsed ? 'px-0 justify-center mx-3' : 'px-3',
@@ -352,6 +200,161 @@ export function Sidebar({ open, onClose, userRole, permissions, collapsed, onTog
   const pathname = usePathname();
   const [editing, setEditing] = useState(false);
   const [hiddenItems, setHiddenItems] = useState<string[]>([]);
+  const t = useT();
+
+  const moduleMeta: Record<ModuleKey, ModuleMeta> = {
+    wms:        { nameTh: t('module.wms'),        nameEn: t('module.wms'),        icon: Warehouse, entryHref: '/app/dashboard' },
+    pos:        { nameTh: t('module.pos'),        nameEn: t('module.pos'),        icon: ShoppingBag, entryHref: '/app/pos' },
+    sales:      { nameTh: t('module.sales'),      nameEn: t('module.sales'),      icon: Package, entryHref: '/app/sales-quotations' },
+    accounting: { nameTh: t('module.accounting'), nameEn: t('module.accounting'), icon: BarChart3, entryHref: '/app/accounting/chart-of-accounts' },
+    hr:         { nameTh: t('module.hr'),         nameEn: t('module.hr'),         icon: Users, entryHref: '/app/hr/employees' },
+    admin:      { nameTh: t('module.admin'),      nameEn: t('module.admin'),      icon: Settings, entryHref: '/app/admin/users' },
+  };
+
+  const moduleNav: Record<ModuleKey, NavGroup[]> = useMemo(() => ({
+    wms: [
+      {
+        label: t('nav.overview'),
+        items: [
+          { href: '/app/dashboard', label: t('page.dashboard'), icon: LayoutDashboard, permission: 'dashboard:view' },
+        ],
+      },
+      {
+        label: t('nav.purchasing'),
+        items: [
+          { href: '/app/receiving/new', label: t('page.new_gr'), icon: PackagePlus, permission: 'grn:create' },
+          { href: '/app/purchase-requests', label: t('page.purchase_requests'), icon: ClipboardList, permission: 'pr:view' },
+          { href: '/app/purchase-orders',   label: t('page.purchase_orders'),   icon: ShoppingCart, permission: 'po:view' },
+          { href: '/app/inbound-orders',    label: t('page.inbound_orders'),    icon: PackageCheck, permission: 'inbound_orders:view' },
+        ],
+      },
+      {
+        label: t('nav.receiving'),
+        items: [
+          { href: '/app/grn',                 label: t('page.grn'),             icon: PackagePlus, permission: 'grn:view' },
+          { href: '/app/grn/receiving-queue', label: t('page.receiving_queue'), icon: ClipboardList, permission: 'grn:view' },
+        ],
+      },
+      {
+        label: t('nav.outbound'),
+        items: [
+          { href: '/app/picking',   label: t('page.picking'),   icon: ClipboardList, permission: 'inventory:view' },
+          { href: '/app/shipments', label: t('page.shipments'), icon: Truck,         permission: 'inventory:view' },
+        ],
+      },
+      {
+        label: t('nav.inventory'),
+        items: [
+          { href: '/app/inventory',             label: t('page.inventory'), icon: Archive,       permission: 'inventory:view' },
+          { href: '/app/inventory/reorder',     label: t('page.reorder'),   icon: AlertTriangle, permission: 'inventory:view' },
+          { href: '/app/inventory/valuation',   label: t('page.valuation'), icon: BarChart2,     permission: 'inventory:view' },
+          { href: '/app/transfers',             label: t('page.transfers'), icon: ArrowLeftRight, permission: 'transfers:view' },
+          { href: '/app/cycle-counts',          label: t('page.cycle_counts'), icon: Hash,       permission: 'cycle_counts:view' },
+        ],
+      },
+      {
+        label: t('nav.post_receipt'),
+        items: [
+          { href: '/app/rma',    label: t('page.rma'),    icon: Undo2,         permission: 'rma:view' },
+          { href: '/app/claims', label: t('page.claims'), icon: AlertTriangle, permission: 'claims:view' },
+        ],
+      },
+      {
+        label: t('nav.ap'),
+        items: [
+          { href: '/app/ap',          label: t('page.ap_invoices'), icon: CreditCard, permission: 'vendors:view' },
+          { href: '/app/ap/payments', label: t('page.ap_payments'), icon: History,    permission: 'vendors:view' },
+          { href: '/app/ap/aging',    label: t('page.ap_aging'),    icon: Clock,      permission: 'vendors:view' },
+        ],
+      },
+      {
+        label: t('nav.master_data'),
+        items: [
+          { href: '/app/products', label: t('page.products'), icon: Package,  permission: 'products:view' },
+          { href: '/app/bom',      label: t('page.bom'),      icon: Layers,   permission: 'products:view' },
+          { href: '/app/vendors',  label: t('page.vendors'),  icon: Building2, permission: 'vendors:view' },
+        ],
+      },
+    ],
+
+    pos: [
+      {
+        label: t('nav.pos_section'),
+        items: [
+          { href: '/app/pos',          label: t('page.pos_terminal'), icon: ShoppingBag, permission: 'pos:cashier' },
+          { href: '/app/pos/sessions', label: t('page.sessions'),     icon: History,     permission: 'pos:view' },
+          { href: '/app/pos/members',  label: t('page.members'),      icon: Users,       permission: 'pos:members' },
+          { href: '/app/pos/shifts',   label: t('page.shifts'),       icon: FileText,    permission: 'pos:view' },
+        ],
+      },
+    ],
+
+    sales: [
+      {
+        label: t('nav.sales_master'),
+        items: [
+          { href: '/app/customers', label: t('page.customers'), icon: UserCircle, permission: 'customers:view' },
+        ],
+      },
+      {
+        label: t('nav.sales_flow'),
+        items: [
+          { href: '/app/sales-quotations', label: t('page.quotations'),     icon: FileText,   permission: 'sq:view' },
+          { href: '/app/sales-orders',     label: t('page.sales_orders'),   icon: Receipt,    permission: 'so:view' },
+          { href: '/app/delivery-orders',  label: t('page.delivery_orders'),icon: Truck,      permission: 'do:view' },
+          { href: '/app/sales-invoices',   label: t('page.sales_invoices'), icon: CreditCard, permission: 'si:view' },
+          { href: '/app/sales-returns',    label: t('page.sales_returns'),  icon: Undo2,      permission: 'sr:view' },
+        ],
+      },
+    ],
+
+    accounting: [
+      {
+        label: t('nav.accounting_section'),
+        items: [
+          { href: '/app/accounting/chart-of-accounts', label: t('page.coa'),            icon: BarChart3, permission: 'accounts:view' },
+          { href: '/app/accounting/fiscal-periods',    label: t('page.fiscal_periods'), icon: Calendar,  permission: 'fiscal_periods:view' },
+          { href: '/app/accounting/journal-entries',   label: t('page.journal'),        icon: BookOpen,  permission: 'accounting:view' },
+        ],
+      },
+      {
+        label: t('nav.reports'),
+        items: [
+          { href: '/app/accounting/reports/trial-balance', label: t('page.trial_balance'), icon: Scale,       permission: 'reports:accounting' },
+          { href: '/app/accounting/reports/profit-loss',   label: t('page.pl'),            icon: TrendingDown, permission: 'reports:accounting' },
+          { href: '/app/accounting/reports/balance-sheet', label: t('page.balance_sheet'), icon: Landmark,    permission: 'reports:accounting' },
+          { href: '/app/accounting/reports/ar-aging',      label: t('page.ar_aging'),      icon: Clock,       permission: 'reports:accounting' },
+          { href: '/app/accounting/reports/ap-aging',      label: t('page.ap_aging_report'), icon: Banknote,  permission: 'reports:accounting' },
+        ],
+      },
+    ],
+
+    hr: [
+      {
+        label: t('nav.hr_section'),
+        items: [
+          { href: '/app/hr',              label: t('nav.overview'),    icon: BarChart3, permission: 'hr:employees:view' },
+          { href: '/app/hr/employees',    label: t('page.employees'),  icon: Users,     permission: 'hr:employees:view' },
+          { href: '/app/hr/departments',  label: t('page.departments'),icon: Building,  permission: 'hr:departments:view' },
+          { href: '/app/hr/leave-requests', label: t('page.leave'),    icon: Calendar,  permission: 'hr:leave:view' },
+          { href: '/app/hr/attendance/my',  label: t('page.attendance'), icon: Timer,     permission: 'hr:attendance:view' },
+          { href: '/app/hr/payroll',      label: t('page.payroll'),    icon: Wallet,    permission: 'hr:payroll:view' },
+        ],
+      },
+    ],
+
+    admin: [
+      {
+        label: t('nav.admin_section'),
+        items: [
+          { href: '/app/admin/users',      label: t('page.users'),      icon: UserCircle, roles: ['admin'] },
+          { href: '/app/admin/roles',      label: t('page.roles'),      icon: KeyRound,   roles: ['admin'] },
+          { href: '/app/admin/warehouses', label: t('page.warehouses'), icon: Warehouse,  roles: ['admin'] },
+          { href: '/app/admin/uom',        label: t('page.uom'),        icon: Scale,      roles: ['admin'] },
+        ],
+      },
+    ],
+  }), [t]);
 
   useEffect(() => {
     try {
@@ -391,14 +394,14 @@ export function Sidebar({ open, onClose, userRole, permissions, collapsed, onTog
   
   const visibleGroups = useMemo(() => {
     if (!activeModule) return [];
-    return MODULE_NAV[activeModule].map(group => ({
+    return moduleNav[activeModule].map(group => ({
       ...group,
       items: group.items.filter(item => isVisible(item) && (editing || !hiddenItems.includes(item.href)))
     })).filter(group => group.items.length > 0);
-  }, [activeModule, editing, hiddenItems, isVisible]);
+  }, [activeModule, editing, hiddenItems, isVisible, moduleNav]);
 
-  const totalItemsCount = activeModule ? MODULE_NAV[activeModule].filter(g => g.items.some(isVisible)).reduce((sum, g) => sum + g.items.filter(isVisible).length, 0) : 0;
-  const visibleItemsCount = totalItemsCount - hiddenItems.filter(h => activeModule && MODULE_NAV[activeModule].some(g => g.items.some(i => i.href === h && isVisible(i)))).length;
+  const totalItemsCount = activeModule ? moduleNav[activeModule].filter(g => g.items.some(isVisible)).reduce((sum, g) => sum + g.items.filter(isVisible).length, 0) : 0;
+  const visibleItemsCount = totalItemsCount - hiddenItems.filter(h => activeModule && moduleNav[activeModule].some(g => g.items.some(i => i.href === h && isVisible(i)))).length;
 
   return (
     <aside
@@ -422,7 +425,7 @@ export function Sidebar({ open, onClose, userRole, permissions, collapsed, onTog
         <button
           onClick={onClose}
           className="md:hidden text-ink-3 hover:text-ink transition-colors"
-          aria-label="ปิดเมนู"
+          aria-label={t('topbar.open_menu')}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
@@ -446,20 +449,21 @@ export function Sidebar({ open, onClose, userRole, permissions, collapsed, onTog
           <div className="px-4 mb-4">
             <Link
               href="/app/menu"
+              viewTransition
               className="flex items-center gap-1.5 text-[12px] text-ink-3 hover:text-ink transition-colors mb-3"
             >
-              <ChevronLeft className="w-3.5 h-3.5" /> เมนูหลัก
+              <ChevronLeft className="w-3.5 h-3.5" /> {t('action.back')}
             </Link>
             <div className="flex items-center gap-2 px-1">
               <span className="text-[18px] text-ink-2">
                 {(() => {
-                  const Icon = MODULE_META[activeModule].icon;
+                  const Icon = moduleMeta[activeModule].icon;
                   return <Icon className="w-[18px] h-[18px]" strokeWidth={1.6} />;
                 })()}
               </span>
               <div>
-                <div className="text-[13px] font-semibold text-ink leading-tight">{MODULE_META[activeModule].nameTh}</div>
-                <div className="text-[10.5px] text-ink-4 uppercase tracking-widest">{MODULE_META[activeModule].nameEn}</div>
+                <div className="text-[13px] font-semibold text-ink leading-tight">{moduleMeta[activeModule].nameTh}</div>
+                <div className="text-[10.5px] text-ink-4 uppercase tracking-widest">{moduleMeta[activeModule].nameEn}</div>
               </div>
             </div>
             <div className="h-px bg-line-soft mt-4" />
@@ -468,12 +472,12 @@ export function Sidebar({ open, onClose, userRole, permissions, collapsed, onTog
 
         {activeModule && collapsed && (
           <div className="flex flex-col items-center gap-3 pt-2 pb-2">
-            <Link href="/app/menu" title="เมนูหลัก" className="text-ink-3 hover:text-ink">
+            <Link href="/app/menu" viewTransition title={t('topbar.open_menu')} className="text-ink-3 hover:text-ink">
               <ChevronLeft className="w-4 h-4" />
             </Link>
-            <span className="text-[16px] text-ink-2" title={MODULE_META[activeModule].nameTh}>
+            <span className="text-[16px] text-ink-2" title={moduleMeta[activeModule].nameTh}>
               {(() => {
-                const Icon = MODULE_META[activeModule].icon;
+                const Icon = moduleMeta[activeModule].icon;
                 return <Icon className="w-[18px] h-[18px]" strokeWidth={1.6} />;
               })()}
             </span>
@@ -507,6 +511,10 @@ export function Sidebar({ open, onClose, userRole, permissions, collapsed, onTog
 
       {/* Footer / User Profile */}
       <div className="shrink-0 border-t border-line-soft p-3 bg-surface-soft">
+        {!collapsed && (
+          <LanguageSwitcher className="mb-2" />
+        )}
+
         {!collapsed && activeModule && (
           <button 
             onClick={() => setEditing(!editing)}

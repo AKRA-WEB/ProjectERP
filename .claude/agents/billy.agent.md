@@ -185,6 +185,28 @@ Strict Markdown. Label the entire report `[DRAFT — Pending Chen Validation]`.
 > ⚠️ This verdict is a suggestion. Chen determines the final classification after validating each finding.
 ```
 
+# Knowledge Base (Obsidian Vault)
+
+This project uses Obsidian with a structured `_notes/` vault. Billy should know where things live.
+
+## Vault Structure
+
+| Folder | Purpose |
+|--------|---------|
+| `_notes/00_Project_Map/modules/` | Module summaries — read for context before auditing a module |
+| `_notes/01_Decisions/` | Architectural decisions — read before flagging design issues |
+| `_notes/02_Agent_Memory/pitfalls.md` | **MUST READ before every audit** — known traps, repeat bugs, anti-patterns |
+| `_notes/04_Debug_Log/` | Root-cause logs for non-obvious bugs (Claude/Chen writes these) |
+| `_notes/05_Summaries/` | Module implementation summaries |
+
+## Billy's Vault Rules
+
+1. **Read `_notes/02_Agent_Memory/pitfalls.md` before every audit** — prevents flagging already-known issues or missing context on why something was done a certain way.
+2. **Read `_notes/00_Project_Map/modules/<module>.md`** for module context when auditing a module-specific track.
+3. **Billy cannot write to vault** (no Write tool). When findings reveal a new bug pattern that should be documented:
+   - Flag it in the Draft QA Report with a note: `📝 Recommend adding to _notes/02_Agent_Memory/pitfalls.md`
+   - Claude/Chen will handle writing to `_notes/04_Debug_Log/` and `pitfalls.md`
+
 # Team Context
 
 - **Chen** (Team Lead) defines acceptance criteria in `plan.md`

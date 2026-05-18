@@ -16,8 +16,8 @@
 
 | Track | Status | Plan |
 |-------|--------|------|
-| Inbound Receive Fix — "Request failed" bug | Completed | [plan](./tracks/inbound-receive-fix/plan.md) |
-| [PO Immediate Approval — Discount + Financial Summary + Auto-GRN](./tracks/po-immediate-approval/plan.md) | Completed | [plan](./tracks/po-immediate-approval/plan.md) |
+| [GR-First Workflow — Standalone GR + GR→PO + PR→GR Direct](./tracks/gr-first-workflow/plan.md) | Completed | [plan](./tracks/gr-first-workflow/plan.md) |
+| [i18n Language Switch — Thai ↔ English System-wide](./tracks/i18n-language-switch/plan.md) | Completed | [plan](./tracks/i18n-language-switch/plan.md) |
 
 ## Rework Required
 
@@ -25,8 +25,8 @@
 
 | Track | Rework Plan |
 |-------|-------------|
-| [View Transitions — App-wide Implementation](./tracks/view-transitions/plan.md) | [rework-plan](./tracks/view-transitions/rework-plan.md) |
-| [PO Immediate Approval — Discount + Financial Summary + Auto-GRN](./tracks/po-immediate-approval/plan.md) | [rework-plan](./tracks/po-immediate-approval/rework-plan.md) |
+| [View Transitions — App-wide Implementation](./tracks/view-transitions/rework-plan.md) | [rework-plan](./tracks/view-transitions/rework-plan.md) |
+| [PO Immediate Approval — Discount + Financial Summary + Auto-GRN](./tracks/po-immediate-approval/rework-plan.md) | [rework-plan](./tracks/po-immediate-approval/rework-plan.md) |
 
 ## All Tracks
 
@@ -75,7 +75,9 @@
 | [UI Improvement — POS Tier Badges · Lock Timer · Thermal Receipt](./tracks/ui-improvement-pos/plan.md) | Optimization Suggested | 2026-05-15 | 2026-05-17 |
 | [UI Improvement — WMS Ops (GRN Tabs · QC KPIs · Receiving Queue)](./tracks/ui-improvement-wms-ops/plan.md) | Completed | 2026-05-15 | 2026-05-17 |
 | [Security Fixes — Pre-Vercel Auth Guards · Warehouse Scope · Perf](./tracks/security-fixes/plan.md) | Verified | 2026-05-15 | 2026-05-16 |
-| [View Transitions — App-wide Implementation](./tracks/view-transitions/plan.md) | Rework Required | 2026-05-15 | 2026-05-18 |
+| [View Transitions — App-wide Implementation](./tracks/view-transitions/plan.md) | Completed | 2026-05-15 | 2026-05-18 |
 | [Hamburger Sidebar Z-Index Fix](./tracks/hamburger-zindex-fix/plan.md) | Optimization Suggested | 2026-05-16 | 2026-05-17 |
 | [Inbound Receive Fix — IO GRN "Request failed"](./tracks/inbound-receive-fix/plan.md) | Completed | 2026-05-18 | 2026-05-18 |
 | [PO Immediate Approval — Discount + Financial Summary + Auto-GRN](./tracks/po-immediate-approval/plan.md) | Rework Required | 2026-05-18 | 2026-05-18 |
+| [GR-First Workflow — Standalone GR + GR→PO + PR→GR Direct](./tracks/gr-first-workflow/plan.md) | Completed | 2026-05-18 | 2026-05-18 |
+| [i18n Language Switch — Thai ↔ English System-wide](./tracks/i18n-language-switch/plan.md) | Completed | 2026-05-18 | 2026-05-18 |

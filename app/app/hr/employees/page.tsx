@@ -10,6 +10,7 @@ import { DirectionalTransition } from '@/components/ui/directional-transition';
 import { useSession } from 'next-auth/react';
 import EmployeeFormModal from './EmployeeFormModal';
 import { type SessionUser } from '@/types';
+import { useT, useLanguage, localeName } from '@/lib/i18n';
 
 const AVATAR_COLORS = [
   '#a78bfa', '#fb923c', '#22c55e', '#0ea5e9', '#f43f5e',
@@ -42,6 +43,8 @@ export default function EmployeesPage() {
   const [statusFilter, setStatusFilter] = useState<EmployeeStatus | ''>('');
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const t = useT();
+  const { lang } = useLanguage();
 
   const user = session?.user as SessionUser | undefined;
   const canCreate = user && ['admin', 'manager'].includes(user.role);
@@ -80,10 +83,10 @@ export default function EmployeesPage() {
         <div className="flex items-end justify-between gap-6 flex-wrap">
           <div>
             <h1 className="text-[26px] font-semibold tracking-tight text-stone-950 leading-tight mb-1">
-              พนักงาน / Employees
+              {t('page.employees')}
             </h1>
             <p className="text-[13.5px] text-stone-500">
-              {loading ? '—' : formatNumber(data?.total ?? 0)} คน
+              {loading ? '—' : formatNumber(data?.total ?? 0, lang)} {t('label.employee')}
             </p>
           </div>
           {canCreate && (
@@ -94,7 +97,7 @@ export default function EmployeesPage() {
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                 <path d="M7 3v8M3 7h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
               </svg>
-              เพิ่มพนักงาน
+              {t('action.create')}
             </button>
           )}
         </div>
@@ -108,7 +111,7 @@ export default function EmployeesPage() {
               <path d="M10 10l2.5 2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
             </svg>
             <input
-              placeholder="ค้นหาชื่อ, รหัส, อีเมล..."
+              placeholder={t('label.search_placeholder')}
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
               className="flex-1 bg-transparent border-0 outline-none text-stone-700 placeholder:text-stone-400 text-[13px]"
@@ -121,9 +124,9 @@ export default function EmployeesPage() {
             onChange={(e) => { setDeptFilter(e.target.value); setPage(1); }}
             className="h-8 px-3 rounded-[8px] border border-stone-200 bg-stone-50 text-[13px] text-stone-700 outline-none focus:bg-white transition-colors"
           >
-            <option value="">ทุกแผนก</option>
-            {departments.map(d => (
-              <option key={d.id} value={d.id}>{d.name_th}</option>
+            <option value="">{t('label.department')}</option>
+            {departments.map(d_item => (
+              <option key={d_item.id} value={d_item.id}>{localeName(d_item.name_th, d_item.name_en, lang)}</option>
             ))}
           </select>
 
@@ -133,10 +136,10 @@ export default function EmployeesPage() {
             onChange={(e) => { setStatusFilter(e.target.value as EmployeeStatus | ''); setPage(1); }}
             className="h-8 px-3 rounded-[8px] border border-stone-200 bg-stone-50 text-[13px] text-stone-700 outline-none focus:bg-white transition-colors"
           >
-            <option value="">ทุกสถานะ</option>
-            <option value="active">ใช้งาน (Active)</option>
-            <option value="inactive">พักงาน (Inactive)</option>
-            <option value="resigned">ลาออก (Resigned)</option>
+            <option value="">{t('label.status')}</option>
+            <option value="active">{t('status.active')}</option>
+            <option value="inactive">{t('status.inactive')}</option>
+            <option value="resigned">{t('status.rejected')}</option>
           </select>
         </div>
 
@@ -147,12 +150,12 @@ export default function EmployeesPage() {
               <thead>
                 <tr>
                   {[
-                    { h: 'พนักงาน',    sm: false },
-                    { h: 'รหัสพนักงาน', sm: false },
-                    { h: 'แผนก',       sm: true },
-                    { h: 'ตำแหน่ง',    sm: true },
-                    { h: 'ประเภทการจ้าง', sm: true },
-                    { h: 'สถานะ',      sm: false },
+                    { h: t('label.employee'),    sm: false },
+                    { h: t('label.code'), sm: false },
+                    { h: t('label.department'),       sm: true },
+                    { h: t('label.position'),    sm: true },
+                    { h: t('label.description'), sm: true },
+                    { h: t('label.status'),      sm: false },
                     { h: '',           sm: false },
                   ].map(({ h, sm }, i) => (
                     <th key={i} className={`text-left py-2.5 px-3.5 text-[11.5px] font-medium tracking-[.04em] uppercase text-stone-400 bg-stone-50 border-y border-stone-200 first:pl-5 last:pr-5 ${sm ? 'hidden lg:table-cell' : ''}`}>
@@ -163,11 +166,11 @@ export default function EmployeesPage() {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={7} className="py-12 text-center text-[13px] text-stone-400">กำลังโหลด...</td></tr>
+                  <tr><td colSpan={7} className="py-12 text-center text-[13px] text-stone-400">{t('label.loading')}</td></tr>
                 ) : data?.data.length === 0 ? (
-                  <tr><td colSpan={7} className="py-12 text-center text-[13px] text-stone-400">ไม่พบข้อมูลพนักงาน</td></tr>
+                  <tr><td colSpan={7} className="py-12 text-center text-[13px] text-stone-400">{t('label.no_data')}</td></tr>
                 ) : data?.data.map((v: HrEmployee) => {
-                  const color = avatarColor(v.name_en);
+                  const color = avatarColor(v.name_en || v.name_th);
                   return (
                     <tr key={v.id} className="border-b border-stone-50 last:border-0 hover:bg-stone-50/60 cursor-default transition-colors">
                       <td className="py-0 h-12 px-3.5 pl-5">
@@ -176,11 +179,11 @@ export default function EmployeesPage() {
                             className="w-6 h-6 rounded-[6px] shrink-0 grid place-items-center text-[11px] font-semibold uppercase"
                             style={{ background: color + '22', color }}
                           >
-                            {v.name_en.slice(0, 2)}
+                            {v.name_en ? v.name_en.slice(0, 2) : v.name_th.slice(0, 2)}
                           </div>
                           <div>
-                            <div className="font-medium text-stone-900">{v.name_th}</div>
-                            <div className="text-[11.5px] text-stone-400">{v.name_en}</div>
+                            <div className="font-medium text-stone-900">{localeName(v.name_th, v.name_en, lang)}</div>
+                            {lang === 'th' && v.name_en && <div className="text-[11.5px] text-stone-400">{v.name_en}</div>}
                           </div>
                         </div>
                       </td>
@@ -193,7 +196,7 @@ export default function EmployeesPage() {
                           ${v.employee_status === 'active' ? 'text-emerald-700 border-emerald-200 bg-emerald-50' : 
                             v.employee_status === 'inactive' ? 'text-amber-700 border-amber-200 bg-amber-50' : 
                             'text-stone-500 border-stone-200 bg-stone-50'}`}>
-                          {v.employee_status === 'active' ? 'ใช้งาน' : v.employee_status === 'inactive' ? 'พักงาน' : 'ลาออก'}
+                          {v.employee_status === 'active' ? t('status.active') : v.employee_status === 'inactive' ? t('status.inactive') : t('status.rejected')}
                         </span>
                       </td>
                       <td className="py-0 h-12 px-3.5 pr-5">

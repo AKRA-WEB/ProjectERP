@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { SessionProvider } from 'next-auth/react';
 import { IBM_Plex_Sans_Thai, IBM_Plex_Mono } from 'next/font/google';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import { LanguageProvider } from '@/lib/i18n';
 import './globals.css';
 
 const ibmPlexSansThai = IBM_Plex_Sans_Thai({
@@ -32,8 +33,10 @@ export default function RootLayout({
     <html lang="th" className={`${ibmPlexSansThai.variable} ${ibmPlexMono.variable}`}>
       <body className="antialiased">
         <SessionProvider>
-          {children}
-          <SpeedInsights />
+          <LanguageProvider>
+            {children}
+            <SpeedInsights />
+          </LanguageProvider>
         </SessionProvider>
       </body>
     </html>

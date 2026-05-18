@@ -6,6 +6,7 @@ import { get, post } from '@/lib/api-client';
 import { formatCurrency } from '@/lib/format';
 import { VAT_RATE } from '@/lib/constants';
 import type { PaginatedResponse, Product, Warehouse } from '@/types';
+import { useT, useLanguage, localeName } from '@/lib/i18n';
 
 interface Vendor { id: string; code: string; name_th: string; }
 interface OrderLine {
@@ -33,6 +34,8 @@ export default function NewReceivingOrderPage() {
   const [results, setResults]       = useState<Product[]>([]);
   const [saving, setSaving]         = useState(false);
   const [error, setError]           = useState('');
+  const t = useT();
+  const { lang } = useLanguage();
 
   useEffect(() => {
     get<PaginatedResponse<Vendor>>('/api/vendors?limit=500').then((r) =>
@@ -53,7 +56,7 @@ export default function NewReceivingOrderPage() {
   function addLine(p: Product) {
     setLines((prev) => [...prev, {
       product_id: p.id,
-      product_label: `${p.sku} — ${p.name_th}`,
+      product_label: `${p.sku} — ${localeName(p.name_th, p.name_en, lang)}`,
       qty_ordered: 1,
       unit_price: Number(p.unit_cost) || 0,
     }]);
@@ -96,7 +99,7 @@ export default function NewReceivingOrderPage() {
       );
       router.push(`/app/grn/${result.grn_id}`);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
+      setError(e instanceof Error ? e.message : t('error.server'));
       setSaving(false);
     }
   }
@@ -105,10 +108,10 @@ export default function NewReceivingOrderPage() {
     <div className="max-w-4xl space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-stone-900">เปิดคำสั่งซื้อ</h1>
+          <h1 className="text-2xl font-bold text-stone-900">{t('page.new_gr')}</h1>
           <p className="text-sm text-stone-500 mt-0.5">สร้างคำสั่งซื้อ + การ์ดงานรับสินค้า ในขั้นตอนเดียว</p>
         </div>
-        <button onClick={() => router.back()} className="text-sm text-stone-400 hover:text-stone-700">← ย้อนกลับ</button>
+        <button onClick={() => router.back()} className="text-sm text-stone-400 hover:text-stone-700">← {t('action.back')}</button>
       </div>
 
       {error && (
@@ -118,36 +121,36 @@ export default function NewReceivingOrderPage() {
       {/* Header fields */}
       <div className={`${CARD} p-6 grid grid-cols-2 gap-4`}>
         <div>
-          <label className={LABEL_CLS}>ผู้จำหน่าย / Vendor *</label>
+          <label className={LABEL_CLS}>{t('label.vendor')} *</label>
           <select value={vendorId} onChange={(e) => setVendorId(e.target.value)} className={FIELD_CLS}>
-            <option value="">-- เลือกผู้จำหน่าย --</option>
+            <option value="">-- {t('label.select_placeholder')} --</option>
             {vendors.map((v) => (
               <option key={v.id} value={v.id}>{v.code} — {v.name_th}</option>
             ))}
           </select>
         </div>
         <div>
-          <label className={LABEL_CLS}>คลังสินค้า *</label>
+          <label className={LABEL_CLS}>{t('label.warehouse')} *</label>
           <select value={warehouseId} onChange={(e) => setWarehouseId(e.target.value)} className={FIELD_CLS}>
-            <option value="">-- เลือกคลัง --</option>
+            <option value="">-- {t('label.select_placeholder')} --</option>
             {warehouses.map((w) => (
               <option key={w.id} value={w.id}>{w.code} — {w.name_th}</option>
             ))}
           </select>
         </div>
         <div>
-          <label className={LABEL_CLS}>วันที่คาดว่าจะส่ง</label>
+          <label className={LABEL_CLS}>{t('label.date')}</label>
           <input type="date" value={expectedDate} onChange={(e) => setExpectedDate(e.target.value)} className={FIELD_CLS} />
         </div>
         <div>
-          <label className={LABEL_CLS}>หมายเหตุ</label>
+          <label className={LABEL_CLS}>{t('label.note')}</label>
           <input type="text" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="หมายเหตุเพิ่มเติม" className={FIELD_CLS} />
         </div>
       </div>
 
       {/* Product search */}
       <div className={`${CARD} p-6`}>
-        <h2 className="text-[14px] font-semibold text-stone-800 mb-3">รายการสินค้า</h2>
+        <h2 className="text-[14px] font-semibold text-stone-800 mb-3">{t('nav.master_data')}</h2>
 
         {/* Search box */}
         <div className="relative mb-4">
@@ -155,7 +158,7 @@ export default function NewReceivingOrderPage() {
             type="text"
             value={search}
             onChange={(e) => searchProducts(e.target.value)}
-            placeholder="ค้นหาสินค้า (SKU / ชื่อ)..."
+            placeholder={t('label.search_placeholder')}
             className={FIELD_CLS}
           />
           {results.length > 0 && (
@@ -167,7 +170,7 @@ export default function NewReceivingOrderPage() {
                   className="w-full text-left px-4 py-2.5 text-[13px] hover:bg-stone-50 flex items-center gap-3"
                 >
                   <span className="font-mono text-stone-500 text-[12px] w-24 shrink-0">{p.sku}</span>
-                  <span className="text-stone-900">{p.name_th}</span>
+                  <span className="text-stone-900">{localeName(p.name_th, p.name_en, lang)}</span>
                 </button>
               ))}
             </div>
@@ -175,15 +178,15 @@ export default function NewReceivingOrderPage() {
         </div>
 
         {lines.length === 0 ? (
-          <p className="text-sm text-stone-400 text-center py-4">ยังไม่มีรายการสินค้า</p>
+          <p className="text-sm text-stone-400 text-center py-4">{t('label.no_data')}</p>
         ) : (
           <table className="w-full text-[13px] mb-4">
             <thead className="border-b border-stone-200">
               <tr>
-                <th className="pb-2 text-left font-medium text-stone-600">สินค้า</th>
-                <th className="pb-2 text-right font-medium text-stone-600 w-28">จำนวน</th>
-                <th className="pb-2 text-right font-medium text-stone-600 w-32">ราคา/หน่วย (฿)</th>
-                <th className="pb-2 text-right font-medium text-stone-600 w-28">รวม</th>
+                <th className="pb-2 text-left font-medium text-stone-600">{t('label.product')}</th>
+                <th className="pb-2 text-right font-medium text-stone-600 w-28">{t('label.qty')}</th>
+                <th className="pb-2 text-right font-medium text-stone-600 w-32">{t('label.unit_price')} (฿)</th>
+                <th className="pb-2 text-right font-medium text-stone-600 w-28">{t('label.total')}</th>
                 <th className="pb-2 w-8"></th>
               </tr>
             </thead>
@@ -206,7 +209,7 @@ export default function NewReceivingOrderPage() {
                     />
                   </td>
                   <td className="py-2 text-right tabular-nums text-stone-700 font-medium">
-                    {formatCurrency(l.qty_ordered * l.unit_price)}
+                    {formatCurrency(l.qty_ordered * l.unit_price, lang)}
                   </td>
                   <td className="py-2 text-center">
                     <button onClick={() => removeLine(i)} className="text-stone-300 hover:text-red-500 text-[16px] leading-none">×</button>
@@ -221,9 +224,9 @@ export default function NewReceivingOrderPage() {
         {lines.length > 0 && (
           <div className="flex justify-end">
             <div className="w-56 space-y-1 text-[13px]">
-              <div className="flex justify-between text-stone-600"><span>ราคาก่อน VAT</span><span className="tabular-nums">{formatCurrency(subtotal)}</span></div>
-              <div className="flex justify-between text-stone-600"><span>VAT 7%</span><span className="tabular-nums">{formatCurrency(vat)}</span></div>
-              <div className="flex justify-between font-semibold text-stone-900 border-t border-stone-200 pt-1 mt-1"><span>รวมทั้งสิ้น</span><span className="tabular-nums">{formatCurrency(total)}</span></div>
+              <div className="flex justify-between text-stone-600"><span>{t('label.subtotal')}</span><span className="tabular-nums">{formatCurrency(subtotal, lang)}</span></div>
+              <div className="flex justify-between text-stone-600"><span>{t('label.vat')} 7%</span><span className="tabular-nums">{formatCurrency(vat, lang)}</span></div>
+              <div className="flex justify-between font-semibold text-stone-900 border-t border-stone-200 pt-1 mt-1"><span>{t('label.net_total')}</span><span className="tabular-nums">{formatCurrency(total, lang)}</span></div>
             </div>
           </div>
         )}
@@ -232,7 +235,7 @@ export default function NewReceivingOrderPage() {
       {/* Submit */}
       <div className="flex justify-end">
         <button onClick={handleSubmit} disabled={saving} className={BTN_PRIMARY}>
-          {saving ? 'กำลังสร้าง…' : 'สร้างคำสั่งซื้อ + การ์ดงาน'}
+          {saving ? t('label.loading') : t('action.create')}
         </button>
       </div>
     </div>

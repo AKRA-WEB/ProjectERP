@@ -32,7 +32,11 @@
       "Bash(Format-Table)",
       "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d, indent=2\\)\\)\")",
       "Skill(superpowers:brainstorming)",
-      "Skill(superpowers:writing-plans)"
+      "Skill(superpowers:writing-plans)",
+      "Bash(New-Item -ItemType Directory -Path \"C:\\\\Users\\\\AKRA-Panich-Front\\\\OneDrive\\\\Desktop\\\\projectERP\\\\conductor\\\\tracks\\\\po-immediate-approval\" -Force)",
+      "Bash(Out-Null)",
+      "Bash(Write-Output \"ok\")",
+      "PowerShell(New-Item *)"
     ]
   },
   "hooks": {
