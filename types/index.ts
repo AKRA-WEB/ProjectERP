@@ -959,3 +959,56 @@ export interface ApAgingRow {
   bucket?: 'current' | '1-30' | '31-60' | '61-90' | '90+';
 }
 
+export interface POLineItem {
+  id: string;
+  po_id: string;
+  product_id: string;
+  sku: string;
+  name_th: string;
+  name_en: string;
+  qty_ordered: number;
+  qty_received: number;
+  unit_price: number;
+  line_discount: number;
+  line_total: number;
+  line_number: number;
+}
+
+export interface PurchaseOrder {
+  id: string;
+  po_number: string;
+  vendor_id: string;
+  vendor_code: string;
+  vendor_name: string;
+  warehouse_id: string;
+  warehouse_code: string;
+  warehouse_name: string;
+  status: PoStatus;
+  subtotal: number;
+  bill_discount: number;
+  non_vat_amount: number;
+  pre_vat_amount: number;
+  vat_amount: number;
+  total_amount: number;
+  include_vat: boolean;
+  doc_date: string | null;
+  expiry_date: string | null;
+  delivery_date: string | null;
+  from_address: string | null;
+  to_address: string | null;
+  reference: string | null;
+  notes: string | null;
+  expected_date: string | null;
+  payment_terms_days: number;
+  approved_by: string | null;
+  approved_at: string | null;
+  approved_by_name?: string;
+  created_by: string;
+  created_by_name: string;
+  created_at: string;
+  updated_at: string;
+  lines?: POLineItem[];
+  grns?: any[];
+  invoices?: any[];
+}
+

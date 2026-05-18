@@ -11,6 +11,7 @@ const lineSchema = z.object({
   pr_line_item_id: z.string().uuid().optional(),
   qty_ordered: z.number().positive(),
   unit_price: z.number().nonnegative(),
+  line_discount: z.number().min(0).default(0),
   transaction_uom_id: z.string().uuid().optional(),
   transaction_qty: z.number().positive().optional(),
 });
@@ -18,6 +19,15 @@ const lineSchema = z.object({
 const createSchema = z.object({
   vendor_id: z.string().uuid(),
   warehouse_id: z.string().uuid(),
+  bill_discount: z.number().min(0).default(0),
+  non_vat_amount: z.number().min(0).default(0),
+  include_vat: z.boolean().default(false),
+  doc_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  expiry_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  delivery_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  from_address: z.string().optional(),
+  to_address: z.string().optional(),
+  reference: z.string().optional(),
   expected_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   payment_terms_days: z.number().int().nonnegative().default(30),
   notes: z.string().optional(),
@@ -89,6 +99,13 @@ export async function POST(req: Request) {
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) return apiValidationError(parsed.error);
 
+  // F-004: Validate line_discount upper bound
+  for (const line of parsed.data.lines) {
+    if (line.line_discount > line.qty_ordered * line.unit_price) {
+      return apiError(`Line discount for product ${line.product_id} exceeds line total`, 400);
+    }
+  }
+
   // MF-1: Verify all linked PRs are admin_approved
   if (parsed.data.pr_ids?.length) {
     const prs = await query<{ id: string, status: string }>(
@@ -104,24 +121,35 @@ export async function POST(req: Request) {
     }
   }
 
+  // Authoritative Calculation Formula
   const subtotal = parsed.data.lines.reduce((sum, l) => sum + l.qty_ordered * l.unit_price, 0);
-  const vat = Math.round(subtotal * VAT_RATE * 100) / 100;
-  const total = Math.round((subtotal + vat) * 100) / 100;
+  const totalLineDiscount = parsed.data.lines.reduce((sum, l) => sum + (l.line_discount || 0), 0);
+  const afterLineDiscount = subtotal - totalLineDiscount;
+  const preVatAmount = afterLineDiscount - parsed.data.bill_discount - parsed.data.non_vat_amount;
+  const vatAmount = parsed.data.include_vat ? 0 : Math.round(preVatAmount * VAT_RATE * 100) / 100;
+  const netTotal = preVatAmount + vatAmount + parsed.data.non_vat_amount;
 
   const po = await queryOne<{ id: string; po_number: string }>(
-    `INSERT INTO purchase_orders (vendor_id, warehouse_id, expected_date, payment_terms_days, notes, subtotal, vat_amount, total_amount, created_by)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    `INSERT INTO purchase_orders (
+      vendor_id, warehouse_id, bill_discount, non_vat_amount, pre_vat_amount, include_vat,
+      doc_date, expiry_date, delivery_date, from_address, to_address, reference,
+      expected_date, payment_terms_days, notes, subtotal, vat_amount, total_amount, created_by
+     )
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
      RETURNING id, po_number, status`,
     [
-      parsed.data.vendor_id, parsed.data.warehouse_id,
+      parsed.data.vendor_id, parsed.data.warehouse_id, parsed.data.bill_discount,
+      parsed.data.non_vat_amount, preVatAmount, parsed.data.include_vat,
+      parsed.data.doc_date ?? null, parsed.data.expiry_date ?? null, parsed.data.delivery_date ?? null,
+      parsed.data.from_address ?? null, parsed.data.to_address ?? null, parsed.data.reference ?? null,
       parsed.data.expected_date ?? null, parsed.data.payment_terms_days,
-      parsed.data.notes ?? null, subtotal, vat, total, u.id,
+      parsed.data.notes ?? null, subtotal, vatAmount, netTotal, u.id,
     ]
   );
   if (!po) return apiError('Failed to create PO', 500);
 
   const lineValues = parsed.data.lines
-    .map((_, i) => `($1, $${i * 6 + 2}, $${i * 6 + 3}, $${i * 6 + 4}, $${i * 6 + 5}, $${i * 6 + 6}, $${i * 6 + 7}, ${i + 1})`)
+    .map((_, i) => `($1, $${i * 7 + 2}, $${i * 7 + 3}, $${i * 7 + 4}, $${i * 7 + 5}, $${i * 7 + 6}, $${i * 7 + 7}, $${i * 7 + 8}, ${i + 1})`)
     .join(', ');
   const lineParams: unknown[] = [po.id];
   for (const l of parsed.data.lines) {
@@ -130,12 +158,13 @@ export async function POST(req: Request) {
       l.pr_line_item_id ?? null,
       l.qty_ordered,
       l.unit_price,
+      l.line_discount,
       l.transaction_uom_id ?? null,
       l.transaction_qty ?? null,
     );
   }
   await query(
-    `INSERT INTO po_line_items (po_id, product_id, pr_line_item_id, qty_ordered, unit_price, transaction_uom_id, transaction_qty, line_number)
+    `INSERT INTO po_line_items (po_id, product_id, pr_line_item_id, qty_ordered, unit_price, line_discount, transaction_uom_id, transaction_qty, line_number)
      VALUES ${lineValues}`,
     lineParams
   );

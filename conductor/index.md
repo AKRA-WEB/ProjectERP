@@ -1,17 +1,34 @@
 # Project Tracks Index
 
-**Status values:** `Active` · `Completed` · `Verified` · `Rework Required` · `Optimization Suggested`
-> `Verified` = Billy QA passed. `Rework Required` / `Optimization Suggested` = see `rework-plan.md` in track folder.
+## Status Guide for Gemini CLI
+
+| Status | Gemini action |
+|--------|--------------|
+| `Active` | **Do this now.** Read `plan.md` in the track folder and execute all tasks. Update status to `Completed` when done. |
+| `Completed` | Implemented. Awaiting Billy QA — do not re-implement. |
+| `Verified` | Billy QA passed. No action needed. |
+| `Rework Required` | **Fix required.** Read `rework-plan.md` in the track folder. Execute Must Fix items in order. Update status to `Completed` when done. |
+| `Optimization Suggested` | Low priority. Read `rework-plan.md`. Execute only if no `Active` or `Rework Required` tracks remain. Update status to `Completed` when done. |
 
 ## Active Now
 
-> Gemini CLI: read this section first. Only read full table below if searching for a specific track.
+> Gemini CLI: start here. Execute top-to-bottom. One track at a time.
 
 | Track | Status | Plan |
 |-------|--------|------|
-| Product Import — Inventory | Verified | [plan](./tracks/product-import/plan.md) |
+| Inbound Receive Fix — "Request failed" bug | Completed | [plan](./tracks/inbound-receive-fix/plan.md) |
+| [PO Immediate Approval — Discount + Financial Summary + Auto-GRN](./tracks/po-immediate-approval/plan.md) | Completed | [plan](./tracks/po-immediate-approval/plan.md) |
 
-> Rework Required tracks: see `rework-plan.md` in each track folder.
+## Rework Required
+
+> Gemini CLI: after Active Now is clear, fix these next.
+
+| Track | Rework Plan |
+|-------|-------------|
+| [View Transitions — App-wide Implementation](./tracks/view-transitions/plan.md) | [rework-plan](./tracks/view-transitions/rework-plan.md) |
+| [PO Immediate Approval — Discount + Financial Summary + Auto-GRN](./tracks/po-immediate-approval/plan.md) | [rework-plan](./tracks/po-immediate-approval/rework-plan.md) |
+
+## All Tracks
 
 | Track | Status | Created | Last Updated |
 |-------|--------|---------|--------------|
@@ -23,7 +40,7 @@
 | [Inbound Order Workflow](./tracks/inbound-order-workflow/plan.md) | Completed | 2026-05-10 | 2026-05-17 |
 | [Employee Management + RBAC](./tracks/employee-rbac/plan.md) | Completed | 2026-05-10 | 2026-05-17 |
 | [IO Product Search + Remove Unit Cost](./tracks/io-product-search/plan.md) | Optimization Suggested | 2026-05-10 | 2026-05-17 |
-| [Sidebar Navigation Grouping](./tracks/sidebar-grouping/plan.md) | Rework Required | 2026-05-10 | 2026-05-17 |
+| [Sidebar Navigation Grouping](./tracks/sidebar-grouping/plan.md) | Completed | 2026-05-10 | 2026-05-18 |
 | [i18n Label Fix — Thai Status/Entry Labels](./tracks/i18n-label-fix/plan.md) | Optimization Suggested | 2026-05-10 | 2026-05-17 |
 | [Thai Double-Encoding Fix (TIS-620 re-encode)](./tracks/encoding-fix/plan.md) | Optimization Suggested | 2026-05-10 | 2026-05-17 |
 | [POS Module (Point of Sale)](./tracks/pos-module/plan.md) | Completed | 2026-05-11 | 2026-05-17 |
@@ -31,7 +48,7 @@
 | [Accounting Module (CoA→JE→Reports)](./tracks/accounting-module/plan.md) | Completed | 2026-05-11 | 2026-05-17 |
 | [Bug Hunt & Polish — WMS Core](./tracks/bug-hunt-wms-polish/plan.md) | Optimization Suggested | 2026-05-11 | 2026-05-17 |
 | [Fix Select options.map Crash](./tracks/debug-select-options-crash/plan.md) | Verified | 2026-05-11 | 2026-05-17 |
-| [HR Module (Employees→Leave→Attendance→Payroll)](./tracks/hr-module/plan.md) | Rework Required | 2026-05-12 | 2026-05-17 |
+| [HR Module (Employees→Leave→Attendance→Payroll)](./tracks/hr-module/plan.md) | Completed | 2026-05-12 | 2026-05-18 |
 | [UI Design System — อรุณ](./tracks/ui-design-system/plan.md) | Optimization Suggested | 2026-05-12 | 2026-05-17 |
 | [BOM Module — สูตรการผลิต + Multi-UOM](./tracks/bom-module/plan.md) | Completed | 2026-05-12 | 2026-05-17 |
 | [Main Menu — Module Hub Page](./tracks/main-menu/plan.md) | Completed | 2026-05-13 | 2026-05-17 |
@@ -58,5 +75,7 @@
 | [UI Improvement — POS Tier Badges · Lock Timer · Thermal Receipt](./tracks/ui-improvement-pos/plan.md) | Optimization Suggested | 2026-05-15 | 2026-05-17 |
 | [UI Improvement — WMS Ops (GRN Tabs · QC KPIs · Receiving Queue)](./tracks/ui-improvement-wms-ops/plan.md) | Completed | 2026-05-15 | 2026-05-17 |
 | [Security Fixes — Pre-Vercel Auth Guards · Warehouse Scope · Perf](./tracks/security-fixes/plan.md) | Verified | 2026-05-15 | 2026-05-16 |
-| [View Transitions — App-wide Implementation](./tracks/view-transitions/plan.md) | Rework Required | 2026-05-15 | 2026-05-17 |
+| [View Transitions — App-wide Implementation](./tracks/view-transitions/plan.md) | Rework Required | 2026-05-15 | 2026-05-18 |
 | [Hamburger Sidebar Z-Index Fix](./tracks/hamburger-zindex-fix/plan.md) | Optimization Suggested | 2026-05-16 | 2026-05-17 |
+| [Inbound Receive Fix — IO GRN "Request failed"](./tracks/inbound-receive-fix/plan.md) | Completed | 2026-05-18 | 2026-05-18 |
+| [PO Immediate Approval — Discount + Financial Summary + Auto-GRN](./tracks/po-immediate-approval/plan.md) | Rework Required | 2026-05-18 | 2026-05-18 |
