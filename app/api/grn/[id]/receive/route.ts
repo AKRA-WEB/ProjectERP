@@ -31,8 +31,17 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const u = session.user as unknown as SessionUser;
 
   const { id } = await params;
-  const grn = await queryOne<{ status: string; po_id: string | null; inbound_order_id: string | null; warehouse_id: string; split_from_grn_id: string | null }>(
-    'SELECT status, po_id, inbound_order_id, warehouse_id, split_from_grn_id FROM goods_receipt_notes WHERE id = $1',
+  const grn = await queryOne<{
+    status: string;
+    po_id: string | null;
+    inbound_order_id: string | null;
+    warehouse_id: string;
+    split_from_grn_id: string | null;
+    source_type: string;
+    vendor_id: string | null;
+    pr_id: string | null;
+  }>(
+    'SELECT status, po_id, inbound_order_id, warehouse_id, split_from_grn_id, source_type, vendor_id, pr_id FROM goods_receipt_notes WHERE id = $1',
     [id]
   );
   if (!grn) return apiError('GRN not found', 404);
@@ -58,10 +67,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     product_id: string;
     po_line_item_id: string | null;
     inbound_order_line_id: string | null;
+    pr_line_item_id: string | null;
     qty_expected: number | null;
     line_number: number;
   }>(
-    `SELECT id, product_id, po_line_item_id, inbound_order_line_id, qty_expected, line_number
+    `SELECT id, product_id, po_line_item_id, inbound_order_line_id, pr_line_item_id, qty_expected, line_number
      FROM grn_line_items WHERE grn_id = $1`,
     [id]
   );
@@ -98,9 +108,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         await client.query(
           `INSERT INTO grn_line_items
              (grn_id, product_id, qty_received, qty_accepted, qty_expected,
-              storage_location, line_number)
-           VALUES ($1, $2, $3, $3, NULL, $4, $5)`,
-          [id, el.product_id, el.qty_received, el.storage_location ?? null, nextLineNumber + i]
+              storage_location, line_number, source_type)
+           VALUES ($1, $2, $3, $3, NULL, $4, $5, $6)`,
+          [id, el.product_id, el.qty_received, el.storage_location ?? null, nextLineNumber + i, grn.source_type]
         );
       }
     }
@@ -132,16 +142,19 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
     let splitGrnId: string | null = null;
     if (splitLines.length > 0) {
-      // Create split GRN (same PO, same warehouse, draft status)
+      // Create split GRN (same source, same warehouse, draft status)
       const splitGrn = await client.query<{ id: string; grn_number: string }>(
         `INSERT INTO goods_receipt_notes
-           (po_id, inbound_order_id, warehouse_id, received_by, split_from_grn_id, notes, status)
-         VALUES ($1, $2, $3, $4, $5, $6, 'draft')
+           (po_id, inbound_order_id, warehouse_id, vendor_id, pr_id, source_type, received_by, split_from_grn_id, notes, status)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'draft')
          RETURNING id, grn_number`,
         [
           grn.po_id ?? null,
           grn.inbound_order_id ?? null,
           effectiveWarehouseId,
+          grn.vendor_id ?? null,
+          grn.pr_id ?? null,
+          grn.source_type,
           u.id,
           id, // this GRN is the parent
           `รอรับสินค้าที่เหลือ (แยกจาก ${id})`,
@@ -153,9 +166,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         const sl = splitLines[i];
         await client.query(
           `INSERT INTO grn_line_items
-             (grn_id, po_line_item_id, inbound_order_line_id, product_id, qty_received, qty_expected, line_number)
-           VALUES ($1, $2, $3, $4, 0, $5, $6)`,
-          [splitGrnId, sl.po_line_item_id ?? null, sl.inbound_order_line_id ?? null, sl.product_id, sl.qty_expected, i + 1]
+             (grn_id, po_line_item_id, inbound_order_line_id, pr_line_item_id, product_id, qty_received, qty_expected, line_number, source_type)
+           VALUES ($1, $2, $3, $4, $5, 0, $6, $7, $8)`,
+          [splitGrnId, sl.po_line_item_id ?? null, sl.inbound_order_line_id ?? null, sl.pr_line_item_id ?? null, sl.product_id, sl.qty_expected, i + 1, grn.source_type]
         );
       }
     }

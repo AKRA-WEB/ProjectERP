@@ -85,10 +85,10 @@ export async function POST(req: Request) {
 
     // 4. Create GRN work card template (qty_received = 0 per line)
     const grnRes = await client.query<{ id: string; grn_number: string }>(
-      `INSERT INTO goods_receipt_notes (po_id, warehouse_id, received_by, notes, status)
-       VALUES ($1,$2,$3,$4,'draft')
+      `INSERT INTO goods_receipt_notes (po_id, warehouse_id, vendor_id, source_type, received_by, notes, status)
+       VALUES ($1, $2, $3, 'po', $4, $5, 'draft')
        RETURNING id, grn_number`,
-      [poId, parsed.data.warehouse_id, u.id, parsed.data.notes ?? null]
+      [poId, parsed.data.warehouse_id, parsed.data.vendor_id, u.id, parsed.data.notes ?? null]
     );
     const grnId = grnRes.rows[0].id;
 
@@ -96,8 +96,8 @@ export async function POST(req: Request) {
       const pl = poLineIds[i];
       await client.query(
         `INSERT INTO grn_line_items
-           (grn_id, po_line_item_id, product_id, qty_received, qty_expected, line_number)
-         VALUES ($1,$2,$3,0,$4,$5)`,
+           (grn_id, po_line_item_id, product_id, qty_received, qty_expected, line_number, source_type)
+         VALUES ($1, $2, $3, 0, $4, $5, 'po')`,
         [grnId, pl.poLineId, pl.productId, pl.qty, i + 1]
       );
     }

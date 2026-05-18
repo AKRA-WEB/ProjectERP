@@ -4,7 +4,7 @@ status: Completed
 aliases: ["IO Product Search + Remove Unit Cost"]
 owner: puka
 module: WMS
-updated: 2026-05-10
+updated: 2026-05-18
 ---
 
 # Track: IO Product Search + Remove Unit Cost
@@ -302,12 +302,12 @@ The API's `unit_cost` field has `.default(0)` so omitting it is safe.
 
 ## Verification Checklist
 
-- [ ] Navigate to `/app/inbound-orders/new`
-- [ ] Page loads without fetching 500 products upfront (check Network tab — no bulk products request)
-- [ ] Click "+ เพิ่มรายการ" → new row appears with search input (no dropdown)
-- [ ] Type "SKU" or product name in search box → results appear after 300ms debounce
-- [ ] Select a product → product name/SKU appears in the row; results close
-- [ ] Clear button (✕) resets the product selection for that line
-- [ ] No "ราคาทุน" column visible in the table
-- [ ] Submit with valid data → IO created successfully, redirects to IO detail
-- [ ] `npm run build` passes — no TypeScript errors
+- [x] Navigate to `/app/inbound-orders/new`
+- [x] Page loads without fetching 500 products upfront (check Network tab — no bulk products request)
+- [x] Click "+ เพิ่มรายการ" → new row appears with search input (no dropdown)
+- [x] Type "SKU" or product name in search box → results appear after 300ms debounce
+- [x] Select a product → product name/SKU appears in the row; results close
+- [x] Clear button (✕) resets the product selection for that line
+- [x] No "ราคาทุน" column visible in the table
+- [x] Submit with valid data → IO created successfully, redirects to IO detail
+- [x] `npm run build` passes — no TypeScript errors

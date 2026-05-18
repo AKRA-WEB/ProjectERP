@@ -62,4 +62,14 @@
 - ห้ามแก้ไขไฟล์นอก task scope (Surgical Execution)
 
 ---
+
+## ❌ Trap — Agent doc contradiction causes wrong behavior
+
+**Context:** `PROTOCOLS.md` said "Claude writes plan.md" while `chen.agent.md` Phase 3 said "use Write tool". Mixed signals → Claude wrote plans inline instead of spawning Chen.
+
+**Rule:** When two agent-facing docs contradict each other on ownership, the agent picks whichever behavior is easier (inline text). Always fix contradictions at the source — don't rely on memory notes alone.
+
+**Fix pattern:** (1) Fix the contradiction in both docs, (2) Add a `UserPromptSubmit` hook for hard enforcement when the behavior is critical.
+
+---
 *Updated: 2026-05-18*

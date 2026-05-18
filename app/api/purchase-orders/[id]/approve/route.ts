@@ -25,7 +25,7 @@ export async function POST(
 
     // 1. Fetch PO
     const poRes = await client.query(
-      `SELECT id, warehouse_id, status FROM purchase_orders WHERE id = $1 FOR UPDATE`,
+      `SELECT id, warehouse_id, vendor_id, status FROM purchase_orders WHERE id = $1 FOR UPDATE`,
       [id]
     );
     if (!poRes.rows[0]) {
@@ -53,19 +53,20 @@ export async function POST(
     const grnNumRes = await client.query(`SELECT next_doc_number('GRN', 'seq_grn') AS grn_number`);
     const grnNumber: string = grnNumRes.rows[0].grn_number;
 
-    // 4. Create GRN header — po_id satisfies chk_grn_source constraint
+    // 4. Create GRN header — po_id satisfies chk_grn_source constraint (if still exists)
+    // source_type is now NOT NULL per migration 035
     const grnRes = await client.query(
-      `INSERT INTO goods_receipt_notes (grn_number, po_id, warehouse_id, status, received_date, created_by)
-       VALUES ($1, $2, $3, 'stocked', NOW(), $4) RETURNING id`,
-      [grnNumber, id, po.warehouse_id, u.id]
+      `INSERT INTO goods_receipt_notes (grn_number, po_id, warehouse_id, vendor_id, source_type, status, received_date, created_by)
+       VALUES ($1, $2, $3, $4, 'po', 'stocked', NOW(), $5) RETURNING id`,
+      [grnNumber, id, po.warehouse_id, po.vendor_id, u.id]
     );
     const grnId: string = grnRes.rows[0].id;
 
     // 5. Create GRN lines + stock ledger entries
     for (const line of lines) {
       await client.query(
-        `INSERT INTO grn_line_items (grn_id, po_line_item_id, product_id, qty_received, unit_cost)
-         VALUES ($1, $2, $3, $4, $5)`,
+        `INSERT INTO grn_line_items (grn_id, po_line_item_id, product_id, qty_received, unit_cost, source_type)
+         VALUES ($1, $2, $3, $4, $5, 'po')`,
         [grnId, line.id, line.product_id, line.qty_ordered, line.unit_price]
       );
       await client.query(

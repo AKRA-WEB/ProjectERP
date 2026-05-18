@@ -190,10 +190,22 @@ return <h1>{t('page.title')}</h1>;
 ```
 **Found in:** track [i18n-language-switch]
 
-## ❌ Trap — .ts vs .tsx for Context Providers
-**Symptom:** `error TS1005: '>' expected.` or syntax errors in JSX-like code.
-**Root cause:** Files containing JSX must have the `.tsx` extension. Renaming a `.ts` utility to a Provider without changing the extension causes the compiler to fail on angle brackets.
-**Fix:** Always use `.tsx` for files containing React components or JSX.
-**Found in:** track [i18n-language-switch]
+## ✅ Pattern — Inline Search-as-you-type Component
+**Context:** When a form needs to select an item from a large dataset (e.g., >100 products), use a debounced server-side search instead of a bulk-loaded `<select>`.
+**Correct way:**
+```tsx
+function SearchComponent({ value, onSelect, onClear }) {
+  const [query, setQuery] = useState(value);
+  // ... useEffect with 300ms debounce calling GET /api/items?search={query}
+  // ... render input and absolute-positioned results list
+}
+```
+**Found in:** task [1.1] of track [io-product-search]
+
+## ❌ Trap — Accidental Interface Deletion in `replace`
+**Symptom:** TypeScript errors after a `replace` call that seemingly added code correctly.
+**Root cause:** Including a shared interface in the `old_string` but omitting it from the `new_string` (when trying to insert code *after* it).
+**Fix:** Always ensure the `new_string` contains ALL the code intended to be preserved, or use a smaller `old_string` match that doesn't span critical declarations.
+**Found in:** task [1.1] of track [io-product-search]
 
 

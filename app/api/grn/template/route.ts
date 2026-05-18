@@ -14,8 +14,8 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
   if (!body?.po_id || !body?.warehouse_id) return apiError('po_id and warehouse_id are required', 400);
 
-  const po = await queryOne<{ id: string }>(
-    "SELECT id FROM purchase_orders WHERE id = $1 AND status IN ('sent', 'partially_received')",
+  const po = await queryOne<{ id: string; vendor_id: string }>(
+    "SELECT id, vendor_id FROM purchase_orders WHERE id = $1 AND status IN ('sent', 'partially_received')",
     [body.po_id]
   );
   if (!po) return apiError('PO not found or invalid status', 404);
@@ -25,10 +25,10 @@ export async function POST(req: Request) {
     await client.query('BEGIN');
 
     const grnRes = await client.query<{ id: string; grn_number: string }>(
-      `INSERT INTO goods_receipt_notes (po_id, warehouse_id, received_by, status)
-       VALUES ($1, $2, $3, 'draft')
+      `INSERT INTO goods_receipt_notes (po_id, warehouse_id, vendor_id, source_type, received_by, status)
+       VALUES ($1, $2, $3, 'po', $4, 'draft')
        RETURNING id, grn_number`,
-      [po.id, body.warehouse_id, u.id]
+      [po.id, body.warehouse_id, po.vendor_id, u.id]
     );
     const grnId = grnRes.rows[0].id;
 
@@ -45,8 +45,8 @@ export async function POST(req: Request) {
 
       await client.query(
         `INSERT INTO grn_line_items
-           (grn_id, po_line_item_id, product_id, qty_received, qty_expected, line_number)
-         VALUES ($1, $2, $3, 0, $4, $5)`,
+           (grn_id, po_line_item_id, product_id, qty_received, qty_expected, line_number, source_type)
+         VALUES ($1, $2, $3, 0, $4, $5, 'po')`,
         [grnId, pl.id, pl.product_id, remaining, i + 1]
       );
     }
