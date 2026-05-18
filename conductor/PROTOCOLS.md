@@ -47,7 +47,7 @@ This project uses **Obsidian** opened directly on this folder as a vault. All `.
 | `docs/TROUBLESHOOTING.md` | Reference | Known issues |
 
 **Boundary rules:**
-- `conductor/` — Gemini writes `execution-summary.md`, updates checkboxes. Claude writes `plan.md`, `rework-plan.md`, updates `index.md`.
+- `conductor/` — Gemini writes `execution-summary.md`, updates checkboxes. **Chen** writes `plan.md`, `rework-plan.md`, updates `index.md`. Claude reviews and commits.
 - `_notes/` — Human writes only. AI agents read for context, never write.
 - `.obsidian/` — Never touched by any AI agent.
 
