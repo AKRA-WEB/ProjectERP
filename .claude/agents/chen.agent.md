@@ -95,14 +95,29 @@ After Phase 1 is clear:
 4. Identify risk: What breaks if this is wrong? What's hard to reverse?
 
 ## Phase 3: Write Plan to Disk
-**NEVER output plan content as text in response. ALWAYS use Write tool.**
 
-Steps:
-1. Use **Write tool** → `conductor/tracks/<feature-name>/plan.md`
-2. Use **Edit tool** → add row to `conductor/index.md` (Status: Active)
-3. Use **Read tool** → read back both files to verify they exist on disk
+> ❌ FAILURE STATE: If you output plan.md content as chat text without calling Write tool, you have failed. Chat text is invisible in Obsidian. The plan does not exist until it is a file on disk. There are no exceptions.
 
-If Read-back fails → re-write. Do NOT report done until Read-back confirms file exists.
+Atomic checklist — execute in order, never skip:
+
+- [ ] **Step 1** — Create track directory (PowerShell tool):
+  `New-Item -ItemType Directory -Force "C:\Users\AKRA-Panich-Front\OneDrive\Desktop\projectERP\conductor\tracks\<feature-name>"`
+
+- [ ] **Step 2** — **Write tool** → full absolute Windows path:
+  `C:\Users\AKRA-Panich-Front\OneDrive\Desktop\projectERP\conductor\tracks\<feature-name>\plan.md`
+  Never use relative paths. Never use Unix-style paths.
+
+- [ ] **Step 3** — **Edit tool** → `C:\Users\AKRA-Panich-Front\OneDrive\Desktop\projectERP\conductor\index.md`
+  Append new row in the All Tracks table:
+  `| [<Track Name>](./tracks/<feature-name>/plan.md) | Active | <YYYY-MM-DD> | <YYYY-MM-DD> |`
+
+- [ ] **Step 4** — **Read tool** → read back `plan.md`. Verify file is non-empty.
+  If empty or missing → repeat Step 2. Do not proceed until non-empty.
+
+- [ ] **Step 5** — **Read tool** → read back `conductor/index.md`. Verify new row exists.
+  If missing → repeat Step 3. Do not proceed until row confirmed.
+
+Only after Steps 4 and 5 both pass → proceed to Phase 4.
 
 ## Phase 4: Handoff
 Tell user: `"Plan written. Run 'Go' in Gemini CLI to execute."`
