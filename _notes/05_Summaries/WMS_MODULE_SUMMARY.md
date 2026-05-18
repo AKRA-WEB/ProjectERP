@@ -34,3 +34,11 @@ All GRN line items must capture `unit_cost` at the point of entry. This cost is 
 - Implemented GR-First workflow.
 - Fixed missing `unit_cost` in `grn_line_items` (Migration 036).
 - Added `source_type` enum to differentiate between PO, IO, Standalone, and PR-Direct receipts.
+- **Fixed GRN 500 (io-grn-500):** Batch INSERT stride mismatch in `app/api/grn/route.ts` — stride was `i*9` but params per row = 10. Fixed to `i*10`. Also added `.refine()` for `chk_grn_source` mutual exclusivity.
+- **po-gr-audit (Active):** 3 routes still missing transaction wrapping: PO POST, GRN POST (PO/IO path), GRN QC. Also GRN QC missing role check. Pending Gemini execution.
+- **Transaction pattern:** `receive`, `stock`, `confirm`, `approve` routes all use `pool.connect()` + BEGIN/COMMIT correctly. POST creation routes do not yet.
+
+## Known Gaps (Pending po-gr-audit)
+- `POST /api/purchase-orders` — no transaction (4 writes)
+- `POST /api/grn` (PO/IO path) — no transaction (3 writes)
+- `POST /api/grn/[id]/qc` — no transaction + no role check

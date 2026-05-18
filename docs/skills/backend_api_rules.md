@@ -268,3 +268,37 @@ export interface SessionUser { id: string; role: UserRole; assignedWarehouseIds:
 export type { UserRole, SessionUser } from '@/types';
 ```
 **Found in:** ROOT_CAUSE_REPORT.md (2026-05-16)
+
+## ❌ Trap — Batch INSERT placeholder stride mismatch → 500
+**Symptom:** `POST` returns 500 on any request with ≥1 line item. Works with zero rows (but schema requires min 1). Error: `invalid input syntax` or `column mismatch` from PostgreSQL.
+**Root cause:** Batch INSERT uses loop-generated placeholders with stride `i * N`. When a new column is added to the INSERT, the params loop is updated but the stride constant is not. Result: params shift right by 1 for every row after the first.
+**Broken pattern:**
+```typescript
+// 9 columns added to push, but stride still = 8
+.map((_, i) => `($1, $${i * 8 + 2}, ..., $${i * 8 + 9}, ${i+1})`)
+// row 1: $1, $2...$10 ← correct
+// row 2: $1, $10...$18 ← WRONG, expected $1, $11...$19
+```
+**Fix:** stride must equal the number of params pushed per row (excluding shared $1 and hardcoded literals):
+```typescript
+// 10 dynamic params per row → stride = 10
+.map((_, i) => `($1, $${i * 10 + 2}, ..., $${i * 10 + 11}, ${i+1})`)
+for (const l of lines) {
+  params.push(a, b, c, d, e, f, g, h, i, j); // exactly 10 values
+}
+```
+**Verification:** count commas in one VALUES row → must equal `push()` call count.
+**Found in:** `app/api/grn/route.ts` — io-grn-500 (2026-05-18)
+
+## ❌ Trap — Zod regex rejection of empty strings
+**Symptom:** API ตอบกลับ 400 Validation Error เมื่อเว้นว่างช่องวันที่ (Date Input)
+**Root cause:** Zod `.regex(/^\d{4}-\d{2}-\d{2}$/)` ไม่ยอมรับ `""` (empty string) ซึ่งเป็นค่าเริ่มต้นของ HTML date input เมื่อไม่ได้เลือกวันที่
+**Fix:** ใช้ `.or(z.literal(''))` ใน schema และ normalize เป็น `null` ใน controller
+```typescript
+// Schema
+doc_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).or(z.literal('')).optional()
+
+// Controller
+const docDate = parsed.data.doc_date || null;
+```
+**Found in:** task [2.1] of track [po-fix-400]

@@ -202,10 +202,22 @@ function SearchComponent({ value, onSelect, onClear }) {
 ```
 **Found in:** task [1.1] of track [io-product-search]
 
-## ❌ Trap — Accidental Interface Deletion in `replace`
-**Symptom:** TypeScript errors after a `replace` call that seemingly added code correctly.
-**Root cause:** Including a shared interface in the `old_string` but omitting it from the `new_string` (when trying to insert code *after* it).
-**Fix:** Always ensure the `new_string` contains ALL the code intended to be preserved, or use a smaller `old_string` match that doesn't span critical declarations.
-**Found in:** task [1.1] of track [io-product-search]
+## ✅ Pattern — Inline Field Validation with Tab Switching
+**Context:** เมื่อฟอร์มมีหลาย Tab และ field ที่จำเป็น (Required) อยู่ใน Tab ที่ไม่ได้เปิดอยู่ตอนกด Submit
+**Correct way:**
+```typescript
+  async function handleSubmit() {
+    const newErrors: Record<string, string> = {};
+    if (!form.required_field_in_hidden_tab) {
+      newErrors.required_field_in_hidden_tab = 'กรุณาระบุข้อมูล';
+      setActiveTab('hidden-tab-name'); // เปลี่ยน Tab ให้ผู้ใช้เห็น Error ทันที
+    }
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+  }
+```
+**Found in:** task [1.1] of track [po-fix-400]
 
 

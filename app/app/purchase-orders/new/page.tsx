@@ -91,6 +91,7 @@ function NewPurchaseOrderPageInner() {
   const [saving, setSaving] = useState(false);
   const [showApproval, setShowApproval] = useState(false);
   const [error, setError] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!form.vendor_id) { setVendorCatalog({}); return; }
@@ -147,7 +148,16 @@ function NewPurchaseOrderPageInner() {
     };
   }, [lines, form.bill_discount, form.non_vat_amount, form.include_vat]);
 
-  function setF(key: string, val: string | number | boolean) { setForm((f) => ({ ...f, [key]: val })); }
+  function setF(key: string, val: string | number | boolean) {
+    setForm((f) => ({ ...f, [key]: val }));
+    if (errors[key]) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+    }
+  }
 
   async function searchProducts(q: string) {
     setProductSearch(q);
@@ -179,9 +189,22 @@ function NewPurchaseOrderPageInner() {
   function removeLine(i: number) { setLines((prev) => prev.filter((_, idx) => idx !== i)); }
 
   async function handleSubmit(approveImmediately: boolean) {
-    if (!form.vendor_id) { setError('กรุณาเลือกผู้จำหน่าย'); return; }
-    if (!form.warehouse_id) { setError('กรุณาเลือกคลังสินค้า'); return; }
+    const newErrors: Record<string, string> = {};
+    if (!form.vendor_id) newErrors.vendor_id = 'กรุณาเลือกผู้จำหน่าย';
+    if (!form.warehouse_id) newErrors.warehouse_id = 'กรุณาเลือกคลังสินค้า';
+    if (!form.expected_date) {
+      newErrors.expected_date = 'กรุณาระบุวันที่คาดรับ';
+      setActiveTab('details'); // Switch tab so user sees the error
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setError('กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน');
+      return;
+    }
+
     if (lines.length === 0) { setError('กรุณาเพิ่มรายการสินค้า'); return; }
+    setErrors({});
     setError('');
     setSaving(true);
     try {
@@ -221,8 +244,8 @@ function NewPurchaseOrderPageInner() {
         <div className="lg:col-span-2 space-y-6">
           <div className="rounded-xl bg-white shadow-sm border border-gray-100 p-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-              <Select label="ผู้จำหน่าย *" value={form.vendor_id} onChange={(e) => setF('vendor_id', e.target.value)} options={vendors} placeholder="เลือกผู้จำหน่าย" />
-              <Select label="คลังสินค้า *" value={form.warehouse_id} onChange={(e) => setF('warehouse_id', e.target.value)} options={warehouses} placeholder="เลือกคลังสินค้า" />
+              <Select label="ผู้จำหน่าย *" value={form.vendor_id} onChange={(e) => setF('vendor_id', e.target.value)} options={vendors} placeholder="เลือกผู้จำหน่าย" error={errors.vendor_id} />
+              <Select label="คลังสินค้า *" value={form.warehouse_id} onChange={(e) => setF('warehouse_id', e.target.value)} options={warehouses} placeholder="เลือกคลังสินค้า" error={errors.warehouse_id} />
             </div>
 
             <Tabs>
@@ -287,7 +310,7 @@ function NewPurchaseOrderPageInner() {
               {activeTab === 'details' && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input label="วันที่เอกสาร" type="date" value={form.doc_date} onChange={(e) => setF('doc_date', e.target.value)} />
-                  <Input label="วันที่คาดรับ" type="date" value={form.expected_date} onChange={(e) => setF('expected_date', e.target.value)} />
+                  <Input label="วันที่คาดรับ" type="date" value={form.expected_date} onChange={(e) => setF('expected_date', e.target.value)} error={errors.expected_date} />
                   <Input label="วันครบกำหนด" type="date" value={form.expiry_date} onChange={(e) => setF('expiry_date', e.target.value)} />
                   <Input label="วันที่ส่งของ" type="date" value={form.delivery_date} onChange={(e) => setF('delivery_date', e.target.value)} />
                   <Input label="เงื่อนไขการชำระ (วัน)" type="number" value={form.payment_terms_days} onChange={(e) => setF('payment_terms_days', parseInt(e.target.value) || 0)} />

@@ -22,13 +22,13 @@ const createSchema = z.object({
   bill_discount: z.number().min(0).default(0),
   non_vat_amount: z.number().min(0).default(0),
   include_vat: z.boolean().default(false),
-  doc_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  expiry_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  delivery_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  doc_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).or(z.literal('')).optional(),
+  expiry_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).or(z.literal('')).optional(),
+  delivery_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).or(z.literal('')).optional(),
   from_address: z.string().optional(),
   to_address: z.string().optional(),
   reference: z.string().optional(),
-  expected_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  expected_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).or(z.literal('')).optional(),
   payment_terms_days: z.number().int().nonnegative().default(30),
   notes: z.string().optional(),
   pr_ids: z.array(z.string().uuid()).optional(),
@@ -97,7 +97,10 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
   if (!body) return apiError('Invalid JSON', 400);
   const parsed = createSchema.safeParse(body);
-  if (!parsed.success) return apiValidationError(parsed.error);
+  if (!parsed.success) {
+    console.error('[POST /api/purchase-orders] validation error', parsed.error.flatten());
+    return apiValidationError(parsed.error);
+  }
 
   // F-004: Validate line_discount upper bound
   for (const line of parsed.data.lines) {
@@ -140,9 +143,9 @@ export async function POST(req: Request) {
     [
       parsed.data.vendor_id, parsed.data.warehouse_id, parsed.data.bill_discount,
       parsed.data.non_vat_amount, preVatAmount, parsed.data.include_vat,
-      parsed.data.doc_date ?? null, parsed.data.expiry_date ?? null, parsed.data.delivery_date ?? null,
+      parsed.data.doc_date || null, parsed.data.expiry_date || null, parsed.data.delivery_date || null,
       parsed.data.from_address ?? null, parsed.data.to_address ?? null, parsed.data.reference ?? null,
-      parsed.data.expected_date ?? null, parsed.data.payment_terms_days,
+      parsed.data.expected_date || null, parsed.data.payment_terms_days,
       parsed.data.notes ?? null, subtotal, vatAmount, netTotal, u.id,
     ]
   );

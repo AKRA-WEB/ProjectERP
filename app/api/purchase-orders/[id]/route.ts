@@ -10,13 +10,13 @@ const updateSchema = z.object({
   bill_discount: z.number().min(0).optional(),
   non_vat_amount: z.number().min(0).optional(),
   include_vat: z.boolean().optional(),
-  doc_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
-  expiry_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
-  delivery_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+  doc_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).or(z.literal('')).nullable().optional(),
+  expiry_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).or(z.literal('')).nullable().optional(),
+  delivery_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).or(z.literal('')).nullable().optional(),
   from_address: z.string().nullable().optional(),
   to_address: z.string().nullable().optional(),
   reference: z.string().nullable().optional(),
-  expected_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+  expected_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).or(z.literal('')).nullable().optional(),
   payment_terms_days: z.number().int().nonnegative().optional(),
   notes: z.string().nullable().optional(),
   lines: z.array(z.object({
@@ -103,13 +103,13 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (parsed.data.bill_discount !== undefined) { updates.push(`bill_discount = $${idx++}`); vals.push(parsed.data.bill_discount); }
   if (parsed.data.non_vat_amount !== undefined) { updates.push(`non_vat_amount = $${idx++}`); vals.push(parsed.data.non_vat_amount); }
   if (parsed.data.include_vat !== undefined) { updates.push(`include_vat = $${idx++}`); vals.push(parsed.data.include_vat); }
-  if (parsed.data.doc_date !== undefined) { updates.push(`doc_date = $${idx++}`); vals.push(parsed.data.doc_date); }
-  if (parsed.data.expiry_date !== undefined) { updates.push(`expiry_date = $${idx++}`); vals.push(parsed.data.expiry_date); }
-  if (parsed.data.delivery_date !== undefined) { updates.push(`delivery_date = $${idx++}`); vals.push(parsed.data.delivery_date); }
+  if (parsed.data.doc_date !== undefined) { updates.push(`doc_date = $${idx++}`); vals.push(parsed.data.doc_date || null); }
+  if (parsed.data.expiry_date !== undefined) { updates.push(`expiry_date = $${idx++}`); vals.push(parsed.data.expiry_date || null); }
+  if (parsed.data.delivery_date !== undefined) { updates.push(`delivery_date = $${idx++}`); vals.push(parsed.data.delivery_date || null); }
   if (parsed.data.from_address !== undefined) { updates.push(`from_address = $${idx++}`); vals.push(parsed.data.from_address); }
   if (parsed.data.to_address !== undefined) { updates.push(`to_address = $${idx++}`); vals.push(parsed.data.to_address); }
   if (parsed.data.reference !== undefined) { updates.push(`reference = $${idx++}`); vals.push(parsed.data.reference); }
-  if (parsed.data.expected_date !== undefined) { updates.push(`expected_date = $${idx++}`); vals.push(parsed.data.expected_date); }
+  if (parsed.data.expected_date !== undefined) { updates.push(`expected_date = $${idx++}`); vals.push(parsed.data.expected_date || null); }
   if (parsed.data.payment_terms_days !== undefined) { updates.push(`payment_terms_days = $${idx++}`); vals.push(parsed.data.payment_terms_days); }
   if (parsed.data.notes !== undefined) { updates.push(`notes = $${idx++}`); vals.push(parsed.data.notes); }
 

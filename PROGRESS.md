@@ -2,6 +2,30 @@
 
 ---
 
+## Session: 2026-05-18 (Session 13 — Production Bug Fix + Mistake Prevention System)
+
+### สิ่งที่ทำวันนี้
+
+#### 1. Production Bugs Diagnosed & Tracked — ✅
+- **PO 400:** Field mismatch (`qty`/`price` → `qty_ordered`/`unit_price`) + undefined vendor/warehouse guards → track `po-fix-400` **Completed**
+- **GRN 500:** `chk_grn_source` constraint violated by missing `inbound_order_id` → track `io-grn-500` verified already fixed in code, **Completed**
+
+#### 2. po-gr-audit Plan Created — 🔴 Active
+3 backend transaction fixes: PO POST, GRN POST (PO/IO path), GRN QC route (+ role check). Ready for `Go` in Gemini CLI.
+
+#### 3. Recurring Mistake Prevention System — ✅
+- `chen.agent.md` Rule 15: per-task `#### Verify:` section mandatory in every plan
+- `GEMINI.md` Rule 7: execution summary must quote file:line evidence per task
+- `pitfalls.md`: 5 new traps (skeleton impl, wrong conventions, missing side effects, missing transaction, placeholder pattern, wrong file)
+
+#### 4. Context Optimization (Hub+Spoke) — ✅
+Reduced context bloat: GEMINI.md 235→77 lines, all 5 agent files -27% to -47%. Created `agent-principles.md` + `knowledge-capture.md` as shared skill files.
+
+### สถานะ
+🔴 **po-gr-audit ACTIVE** — run `Go` in Gemini CLI to fix transaction integrity in PO POST, GRN POST, GRN QC routes.
+
+---
+
 ## Session: 2026-05-17 (Session 11 — Full QA Sweep + Rework Plans)
 
 ### สิ่งที่ทำวันนี้

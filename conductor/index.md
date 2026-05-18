@@ -16,6 +16,10 @@
 
 | Track | Status | Plan |
 |-------|--------|------|
+| [io-grn-500 — Fix POST /api/grn 500 from IO Receive](./tracks/io-grn-500/plan.md) | Completed | [plan](./tracks/io-grn-500/plan.md) |
+
+| [po-fix-400 — Fix POST /api/purchase-orders 400](./tracks/po-fix-400/plan.md) | Completed | [plan](./tracks/po-fix-400/plan.md) |
+| [po-gr-audit — PO & GRN Transaction Integrity Fix](./tracks/po-gr-audit/plan.md) | Active | [plan](./tracks/po-gr-audit/plan.md) |
 | [GR-First Workflow — Standalone GR + GR→PO + PR→GR Direct](./tracks/gr-first-workflow/plan.md) | Completed | [plan](./tracks/gr-first-workflow/plan.md) |
 | [i18n Language Switch — Thai ↔ English System-wide](./tracks/i18n-language-switch/plan.md) | Completed | [plan](./tracks/i18n-language-switch/plan.md) |
 
@@ -81,3 +85,6 @@
 | [GR-First Workflow — Standalone GR + GR→PO + PR→GR Direct](./tracks/gr-first-workflow/plan.md) | Completed | 2026-05-18 | 2026-05-18 |
 | [i18n Language Switch — Thai ↔ English System-wide](./tracks/i18n-language-switch/plan.md) | Completed | 2026-05-18 | 2026-05-18 |
 | [Chen Plan Enforcement — Architect Trigger Reliability](./tracks/chen-plan-enforcement/plan.md) | Completed | 2026-05-18 | 2026-05-18 |
+| [po-fix-400 — Fix POST /api/purchase-orders 400 Bad Request](./tracks/po-fix-400/plan.md) | Completed | 2026-05-18 | 2026-05-18 |
+| [po-gr-audit — PO & GRN Transaction Integrity Fix](./tracks/po-gr-audit/plan.md) | Active | 2026-05-18 | 2026-05-18 |
+| [io-grn-500 — Fix POST /api/grn 500 from IO Receive](./tracks/io-grn-500/plan.md) | Completed | 2026-05-18 | 2026-05-18 |

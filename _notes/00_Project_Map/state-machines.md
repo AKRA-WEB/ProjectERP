@@ -129,6 +129,26 @@ stateDiagram-v2
 
 ---
 
+## Business Rules (for API transition guards)
+
+- **VAT:** `VAT_RATE = 0.07` in `lib/constants.ts`. All amounts THB. Never hardcode `0.07`.
+- **Transfer:** atomic — debit source + credit destination in single transaction.
+- **Cycle count approval:** stored proc `apply_cycle_count()` — never replicate in app code.
+- **PO status:** auto-updates to `partially_received` / `fully_received` after GRN stocking.
+- **Stock ledger:** insert-only. Trigger `sync_stock_balances()` auto-fires. Never UPDATE/DELETE.
+- **Document numbers:** `next_doc_number(prefix, seq)` in PostgreSQL only — never app-side.
+
+| Transition | Min Role |
+|---|---|
+| PR: submit | staff |
+| PR: manager_approved | manager |
+| PR: admin_approved | admin |
+| PO: sent, invoiced, paid, closed, cancelled | manager |
+| GRN: stocked | warehouse_staff |
+| Transfer: complete | warehouse_staff |
+
+---
+
 ## HR Payroll Run
 
 ```mermaid

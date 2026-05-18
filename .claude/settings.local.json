@@ -38,7 +38,9 @@
       "Bash(Write-Output \"ok\")",
       "PowerShell(New-Item *)",
       "Bash(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\AKRA-Panich-Front\\\\OneDrive\\\\Desktop\\\\projectERP\\\\conductor\\\\tracks\\\\chen-plan-enforcement\")",
-      "Skill(superpowers:executing-plans)"
+      "Skill(superpowers:executing-plans)",
+      "Bash(New-Item *)",
+      "Bash(Write-Host \"dir created\")"
     ]
   },
   "hooks": {

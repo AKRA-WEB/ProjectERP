@@ -72,6 +72,7 @@ load-when: "QA, audit, rework-plan, lint, build, review"
 - [ ] Parameterized queries (`$1, $2`) — ไม่มี string interpolation
 
 ### UI Pages
+- [ ] **BUG/TODO/FIXME scan:** `grep -r "// BUG\|// TODO\|// FIXME\|// HACK\|intentionally omitted" <track-files>` — any match in modified files = 🔴 Must Fix. Placeholder comments = task not done.
 - [ ] `'use client'` directive
 - [ ] Pagination component มี
 - [ ] `formatDate()` ใช้แทน raw date format

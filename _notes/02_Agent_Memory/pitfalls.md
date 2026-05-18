@@ -132,4 +132,44 @@
 ถ้า task ไม่มี 5 ข้อนี้ครบ → plan ยังไม่สมบูรณ์
 
 ---
+
+## ❌ Trap — Gemini: BUG/TODO Comment แทน Fix จริง (Placeholder Pattern)
+
+**Context:** `inbound-receive-fix` track (2026-05-18) — Gemini เขียน `// inbound_order_id intentionally omitted here — BUG` แล้ว mark track Completed โดยไม่แก้ bug จริง
+
+**Rule:** BUG / TODO / FIXME / HACK / "intentionally omitted" comment = task ยังไม่เสร็จ ห้าม mark checkbox `[x]` ถ้ายังมี comment แบบนี้ในไฟล์ที่แก้
+
+**Why this happens:** Gemini เขียน comment เพื่อ "บันทึก intent" แต่ลืมว่าตัวเองต้อง implement ต่อ แล้ว mark Completed เพราะ tsc + lint ผ่าน (compiler ไม่รู้เรื่อง logic)
+
+**Prevention added:**
+- GEMINI.md Rule 4b: Re-read before tick — ห้ามมี BUG/TODO ค้างในไฟล์ที่แก้
+- qa_audit_rules.md: Billy ต้อง grep หา BUG/TODO/FIXME ในทุก track
+
+---
+
+## ❌ Trap — Batch INSERT placeholder stride mismatch
+
+**Context:** io-grn-500 (2026-05-18) — `POST /api/grn` returned 500 on any IO receive. Root cause: Migration 036 added `unit_cost` column to `grn_line_items`. Params push loop was updated to 10 values per row, but SQL placeholder stride stayed at `i * 9`. Result: param array mis-aligned → PostgreSQL column count error → 500.
+
+**Rule:** When adding a column to a batch INSERT, update BOTH:
+1. The SQL placeholder stride (`i * N + offset`)
+2. The params push loop (`lineParams.push(...)`)
+
+If stride ≠ param count per row → all rows after the first get wrong values or DB error.
+
+**How to verify:** Count commas in one row of the VALUES template → must equal number of `.push()` calls minus the $1 shared param.
+
+**Found in:** `app/api/grn/route.ts`, `app/api/purchase-orders/route.ts` — any batch insert with loop-generated placeholders.
+
+---
+
+## ❌ Trap — Plan points to wrong file (phantom function)
+
+**Context:** io-grn-500 plan (2026-05-18) identified `handleReceive` in `inbound-orders/[id]/page.tsx` as the bug site. That function doesn't exist. The actual GRN creation for IO happens in `app/app/grn/new/page.tsx` via `handleSubmit`. Plan was written without reading the actual IO detail page first.
+
+**Rule:** Chen must `Read` every file cited in a plan task BEFORE writing the task. "Read existing routes ... relevant to requirement" (Phase 1 step 3) is mandatory — not optional. A plan task that cites a non-existent function name or wrong file is a false plan.
+
+**Prevention:** Chen Phase 1 now requires confirming the exact file path AND the function name exist before writing any task that references them. If the file structure differs from expectation → HALT and investigate before writing tasks.
+
+---
 *Updated: 2026-05-18*
