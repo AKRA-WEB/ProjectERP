@@ -156,6 +156,105 @@ return apiSuccess({
 ```
 **Found in:** track [i18n-language-switch]
 
+## ✅ Pattern — Parent + Child INSERT (PO / GRN / SO / Invoice)
+**Context:** Any POST that creates a document header + line items. Use this exact structure every time.
+**Correct way:**
+```typescript
+import pool from '@/lib/db/client';
+
+// In POST handler:
+const client = await pool.connect();
+try {
+  await client.query('BEGIN');
+
+  // 1. Generate doc number
+  const { rows: [{ next_doc_number: docNum }] } = await client.query(
+    "SELECT next_doc_number('PO', 'po_seq') AS next_doc_number"
+  );
+
+  // 2. Compute total
+  const totalAmount = items.reduce((sum, i) => sum + i.quantity * i.unit_price, 0);
+
+  // 3. Insert header
+  const { rows: [header] } = await client.query(
+    `INSERT INTO purchase_orders (po_number, vendor_id, warehouse_id, total_amount, status, ordered_by, notes)
+     VALUES ($1, $2, $3, $4, 'draft', $5, $6) RETURNING *`,
+    [docNum, vendor_id, warehouse_id, totalAmount, u.id, notes ?? null]
+  );
+
+  // 4. Insert each child
+  for (const item of items) {
+    await client.query(
+      `INSERT INTO purchase_order_items (po_id, product_id, quantity, unit_price, received_qty)
+       VALUES ($1, $2, $3, $4, 0)`,
+      [header.id, item.product_id, item.quantity, item.unit_price]
+    );
+  }
+
+  await client.query('COMMIT');
+  return apiSuccess({ ...header, items }, 201);
+} catch (e) {
+  await client.query('ROLLBACK');
+  throw e;
+} finally {
+  client.release();
+}
+```
+**Key rules:** doc number inside transaction, total_amount computed before INSERT, children use parent `id`, ROLLBACK on any error.
+**Found in:** po-gr-audit track (2026-05-18)
+
+## ✅ Pattern — Status Transition with Side Effects
+**Context:** Any PATCH that changes document status AND must trigger downstream writes (stock, balances, AP, etc.)
+**Correct way:**
+```typescript
+// 1. Validate transition
+const TRANSITIONS: Record<string, string[]> = {
+  draft: ['received'],
+  received: ['qc_passed', 'qc_failed'],
+  qc_passed: ['stocked'],
+};
+const { rows: [doc] } = await db.query('SELECT status FROM goods_receipts WHERE id = $1', [id]);
+if (!TRANSITIONS[doc.status]?.includes(newStatus)) {
+  return apiError('Invalid status transition', 400);
+}
+
+// 2. Role guard (if privileged)
+try { assertRole(u, ['manager', 'admin']); } catch { return apiError('Forbidden', 403); }
+
+// 3. Apply + side effects in ONE transaction
+const client = await pool.connect();
+await client.query('BEGIN');
+await client.query('UPDATE goods_receipts SET status = $1 WHERE id = $2', [newStatus, id]);
+
+if (newStatus === 'stocked') {
+  const { rows: grnItems } = await client.query(
+    'SELECT * FROM goods_receipt_items WHERE grn_id = $1', [id]
+  );
+  for (const item of grnItems) {
+    await client.query(
+      `INSERT INTO stock_ledger (product_id, warehouse_id, movement_type, quantity, reference_type, reference_id, created_by)
+       VALUES ($1, $2, 'in', $3, 'grn', $4, $5)`,
+      [item.product_id, grn.warehouse_id, item.quantity_received, id, u.id]
+    );
+    await client.query(
+      'UPDATE purchase_order_items SET received_qty = received_qty + $1 WHERE id = $2',
+      [item.quantity_received, item.po_item_id]
+    );
+  }
+  // Recompute PO status
+  const { rows: [counts] } = await client.query(
+    `SELECT COUNT(*) AS total, COUNT(*) FILTER (WHERE received_qty >= quantity) AS done
+     FROM purchase_order_items WHERE po_id = $1`,
+    [grn.po_id]
+  );
+  const poStatus = counts.done >= counts.total ? 'fully_received' : 'partially_received';
+  await client.query('UPDATE purchase_orders SET status = $1 WHERE id = $2', [poStatus, grn.po_id]);
+}
+await client.query('COMMIT');
+```
+**Key rule:** state machine check BEFORE transaction, all side effects INSIDE transaction.
+**Found in:** po-gr-audit track (2026-05-18)
+
 ## ❌ Trap — SessionUser defined in lib/authz.ts causes circular imports
 **Symptom:** `Module declares 'SessionUser' locally, but it is not exported` — TypeScript loses track of exports during build optimization.
 **Root cause:** Defining `SessionUser` and `UserRole` in `lib/authz.ts` creates circular dependency chains when other modules import from authz while authz imports from them.

@@ -163,6 +163,55 @@ const val = data?.nested?.value ?? 0;
 
 **4. Custom props on Next.js components** — require type augmentation in `types/next.d.ts`.
 
+**5. Parent-child INSERT — never insert header only:**
+Any POST that has a parent + items (PO, GRN, SO, Invoice, BOM) MUST:
+1. Use a transaction (`BEGIN`/`COMMIT`)
+2. Generate doc number via `SELECT next_doc_number('PREFIX', 'seq_name')` inside the transaction
+3. INSERT parent row → get `id`
+4. Loop `items[]` → INSERT each child row with parent `id`
+5. Compute `total_amount` = `sum(qty * price)` before parent INSERT
+```typescript
+// Pattern: always wrap in transaction + insert children
+const client = await pool.connect();
+await client.query('BEGIN');
+const { rows: [{ next_doc_number }] } = await client.query("SELECT next_doc_number('PO','po_seq')");
+const { rows: [header] } = await client.query('INSERT INTO purchase_orders (...) VALUES (...)', [...]);
+for (const item of items) {
+  await client.query('INSERT INTO purchase_order_items (po_id, ...) VALUES ($1, ...)', [header.id, ...]);
+}
+await client.query('COMMIT');
+```
+
+**6. PATCH body.action discriminant — always required:**
+All PATCH routes use `body.action` discriminant per CLAUDE.md. UI must send `{ action: 'update_status', status: 'x' }` — never `{ status: 'x' }` alone. API reads `body.action` to determine handler branch.
+```typescript
+// ❌ WRONG — UI sends
+fetch(url, { method: 'PATCH', body: JSON.stringify({ status: 'sent' }) })
+// ✅ CORRECT
+fetch(url, { method: 'PATCH', body: JSON.stringify({ action: 'update_status', status: 'sent' }) })
+```
+
+**7. Status transitions must enforce state machine + trigger side effects:**
+Never `UPDATE status` alone. Each transition must:
+- Validate: read current status, check against allowed transitions map
+- Guard roles: privileged transitions require `assertRole(['manager','admin'])`
+- Run side effects IN THE SAME TRANSACTION:
+  - `stocked` → INSERT `stock_ledger` rows + UPDATE `received_qty` on PO items + recompute PO status
+  - `invoiced` → create AP entry
+  - `paid` → update balance
+```typescript
+// ❌ WRONG
+await db.query('UPDATE goods_receipts SET status = $1', ['stocked']);
+// ✅ CORRECT — side effects in same transaction
+await client.query('BEGIN');
+await client.query('UPDATE goods_receipts SET status = $1', ['stocked']);
+for (const item of grnItems) {
+  await client.query('INSERT INTO stock_ledger (product_id, warehouse_id, movement_type, ...) VALUES ...', [...]);
+}
+// ... update po_items.received_qty, recompute PO status
+await client.query('COMMIT');
+```
+
 ## Project Specifics
 - **Framework:** Next.js 15 (App Router)
 - **Database:** PostgreSQL (Raw `pg`)
@@ -175,6 +224,7 @@ const val = data?.nested?.value ?? 0;
 
 | Date | Change |
 |------|--------|
+| 2026-05-18 | **Critical Traps 5-7 added** — Parent-child INSERT, body.action discriminant, status transition side effects (from po-gr-audit) |
 | 2026-05-18 | **Obsidian vault restructured** — `_notes/modules/` → `_notes/00_Project_Map/modules/`, `_notes/decisions/` → `_notes/01_Decisions/`, new folders: `02_Agent_Memory/`, `03_Prompts/`, `04_Debug_Log/`, `05_Summaries/` |
 | 2026-05-18 | **Rule 0 (Pitfalls First)** — Must read `_notes/02_Agent_Memory/pitfalls.md` before every `Go` command |
 | 2026-05-16 | **Rule 0b added** — Read target file before ANY edit. Never edit from memory. |

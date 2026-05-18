@@ -72,6 +72,12 @@ Analyze requirements and design flawless technical implementation plans (`plan.m
 11. **tsc check in QA criteria.** Every plan.md that touches UI must include `npx tsc --noEmit` in its QA checklist — not just `npm run lint`.
 12. **Migration number check (MANDATORY before any plan with new migration):** Run `ls migrations/*.sql | tail -1` to find latest migration number. New file must be `latest+1`. Never guess — Gemini creates wrong filename otherwise.
 13. **Pre-plan type/component check:** Before planning any UI task, search `types/index.ts` for existing interfaces and `components/ui/index.ts` for existing components. Prevents Gemini duplicating types/components that already exist.
+14. **API Task 5-Point Completeness (MANDATORY for every backend task):** Every API task in plan.md that writes data must explicitly specify all 5 points — if any is absent, the task is incomplete and Gemini will silently skip it:
+    - **Transaction:** State "wrap in `BEGIN`/`COMMIT` transaction" or "no transaction needed (single write)"
+    - **Doc number:** State "generate via `next_doc_number('PREFIX','seq')`" or "not applicable"
+    - **Child inserts:** List every child table insert with column names (e.g., "INSERT into `purchase_order_items` for each item in `items[]`")
+    - **Side effects:** List every downstream update triggered by this write (e.g., "UPDATE `po_items.received_qty` + recompute PO status + INSERT `stock_ledger`")
+    - **Response shape:** State exact keys returned (e.g., "`{ ...header, items: [...] }`")
 
 # Workflow — New Track (`Architect: <requirement>`)
 

@@ -72,4 +72,64 @@
 **Fix pattern:** (1) Fix the contradiction in both docs, (2) Add a `UserPromptSubmit` hook for hard enforcement when the behavior is critical.
 
 ---
+
+## ❌ Trap — Gemini: Skeleton Implementation (Header-only Pattern)
+
+**Context:** PO/GRN audit (2026-05-18) พบว่า Gemini implement POST route โดย INSERT header เท่านั้น ไม่ INSERT items ลง child table (`purchase_order_items`, `goods_receipt_items`). เกิดซ้ำทั้ง PO และ GRN — pattern เดียวกัน
+
+**Rule:** Gemini จะหยุดที่ "first happy step" ถ้า plan ไม่ระบุ sub-steps ชัดเจน ทุก POST ที่มี parent+children ต้องระบุใน plan ว่า:
+1. INSERT parent → ได้ parent ID
+2. FOR EACH item: INSERT child with parent_id
+3. ทั้งหมดใน transaction เดียว
+
+**Applies to:** ทุก API route ที่มี header + line items (PO, GRN, SO, Invoice, BOM, etc.)
+
+---
+
+## ❌ Trap — Gemini: ไม่อ่าน CLAUDE.md Conventions
+
+**Context:** PO/GRN audit พบ 3 conventions จาก CLAUDE.md ที่ Gemini ข้ามทั้งหมด:
+- `body.action` discriminant ใน PATCH → Gemini ส่ง `{ status: 'x' }` แทน `{ action: 'update_status', status: 'x' }`
+- `buildWarehouseScopeClause()` ใน GET list → ไม่ใช้เลย
+- `next_doc_number(prefix, seq)` ใน POST → ไม่เรียกเลย
+
+**Rule:** Plan ต้องระบุ conventions เหล่านี้ explicitly ใน task แต่ละข้อ ห้ามสมมติว่า Gemini จะ "รู้เอง" จาก CLAUDE.md แม้จะเขียนไว้แล้ว
+
+**Fix pattern ใน plan:** ระบุในแต่ละ task เช่น "Use `buildWarehouseScopeClause(u, 'po.warehouse_id', idx)` in WHERE clause" และ "PATCH body uses `action` discriminant per CLAUDE.md"
+
+---
+
+## ❌ Trap — Gemini: Side Effects หาย (Status Transition ไม่ trigger downstream)
+
+**Context:** GRN `stocked` transition ไม่ INSERT ลง `stock_ledger` เลย ทั้งที่นี่คือ core WMS logic `sync_stock_balances()` trigger ไม่เคย fire เพราะไม่มี INSERT ให้ trigger
+
+**Rule:** Gemini implement status transitions แบบ "UPDATE status เท่านั้น" ถ้า plan ไม่บอก side effects ทุก transition ที่มี side effects ต้องระบุใน plan:
+- กรณี `stocked`: INSERT `stock_ledger` rows + UPDATE `po_items.received_qty` + UPDATE PO status
+- กรณี `invoiced`: สร้าง AP entry
+- กรณี `paid`: update balance
+
+---
+
+## ❌ Trap — Gemini: ไม่ wrap transaction
+
+**Context:** PO/GRN audit พบว่า header INSERT และ items INSERT เป็น separate `db.query()` calls ไม่มี BEGIN/COMMIT ถ้า items insert fail → orphan header row ไม่มี rollback
+
+**Rule:** ทุก API route ที่มี multi-step write ต้องระบุใน plan ชัดเจนว่า "wrap in transaction using `const client = await db.connect(); await client.query('BEGIN')`"
+
+---
+
+## ❌ Trap — Claude: Plan ขาด Sub-steps ทำให้ Gemini implement ครึ่งเดียว
+
+**Context:** Plan เดิม (ก่อน po-gr-audit) บอกแค่ "สร้าง PO API" ไม่ได้ break down ว่า items insert, transaction, doc number generation ต้องทำทุก step Gemini implement แค่ step ที่เห็นชัดที่สุด
+
+**Rule:** Chen ต้อง spec ทุก task ให้มี:
+1. Transaction boundary (begin/commit/rollback)
+2. Doc number generation step (ถ้ามี)
+3. Child table inserts (ถ้ามี parent-children)
+4. Side effects หลัง status change (stock_ledger, balance update, etc.)
+5. Response shape ชัดเจน (ต้อง return อะไรบ้าง)
+
+ถ้า task ไม่มี 5 ข้อนี้ครบ → plan ยังไม่สมบูรณ์
+
+---
 *Updated: 2026-05-18*
