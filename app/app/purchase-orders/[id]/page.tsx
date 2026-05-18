@@ -7,7 +7,7 @@ import { get, post } from '@/lib/api-client';
 import { formatDate, formatCurrency } from '@/lib/format';
 import Link from 'next/link';
 import type { PurchaseOrder } from '@/types';
-import { ApprovalDialog } from '@/components/purchase-orders/ApprovalDialog';
+import { ApprovalDialog } from '@/components/purchase-orders';
 
 interface POInvoice {
   id: string;
