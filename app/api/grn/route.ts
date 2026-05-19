@@ -172,16 +172,18 @@ export async function POST(req: Request) {
   if (!parsed.success) return apiValidationError(parsed.error);
 
   let sourceType: 'po' | 'inbound_order' = 'po';
+  let vendorId: string | null = null;
   const unitCosts = new Map<string, number>();
 
   if (parsed.data.po_id) {
     sourceType = 'po';
-    const po = await queryOne<{ status: string; warehouse_id: string }>(
-      'SELECT status, warehouse_id FROM purchase_orders WHERE id = $1',
+    const po = await queryOne<{ status: string; warehouse_id: string; vendor_id: string }>(
+      'SELECT status, warehouse_id, vendor_id FROM purchase_orders WHERE id = $1',
       [parsed.data.po_id]
     );
     if (!po) return apiError('PO not found', 404);
     if (!['sent', 'partially_received'].includes(po.status)) return apiError('PO must be in sent or partially_received status', 409);
+    vendorId = po.vendor_id;
 
     const poLines = await query<{
       id: string;
@@ -216,12 +218,13 @@ export async function POST(req: Request) {
     }
   } else if (parsed.data.inbound_order_id) {
     sourceType = 'inbound_order';
-    const io = await queryOne<{ status: string; warehouse_id: string }>(
-      'SELECT status, warehouse_id FROM inbound_orders WHERE id = $1',
+    const io = await queryOne<{ status: string; warehouse_id: string; vendor_id: string }>(
+      'SELECT status, warehouse_id, vendor_id FROM inbound_orders WHERE id = $1',
       [parsed.data.inbound_order_id]
     );
     if (!io) return apiError('Inbound Order not found', 404);
     if (!['open', 'receiving'].includes(io.status)) return apiError('Inbound Order must be open or receiving', 409);
+    vendorId = io.vendor_id;
 
     const ioLines = await query<{
       id: string;
@@ -265,12 +268,13 @@ export async function POST(req: Request) {
     await client2.query('BEGIN');
 
     const grnResult = await client2.query<{ id: string; grn_number: string; status: string }>(
-      `INSERT INTO goods_receipt_notes (po_id, inbound_order_id, warehouse_id, received_by, received_date, notes, source_type)
-       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, grn_number, status`,
+      `INSERT INTO goods_receipt_notes (po_id, inbound_order_id, warehouse_id, vendor_id, received_by, received_date, notes, source_type)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8::grn_source_type) RETURNING id, grn_number, status`,
       [
         parsed.data.po_id ?? null,
         parsed.data.inbound_order_id ?? null,
         parsed.data.warehouse_id,
+        vendorId,
         u.id,
         parsed.data.received_date,
         parsed.data.notes ?? null,
@@ -281,7 +285,7 @@ export async function POST(req: Request) {
     if (!grn) throw new Error('Failed to create GRN');
 
     const lineValues = parsed.data.lines
-      .map((_, i) => `($1, $${i * 10 + 2}, $${i * 10 + 3}, $${i * 10 + 4}, $${i * 10 + 5}, $${i * 10 + 6}, $${i * 10 + 7}, $${i * 10 + 8}, $${i * 10 + 9}, $${i * 10 + 10}, $${i * 10 + 11}, ${i + 1})`)
+      .map((_, i) => `($1, $${i * 10 + 2}, $${i * 10 + 3}, $${i * 10 + 4}, $${i * 10 + 5}, $${i * 10 + 6}, $${i * 10 + 7}, $${i * 10 + 8}, $${i * 10 + 9}, $${i * 10 + 10}::grn_source_type, $${i * 10 + 11}, ${i + 1})`)
       .join(', ');
     const lineParams: unknown[] = [grn.id];
     for (const l of parsed.data.lines) {
@@ -317,7 +321,7 @@ export async function POST(req: Request) {
   } catch (e) {
     await client2.query('ROLLBACK');
     console.error('[POST /api/grn] transaction error', e);
-    throw e;
+    return apiError(e instanceof Error ? e.message : 'Internal Server Error', 500);
   } finally {
     client2.release();
   }
