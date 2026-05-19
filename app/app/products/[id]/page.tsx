@@ -7,6 +7,13 @@ import { formatCurrency, formatDate } from '@/lib/format';
 import Link from 'next/link';
 import { DirectionalTransition } from '@/components/ui/directional-transition';
 
+interface WarehouseStock {
+  warehouse_id: string;
+  warehouse_name: string;
+  qty_on_hand: number;
+  qty_available: number;
+}
+
 interface ProductDetail {
   id: string;
   sku: string;
@@ -20,6 +27,7 @@ interface ProductDetail {
   created_at: string;
   category_name: string | null;
   uom_code: string;
+  stock_by_warehouse?: WarehouseStock[];
 }
 
 interface VendorLink {
@@ -43,7 +51,7 @@ export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [vendors, setVendors] = useState<VendorLink[]>([]);
-  const [tab, setTab] = useState<'info' | 'suppliers'>('info');
+  const [tab, setTab] = useState<'info' | 'suppliers' | 'stock'>('info');
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
@@ -84,13 +92,13 @@ export default function ProductDetailPage() {
 
         {/* Tabs */}
         <div className="flex gap-0 border-b border-stone-200">
-          {(['info', 'suppliers'] as const).map((t) => (
+          {(['info', 'stock', 'suppliers'] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
               className={`px-4 py-2.5 text-[13px] font-medium border-b-2 transition-colors ${tab === t ? 'border-emerald-500 text-emerald-700' : 'border-transparent text-stone-500 hover:text-stone-700'}`}
             >
-              {t === 'info' ? 'ข้อมูลสินค้า' : `ผู้จำหน่าย (${vendors.length})`}
+              {t === 'info' ? 'ข้อมูลสินค้า' : t === 'stock' ? 'สต็อก' : `ผู้จำหน่าย (${vendors.length})`}
             </button>
           ))}
         </div>
@@ -133,8 +141,52 @@ export default function ProductDetailPage() {
           </div>
         )}
 
+        {tab === 'stock' && (
+          <div className={CARD}>
+            {!product.stock_by_warehouse || product.stock_by_warehouse.length === 0 ? (
+              <div className="p-8 text-center text-sm text-stone-400">
+                ไม่พบข้อมูลสต็อกในทุกคลัง
+              </div>
+            ) : (
+              <table className="w-full text-[13px]">
+                <thead className="border-b border-stone-200 bg-stone-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-medium text-stone-600">คลังสินค้า</th>
+                    <th className="px-4 py-3 text-right font-medium text-stone-600">ยอดคงเหลือ (OH)</th>
+                    <th className="px-4 py-3 text-right font-medium text-stone-600">พร้อมใช้ (AV)</th>
+                    <th className="px-4 py-3 text-center font-medium text-stone-600">สถานะ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {product.stock_by_warehouse.map((s) => {
+                    const isLow = s.qty_available <= product.reorder_point;
+                    const isOut = s.qty_available <= 0;
+                    return (
+                      <tr key={s.warehouse_id} className="border-b border-stone-100 hover:bg-stone-50/50">
+                        <td className="px-4 py-3 font-medium text-stone-900">{s.warehouse_name || 'คลังหลัก'}</td>
+                        <td className="px-4 py-3 text-right font-mono">{Number(s.qty_on_hand).toLocaleString()}</td>
+                        <td className="px-4 py-3 text-right font-mono font-bold text-emerald-700">{Number(s.qty_available).toLocaleString()}</td>
+                        <td className="px-4 py-3 text-center">
+                          {isOut ? (
+                            <span className="px-2 py-[2px] rounded-full bg-red-50 text-red-700 border border-red-200 text-[11px] font-medium">หมด</span>
+                          ) : isLow ? (
+                            <span className="px-2 py-[2px] rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[11px] font-medium">ต่ำกว่าจุดสั่งซื้อ</span>
+                          ) : (
+                            <span className="px-2 py-[2px] rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-medium">ปกติ</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
+          </div>
+        )}
+
         {tab === 'suppliers' && (
           <div className={CARD}>
+
             {vendors.length === 0 ? (
               <div className="p-8 text-center text-sm text-stone-400">
                 ยังไม่มีผู้จำหน่ายที่เชื่อมกับสินค้านี้

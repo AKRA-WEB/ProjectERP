@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { formatCurrency, formatQty } from '@/lib/format';
+import { get } from '@/lib/api-client';
 import { SearchInput, Pagination } from '@/components/ui';
 import { Filter, Download, ScanLine, Home, ArrowLeftRight, ClipboardList, Boxes, Upload } from 'lucide-react';
 import ProductImportModal from '@/components/inventory/ProductImportModal';
@@ -109,21 +110,20 @@ export default function InventoryPage() {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      if (search) params.set('q', search);
+      if (search) params.set('search', search);
       if (warehouseFilter) params.set('warehouse_id', warehouseFilter);
-      if (lowStockFilter) params.set('low_stock', '1');
+      if (lowStockFilter) params.set('low_stock', 'true');
       params.set('page', String(page));
-      params.set('per_page', '30');
-      const res = await fetch(`/api/inventory?${params.toString()}`);
-      if (!res.ok) throw new Error('Failed');
-      const json = await res.json();
-      setInventoryData(json.data ?? json);
+      params.set('limit', '30');
+      const data = await get<InventoryData>(`/api/inventory?${params.toString()}`);
+      setInventoryData(data);
     } catch {
       setInventoryData(null);
     } finally {
       setLoading(false);
     }
   }, [search, page, warehouseFilter, lowStockFilter]);
+
 
   useEffect(() => {
     fetchInventory();

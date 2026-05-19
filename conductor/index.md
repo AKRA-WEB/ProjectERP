@@ -16,12 +16,8 @@
 
 | Track | Status | Plan |
 |-------|--------|------|
-| [io-grn-500 — Fix POST /api/grn 500 from IO Receive](./tracks/io-grn-500/plan.md) | Completed | [plan](./tracks/io-grn-500/plan.md) |
-
-| [po-fix-400 — Fix POST /api/purchase-orders 400](./tracks/po-fix-400/plan.md) | Completed | [plan](./tracks/po-fix-400/plan.md) |
 | [po-gr-audit — PO & GRN Transaction Integrity Fix](./tracks/po-gr-audit/plan.md) | Completed | [plan](./tracks/po-gr-audit/plan.md) |
-| [GR-First Workflow — Standalone GR + GR→PO + PR→GR Direct](./tracks/gr-first-workflow/plan.md) | Completed | [plan](./tracks/gr-first-workflow/plan.md) |
-| [i18n Language Switch — Thai ↔ English System-wide](./tracks/i18n-language-switch/plan.md) | Completed | [plan](./tracks/i18n-language-switch/plan.md) |
+| [product-stock-summary — Product Detail Stock Overview](./tracks/product-stock-summary/plan.md) | Completed | [plan](./tracks/product-stock-summary/plan.md) |
 
 ## Rework Required
 
@@ -29,7 +25,7 @@
 
 | Track | Rework Plan |
 |-------|-------------|
-| *(none)* | — |
+| [View Transitions — App-wide Implementation](./tracks/view-transitions/plan.md) | [rework-plan](./tracks/view-transitions/rework-plan.md) |
 
 ## All Tracks
 
@@ -78,13 +74,14 @@
 | [UI Improvement — POS Tier Badges · Lock Timer · Thermal Receipt](./tracks/ui-improvement-pos/plan.md) | Optimization Suggested | 2026-05-15 | 2026-05-17 |
 | [UI Improvement — WMS Ops (GRN Tabs · QC KPIs · Receiving Queue)](./tracks/ui-improvement-wms-ops/plan.md) | Completed | 2026-05-15 | 2026-05-17 |
 | [Security Fixes — Pre-Vercel Auth Guards · Warehouse Scope · Perf](./tracks/security-fixes/plan.md) | Verified | 2026-05-15 | 2026-05-16 |
-| [View Transitions — App-wide Implementation](./tracks/view-transitions/plan.md) | Completed | 2026-05-15 | 2026-05-18 |
+| [View Transitions — App-wide Implementation](./tracks/view-transitions/plan.md) | Rework Required | 2026-05-15 | 2026-05-19 |
 | [Hamburger Sidebar Z-Index Fix](./tracks/hamburger-zindex-fix/plan.md) | Optimization Suggested | 2026-05-16 | 2026-05-17 |
-| [Inbound Receive Fix — IO GRN "Request failed"](./tracks/inbound-receive-fix/plan.md) | Completed | 2026-05-18 | 2026-05-18 |
-| [PO Immediate Approval — Discount + Financial Summary + Auto-GRN](./tracks/po-immediate-approval/plan.md) | Completed | 2026-05-18 | 2026-05-18 |
-| [GR-First Workflow — Standalone GR + GR→PO + PR→GR Direct](./tracks/gr-first-workflow/plan.md) | Completed | 2026-05-18 | 2026-05-18 |
-| [i18n Language Switch — Thai ↔ English System-wide](./tracks/i18n-language-switch/plan.md) | Completed | 2026-05-18 | 2026-05-18 |
-| [Chen Plan Enforcement — Architect Trigger Reliability](./tracks/chen-plan-enforcement/plan.md) | Completed | 2026-05-18 | 2026-05-18 |
-| [po-fix-400 — Fix POST /api/purchase-orders 400 Bad Request](./tracks/po-fix-400/plan.md) | Completed | 2026-05-18 | 2026-05-18 |
+| [Inbound Receive Fix — IO GRN "Request failed"](./tracks/inbound-receive-fix/plan.md) | Verified | 2026-05-18 | 2026-05-19 |
+| [PO Immediate Approval — Discount + Financial Summary + Auto-GRN](./tracks/po-immediate-approval/plan.md) | Verified | 2026-05-18 | 2026-05-19 |
+| [GR-First Workflow — Standalone GR + GR→PO + PR→GR Direct](./tracks/gr-first-workflow/plan.md) | Verified | 2026-05-18 | 2026-05-19 |
+| [i18n Language Switch — Thai ↔ English System-wide](./tracks/i18n-language-switch/plan.md) | Verified | 2026-05-18 | 2026-05-19 |
+| [Chen Plan Enforcement — Architect Trigger Reliability](./tracks/chen-plan-enforcement/plan.md) | Verified | 2026-05-18 | 2026-05-19 |
+| [po-fix-400 — Fix POST /api/purchase-orders 400 Bad Request](./tracks/po-fix-400/plan.md) | Verified | 2026-05-18 | 2026-05-19 |
 | [po-gr-audit — PO & GRN Transaction Integrity Fix](./tracks/po-gr-audit/plan.md) | Completed | 2026-05-18 | 2026-05-18 |
-| [io-grn-500 — Fix POST /api/grn 500 from IO Receive](./tracks/io-grn-500/plan.md) | Completed | 2026-05-18 | 2026-05-18 |
+| [io-grn-500 — Fix POST /api/grn 500 from IO Receive](./tracks/io-grn-500/plan.md) | Verified | 2026-05-18 | 2026-05-19 |
+| [product-stock-summary — Product Detail Stock Overview](./tracks/product-stock-summary/plan.md) | Completed | 2026-05-19 | 2026-05-19 |

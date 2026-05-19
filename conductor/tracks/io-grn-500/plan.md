@@ -1,6 +1,6 @@
 ---
 track: io-grn-500
-status: Completed
+status: Verified
 aliases: ["Fix POST /api/grn 500 from IO Receive"]
 owner: puka, paku
 module: WMS

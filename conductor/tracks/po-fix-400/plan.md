@@ -1,6 +1,6 @@
 ---
 track: po-fix-400
-status: Completed
+status: Verified
 aliases: ["Fix POST /api/purchase-orders 400 Bad Request"]
 owner: puka, paku
 module: WMS

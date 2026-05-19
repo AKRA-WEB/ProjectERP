@@ -14,7 +14,7 @@ export async function GET(req: Request) {
   const limit = Math.min(200, Number(searchParams.get('limit') ?? DEFAULT_PAGE_SIZE));
   const offset = (page - 1) * limit;
   const warehouseId = searchParams.get('warehouse_id');
-  const search = searchParams.get('search') || searchParams.get('q');
+  const search = searchParams.get('search') || searchParams.get('q'); // Support both
   const lowStock = searchParams.get('low_stock') === 'true' || searchParams.get('low_stock') === '1';
 
   const conditions: string[] = ['p.is_active = TRUE'];
@@ -26,9 +26,20 @@ export async function GET(req: Request) {
     params.push(u.assignedWarehouseIds);
   }
 
-  if (warehouseId) { conditions.push(`sb.warehouse_id = $${idx++}`); params.push(warehouseId); }
-  if (search) { conditions.push(`(p.sku ILIKE $${idx} OR p.name_th ILIKE $${idx} OR p.name_en ILIKE $${idx})`); params.push(`%${search}%`); idx++; }
-  if (lowStock) { conditions.push('sb.qty_available <= p.reorder_point'); }
+  if (warehouseId) {
+    conditions.push(`sb.warehouse_id = $${idx++}`);
+    params.push(warehouseId);
+  }
+
+  if (search) {
+    conditions.push(`(p.sku ILIKE $${idx} OR p.name_th ILIKE $${idx} OR p.name_en ILIKE $${idx})`);
+    params.push(`%${search}%`);
+    idx++;
+  }
+
+  if (lowStock) {
+    conditions.push('sb.qty_available <= p.reorder_point');
+  }
 
   const where = `WHERE ${conditions.join(' AND ')}`;
 
@@ -59,5 +70,5 @@ export async function GET(req: Request) {
     per_page: limit,
     total_pages: Math.ceil(Number(total.count) / limit),
   });
-}
 
+}

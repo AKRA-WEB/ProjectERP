@@ -1,6 +1,6 @@
 ---
 track: po-immediate-approval
-status: Completed
+status: Verified
 owner: puka, paku
 module: WMS
 updated: 2026-05-18

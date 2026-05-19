@@ -40,7 +40,8 @@
       "Bash(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\AKRA-Panich-Front\\\\OneDrive\\\\Desktop\\\\projectERP\\\\conductor\\\\tracks\\\\chen-plan-enforcement\")",
       "Skill(superpowers:executing-plans)",
       "Bash(New-Item *)",
-      "Bash(Write-Host \"dir created\")"
+      "Bash(Write-Host \"dir created\")",
+      "Bash(dir C:\\\\Users\\\\AKRA-Panich-Front\\\\OneDrive\\\\Desktop\\\\projectERP\\\\app\\\\app *)"
     ]
   },
   "hooks": {

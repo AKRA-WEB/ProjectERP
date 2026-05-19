@@ -1,6 +1,6 @@
 ---
 track: inbound-receive-fix
-status: Completed
+status: Verified
 owner: gemini
 module: WMS
 updated: 2026-05-18
