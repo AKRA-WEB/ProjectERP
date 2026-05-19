@@ -548,14 +548,15 @@ Simple CSS bar chart — no library:
 </div>
 ```
 
-- [ ] Replace `app/app/hr/page.tsx` with full redesign (fetch `/api/hr/stats`, render all 4 sections)
-- [ ] Avatar component defined in-file using AVATAR_PALETTE pattern
-- [ ] KPI strip shows 4 cards from stats data
-- [ ] Attendance feed table renders `attendanceFeed` array
-- [ ] Pending leave queue renders `pendingLeaveQueue` array
-- [ ] Headcount bar chart renders `headcountByDept` array
-- [ ] Upcoming events renders `upcoming` array
-- [ ] Verify `npx tsc --noEmit` passes
+- [x] Replace `app/app/hr/page.tsx` with full redesign (fetch `/api/hr/stats`, render all 4 sections)
+- [x] Avatar component defined in-file using AVATAR_PALETTE pattern
+- [x] KPI strip shows 4 cards from stats data
+- [x] Attendance feed table renders `attendanceFeed` array
+- [x] Pending leave queue renders `pendingLeaveQueue` array
+- [x] Headcount bar chart renders `headcountByDept` array
+- [x] Upcoming events renders `upcoming` array
+- [x] Verify `npx tsc --noEmit` passes
+**Q1/Q2/Q3:** Q1: Simple CSS bar chart pattern (flex-1 container with a width-percentage inner div) for data visualization without heavy charting libraries.
 
 ---
 

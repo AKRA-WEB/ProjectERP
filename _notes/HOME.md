@@ -2,11 +2,13 @@
 
 ## Quick Nav
 - [[_notes/dashboard|📊 Project Dashboard]] — Dataview: status ทุก track
+- [[conductor/index|📋 Track Index]] — conductor tracks ทั้งหมด
+- [[_notes/02_Agent_Memory/current-state|🧠 Current State]] — **อ่านก่อนเริ่มงานทุกครั้ง** (active tracks, DB facts, traps)
+- [[_notes/02_Agent_Memory/pitfalls|⚠️ Pitfalls]] — traps ที่ agent เจอบ่อย
 - [[_notes/00_Project_Map/module-map|🗺️ Module Map]] — Canvas: dependency ระหว่าง modules
 - [[_notes/00_Project_Map/state-machines|⚙️ State Machines]] — Mermaid diagrams ทุก document flow
 - [[_notes/02_Agent_Memory/agents-index|📚 Agents & Skills Index]] — agents, triggers, skill files
 - [[_notes/skill-changelog|📝 Skill Changelog]] — auto-log ทุก trap/pattern ใหม่
-- [[conductor/index|📋 Track Index]] — conductor tracks ทั้งหมด
 - [[PROGRESS|📈 Progress Log]]
 - [[CLAUDE|⚙️ Architecture Rules]]
 

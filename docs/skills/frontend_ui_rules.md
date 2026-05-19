@@ -213,6 +213,23 @@ if (!isMounted) return null; // หรือแสดง Skeleton
 ```
 **Found in:** Global hydration fix for AppLayout, DashboardPage (2026-05-19)
 
+## ✅ Pattern — Frontend Tenure Calculation
+**Context:** Calculating employee tenure (years and months) from a hire date string for display in HR modules.
+**Correct way:**
+```typescript
+function getTenure(dateStr: string | null) {
+  if (!dateStr) return '—';
+  const start = new Date(dateStr);
+  const end = new Date();
+  let years = end.getFullYear() - start.getFullYear();
+  let months = end.getMonth() - start.getMonth();
+  if (months < 0) { years--; months += 12; }
+  if (years > 0) return `${years} ปี ${months} ด.`;
+  return `${months} เดือน`;
+}
+```
+**Found in:** task 5 of track hr-ui-redesign
+
 ## ❌ Trap — Absolute Dropdown Clipping in Tables
 **Symptom:** รายการค้นหาหรือ Select ที่ใช้ `absolute` ไม่แสดงผลเมื่ออยู่ในตาราง
 **Root cause:** Parent container (เช่น `div` ที่ล้อมตาราง) มี `overflow-hidden` ทำให้ dropdown ถูกตัด

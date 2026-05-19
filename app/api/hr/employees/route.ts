@@ -65,7 +65,9 @@ export async function GET(req: NextRequest) {
         u.position_id, p.name_th AS position_name_th, p.name_en AS position_name_en,
         u.salary_grade_id, sg.name_th AS salary_grade_name,
         u.base_salary, u.employment_type, u.employee_status,
-        u.hired_date, u.resignation_date, u.phone, u.created_at
+        u.hired_date, u.resignation_date, u.phone, u.created_at,
+        (SELECT w.name FROM user_warehouse_assignments uwa JOIN warehouses w ON w.id = uwa.warehouse_id 
+         WHERE uwa.user_id = u.id AND uwa.is_active = TRUE LIMIT 1) AS branch_name
       FROM users u
       LEFT JOIN departments d ON d.id = u.department_id
       LEFT JOIN positions p ON p.id = u.position_id
@@ -79,7 +81,14 @@ export async function GET(req: NextRequest) {
     `, params)
   ]);
 
-  return apiSuccess({ data: rows, total: parseInt(count), page, limit });
+  const canSeeSalary = u.role === 'admin' || u.role === 'manager';
+  const data = rows.map((r: any) => ({
+    ...r,
+    base_salary: canSeeSalary ? r.base_salary : null,
+    hire_date: r.hired_date
+  }));
+
+  return apiSuccess({ data, total: parseInt(count), page, limit });
 }
 
 export async function POST(req: NextRequest) {

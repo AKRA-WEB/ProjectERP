@@ -31,6 +31,7 @@ status: fixed | open
 
 | Bug | Module | Status |
 |-----|--------|--------|
+| Build failure 130+ errors — ViewTransition/circular types/strict null | All | Fixed — see [[_notes/04_Debug_Log/2026-05-16-build-failure-rca]] |
 | IO GRN receive "Request failed" — split GRN ไม่รวม inbound_order_id | WMS | Fixed (plan อยู่ใน conductor/tracks/inbound-receive-fix) |
 | POS points UPDATE หลัง client.release() | POS | Fixed |
 | Shift number ใช้ Math.random() | POS | Fixed |
