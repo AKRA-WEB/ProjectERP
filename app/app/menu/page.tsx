@@ -101,6 +101,18 @@ function initials(name: string) {
 export default function MainMenuPage() {
   const { data: session, status } = useSession();
   const loading = status === 'loading';
+  const [isMounted, setIsMounted] = useState(false);
+  const [currentThaiMonth, setCurrentThaiMonth] = useState('');
+
+  useEffect(() => {
+    setIsMounted(true);
+    const now = new Date();
+    const thaiMonths = [
+      'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+      'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+    ];
+    setCurrentThaiMonth(`${thaiMonths[now.getMonth()]} ${now.getFullYear() + 543}`);
+  }, []);
 
   const user = session?.user as { role: string; permissions: string[]; name: string } | undefined;
   const role = user?.role ?? '';
@@ -115,14 +127,7 @@ export default function MainMenuPage() {
 
   const visibleModules = MODULE_CONFIG.filter(isModuleVisible);
 
-  const now = new Date();
-  const thaiMonths = [
-    'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
-    'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
-  ];
-  const currentThaiMonth = `${thaiMonths[now.getMonth()]} ${now.getFullYear() + 543}`;
-
-  if (loading) {
+  if (loading || !isMounted) {
     return <div className="min-h-screen bg-[#f6f4ef] flex items-center justify-center text-[#78716c]">กำลังโหลด...</div>;
   }
 

@@ -1,21 +1,26 @@
 'use client';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { useSession, signOut } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const [sidebarOpen, setSidebarOpen] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    return localStorage.getItem('sidebar-open') === 'true';
-  });
-  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    return localStorage.getItem('sidebar-collapsed') === 'true';
-  });
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  
   const { data: session } = useSession();
   const pathname = usePathname();
+
+  useEffect(() => {
+    setIsMounted(true);
+    const storedOpen = localStorage.getItem('sidebar-open');
+    const storedCollapsed = localStorage.getItem('sidebar-collapsed');
+    
+    if (storedOpen === 'true') setSidebarOpen(true);
+    if (storedCollapsed === 'true') setSidebarCollapsed(true);
+  }, []);
 
   const handleCloseSidebar = useCallback(() => {
     setSidebarOpen(false);
@@ -44,6 +49,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const user = session?.user as { role?: string; permissions?: string[]; name?: string } | undefined;
   const userRole = user?.role;
   const permissions = user?.permissions ?? [];
+
+  if (!isMounted) return null;
 
   if (isMenuPage) {
     return (
