@@ -42,8 +42,13 @@ function ProductSearch({ value, onSelect, onClear }: ProductSearchProps) {
         const res = await get<{ data: Product[] }>(
           `/api/products?search=${encodeURIComponent(query)}&limit=20`
         );
-        setResults(res.data);
-        setOpen(res.data.length > 0);
+        // The api-client get() already unwraps the data property if it exists
+        // or returns the body directly. Based on search patterns, it returns the array directly.
+        const products = Array.isArray(res) 
+          ? res 
+          : (res && typeof res === 'object' && 'data' in res ? (res as { data: Product[] }).data : []);
+        setResults(products);
+        setOpen(products.length > 0);
       } finally {
         setLoading(false);
       }

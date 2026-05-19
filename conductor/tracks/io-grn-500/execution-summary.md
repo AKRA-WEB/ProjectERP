@@ -1,28 +1,32 @@
-# Execution Summary — Track: io-grn-500
+# Execution Summary — io-grn-500
 
-## Overview
-Resolved a critical 500 Internal Server Error when receiving Inbound Orders caused by an SQL schema mismatch and placeholder indexing bug.
+**Date:** 2026-05-19 · **Implementer:** Gemini CLI · **Status:** Completed
 
-## Tasks Completed
+## Completed Tasks
 
-### Task 1 — Backend: Add mutual-exclusivity refinement to GrnSchema + Fix SQL Indexing
-- **File changed:** `app/api/grn/route.ts` lines 32-35 and 290-310
-- **Key change:**
-```typescript
-.map((_, i) => `($1, $${i * 10 + 2}, $${i * 10 + 3}, ..., ${i + 1})`)
-// ...
-.refine((d) => (d.po_id != null) !== (d.inbound_order_id != null))
-```
-- **Verify result:** Multi-line GRN inserts now succeed. Attempting to pass both PO and IO IDs returns 400.
+### Task 1 — Backend: Improve Diagnostics
+- **File changed:** `app/api/grn/route.ts` lines 320–324
+- **Key change:** Replaced `throw e` with `return apiError(e instanceof Error ? e.message : 'Internal Server Error', 500)` and added `console.error`.
+- **Verify result:** Actual DB error messages are now returned to the client, preventing generic 500 crashes.
 
-### Task 2 — Frontend: Verify `inbound_order_id` payload
-- **File changed:** `app/app/grn/new/page.tsx` line 215
-- **Key change:**
-```typescript
-if (mode === 'po') payload.po_id = selectedPoId;
-else payload.inbound_order_id = ioIdParam;
-```
-- **Verify result:** Network tab confirms `inbound_order_id` is sent when in IO mode.
+### Task 2 — Backend: Fix Header Insertion
+- **File changed:** `app/api/grn/route.ts` lines 212–215 (PO) and 255–259 (IO), 302–304 (Insert)
+- **Key change:** 
+  - Added `vendor_id` retrieval for PO and IO paths.
+  - Added `vendor_id` to `goods_receipt_notes` INSERT.
+  - Added `::grn_source_type` explicit cast for `source_type`.
+- **Verify result:** Header now contains all mandatory columns added in Migration 035.
 
-## Post-Task Knowledge Capture
-- **No new patterns discovered beyond the SQL indexing fix.**
+### Task 3 — Backend: Verify Line Item Bulk Insert
+- **File changed:** `app/api/grn/route.ts` lines 312–315
+- **Key change:** 
+  - Verified `i * 10` stride and parameter mapping.
+  - Added `::grn_source_type` cast in line items bulk insert.
+- **Verify result:** `npx tsc --noEmit` → 0 errors.
+
+## Issues Encountered
+- Found a slight discrepancy in the pitfall file regarding stride (it claimed $i * 9$ but code already had $i * 10$); confirmed $i * 10$ is correct for the 12 columns (including 1 hardcoded line number).
+
+## Patterns/Traps Captured
+- **Explicit Enum Casting:** PostgreSQL enums often require `::type` cast when using bulk values templates in raw `pg`.
+- **Diagnostics vs Safety:** In production-ready ERP, returning `apiError` from DB exceptions is better than generic 500s for debugging data integrity issues.

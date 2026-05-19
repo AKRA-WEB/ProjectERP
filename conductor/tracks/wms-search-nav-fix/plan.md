@@ -1,6 +1,6 @@
 ---
 track: wms-search-nav-fix
-status: Active
+status: Completed
 aliases: ["Fix WMS Product Search & Navigation 404"]
 owner: puka
 module: WMS
@@ -24,29 +24,29 @@ Fix broken product search functionality in Inbound Orders and resolve the 404 er
 ### Task 1 — Frontend: Fix Product Search in Inbound Orders
 **File:** `app/app/inbound-orders/new/page.tsx`
 
-- [ ] **Step 1:** Modify the `ProductSearch` component's search effect.
-- [ ] **Step 2:** Update the `get` call to handle the unwrapped product array correctly (change `res.data` to just `res`).
-- [ ] **Step 3:** Ensure the debounce logic and loading states are preserved.
+- [x] **Step 1:** Modify the `ProductSearch` component's search effect.
+- [x] **Step 2:** Update the `get` call to handle the unwrapped product array correctly (change `res.data` to just `res`).
+- [x] **Step 3:** Ensure the debounce logic and loading states are preserved.
 
 ### Task 2 — Frontend: Fix Breadcrumb Home Link & Routing
 **File:** `components/layout/TopBar.tsx`
 
-- [ ] **Step 1:** Verify the correct target for the "Home" icon. It should likely go to `/app/menu` (the workspace selector).
-- [ ] **Step 2:** Update the `<Link href="/app/menu">` to the verified correct path (check if it should be `/app` or a different alias).
-- [ ] **Step 3:** Audit the breadcrumb mapping logic to ensure it doesn't generate links to non-existent intermediate routes.
+- [x] **Step 1:** Verify the correct target for the "Home" icon. It should likely go to `/app/menu` (the workspace selector).
+- [x] **Step 2:** Update the `<Link href="/app/menu">` to the verified correct path (check if it should be `/app` or a different alias).
+- [x] **Step 3:** Audit the breadcrumb mapping logic to ensure it doesn't generate links to non-existent intermediate routes.
 
 ### Task 3 — Middleware: Audit Redirects
 **File:** `middleware.ts`
 
-- [ ] **Step 1:** Check why `/app/menu` is returning 404 if the file exists at `app/app/menu/page.tsx`. 
-- [ ] **Step 2:** Fix any missing redirect rules or route group exclusions that might be causing the 404.
+- [x] **Step 1:** Check why `/app/menu` is returning 404 if the file exists at `app/app/menu/page.tsx`. 
+- [x] **Step 2:** Fix any missing redirect rules or route group exclusions that might be causing the 404.
 
 ---
 
 ## Acceptance Criteria
 
-- [ ] Product search in "New Inbound Order" returns results when typing SKU/Name.
-- [ ] Clicking the Home (house icon) in the top bar navigates to the workspace menu without 404.
-- [ ] All intermediate breadcrumb links point to valid pages.
-- [ ] `npx tsc --noEmit` — zero errors.
-- [ ] `npm run lint` — zero errors.
+- [x] Product search in "New Inbound Order" returns results when typing SKU/Name.
+- [x] Clicking the Home (house icon) in the top bar navigates to the workspace menu without 404.
+- [x] All intermediate breadcrumb links point to valid pages.
+- [x] `npx tsc --noEmit` — zero errors.
+- [x] `npm run lint` — zero errors.

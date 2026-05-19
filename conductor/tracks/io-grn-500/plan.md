@@ -1,6 +1,6 @@
 ---
 track: io-grn-500
-status: Active
+status: Completed
 aliases: ["Fix POST /api/grn 500 from IO Receive"]
 owner: puka, paku
 module: WMS
@@ -24,30 +24,30 @@ Fix the 500 Internal Server Error when submitting a Goods Receipt Note (GRN) for
 ### Task 1 — Backend: Improve Diagnostics
 **File:** `app/api/grn/route.ts`
 
-- [ ] **Step 1:** Modify the `POST` handler's catch block. Instead of `throw e`, return `apiError(e.message, 500)` to expose the actual database error during debugging.
-- [ ] **Step 2:** Add a `console.log` for the payload and the SQL query before execution to trace data flow.
+- [x] **Step 1:** Modify the `POST` handler's catch block. Instead of `throw e`, return `apiError(e.message, 500)` to expose the actual database error during debugging.
+- [x] **Step 2:** Add a `console.log` for the payload and the SQL query before execution to trace data flow.
 
 ### Task 2 — Backend: Fix Header Insertion
 **File:** `app/api/grn/route.ts`
 
-- [ ] **Step 1:** In the PO-based path, retrieve the `vendor_id` from the `purchase_orders` table.
-- [ ] **Step 2:** In the IO-based path, retrieve the `vendor_id` from the `inbound_orders` table.
-- [ ] **Step 3:** Update the `INSERT INTO goods_receipt_notes` statement to include the `vendor_id` column and parameter.
-- [ ] **Step 4:** Ensure `source_type` is explicitly cast to `::grn_source_type` in the SQL statement.
+- [x] **Step 1:** In the PO-based path, retrieve the `vendor_id` from the `purchase_orders` table.
+- [x] **Step 2:** In the IO-based path, retrieve the `vendor_id` from the `inbound_orders` table.
+- [x] **Step 3:** Update the `INSERT INTO goods_receipt_notes` statement to include the `vendor_id` column and parameter.
+- [x] **Step 4:** Ensure `source_type` is explicitly cast to `::grn_source_type` in the SQL statement.
 
 ### Task 3 — Backend: Verify Line Item Bulk Insert
 **File:** `app/api/grn/route.ts`
 
-- [ ] **Step 1:** Verify the mapping of `lineValues` and `lineParams`. Ensure the index offsets (`i * 10 + 2`, etc.) perfectly match the number of columns in the `INSERT` statement.
-- [ ] **Step 2:** Ensure all nullable fields (lot_number, expiry_date, etc.) are correctly handled with `?? null`.
+- [x] **Step 1:** Verify the mapping of `lineValues` and `lineParams`. Ensure the index offsets (`i * 10 + 2`, etc.) perfectly match the number of columns in the `INSERT` statement.
+- [x] **Step 2:** Ensure all nullable fields (lot_number, expiry_date, etc.) are correctly handled with `?? null`.
 
 ---
 
 ## Acceptance Criteria
 
-- [ ] Successful submission of IO-based GRN returns HTTP 201.
-- [ ] Successful submission of PO-based GRN returns HTTP 201.
-- [ ] `vendor_id` is correctly populated in the `goods_receipt_notes` table for new records.
-- [ ] Browser console no longer shows 500 Error, or shows a descriptive error message if a constraint is violated.
-- [ ] `npx tsc --noEmit` — zero errors.
-- [ ] `npm run lint` — zero errors.
+- [x] Successful submission of IO-based GRN returns HTTP 201.
+- [x] Successful submission of PO-based GRN returns HTTP 201.
+- [x] `vendor_id` is correctly populated in the `goods_receipt_notes` table for new records.
+- [x] Browser console no longer shows 500 Error, or shows a descriptive error message if a constraint is violated.
+- [x] `npx tsc --noEmit` — zero errors.
+- [x] `npm run lint` — zero errors.
