@@ -1,4 +1,17 @@
-# Skill Modules Index (ห้ามโหลดไฟล์เหล่านี้จนกว่าจะถึงเวลาที่ต้องใช้)
+# Skill Modules Index
+
+## ⚡ Shared Principles — อ่านก่อนทุกครั้ง (ทุก Agent)
+
+อ่าน `docs/skills/agent-principles.md` ก่อนเริ่มงานทุกครั้ง — 5 กฎที่ทุก agent ต้องปฏิบัติตาม:
+- **NO MAGIC** — ห้ามเดา ต้องยืนยันจากโค้ดจริงเสมอ
+- **VERIFY BEFORE DONE** — ต้องมี evidence ก่อนบอกว่าเสร็จ
+- **DISSENT** — ต้องตั้งคำถามก่อน commit การเปลี่ยนแปลงใหญ่
+- **SCOPE DRIFT** — flag ทุกครั้งที่ scope เริ่มขยาย
+- **R0/R1/R2** — แบ่งระดับก่อนทำ destructive action
+
+---
+
+## Skill Modules (โหลดเฉพาะกิจ — ห้ามโหลดล่วงหน้าหลายไฟล์พร้อมกัน)
 เพื่อประหยัด Token ห้ามอ่านไฟล์เหล่านี้ล่วงหน้า ให้ใช้คำสั่ง File Read เพื่อดึงมาอ่านเมื่อตรงกับบริบทของงานเท่านั้น:
 
 1. **[Frontend_UI]**: สำหรับงานสร้าง UI, React Components, Tailwind CSS, หรือ Client Pages (`'use client'`)

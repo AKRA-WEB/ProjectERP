@@ -93,12 +93,13 @@ _notes/
 └── 05_Summaries/      ← module summaries, changelogs
 ```
 
-**Rules:** plan.md must have YAML frontmatter. Never write to `.obsidian/`. Claude writes to `_notes/` only when user requests.
+**Rules:** plan.md must have YAML frontmatter. Never write to `.obsidian/`.
 
 ## Note-Taking Guide
 
 | สิ่งที่พบ | เขียนที่ |
 |----------|---------|
+| **Track เสร็จ / DB column ใหม่ / API route ใหม่** | `_notes/02_Agent_Memory/current-state.md` — อัปเดต Active Work + Last 5 Tracks |
 | Architectural decision | `_notes/01_Decisions/<track>.md` |
 | Bug root cause / non-obvious fix | `_notes/04_Debug_Log/<YYYY-MM-DD>-<topic>.md` |
 | Anti-pattern / pitfall | `_notes/02_Agent_Memory/pitfalls.md` |

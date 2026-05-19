@@ -11,6 +11,20 @@ load-when: "QA, audit, rework-plan, lint, build, review"
 
 ---
 
+## Pre-Audit Checklist (ก่อนเริ่ม)
+
+1. **อ่าน `docs/skills/agent-principles.md`** — shared operating principles
+2. **อ่าน `_notes/02_Agent_Memory/pitfalls.md`** — รู้ traps ก่อน audit
+
+## Obsidian Writes (Billy)
+
+- ✅ MAY append `## ❌ Trap — <name>` ใน `docs/skills/qa_audit_rules.md` หรือ skill file ที่เกี่ยวข้อง ถ้าพบ trap ใหม่
+- ✅ MAY append ใน `_notes/02_Agent_Memory/pitfalls.md` ถ้าพบ pattern ที่เป็น systemic issue
+- ❌ ห้าม write/modify `conductor/tracks/*/rework-plan.md` — หน้าที่ของ Claude (หลัง Chen validate)
+- ❌ ห้าม update `conductor/index.md` — หน้าที่ของ Claude
+
+---
+
 ## Audit Process (ทำตามลำดับ)
 
 1. **อ่าน `plan.md`** ของ track ที่ต้องตรวจ

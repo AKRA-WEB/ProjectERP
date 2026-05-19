@@ -290,6 +290,12 @@ for (const l of lines) {
 **Verification:** count commas in one VALUES row → must equal `push()` call count.
 **Found in:** `app/api/grn/route.ts` — io-grn-500 (2026-05-18)
 
+## ❌ Trap — Explicit Enum Casting in Bulk Value Template
+**Symptom:** Error "invalid input value for enum" เมื่อพยายามบันทึกข้อมูลหลายแถวพร้อมกัน (Bulk Insert)
+**Root cause:** PostgreSQL ไม่สามารถระบุชนิดข้อมูล (type) ของตัวแปรได้ว่าเป็น Enum ชนิดใด เมื่ออยู่ในรูปแบบ Template String
+**Fix:** ใส่ casting ชัดเจนใน template SQL เช่น `($1, $2::grn_source_type)`
+**Found in:** task [2] of track [io-grn-500] (2026-05-19)
+
 ## ❌ Trap — Zod regex rejection of empty strings
 **Symptom:** API ตอบกลับ 400 Validation Error เมื่อเว้นว่างช่องวันที่ (Date Input)
 **Root cause:** Zod `.regex(/^\d{4}-\d{2}-\d{2}$/)` ไม่ยอมรับ `""` (empty string) ซึ่งเป็นค่าเริ่มต้นของ HTML date input เมื่อไม่ได้เลือกวันที่

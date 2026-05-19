@@ -33,14 +33,49 @@ The HR Module provides a comprehensive suite of tools for managing employees, le
 - **Role Integration**: Pre-configured access for System Admins, Managers, and Staff.
 
 ## Technical Details
-- **Framework**: Next.js 15 (App Router)
-- **Database**: PostgreSQL (Raw `pg` queries)
-- **Validation**: Zod schema validation for all API inputs
-- **Design**: Consistent with the project's Tailwind-based UI system
 
-## Important Files
-- **Migration**: `migrations/019_hr_departments.sql` to `023_hr_permissions.sql`
+### Users Table — HR Columns Added (verify in migrations before writing SQL)
+```
+employee_id      VARCHAR(50) UNIQUE  ← aliased as "employee_code" in API
+position         VARCHAR(100)        ← free-text
+hired_date       DATE
+department_id    UUID → departments
+position_id      UUID → positions
+salary_grade_id  UUID → salary_grades
+base_salary      NUMERIC(12,2)
+employment_type  VARCHAR(20)         ← 'full_time'|'part_time'|'contract'
+employee_status  VARCHAR(20)         ← 'active'|'inactive'|'probation'
+work_schedule_id UUID → work_schedules
+```
+
+### Leave Request — Field Trap
+```
+leave_requests.notes    ✅  (not .reason — that column does not exist)
+leave_requests.status   ✅  'submitted'|'approved'|'rejected'|'cancelled'
+```
+
+### Payroll Status Flow
+```
+draft → processing (action: submit_review) → approved → paid
+NOT: 'review' — enum value is 'processing'
+```
+
+### API Routes
+```
+GET  /api/hr/stats                        KPIs + feeds
+GET  /api/hr/employees                    list (hire_date, branch_name, salary gated)
+GET  /api/hr/employees/stats              KPI numbers
+GET  /api/hr/leave-requests               list
+GET  /api/hr/leave-requests/stats         KPI numbers
+GET  /api/hr/leave-requests/calendar      team calendar grid
+PATCH /api/hr/leave-requests/[id]         action: approve|reject
+GET  /api/hr/payroll-runs/[id]            detail + rows + summary
+PATCH /api/hr/payroll-runs/[id]           action: submit_review|approve|post_to_accounting
+```
+
+### Important Files
+- **Migrations**: `019_hr_departments.sql` → `024_hr_indexes.sql`
 - **API**: `app/api/hr/`
 - **UI**: `app/app/hr/`
-- **Logic**: `lib/hr/payroll-calc.ts`
-- **Detailed Log**: `conductor/tracks/hr-module/execution-summary.md`
+- **Payroll logic**: `lib/hr/payroll-calc.ts`
+- **Design reference**: `docs/design/hr-bundle/apps/`

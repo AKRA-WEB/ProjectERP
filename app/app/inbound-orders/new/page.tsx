@@ -223,7 +223,7 @@ export default function NewInboundOrderPage() {
           </div>
 
           {lines.length > 0 && (
-            <div className="border rounded-lg overflow-hidden">
+            <div className="border rounded-lg">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50">
                   <tr>

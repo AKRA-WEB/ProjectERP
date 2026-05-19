@@ -10,7 +10,9 @@ import {
   Building2, UserCircle, FileText, Receipt, Truck, CreditCard, ShoppingBag,
   History, BarChart3, BarChart2, Calendar, BookOpen, Scale, TrendingDown, Landmark,
   Clock, Banknote, Users, Building, Timer, Wallet, Settings, KeyRound,
-  Warehouse, ChevronLeft, ChevronDown, CheckSquare, Square
+  Warehouse, ChevronLeft, ChevronDown, CheckSquare, Square,
+  GitBranch, UserPlus, CalendarRange, CalendarCheck, CalendarDays, ListChecks,
+  Briefcase, UserSearch, Tag, TrendingUp
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useT } from '@/lib/i18n';
@@ -331,15 +333,63 @@ export function Sidebar({ open, onClose, userRole, permissions, collapsed, onTog
 
     hr: [
       {
-        label: t('nav.hr_section'),
+        label: 'ภาพรวม',
         items: [
-          { href: '/app/hr',              label: t('nav.overview'),    icon: BarChart3, permission: 'hr:employees:view' },
-          { href: '/app/hr/employees',    label: t('page.employees'),  icon: Users,     permission: 'hr:employees:view' },
-          { href: '/app/hr/departments',  label: t('page.departments'),icon: Building,  permission: 'hr:departments:view' },
-          { href: '/app/hr/leave-requests', label: t('page.leave'),    icon: Calendar,  permission: 'hr:leave:view' },
-          { href: '/app/hr/attendance/my',  label: t('page.attendance'), icon: Timer,     permission: 'hr:attendance:view' },
-          { href: '/app/hr/payroll',      label: t('page.payroll'),    icon: Wallet,    permission: 'hr:payroll:view' },
-        ],
+          { href: '/app/hr', label: t('page.hr_dashboard'), icon: LayoutDashboard, permission: 'hr:employees:view' },
+        ]
+      },
+      {
+        label: t('nav.hr_employees'),
+        items: [
+          { href: '/app/hr/employees', label: t('nav.hr_employees'), icon: Users, permission: 'hr:employees:view' },
+          { href: '/app/hr/org', label: t('nav.hr_org'), icon: GitBranch, permission: 'hr:employees:view' },
+          { href: '/app/hr/onboarding', label: t('nav.hr_onboarding'), icon: UserPlus, permission: 'hr:employees:view' },
+        ]
+      },
+      {
+        label: t('nav.hr_time'),
+        items: [
+          { href: '/app/hr/attendance', label: t('page.attendance'), icon: Clock, permission: 'hr:employees:view' },
+          { href: '/app/hr/shifts', label: t('nav.hr_shifts'), icon: CalendarRange, permission: 'hr:employees:view' },
+          { href: '/app/hr/overtime', label: t('nav.hr_overtime'), icon: Timer, permission: 'hr:employees:view' },
+        ]
+      },
+      {
+        label: t('nav.hr_leave'),
+        items: [
+          { href: '/app/hr/leave-requests', label: t('page.leave'), icon: CalendarCheck, permission: 'hr:employees:view' },
+          { href: '/app/hr/leave/calendar', label: t('nav.hr_leave_calendar'), icon: CalendarDays, permission: 'hr:employees:view' },
+          { href: '/app/hr/leave/quota', label: t('nav.hr_leave_quota'), icon: ListChecks, permission: 'hr:employees:view' },
+        ]
+      },
+      {
+        label: t('nav.hr_payroll'),
+        items: [
+          { href: '/app/hr/payroll', label: t('page.payroll'), icon: Banknote, permission: 'hr:employees:view' },
+          { href: '/app/hr/payroll/slips', label: t('nav.hr_payroll_slips'), icon: FileText, permission: 'hr:employees:view' },
+          { href: '/app/hr/payroll/tax', label: t('nav.hr_payroll_tax'), icon: Receipt, permission: 'hr:employees:view' },
+        ]
+      },
+      {
+        label: t('nav.hr_development'),
+        items: [
+          { href: '/app/hr/performance', label: t('nav.hr_performance'), icon: TrendingUp, permission: 'hr:employees:view' },
+          { href: '/app/hr/training', label: t('nav.hr_training'), icon: BookOpen, permission: 'hr:employees:view' },
+        ]
+      },
+      {
+        label: t('nav.hr_recruitment'),
+        items: [
+          { href: '/app/hr/jobs', label: t('nav.hr_jobs'), icon: Briefcase, permission: 'hr:employees:view' },
+          { href: '/app/hr/candidates', label: t('nav.hr_candidates'), icon: UserSearch, permission: 'hr:employees:view' },
+        ]
+      },
+      {
+        label: t('nav.hr_masterdata'),
+        items: [
+          { href: '/app/hr/positions', label: t('nav.hr_positions'), icon: Tag, permission: 'hr:employees:view' },
+          { href: '/app/hr/departments', label: t('nav.hr_departments'), icon: Building2, permission: 'hr:employees:view' },
+        ]
       },
     ],
 

@@ -177,5 +177,23 @@ If stride ≠ param count per row → all rows after the first get wrong values 
 
 **Prevention:** Chen Phase 1 now requires confirming the exact file path AND the function name exist before writing any task that references them. If the file structure differs from expectation → HALT and investigate before writing tasks.
 
+## ❌ Trap — Multi-Replace Race Condition (Turn Collision)
+**Symptom:** Edits are missing or revert to previous state even after a "Successful" tool response.
+**Root cause:** Calling `replace` multiple times on the same file in a single conversational turn. The tool environment handles these in parallel, leading to a race condition where one edit may overwrite another if they start from the same base state.
+**Fix:** Perform only ONE `replace` call per file per turn. Wait for the turn to finish and verify the file content before making the next edit.
+**Found in:** task 1 of track hr-ui-redesign
+
 ---
-*Updated: 2026-05-18*
+*Updated: 2026-05-19*
+
+### 10. Absolute Dropdown Clipping in Tables
+- **Symptom:** รายการค้นหา (ProductSearch) หรือ Select ที่เป็น `absolute` ไม่แสดงผลเมื่ออยู่ในตาราง
+- **Root cause:** ตัวครอบตาราง (Table wrapper) มี class `overflow-hidden` (มักมากับ `rounded-lg`) ทำให้ส่วนที่เกินตารางถูกตัดทิ้ง
+- **Fix:** นำ `overflow-hidden` ออกจาก Container ที่มี component แบบ absolute อยู่ภายใน หรือใช้ React Portal
+- **Found in:** `app/app/inbound-orders/new/page.tsx`
+
+### 11. Explicit Enum Casting ใน Bulk Insert
+- **Symptom:** Error "invalid input value for enum" เมื่อใช้ template values สำหรับการ insert หลายแถวพร้อมกัน
+- **Root cause:** ฐานข้อมูล PostgreSQL ไม่สามารถเดา type ของ string ใน template values ได้ว่าเป็น enum ชนิดไหน
+- **Fix:** ต้องใส่ casting ชัดเจนใน template เช่น `($1, $2::grn_source_type)`
+- **Found in:** `app/api/grn/route.ts`

@@ -16,6 +16,7 @@
 
 | Track | Status | Plan |
 |-------|--------|------|
+| [hr-ui-redesign — HR UI Redesign (Dashboard · Employees · Leave · Payroll)](./tracks/hr-ui-redesign/plan.md) | Active | [plan](./tracks/hr-ui-redesign/plan.md) |
 | [po-gr-audit — PO & GRN Transaction Integrity Fix](./tracks/po-gr-audit/plan.md) | Verified | [rework-plan](./tracks/po-gr-audit/rework-plan.md) |
 | [product-stock-summary — Product Detail Stock Overview](./tracks/product-stock-summary/plan.md) | Verified | [plan](./tracks/product-stock-summary/plan.md) |
 
@@ -27,7 +28,6 @@
 
 | Track | Rework Plan |
 |-------|-------------|
-| [View Transitions — App-wide Implementation](./tracks/view-transitions/plan.md) | [rework-plan](./tracks/view-transitions/rework-plan.md) |
 
 ## All Tracks
 
@@ -76,7 +76,7 @@
 | [UI Improvement — POS Tier Badges · Lock Timer · Thermal Receipt](./tracks/ui-improvement-pos/plan.md) | Optimization Suggested | 2026-05-15 | 2026-05-17 |
 | [UI Improvement — WMS Ops (GRN Tabs · QC KPIs · Receiving Queue)](./tracks/ui-improvement-wms-ops/plan.md) | Verified | 2026-05-15 | 2026-05-17 |
 | [Security Fixes — Pre-Vercel Auth Guards · Warehouse Scope · Perf](./tracks/security-fixes/plan.md) | Verified | 2026-05-15 | 2026-05-16 |
-| [View Transitions — App-wide Implementation](./tracks/view-transitions/plan.md) | Rework Required | 2026-05-15 | 2026-05-19 |
+| [View Transitions — App-wide Implementation](./tracks/view-transitions/plan.md) | Completed | 2026-05-15 | 2026-05-19 |
 | [Hamburger Sidebar Z-Index Fix](./tracks/hamburger-zindex-fix/plan.md) | Optimization Suggested | 2026-05-16 | 2026-05-17 |
 | [Inbound Receive Fix — IO GRN "Request failed"](./tracks/inbound-receive-fix/plan.md) | Verified | 2026-05-18 | 2026-05-19 |
 | [PO Immediate Approval — Discount + Financial Summary + Auto-GRN](./tracks/po-immediate-approval/plan.md) | Verified | 2026-05-18 | 2026-05-19 |
@@ -88,3 +88,4 @@
 | [io-grn-500 — Fix POST /api/grn 500 from IO Receive](./tracks/io-grn-500/plan.md) | Completed | 2026-05-18 | 2026-05-19 |
 | [wms-search-nav-fix — Fix WMS Product Search & Navigation 404](./tracks/wms-search-nav-fix/plan.md) | Completed | 2026-05-19 | 2026-05-19 |
 | [product-stock-summary — Product Detail Stock Overview](./tracks/product-stock-summary/plan.md) | Completed | 2026-05-19 | 2026-05-19 |
+| [hr-ui-redesign — HR UI Redesign (Dashboard · Employees · Leave · Payroll)](./tracks/hr-ui-redesign/plan.md) | Active | 2026-05-19 | 2026-05-19 |

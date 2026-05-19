@@ -202,22 +202,21 @@ function SearchComponent({ value, onSelect, onClear }) {
 ```
 **Found in:** task [1.1] of track [io-product-search]
 
-## ✅ Pattern — Inline Field Validation with Tab Switching
-**Context:** เมื่อฟอร์มมีหลาย Tab และ field ที่จำเป็น (Required) อยู่ใน Tab ที่ไม่ได้เปิดอยู่ตอนกด Submit
+## ✅ Pattern — Two-pass Rendering for Hydration Safety
+**Context:** เมื่อต้องการเข้าถึง Browser-only APIs (localStorage, window, Date) ที่มีค่าไม่ตรงกับ Server เพื่อป้องกัน Hydration Mismatch
 **Correct way:**
 ```typescript
-  async function handleSubmit() {
-    const newErrors: Record<string, string> = {};
-    if (!form.required_field_in_hidden_tab) {
-      newErrors.required_field_in_hidden_tab = 'กรุณาระบุข้อมูล';
-      setActiveTab('hidden-tab-name'); // เปลี่ยน Tab ให้ผู้ใช้เห็น Error ทันที
-    }
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-  }
+const [isMounted, setIsMounted] = useState(false);
+useEffect(() => { setIsMounted(true); }, []);
+
+if (!isMounted) return null; // หรือแสดง Skeleton
 ```
-**Found in:** task [1.1] of track [po-fix-400]
+**Found in:** Global hydration fix for AppLayout, DashboardPage (2026-05-19)
+
+## ❌ Trap — Absolute Dropdown Clipping in Tables
+**Symptom:** รายการค้นหาหรือ Select ที่ใช้ `absolute` ไม่แสดงผลเมื่ออยู่ในตาราง
+**Root cause:** Parent container (เช่น `div` ที่ล้อมตาราง) มี `overflow-hidden` ทำให้ dropdown ถูกตัด
+**Fix:** นำ `overflow-hidden` ออกจาก table wrapper หรือเปลี่ยนมาใช้ React Portal สำหรับ dropdown
+**Found in:** task [1] of track [wms-search-nav-fix] (2026-05-19)
 
 

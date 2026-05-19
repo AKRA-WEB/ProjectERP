@@ -2,6 +2,39 @@
 
 ---
 
+## Session: 2026-05-19 (Session 14 — UX Stability + Inbound Logic Fixes)
+
+### สิ่งที่ทำวันนี้
+
+#### 1. Client-side Exceptions & Hydration Fixes — ✅
+- **Root cause:** การใช้ `localStorage` และ `new Date()` ในขั้นตอน initialization ของ `useState` ทำให้ HTML ที่ Render จาก Server ไม่ตรงกับ Client
+- **Fix:** ใช้ `useEffect` ร่วมกับสถานะ `isMounted` เพื่อเลื่อนการอ่านค่าจาก Browser-only APIs ไปทำหลังจากหน้าจอโหลดเสร็จแล้ว
+- **Global Layout:** เพิ่ม `ToastProvider` ใน `app/layout.tsx` เพื่อป้องกัน `useToast()` crash ในหน้า GRN Detail
+
+#### 2. io-grn-500: Fix POST /api/grn 500 — ✅
+- **Header Fix:** เพิ่มการดึง `vendor_id` จาก PO/IO ต้นทางมาบันทึกลงหัวเอกสาร GRN (ฟิลด์บังคับจาก Migration 035)
+- **SQL Casting:** ใส่ `::grn_source_type` ใน SQL Template สำหรับการ Bulk Insert รายการสินค้า เพื่อให้ Postgres รู้จัก Enum type
+- **Diagnostics:** เปลี่ยนจาก `throw e` เป็น `return apiError(e.message, 500)` เพื่อให้เห็นสาเหตุจริงใน Browser console
+
+#### 3. wms-search-nav-fix: Search & 404 Fixes — ✅
+- **Product Search:** แก้ไข `ProductSearch` ในหน้า Inbound Orders ให้รองรับข้อมูลสินค้าจาก API ได้ทั้งแบบ wrapped และ unwrapped
+- **CSS Clipping:** นำ `overflow-hidden` ออกจากตัวครอบตารางในหน้า "สร้าง IO ใหม่" เพื่อให้รายการค้นหา (Absolute Dropdown) แสดงผลได้ไม่ถูกตัด
+- **Breadcrumb Nav:** เพิ่ม `routeMap` ใน `TopBar` เพื่อ Mapping เส้นทางระหว่างกลางที่ไม่มีหน้า Page (เช่น /app/receiving) ให้ไปลงที่หน้า List ที่ถูกต้อง ป้องกัน 404
+
+### สถานะโค้ด (Code Stability)
+
+| ระบบ | สถานะ |
+|------|-------|
+| WMS Core | ✅ Verified |
+| POS Module | ✅ Verified |
+| HR Module | ✅ Completed |
+| Sales Module | ✅ Completed |
+| Accounting Module | ✅ Completed |
+| **IO GRN Flow** | **✅ Completed & Fixed** |
+| **WMS UX/Nav** | **✅ Completed & Fixed** |
+
+---
+
 ## Session: 2026-05-18 (Session 13 — Production Bug Fix + Mistake Prevention System)
 
 ### สิ่งที่ทำวันนี้
