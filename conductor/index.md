@@ -16,8 +16,10 @@
 
 | Track | Status | Plan |
 |-------|--------|------|
-| [po-gr-audit — PO & GRN Transaction Integrity Fix](./tracks/po-gr-audit/plan.md) | Completed | [plan](./tracks/po-gr-audit/plan.md) |
-| [product-stock-summary — Product Detail Stock Overview](./tracks/product-stock-summary/plan.md) | Completed | [plan](./tracks/product-stock-summary/plan.md) |
+| [po-gr-audit — PO & GRN Transaction Integrity Fix](./tracks/po-gr-audit/plan.md) | Verified | [rework-plan](./tracks/po-gr-audit/rework-plan.md) |
+| [product-stock-summary — Product Detail Stock Overview](./tracks/product-stock-summary/plan.md) | Verified | [plan](./tracks/product-stock-summary/plan.md) |
+
+
 
 ## Rework Required
 
@@ -40,7 +42,7 @@
 | [Employee Management + RBAC](./tracks/employee-rbac/plan.md) | Completed | 2026-05-10 | 2026-05-17 |
 | [IO Product Search + Remove Unit Cost](./tracks/io-product-search/plan.md) | Completed | 2026-05-10 | 2026-05-18 |
 | [Sidebar Navigation Grouping](./tracks/sidebar-grouping/plan.md) | Completed | 2026-05-10 | 2026-05-18 |
-| [i18n Label Fix — Thai Status/Entry Labels](./tracks/i18n-label-fix/plan.md) | Optimization Suggested | 2026-05-10 | 2026-05-17 |
+| [i18n Label Fix — Thai Status/Entry Labels](./tracks/i18n-label-fix/plan.md) | Verified | 2026-05-10 | 2026-05-17 |
 | [Thai Double-Encoding Fix (TIS-620 re-encode)](./tracks/encoding-fix/plan.md) | Optimization Suggested | 2026-05-10 | 2026-05-17 |
 | [POS Module (Point of Sale)](./tracks/pos-module/plan.md) | Completed | 2026-05-11 | 2026-05-17 |
 | [Sales Module (SQ→SO→DO→SI→SR)](./tracks/sales-module/plan.md) | Completed | 2026-05-11 | 2026-05-17 |
@@ -72,7 +74,7 @@
 | [UI Redesign — POS Terminal · Inventory · GRN Mobile](./tracks/ui-redesign-pos-inventory-grn/plan.md) | Verified | 2026-05-16 | 2026-05-16 |
 | [UI Improvement — Inventory Heatmap Matrix + Warehouse Cards](./tracks/ui-improvement-inventory/plan.md) | Optimization Suggested | 2026-05-15 | 2026-05-17 |
 | [UI Improvement — POS Tier Badges · Lock Timer · Thermal Receipt](./tracks/ui-improvement-pos/plan.md) | Optimization Suggested | 2026-05-15 | 2026-05-17 |
-| [UI Improvement — WMS Ops (GRN Tabs · QC KPIs · Receiving Queue)](./tracks/ui-improvement-wms-ops/plan.md) | Completed | 2026-05-15 | 2026-05-17 |
+| [UI Improvement — WMS Ops (GRN Tabs · QC KPIs · Receiving Queue)](./tracks/ui-improvement-wms-ops/plan.md) | Verified | 2026-05-15 | 2026-05-17 |
 | [Security Fixes — Pre-Vercel Auth Guards · Warehouse Scope · Perf](./tracks/security-fixes/plan.md) | Verified | 2026-05-15 | 2026-05-16 |
 | [View Transitions — App-wide Implementation](./tracks/view-transitions/plan.md) | Rework Required | 2026-05-15 | 2026-05-19 |
 | [Hamburger Sidebar Z-Index Fix](./tracks/hamburger-zindex-fix/plan.md) | Optimization Suggested | 2026-05-16 | 2026-05-17 |

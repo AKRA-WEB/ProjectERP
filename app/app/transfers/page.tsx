@@ -42,7 +42,7 @@ export default function TransfersPage() {
                 <Th>เลขที่โอน</Th>
                 <Th className="hidden sm:table-cell">จากคลัง</Th>
                 <Th className="hidden sm:table-cell">ไปคลัง</Th>
-                <Th className="hidden sm:table-cell">ผู้ดำเนินการ</Th>
+                <Th className="hidden sm:table-cell">ผู้ดำ��นการ</Th>
                 <Th className="hidden sm:table-cell">รายการ</Th>
                 <Th>สถานะ</Th>
                 <Th className="hidden sm:table-cell">วันที่</Th>

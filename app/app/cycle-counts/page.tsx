@@ -40,7 +40,7 @@ export default function CycleCountsPage() {
               <tr>
                 <Th>เลขที่</Th>
                 <Th className="hidden sm:table-cell">คลัง</Th>
-                <Th className="hidden sm:table-cell">ผู้ดำเนินการ</Th>
+                <Th className="hidden sm:table-cell">ผู้ดำ��นการ</Th>
                 <Th className="hidden sm:table-cell">รายการ</Th>
                 <Th className="hidden sm:table-cell">นับแล้ว</Th>
                 <Th>สถานะ</Th>

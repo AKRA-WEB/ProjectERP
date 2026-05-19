@@ -5,9 +5,9 @@ agent: billy
 load-when: "QA, audit, rework-plan, lint, build, review"
 ---
 
-# QA Audit Rules
+# QA Audit Rules & Code Review Standards
 
-**ใช้เมื่อ:** ตรวจสอบ track ที่ implement แล้ว, รัน lint/build, หรือสร้าง `rework-plan.md` (หน้าที่ของ Billy)
+**ใช้เมื่อ:** ตรวจสอบ track ที่ implement แล้ว, รัน lint/build, ทำ Code Review เชิงลึก, หรือสร้าง `rework-plan.md` (หน้าที่ของ Billy)
 
 ---
 
@@ -16,16 +16,17 @@ load-when: "QA, audit, rework-plan, lint, build, review"
 1. **อ่าน `plan.md`** ของ track ที่ต้องตรวจ
 2. **ตรวจทุก checkbox** — verify file exists + implementation matches spec
 3. **รัน `npm run lint`** — ต้องผ่านก่อน mark ว่า pass
-4. **สร้าง `rework-plan.md`** ถ้าพบปัญหา
-5. **อัพเดท `conductor/index.md`** — เปลี่ยน status เป็น `Verified` หรือ `Rework Required`
+4. **ทำ Deep Code Review** — ตรวจสอบ logic, performance, และ maintainability ตาม checklist ด้านล่าง
+5. **สร้าง `rework-plan.md`** ถ้าพบปัญหา
+6. **อัพเดท `conductor/index.md`** — เปลี่ยน status เป็น `Verified` หรือ `Rework Required`
 
 ## Severity Classification
 
 | Level | Label | เมื่อไหร่ |
 |-------|-------|---------|
-| 🔴 | **Must Fix** | ทำให้ระบบ crash, data loss, security hole, หรือ violate CLAUDE.md rules |
-| 🟡 | **Should Fix** | Code smell, missing validation, performance issue, convention violation |
-| 🔵 | **Suggestion** | Nice-to-have, future improvement |
+| 🔴 | **Must Fix** | ทำให้ระบบ crash, data loss, security hole, N+1 Query รุนแรง, หรือ violate CLAUDE.md rules |
+| 🟡 | **Should Fix** | Code smell, missing validation, performance issue, duplicated UI, convention violation |
+| 🔵 | **Suggestion** | Nice-to-have, future improvement, code readability enhancement |
 
 ## rework-plan.md Format
 
@@ -61,44 +62,30 @@ load-when: "QA, audit, rework-plan, lint, build, review"
 
 ## Checklist — สิ่งที่ต้องตรวจทุก track
 
-### API Routes
-- [ ] Auth check (`const session = await auth()`)
-- [ ] SessionUser cast (`as unknown as SessionUser`)
-- [ ] `buildWarehouseScopeClause` บน GET list
-- [ ] Zod validation ทุก POST/PATCH
-- [ ] `apiSuccess` / `apiError` response — ห้าม `Response.json()`
-- [ ] Transaction (`pool.connect()` + BEGIN/COMMIT/ROLLBACK) ถ้ามี multi-table write
-- [ ] No unbounded queries (มี LIMIT/OFFSET)
-- [ ] Parameterized queries (`$1, $2`) — ไม่มี string interpolation
+### 1. API Routes & Database (Structural & Performance)
+- [ ] **Auth & Scope:** `const session = await auth()`, SessionUser cast, และ `buildWarehouseScopeClause`
+- [ ] **Validation:** Zod validation ทุก POST/PATCH — ต้องครอบคลุม edge cases (เช่น negative numbers, empty arrays, max length)
+- [ ] **Response Format:** `apiSuccess` / `apiError` เท่านั้น — ห้าม `Response.json()`
+- [ ] **Error Clarity:** ข้อความใน `apiError` ต้องอ่านรู้เรื่องและชี้เป้าปัญหาได้ชัดเจน ไม่ใช้ข้อความกว้างๆ เช่น "Error occurred"
+- [ ] **Transaction Guard:** ใช้ `pool.connect()` + BEGIN/COMMIT/ROLLBACK เสมอหากมี multi-table write
+- [ ] **Query Safety:** Parameterized queries (`$1, $2`) — ห้ามทำ string interpolation
+- [ ] **Performance (No N+1):** ห้ามมี SQL Query ซ่อนอยู่ในลูป (เช่น `await query` ใน `for...of`) หากทำได้ ให้ใช้ `IN ($1::uuid[])` หรือ `json_agg` แทน
 
-### UI Pages
-- [ ] **BUG/TODO/FIXME scan:** `grep -r "// BUG\|// TODO\|// FIXME\|// HACK\|intentionally omitted" <track-files>` — any match in modified files = 🔴 Must Fix. Placeholder comments = task not done.
-- [ ] `'use client'` directive
-- [ ] Pagination component มี
-- [ ] `formatDate()` ใช้แทน raw date format
-- [ ] `formatCurrency()` ใช้แทน inline number format
-- [ ] Bilingual labels (Thai / English)
-- [ ] ใช้ components จาก `components/ui/index.ts`
-- [ ] ไม่มี `console.log` / `console.error` / `console.warn` debug artifacts
-- [ ] ไม่มี hardcoded VAT rate (`0.07`) — ต้องใช้ `VAT_RATE` จาก `lib/constants.ts`
+### 2. UI Pages & Components (Maintainability & UX)
+- [ ] **Clean Code:** `grep -r "// BUG\|// TODO\|// FIXME\|// HACK\|intentionally omitted" <track-files>` — any match in modified files = 🔴 Must Fix. Placeholder comments = task not done.
+- [ ] **Artifact Free:** ไม่มี `console.log` / `console.error` / `console.warn`
+- [ ] **Component Reusability:** ไม่เขียน HTML ซ้ำซ้อน — ถ้า UI element ถูกใช้มากกว่า 2 ที่ ต้อง extract เป็น component หรือดึงจาก `components/ui/index.ts`
+- [ ] **Formatting:** ใช้ `formatDate()` และ `formatCurrency()` เสมอ
+- [ ] **Bilingual:** ข้อความ/Label ต้องรองรับ Thai / English (หรือใช้ `useT()`)
+- [ ] **Hardcode Check:** ห้ามมี Hardcoded VAT rate (`0.07`) — ต้องใช้ `VAT_RATE` จาก `lib/constants.ts`
+- [ ] **Pagination & Limits:** ทุกตารางข้อมูลต้องมี Pagination และไม่ fetch unbounded list
 
-### Migration
-- [ ] ไฟล์ใหม่ ไม่แก้ไฟล์เก่า
-- [ ] FK references ไปยัง table ที่มีอยู่จริง
-- [ ] มี index บน foreign key columns
-- [ ] Wrapped ใน BEGIN/COMMIT
-
-### Business Rules
+### 3. Migration & Architecture
+- [ ] ไฟล์ใหม่ ไม่แก้ไฟล์เก่า (Immutability of migrations)
+- [ ] FK references ไปยัง table ที่มีอยู่จริง พร้อม Index บน FK columns
+- [ ] `stock_ledger` ต้องเป็น insert-only
 - [ ] `users.name_th` + `users.name_en` — ไม่มี `name`
-- [ ] `stock_ledger` insert-only
-- [ ] Document numbers ผ่าน `next_doc_number()`
-- [ ] Role restrictions ถูกต้อง
-
-## Constraints
-
-- ห้าม mark Verified ถ้า lint fail
-- ห้าม mark Verified ถ้ามี Must Fix ค้างอยู่
-- ต้อง verify file exists จริงก่อน report — ห้ามเดาจาก plan เท่านั้น
+- [ ] การ Generate Document Numbers ต้องผ่าน `next_doc_number()` จาก DB เท่านั้น
 
 ---
 
@@ -109,4 +96,5 @@ load-when: "QA, audit, rework-plan, lint, build, review"
 **Root cause:** If multiple `replace` tools are called for the same file in one turn, and they all use `old_string` from the *original* file content, the later ones might not account for changes made by the earlier ones, or they might race.
 **Fix:** Avoid multiple `replace` calls for the same file in a single turn. Either consolidate them into one `replace` or `write_file`, or perform them in sequential turns.
 **Found in:** task [N/A] of track [dynamic-sidebar] rework
+
 

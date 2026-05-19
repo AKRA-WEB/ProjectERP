@@ -54,12 +54,31 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   try {
     await client.query('BEGIN');
 
-    for (const line of parsed.data.lines) {
-      await client.query(
-        `UPDATE grn_line_items SET qty_accepted = $1, qty_rejected = $2, qc_status = $3, qc_notes = $4 WHERE id = $5 AND grn_id = $6`,
-        [line.qty_accepted, line.qty_rejected, line.qc_status, line.qc_notes ?? null, line.id, id]
-      );
-    }
+    // Batch update grn_line_items
+    const ids = parsed.data.lines.map(l => l.id);
+    const qtyAccepteds = parsed.data.lines.map(l => l.qty_accepted);
+    const qtyRejecteds = parsed.data.lines.map(l => l.qty_rejected);
+    const qcStatuses = parsed.data.lines.map(l => l.qc_status);
+    const qcNotes = parsed.data.lines.map(l => l.qc_notes ?? null);
+
+    await client.query(
+      `UPDATE grn_line_items AS target
+       SET
+         qty_accepted = source.qty_accepted,
+         qty_rejected = source.qty_rejected,
+         qc_status = source.qc_status,
+         qc_notes = source.qc_notes
+       FROM (
+         SELECT
+           unnest($1::uuid[]) AS id,
+           unnest($2::numeric[]) AS qty_accepted,
+           unnest($3::numeric[]) AS qty_rejected,
+           unnest($4::text[]) AS qc_status,
+           unnest($5::text[]) AS qc_notes
+       ) AS source
+       WHERE target.id = source.id AND target.grn_id = $6`,
+      [ids, qtyAccepteds, qtyRejecteds, qcStatuses, qcNotes, id]
+    );
 
     const allPassed = parsed.data.lines.every((l) => l.qc_status === 'pass');
     const anyFailed = parsed.data.lines.some((l) => l.qc_status === 'fail');

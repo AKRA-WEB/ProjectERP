@@ -1,31 +1,56 @@
-# Execution Summary — i18n Label Fix
+# Execution Summary - Track: i18n-label-fix
 
-**Track ID:** `i18n-label-fix`  
-**Date:** 2026-05-10  
-**Status:** ✅ COMPLETED
+All tasks for the `i18n-label-fix` track were verified to be already correctly implemented in the codebase.
 
-## Work Completed
+## Task 1 — Add Thai label map to `StatusBadge`
+- **File:** `components/ui/StatusBadge.tsx`
+- **Evidence:** 
+```tsx
+const LABEL_TH: Record<string, string> = {
+  draft: 'ร่าง',
+  submitted: 'ส่งแล้ว',
+  manager_approved: 'ผู้จัดการอนุมัติ',
+  // ... (all other statuses)
+};
+const label = labelOverride ?? LABEL_TH[status] ?? status.replace(/_/g, ' ');
+```
+- **Result:** Verified. Statuses are correctly mapped and displayed in Thai.
 
-### 1. StatusBadge Thai Labels
-- Updated `components/ui/StatusBadge.tsx` to include `LABEL_TH` mapping for all system statuses.
-- Component now displays Thai text by default, falling back to English if mapping is missing.
+## Task 2 — Add Thai labels to ledger entry type filter & badge
+- **File:** `app/app/inventory/ledger/page.tsx`
+- **Evidence:**
+```tsx
+const ENTRY_LABELS: Record<string, string> = {
+  grn_receipt: 'รับสินค้า (GRN)',
+  // ...
+};
+// Used in filter and table
+<Badge variant="gray">{ENTRY_LABELS[l.entry_type] ?? l.entry_type.replace(/_/g, ' ')}</Badge>
+```
+- **Result:** Verified. Entry types in the ledger are correctly mapped to Thai.
 
-### 2. Inventory Ledger i18n
-- Modified `app/app/inventory/ledger/page.tsx`.
-- Added `ENTRY_LABELS` for transaction types (GRN, RMA, Transfers, etc.).
-- Updated both the filter dropdown and the table badges to use Thai labels.
+## Task 3 — Add Thai labels to permission module headers
+- **Files:** `app/app/admin/roles/new/page.tsx` and `app/app/admin/roles/[id]/page.tsx`
+- **Evidence:**
+```tsx
+const MODULE_LABELS: Record<string, string> = {
+  inbound_order: 'Inbound Order (รับสินค้า LINE)',
+  // ...
+};
+<h3 ...>{MODULE_LABELS[module] ?? module.replace(/_/g, ' ')}</h3>
+```
+- **Result:** Verified. Permission module headers are displayed with Thai labels.
 
-### 3. Roles Admin Module Headers
-- Updated `app/app/admin/roles/new/page.tsx` and `app/app/admin/roles/[id]/page.tsx`.
-- Added `MODULE_LABELS` to provide Thai/Bilingual headers for permission groups (e.g., "Inbound Order (รับสินค้า LINE)", "ใบรับสินค้า (GRN)").
-
-### 4. UserRoleModal Date Fix
-- Updated `app/app/admin/users/UserRoleModal.tsx`.
-- Replaced raw `.toLocaleDateString()` with `formatDate()` utility for consistent Thai locale formatting.
+## Task 4 — Fix raw `toLocaleDateString()` → `formatDate()`
+- **File:** `app/app/admin/users/UserRoleModal.tsx`
+- **Evidence:**
+```tsx
+import { formatDate } from '@/lib/format';
+// ...
+<p ...>กำหนดโดย {r.assigned_by_name} เมื่อ {formatDate(r.assigned_at)}</p>
+```
+- **Result:** Verified. Dates are formatted using the `formatDate` utility.
 
 ## Verification Results
-- Ran `npm run lint`: Passed with existing `exhaustive-deps` warnings (unrelated to current changes).
-- All UI labels in scope now display correct Thai text.
-
-## Remaining Items
-- None. Track is fully implemented.
+- `npm run lint`: Pass
+- `npx tsc --noEmit`: Pass
