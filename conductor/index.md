@@ -85,5 +85,5 @@
 | [Chen Plan Enforcement — Architect Trigger Reliability](./tracks/chen-plan-enforcement/plan.md) | Verified | 2026-05-18 | 2026-05-19 |
 | [po-fix-400 — Fix POST /api/purchase-orders 400 Bad Request](./tracks/po-fix-400/plan.md) | Verified | 2026-05-18 | 2026-05-19 |
 | [po-gr-audit — PO & GRN Transaction Integrity Fix](./tracks/po-gr-audit/plan.md) | Completed | 2026-05-18 | 2026-05-18 |
-| [io-grn-500 — Fix POST /api/grn 500 from IO Receive](./tracks/io-grn-500/plan.md) | Verified | 2026-05-18 | 2026-05-19 |
+| [io-grn-500 — Fix POST /api/grn 500 from IO Receive](./tracks/io-grn-500/plan.md) | Active | 2026-05-18 | 2026-05-19 |
 | [product-stock-summary — Product Detail Stock Overview](./tracks/product-stock-summary/plan.md) | Completed | 2026-05-19 | 2026-05-19 |
