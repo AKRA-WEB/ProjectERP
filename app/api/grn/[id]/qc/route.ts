@@ -1,6 +1,7 @@
 import { auth } from '@/auth';
 import { apiSuccess, apiError, apiValidationError } from '@/lib/api-response';
-import { query, queryOne } from '@/lib/db/client';
+import { assertRole } from '@/lib/authz';
+import pool, { query, queryOne } from '@/lib/db/client';
 import { z } from 'zod';
 import type { SessionUser } from '@/lib/authz';
 
@@ -19,6 +20,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const session = await auth();
   if (!session?.user) return apiError('Unauthorized', 401);
   const u = session.user as unknown as SessionUser;
+  try { assertRole(u, ['manager', 'admin']); } catch { return apiError('Forbidden', 403); }
 
   const { id } = await params;
   const grn = await queryOne<{ status: string }>('SELECT status FROM goods_receipt_notes WHERE id = $1', [id]);
@@ -48,21 +50,34 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     }
   }
 
-  for (const line of parsed.data.lines) {
-    await queryOne(
-      `UPDATE grn_line_items SET qty_accepted = $1, qty_rejected = $2, qc_status = $3, qc_notes = $4 WHERE id = $5 AND grn_id = $6`,
-      [line.qty_accepted, line.qty_rejected, line.qc_status, line.qc_notes ?? null, line.id, id]
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    for (const line of parsed.data.lines) {
+      await client.query(
+        `UPDATE grn_line_items SET qty_accepted = $1, qty_rejected = $2, qc_status = $3, qc_notes = $4 WHERE id = $5 AND grn_id = $6`,
+        [line.qty_accepted, line.qty_rejected, line.qc_status, line.qc_notes ?? null, line.id, id]
+      );
+    }
+
+    const allPassed = parsed.data.lines.every((l) => l.qc_status === 'pass');
+    const anyFailed = parsed.data.lines.some((l) => l.qc_status === 'fail');
+    const newStatus = anyFailed && !allPassed ? 'qc_failed' : 'qc_passed';
+
+    await client.query(
+      `UPDATE goods_receipt_notes SET status = $1, qc_reviewed_by = $2, qc_reviewed_at = NOW(), qc_notes = $3 WHERE id = $4`,
+      [newStatus, u.id, parsed.data.qc_notes ?? null, id]
     );
+
+    await client.query('COMMIT');
+    return apiSuccess({ id, status: newStatus });
+  } catch (e) {
+    await client.query('ROLLBACK');
+    console.error('[POST /api/grn/[id]/qc] transaction error', e);
+    throw e;
+  } finally {
+    client.release();
   }
-
-  const allPassed = parsed.data.lines.every((l) => l.qc_status === 'pass');
-  const anyFailed = parsed.data.lines.some((l) => l.qc_status === 'fail');
-  const newStatus = anyFailed && !allPassed ? 'qc_failed' : 'qc_passed';
-
-  await queryOne(
-    `UPDATE goods_receipt_notes SET status = $1, qc_reviewed_by = $2, qc_reviewed_at = NOW(), qc_notes = $3 WHERE id = $4`,
-    [newStatus, u.id, parsed.data.qc_notes ?? null, id]
-  );
-
-  return apiSuccess({ id, status: newStatus });
 }
+

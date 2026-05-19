@@ -1,7 +1,7 @@
 import { auth } from '@/auth';
 import { apiSuccess, apiError, apiValidationError } from '@/lib/api-response';
 import { assertRole, buildWarehouseScopeClause } from '@/lib/authz';
-import { query, queryOne } from '@/lib/db/client';
+import pool, { query } from '@/lib/db/client';
 import { z } from 'zod';
 import { DEFAULT_PAGE_SIZE, VAT_RATE } from '@/lib/constants';
 import type { SessionUser } from '@/lib/authz';
@@ -132,56 +132,70 @@ export async function POST(req: Request) {
   const vatAmount = parsed.data.include_vat ? 0 : Math.round(preVatAmount * VAT_RATE * 100) / 100;
   const netTotal = preVatAmount + vatAmount + parsed.data.non_vat_amount;
 
-  const po = await queryOne<{ id: string; po_number: string }>(
-    `INSERT INTO purchase_orders (
-      vendor_id, warehouse_id, bill_discount, non_vat_amount, pre_vat_amount, include_vat,
-      doc_date, expiry_date, delivery_date, from_address, to_address, reference,
-      expected_date, payment_terms_days, notes, subtotal, vat_amount, total_amount, created_by
-     )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
-     RETURNING id, po_number, status`,
-    [
-      parsed.data.vendor_id, parsed.data.warehouse_id, parsed.data.bill_discount,
-      parsed.data.non_vat_amount, preVatAmount, parsed.data.include_vat,
-      parsed.data.doc_date || null, parsed.data.expiry_date || null, parsed.data.delivery_date || null,
-      parsed.data.from_address ?? null, parsed.data.to_address ?? null, parsed.data.reference ?? null,
-      parsed.data.expected_date || null, parsed.data.payment_terms_days,
-      parsed.data.notes ?? null, subtotal, vatAmount, netTotal, u.id,
-    ]
-  );
-  if (!po) return apiError('Failed to create PO', 500);
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
 
-  const lineValues = parsed.data.lines
-    .map((_, i) => `($1, $${i * 7 + 2}, $${i * 7 + 3}, $${i * 7 + 4}, $${i * 7 + 5}, $${i * 7 + 6}, $${i * 7 + 7}, $${i * 7 + 8}, ${i + 1})`)
-    .join(', ');
-  const lineParams: unknown[] = [po.id];
-  for (const l of parsed.data.lines) {
-    lineParams.push(
-      l.product_id,
-      l.pr_line_item_id ?? null,
-      l.qty_ordered,
-      l.unit_price,
-      l.line_discount,
-      l.transaction_uom_id ?? null,
-      l.transaction_qty ?? null,
+    const poResult = await client.query<{ id: string; po_number: string; status: string }>(
+      `INSERT INTO purchase_orders (
+        vendor_id, warehouse_id, bill_discount, non_vat_amount, pre_vat_amount, include_vat,
+        doc_date, expiry_date, delivery_date, from_address, to_address, reference,
+        expected_date, payment_terms_days, notes, subtotal, vat_amount, total_amount, created_by
+       )
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+       RETURNING id, po_number, status`,
+      [
+        parsed.data.vendor_id, parsed.data.warehouse_id, parsed.data.bill_discount,
+        parsed.data.non_vat_amount, preVatAmount, parsed.data.include_vat,
+        parsed.data.doc_date || null, parsed.data.expiry_date || null, parsed.data.delivery_date || null,
+        parsed.data.from_address ?? null, parsed.data.to_address ?? null, parsed.data.reference ?? null,
+        parsed.data.expected_date || null, parsed.data.payment_terms_days,
+        parsed.data.notes ?? null, subtotal, vatAmount, netTotal, u.id,
+      ]
     );
-  }
-  await query(
-    `INSERT INTO po_line_items (po_id, product_id, pr_line_item_id, qty_ordered, unit_price, line_discount, transaction_uom_id, transaction_qty, line_number)
-     VALUES ${lineValues}`,
-    lineParams
-  );
+    const poRow = poResult.rows[0];
+    if (!poRow) throw new Error('Failed to create PO');
 
-  if (parsed.data.pr_ids?.length) {
-    const linkValues = parsed.data.pr_ids.map((_, i) => `($${i * 2 + 1}, $${i * 2 + 2})`).join(', ');
-    const linkParams: unknown[] = [];
-    for (const prId of parsed.data.pr_ids) { linkParams.push(prId, po.id); }
-    await query(`INSERT INTO pr_po_links (pr_id, po_id) VALUES ${linkValues} ON CONFLICT DO NOTHING`, linkParams);
-    await query(
-      `UPDATE purchase_requisitions SET status = 'converted_to_po' WHERE id = ANY($1::uuid[])`,
-      [parsed.data.pr_ids]
+    const lineValues = parsed.data.lines
+      .map((_, i) => `($1, $${i * 7 + 2}, $${i * 7 + 3}, $${i * 7 + 4}, $${i * 7 + 5}, $${i * 7 + 6}, $${i * 7 + 7}, $${i * 7 + 8}, ${i + 1})`)
+      .join(', ');
+    const lineParams: unknown[] = [poRow.id];
+    for (const l of parsed.data.lines) {
+      lineParams.push(
+        l.product_id,
+        l.pr_line_item_id ?? null,
+        l.qty_ordered,
+        l.unit_price,
+        l.line_discount,
+        l.transaction_uom_id ?? null,
+        l.transaction_qty ?? null,
+      );
+    }
+    await client.query(
+      `INSERT INTO po_line_items (po_id, product_id, pr_line_item_id, qty_ordered, unit_price, line_discount, transaction_uom_id, transaction_qty, line_number)
+       VALUES ${lineValues}`,
+      lineParams
     );
-  }
 
-  return apiSuccess(po, 201);
+    if (parsed.data.pr_ids?.length) {
+      const linkValues = parsed.data.pr_ids.map((_, i) => `($${i * 2 + 1}, $${i * 2 + 2})`).join(', ');
+      const linkParams: unknown[] = [];
+      for (const prId of parsed.data.pr_ids) { linkParams.push(prId, poRow.id); }
+      await client.query(`INSERT INTO pr_po_links (pr_id, po_id) VALUES ${linkValues} ON CONFLICT DO NOTHING`, linkParams);
+      await client.query(
+        `UPDATE purchase_requisitions SET status = 'converted_to_po' WHERE id = ANY($1::uuid[])`,
+        [parsed.data.pr_ids]
+      );
+    }
+
+    await client.query('COMMIT');
+    return apiSuccess(poRow, 201);
+  } catch (e) {
+    await client.query('ROLLBACK');
+    console.error('[POST /api/purchase-orders] transaction error', e);
+    throw e;
+  } finally {
+    client.release();
+  }
 }
+

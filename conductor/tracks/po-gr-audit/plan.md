@@ -34,7 +34,7 @@ submit QC results.
 
 ## Tasks
 
-### Task 1 — PO POST: wrap all writes in transaction
+### Task 1 — PO POST: wrap all writes in transaction [x]
 **File:** `app/api/purchase-orders/route.ts`
 **Assignee:** paku
 **Priority:** P1
@@ -121,7 +121,7 @@ try {
 
 ---
 
-### Task 2 — GRN POST (PO/IO path): wrap in transaction
+### Task 2 — GRN POST (PO/IO path): wrap in transaction [x]
 **File:** `app/api/grn/route.ts`
 **Assignee:** paku
 **Priority:** P1
@@ -201,7 +201,7 @@ try {
 
 ---
 
-### Task 3 — GRN QC: add role check + transaction
+### Task 3 — GRN QC: add role check + transaction [x]
 **File:** `app/api/grn/[id]/qc/route.ts`
 **Assignee:** paku
 **Priority:** P1

@@ -260,52 +260,66 @@ export async function POST(req: Request) {
     return apiError('No access to this warehouse', 403);
   }
 
-  const grn = await queryOne<{ id: string; grn_number: string; status: string }>(
-    `INSERT INTO goods_receipt_notes (po_id, inbound_order_id, warehouse_id, received_by, received_date, notes, source_type)
-     VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, grn_number, status`,
-    [
-      parsed.data.po_id ?? null,
-      parsed.data.inbound_order_id ?? null,
-      parsed.data.warehouse_id,
-      u.id,
-      parsed.data.received_date,
-      parsed.data.notes ?? null,
-      sourceType
-    ]
-  );
-  if (!grn) return apiError('Failed to create GRN', 500);
+  const client2 = await pool.connect();
+  try {
+    await client2.query('BEGIN');
 
-  const lineValues = parsed.data.lines
-    .map((_, i) => `($1, $${i * 10 + 2}, $${i * 10 + 3}, $${i * 10 + 4}, $${i * 10 + 5}, $${i * 10 + 6}, $${i * 10 + 7}, $${i * 10 + 8}, $${i * 10 + 9}, $${i * 10 + 10}, $${i * 10 + 11}, ${i + 1})`)
-    .join(', ');
-  const lineParams: unknown[] = [grn.id];
-  for (const l of parsed.data.lines) {
-    const cost = unitCosts.get(l.po_line_item_id || l.inbound_order_line_id || '') || 0;
-    lineParams.push(
-      l.po_line_item_id ?? null,
-      l.inbound_order_line_id ?? null,
-      l.product_id,
-      l.qty_received,
-      l.lot_number ?? null,
-      l.serial_number ?? null,
-      l.expiry_date ?? null,
-      l.storage_location ?? null,
-      sourceType,
-      cost
+    const grnResult = await client2.query<{ id: string; grn_number: string; status: string }>(
+      `INSERT INTO goods_receipt_notes (po_id, inbound_order_id, warehouse_id, received_by, received_date, notes, source_type)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, grn_number, status`,
+      [
+        parsed.data.po_id ?? null,
+        parsed.data.inbound_order_id ?? null,
+        parsed.data.warehouse_id,
+        u.id,
+        parsed.data.received_date,
+        parsed.data.notes ?? null,
+        sourceType
+      ]
     );
-  }
-  await query(
-    `INSERT INTO grn_line_items (grn_id, po_line_item_id, inbound_order_line_id, product_id, qty_received, lot_number, serial_number, expiry_date, storage_location, source_type, unit_cost, line_number)
-     VALUES ${lineValues}`,
-    lineParams
-  );
+    const grn = grnResult.rows[0];
+    if (!grn) throw new Error('Failed to create GRN');
 
-  if (parsed.data.inbound_order_id) {
-    await query(
-      "UPDATE inbound_orders SET status = 'receiving' WHERE id = $1 AND status = 'open'",
-      [parsed.data.inbound_order_id]
+    const lineValues = parsed.data.lines
+      .map((_, i) => `($1, $${i * 10 + 2}, $${i * 10 + 3}, $${i * 10 + 4}, $${i * 10 + 5}, $${i * 10 + 6}, $${i * 10 + 7}, $${i * 10 + 8}, $${i * 10 + 9}, $${i * 10 + 10}, $${i * 10 + 11}, ${i + 1})`)
+      .join(', ');
+    const lineParams: unknown[] = [grn.id];
+    for (const l of parsed.data.lines) {
+      const cost = unitCosts.get(l.po_line_item_id || l.inbound_order_line_id || '') || 0;
+      lineParams.push(
+        l.po_line_item_id ?? null,
+        l.inbound_order_line_id ?? null,
+        l.product_id,
+        l.qty_received,
+        l.lot_number ?? null,
+        l.serial_number ?? null,
+        l.expiry_date ?? null,
+        l.storage_location ?? null,
+        sourceType,
+        cost
+      );
+    }
+    await client2.query(
+      `INSERT INTO grn_line_items (grn_id, po_line_item_id, inbound_order_line_id, product_id, qty_received, lot_number, serial_number, expiry_date, storage_location, source_type, unit_cost, line_number)
+       VALUES ${lineValues}`,
+      lineParams
     );
-  }
 
-  return apiSuccess(grn, 201);
+    if (parsed.data.inbound_order_id) {
+      await client2.query(
+        "UPDATE inbound_orders SET status = 'receiving' WHERE id = $1 AND status = 'open'",
+        [parsed.data.inbound_order_id]
+      );
+    }
+
+    await client2.query('COMMIT');
+    return apiSuccess(grn, 201);
+  } catch (e) {
+    await client2.query('ROLLBACK');
+    console.error('[POST /api/grn] transaction error', e);
+    throw e;
+  } finally {
+    client2.release();
+  }
 }
+
