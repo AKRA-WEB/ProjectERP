@@ -51,6 +51,12 @@
 - **ที่ถูกต้อง:** ต้องใช้นามสกุล `.tsx` และระบุ `'use client'` ที่บรรทัดแรกเสมอ
 - **ผลเสีย:** Build Error — TypeScript compiler ไม่รู้จัก angle brackets
 
+### 9. การใช้ query/queryOne ภายใน Transaction
+- **สิ่งที่เกิดขึ้น:** `const client = await pool.connect(); await client.query('BEGIN'); await query('INSERT...');`
+- **ความจริง:** `query` และ `queryOne` ใช้ `pool.query` ซึ่งจะสร้าง connection ใหม่แยกต่างหาก ไม่อยู่ใน transaction ที่เปิดไว้
+- **ที่ถูกต้อง:** ต้องใช้ `await client.query('INSERT...')` เสมอเมื่ออยู่ใน block transaction
+- **ผลเสีย:** คำสั่งรันแยกกัน — ถ้า error จะไม่ rollback และ data ไม่ atomic
+
 ---
 
 ## Best Practices

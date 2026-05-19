@@ -2,6 +2,7 @@
 
 | Date | Change |
 |------|--------|
+| 2026-05-18 | **po-gr-audit track completed** — Refactored PO/GRN POST and QC routes to use transactions; added role check to QC route |
 | 2026-05-18 | **Rule 7 added** — Execution summary must quote file:line evidence per task; narrative-only = insufficient |
 | 2026-05-18 | **Rule 4b added** — Re-read before tick: no BUG/TODO/FIXME allowed in modified files before marking task complete |
 | 2026-05-18 | **Critical Traps moved to pitfalls.md** — GEMINI.md now links out; traps 5-7 added (parent-child INSERT, body.action, status side effects) |
