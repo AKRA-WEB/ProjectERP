@@ -57,3 +57,7 @@ Flag when "fix X" turns into "refactor everything." Keep changes focused on the 
 - **R0 (Irreversible)** — STOP. Ask first. (DROP TABLE, breaking API contracts).
 - **R1 (Costly)** — Do + explain why. (Migrations, response shape changes).
 - **R2 (Easy)** — Just do it. (New endpoints, styles, reading files).
+
+### 10. CONCISE SUMMARIZATION — บันทึกงานเฉพาะส่วนสำคัญ
+After completing tasks or sessions, document only the high-impact, critical changes and key milestones. Avoid long, trivial lists of routine steps or files changed. Keep reports concise and focused strictly on what matters.
+
