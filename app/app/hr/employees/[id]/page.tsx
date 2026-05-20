@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect, use, useCallback } from 'react';
 import { get, patch, del } from '@/lib/api-client';
 import type { HrEmployee, Department, Position, SessionUser, LeaveRequest, AttendanceRecord, PayrollLine } from '@/types';
