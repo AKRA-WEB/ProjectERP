@@ -197,3 +197,9 @@ If stride ≠ param count per row → all rows after the first get wrong values 
 - **Root cause:** ฐานข้อมูล PostgreSQL ไม่สามารถเดา type ของ string ใน template values ได้ว่าเป็น enum ชนิดไหน
 - **Fix:** ต้องใส่ casting ชัดเจนใน template เช่น `($1, $2::grn_source_type)`
 - **Found in:** `app/api/grn/route.ts`
+
+### 12. Missing 'use client' Directive in Interactive Pages
+- **Symptom:** Vercel/Webpack Build Error: "You're importing a component that needs `useRouter`. This React hook only works in a client component..." หรือ Webpack Build Failed
+- **Root cause:** ลืมใส่ directive `'use client';` ไว้ที่บรรทัดบนสุดในหน้าเว็บ (เช่น `/app/app/.../page.tsx`) ที่มีการใช้งาน React Hooks เช่น `useState`, `useEffect`, `useCallback` หรือ `useRouter` / `usePathname`
+- **Fix:** ใส่ `'use client';` ไว้ที่บรรทัดแรกสุดของไฟล์ที่เป็น Client Component เสมอ
+- **Found in:** `app/app/hr/employees/[id]/page.tsx`

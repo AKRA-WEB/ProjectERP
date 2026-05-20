@@ -81,6 +81,10 @@ import { auth } from '@/lib/auth'            // or '@/auth' — check existing r
 // ❌ WRONG
 import { pool } from '@/lib/db/client'       // named export — DOES NOT EXIST
 import { ViewTransition } from 'react'       // experimental, breaks build
+
+// ⚠️ CRITICAL RULES
+// Interactive client pages using useState, useEffect, useRouter MUST have 'use client' at line 1.
+
 ```
 
 ---
