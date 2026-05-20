@@ -27,6 +27,8 @@ interface IODetail extends InboundOrder {
     status: string;
     received_date: string;
     received_by_name: string;
+    rejection_notes?: string | null;
+    received_by_names?: string | null;
   }>;
 }
 
@@ -38,6 +40,11 @@ export default function InboundOrderDetailPage() {
   const [saving, setSaving] = useState(false);
   const [vendorRef, setVendorRef] = useState('');
   const [error, setError] = useState('');
+
+  const [rejecting, setRejecting] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionError, setActionError] = useState('');
 
   const fetchIO = useCallback(async () => {
     setLoading(true);
@@ -51,6 +58,24 @@ export default function InboundOrderDetailPage() {
   }, [id]);
 
   useEffect(() => { fetchIO(); }, [fetchIO]);
+
+  async function handleConfirmGRN(grnId: string) {
+    setActionLoading(true); setActionError('');
+    try { await post(`/api/grn/${grnId}/confirm`, {}); await fetchIO(); }
+    catch (e: unknown) { setActionError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด'); }
+    finally { setActionLoading(false); }
+  }
+
+  async function handleRejectGRN(grnId: string) {
+    if (!rejectReason.trim()) { setActionError('กรุณาระบุเหตุผล'); return; }
+    setActionLoading(true); setActionError('');
+    try {
+      await post(`/api/grn/${grnId}/reject`, { reason: rejectReason });
+      setRejecting(false); setRejectReason(''); await fetchIO();
+    }
+    catch (e: unknown) { setActionError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด'); }
+    finally { setActionLoading(false); }
+  }
 
   async function handleClose() {
     if (!vendorRef) { setError('กรุณาระบุเลขที่อ้างอิงจากผู้จำหน่าย'); return; }
@@ -150,11 +175,53 @@ export default function InboundOrderDetailPage() {
             </thead>
             <tbody className="divide-y">
               {io.grns.map((g) => (
-                <tr key={g.id}>
+                <tr key={g.id} className="hover:bg-gray-50/50">
                   <td className="p-3 font-mono">{g.grn_number}</td>
-                  <td className="p-3">{formatDate(g.received_date)}</td>
+                  <td className="p-3">
+                    <div>{formatDate(g.received_date)}</div>
+                    {g.received_by_names && <div className="text-xs text-gray-400 mt-0.5 font-medium">ผู้ลงสินค้า: {g.received_by_names}</div>}
+                  </td>
                   <td className="p-3">{g.received_by_name}</td>
-                  <td className="p-3 text-center"><StatusBadge status={g.status} /></td>
+                  <td className="p-3 text-center">
+                    <StatusBadge status={g.status} />
+                    {g.status === 'rejected' && g.rejection_notes && (
+                      <div className="mt-2 text-xs text-red-600 bg-red-50 border border-red-100 rounded p-2 text-left max-w-xs mx-auto animate-fadeIn">
+                        ⚠️ ตีกลับ: {g.rejection_notes}
+                      </div>
+                    )}
+                    {g.status === 'received' && (
+                      <div className="mt-2 space-y-2">
+                        {actionError && <p className="text-xs text-red-600">{actionError}</p>}
+                        {!rejecting ? (
+                          <div className="flex justify-center gap-2">
+                            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => handleConfirmGRN(g.id)} loading={actionLoading}>
+                              ✅ ยืนยันการรับสินค้า
+                            </Button>
+                            <Button size="sm" variant="outline" className="border-red-600 text-red-600 hover:bg-red-50" onClick={() => setRejecting(true)}>
+                              ↩ ตีกลับ
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col gap-2 p-2 bg-gray-50 border border-gray-100 rounded-lg max-w-sm mx-auto text-left animate-fadeIn">
+                            <label className="text-xs font-semibold text-gray-600">ระบุเหตุผลการตีกลับ</label>
+                            <Input
+                              placeholder="ระบุเหตุผล..."
+                              value={rejectReason}
+                              onChange={(e) => setRejectReason(e.target.value)}
+                            />
+                            <div className="flex gap-2 justify-end mt-1">
+                              <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white" onClick={() => handleRejectGRN(g.id)} loading={actionLoading}>
+                                ยืนยันการตีกลับ
+                              </Button>
+                              <Button size="sm" variant="secondary" onClick={() => { setRejecting(false); setRejectReason(''); }}>
+                                ยกเลิก
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </td>
                   <td className="p-3 text-right">
                     <Link href={`/app/grn/${g.id}`} className="text-blue-600 hover:underline">ดู</Link>
                   </td>

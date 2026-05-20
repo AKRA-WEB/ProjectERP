@@ -93,6 +93,16 @@ function NewPurchaseOrderPageInner() {
   const [error, setError] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // New states for Task 11
+  const [confirmedIOs, setConfirmedIOs] = useState<{
+    id: string; vendor_id: string; warehouse_id: string; io_number: string; vendor_name: string; line_count: number;
+  }[]>([]);
+  const [selectedIOIds, setSelectedIOIds] = useState<string[]>([]);
+  const [ioLines, setIoLines] = useState<{
+    product_id: string; sku: string; name_th: string;
+    qty_received: number; uom_code: string; unit_price: number;
+  }[]>([]);
+
   useEffect(() => {
     if (!form.vendor_id) { setVendorCatalog({}); return; }
     get<{ product_id: string; unit_price: number }[]>(`/api/vendors/${form.vendor_id}/catalog`)
@@ -111,6 +121,8 @@ function NewPurchaseOrderPageInner() {
     get<Warehouse[]>('/api/admin/warehouses').then((data) =>
       setWarehouses(data.map((w) => ({ value: w.id, label: `${w.code} — ${w.name_th}` })))
     );
+    get<{ data: typeof confirmedIOs }>('/api/inbound-orders?status=verified&limit=100')
+      .then((r) => setConfirmedIOs((r as { data: typeof confirmedIOs }).data ?? []));
 
     if (prId) {
       get<PRDetail>(`/api/purchase-requests/${prId}`).then((pr) => {
@@ -128,9 +140,40 @@ function NewPurchaseOrderPageInner() {
     }
   }, [prId]);
 
+  useEffect(() => {
+    if (!selectedIOIds.length) { setIoLines([]); return; }
+    Promise.all(selectedIOIds.map((id) => get<{ lines: { product_id: string; sku: string; name_th: string; qty_received: number; uom_code: string }[]; vendor_id: string; warehouse_id: string }>(`/api/inbound-orders/${id}`)))
+      .then((results) => {
+        const merged = new Map<string, typeof ioLines[0]>();
+        if (results.length > 0) {
+          const firstVendorId = results[0].vendor_id;
+          const firstWarehouseId = results[0].warehouse_id;
+          setForm((f) => ({ ...f, vendor_id: firstVendorId, warehouse_id: firstWarehouseId }));
+        }
+        for (const r of results) {
+          for (const l of r.lines ?? []) {
+            if (merged.has(l.product_id)) {
+              merged.get(l.product_id)!.qty_received += Number(l.qty_received);
+            }
+            else {
+              merged.set(l.product_id, { ...l, qty_received: Number(l.qty_received), unit_price: 0 });
+            }
+          }
+        }
+        setIoLines(Array.from(merged.values()));
+      });
+  }, [selectedIOIds]);
+
   const summary = useMemo(() => {
-    const subtotal = lines.reduce((s, l) => s + l.qty_ordered * l.unit_price, 0);
-    const totalLineDiscount = lines.reduce((s, l) => s + l.line_discount, 0);
+    const activeLines = selectedIOIds.length > 0
+      ? ioLines.map((l) => ({
+          qty_ordered: l.qty_received,
+          unit_price: l.unit_price,
+          line_discount: 0,
+        }))
+      : lines;
+    const subtotal = activeLines.reduce((s, l) => s + l.qty_ordered * l.unit_price, 0);
+    const totalLineDiscount = activeLines.reduce((s, l) => s + l.line_discount, 0);
     const afterLineDiscount = subtotal - totalLineDiscount;
     const preVat = afterLineDiscount - form.bill_discount - form.non_vat_amount;
     const vat = form.include_vat ? 0 : Math.round(preVat * VAT_RATE * 100) / 100;
@@ -146,7 +189,7 @@ function NewPurchaseOrderPageInner() {
       vat,
       netTotal,
     };
-  }, [lines, form.bill_discount, form.non_vat_amount, form.include_vat]);
+  }, [lines, ioLines, selectedIOIds, form.bill_discount, form.non_vat_amount, form.include_vat]);
 
   function setF(key: string, val: string | number | boolean) {
     setForm((f) => ({ ...f, [key]: val }));
@@ -194,7 +237,7 @@ function NewPurchaseOrderPageInner() {
     if (!form.warehouse_id) newErrors.warehouse_id = 'กรุณาเลือกคลังสินค้า';
     if (!form.expected_date) {
       newErrors.expected_date = 'กรุณาระบุวันที่คาดรับ';
-      setActiveTab('details'); // Switch tab so user sees the error
+      setActiveTab('details');
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -203,21 +246,40 @@ function NewPurchaseOrderPageInner() {
       return;
     }
 
-    if (lines.length === 0) { setError('กรุณาเพิ่มรายการสินค้า'); return; }
+    if (selectedIOIds.length === 0 && lines.length === 0) {
+      setError('กรุณาเพิ่มรายการสินค้า');
+      return;
+    }
+
     setErrors({});
     setError('');
     setSaving(true);
     try {
-      const po = await post<{ id: string }>('/api/purchase-orders', {
+      const payload: Record<string, unknown> = {
         ...form,
-        pr_ids: prId ? [prId] : undefined,
         lines: lines.map((l) => ({
           product_id: l.product_id,
           qty_ordered: l.qty_ordered,
           unit_price: l.unit_price,
           line_discount: l.line_discount,
         })),
-      });
+      };
+
+      if (selectedIOIds.length > 0) {
+        payload.io_ids = selectedIOIds;
+        payload.vendor_id = form.vendor_id;
+        payload.warehouse_id = form.warehouse_id;
+        payload.lines = ioLines.map((l) => ({
+          product_id: l.product_id,
+          qty_ordered: l.qty_received,
+          unit_price: l.unit_price,
+          line_discount: 0,
+        }));
+      } else if (prId) {
+        payload.pr_ids = [prId];
+      }
+
+      const po = await post<{ id: string }>('/api/purchase-orders', payload);
 
       if (approveImmediately) {
         await post(`/api/purchase-orders/${po.id}/approve`, {});
@@ -242,91 +304,187 @@ function NewPurchaseOrderPageInner() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         <div className="lg:col-span-2 space-y-6">
+          {/* IO Multi-Select Box */}
+          <div className="rounded-xl bg-white shadow-sm border border-gray-100 p-6 space-y-3">
+            <h2 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
+              📦 เลือก Inbound Orders ที่ยืนยันแล้ว
+            </h2>
+            <p className="text-xs text-gray-500">
+              * การเลือก IO จะกำหนดผู้จำหน่ายและคลังสินค้าตามใบสั่งสินค้า และสรุปยอดรายการสินค้าให้อัตโนมัติ
+            </p>
+            <div className="space-y-1 max-h-52 overflow-y-auto border rounded-lg p-2 bg-gray-50">
+              {confirmedIOs.length === 0 && <p className="text-sm text-gray-400 p-2">ไม่มี Inbound Order ที่รอเปิด PO</p>}
+              {confirmedIOs.map((io) => (
+                <label key={io.id} className="flex items-center gap-3 p-2 hover:bg-white rounded cursor-pointer transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={selectedIOIds.includes(io.id)}
+                    onChange={(e) => setSelectedIOIds((prev) =>
+                      e.target.checked ? [...prev, io.id] : prev.filter((x) => x !== io.id)
+                    )}
+                    className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                  />
+                  <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                    <span className="text-sm font-mono font-bold text-gray-900">{io.io_number}</span>
+                    <span className="text-sm text-blue-600">{io.vendor_name}</span>
+                    <span className="text-xs text-gray-400">{io.line_count} รายการ</span>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
+
           <div className="rounded-xl bg-white shadow-sm border border-gray-100 p-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-              <Select label="ผู้จำหน่าย *" value={form.vendor_id} onChange={(e) => setF('vendor_id', e.target.value)} options={vendors} placeholder="เลือกผู้จำหน่าย" error={errors.vendor_id} />
-              <Select label="คลังสินค้า *" value={form.warehouse_id} onChange={(e) => setF('warehouse_id', e.target.value)} options={warehouses} placeholder="เลือกคลังสินค้า" error={errors.warehouse_id} />
+              <Select
+                label="ผู้จำหน่าย *"
+                value={form.vendor_id}
+                onChange={(e) => setF('vendor_id', e.target.value)}
+                options={vendors}
+                placeholder="เลือกผู้จำหน่าย"
+                error={errors.vendor_id}
+                disabled={selectedIOIds.length > 0}
+              />
+              <Select
+                label="คลังสินค้า *"
+                value={form.warehouse_id}
+                onChange={(e) => setF('warehouse_id', e.target.value)}
+                options={warehouses}
+                placeholder="เลือกคลังสินค้า"
+                error={errors.warehouse_id}
+                disabled={selectedIOIds.length > 0}
+              />
             </div>
 
-            <Tabs>
-              <Tab active={activeTab === 'items'} onClick={() => setActiveTab('items')}>สินค้านำเข้า</Tab>
-              <Tab active={activeTab === 'details'} onClick={() => setActiveTab('details')}>รายละเอียด</Tab>
-            </Tabs>
+            {selectedIOIds.length > 0 ? (
+              <div className="space-y-4">
+                <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-4">
+                  <p className="text-sm font-semibold text-emerald-800">
+                    อยู่ในโหมดรวม Inbound Orders ({selectedIOIds.length} รายการ)
+                  </p>
+                  <p className="text-xs text-emerald-600 mt-1">
+                    ระบบจะสร้างใบสั่งซื้อด้วยสินค้าและจำนวนที่รับมาจากใบสั่งสินค้าทั้งหมด
+                  </p>
+                </div>
 
-            <div className="mt-4">
-              {activeTab === 'items' && (
-                <div className="space-y-4">
-                  <div className="relative">
-                    <Input label="ค้นหาสินค้า" value={productSearch} onChange={(e) => searchProducts(e.target.value)} placeholder="พิมพ์ SKU หรือชื่อสินค้า..." />
-                    {productResults.length > 0 && (
-                      <div className="absolute z-10 mt-1 w-full rounded-lg border bg-white shadow-lg max-h-60 overflow-y-auto">
-                        {productResults.map((p) => (
-                          <button key={p.id} type="button" className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm" onClick={() => addProduct(p)}>
-                            <span className="font-mono font-medium">{p.sku}</span> — {p.name_th}
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                {ioLines.length > 0 && (
+                  <div className="space-y-3">
+                    <p className="text-sm font-semibold text-gray-700">ใส่ราคาต่อหน่วยสำหรับรายการรับสินค้า</p>
+                    <div className="space-y-2">
+                      {ioLines.map((line, i) => (
+                        <div key={line.product_id} className="flex flex-col sm:flex-row sm:items-center gap-3 bg-gray-50 rounded-lg p-3 border border-gray-100">
+                          <div className="flex-1">
+                            <span className="font-mono text-xs text-gray-500 block">{line.sku}</span>
+                            <span className="text-sm font-medium text-gray-900">{line.name_th}</span>
+                          </div>
+                          <div className="text-sm text-gray-500 flex-shrink-0">
+                            รับแล้ว <span className="font-bold font-mono text-emerald-700">{line.qty_received}</span> {line.uom_code}
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <Input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              placeholder="ราคา/หน่วย"
+                              value={line.unit_price || ''}
+                              onChange={(e) => {
+                                const updated = [...ioLines];
+                                updated[i] = { ...updated[i], unit_price: parseFloat(e.target.value) || 0 };
+                                setIoLines(updated);
+                              }}
+                              className="w-28 text-right font-mono"
+                            />
+                            <span className="text-xs text-gray-500">บาท</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <Tabs>
+                  <Tab active={activeTab === 'items'} onClick={() => setActiveTab('items')}>สินค้านำเข้า</Tab>
+                  <Tab active={activeTab === 'details'} onClick={() => setActiveTab('details')}>รายละเอียด</Tab>
+                </Tabs>
 
-                  <div className="border rounded-lg overflow-hidden">
-                    <table className="w-full text-sm">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="text-left p-3 font-medium text-gray-600">สินค้า</th>
-                          <th className="text-right p-3 font-medium text-gray-600 w-24">จำนวน</th>
-                          <th className="text-right p-3 font-medium text-gray-600 w-32">ราคา/หน่วย</th>
-                          <th className="text-right p-3 font-medium text-gray-600 w-32">ส่วนลดรวม</th>
-                          <th className="text-right p-3 font-medium text-gray-600 w-32">รวม</th>
-                          <th className="w-10"></th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {lines.length === 0 ? (
-                          <tr>
-                            <td colSpan={6} className="p-8 text-center text-gray-400 italic">ยังไม่มีรายการสินค้า</td>
-                          </tr>
-                        ) : (
-                          lines.map((l, i) => (
-                            <tr key={i} className="border-t">
-                              <td className="p-3">
-                                <div className="font-mono text-xs text-gray-500">{l.sku}</div>
-                                <div className="font-medium">{l.name_th}</div>
-                              </td>
-                              <td className="p-2"><input type="number" min="0.01" step="any" value={l.qty_ordered} onChange={(e) => updateLine(i, 'qty_ordered', parseFloat(e.target.value) || 0)} className="w-full text-right rounded border px-2 py-1 font-mono" /></td>
-                              <td className="p-2"><input type="number" min="0" step="any" value={l.unit_price} onChange={(e) => updateLine(i, 'unit_price', parseFloat(e.target.value) || 0)} className="w-full text-right rounded border px-2 py-1 font-mono" /></td>
-                              <td className="p-2"><input type="number" min="0" step="any" value={l.line_discount} onChange={(e) => updateLine(i, 'line_discount', parseFloat(e.target.value) || 0)} className="w-full text-right rounded border px-2 py-1 font-mono text-red-600" /></td>
-                              <td className="p-3 text-right font-mono">{formatCurrency(l.qty_ordered * l.unit_price - l.line_discount)}</td>
-                              <td className="p-2 text-center"><button onClick={() => removeLine(i)} className="text-red-400 hover:text-red-600">✕</button></td>
-                            </tr>
-                          ))
+                <div className="mt-4">
+                  {activeTab === 'items' && (
+                    <div className="space-y-4">
+                      <div className="relative">
+                        <Input label="ค้นหาสินค้า" value={productSearch} onChange={(e) => searchProducts(e.target.value)} placeholder="พิมพ์ SKU หรือชื่อสินค้า..." />
+                        {productResults.length > 0 && (
+                          <div className="absolute z-10 mt-1 w-full rounded-lg border bg-white shadow-lg max-h-60 overflow-y-auto">
+                            {productResults.map((p) => (
+                              <button key={p.id} type="button" className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm" onClick={() => addProduct(p)}>
+                                <span className="font-mono font-medium">{p.sku}</span> — {p.name_th}
+                              </button>
+                            ))}
+                          </div>
                         )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
+                      </div>
 
-              {activeTab === 'details' && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Input label="วันที่เอกสาร" type="date" value={form.doc_date} onChange={(e) => setF('doc_date', e.target.value)} />
-                  <Input label="วันที่คาดรับ" type="date" value={form.expected_date} onChange={(e) => setF('expected_date', e.target.value)} error={errors.expected_date} />
-                  <Input label="วันครบกำหนด" type="date" value={form.expiry_date} onChange={(e) => setF('expiry_date', e.target.value)} />
-                  <Input label="วันที่ส่งของ" type="date" value={form.delivery_date} onChange={(e) => setF('delivery_date', e.target.value)} />
-                  <Input label="เงื่อนไขการชำระ (วัน)" type="number" value={form.payment_terms_days} onChange={(e) => setF('payment_terms_days', parseInt(e.target.value) || 0)} />
-                  <Input label="อ้างอิง" value={form.reference} onChange={(e) => setF('reference', e.target.value)} />
-                  <div className="col-span-2">
-                    <Textarea label="ที่อยู่ผู้ส่ง" value={form.from_address} onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setF('from_address', e.target.value)} />
-                  </div>
-                  <div className="col-span-2">
-                    <Textarea label="ที่อยู่ผู้รับ" value={form.to_address} onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setF('to_address', e.target.value)} />
-                  </div>
-                  <div className="col-span-2">
-                    <Textarea label="หมายเหตุ" value={form.notes} onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setF('notes', e.target.value)} />
-                  </div>
+                      <div className="border rounded-lg overflow-hidden">
+                        <table className="w-full text-sm">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th className="text-left p-3 font-medium text-gray-600">สินค้า</th>
+                              <th className="text-right p-3 font-medium text-gray-600 w-24">จำนวน</th>
+                              <th className="text-right p-3 font-medium text-gray-600 w-32">ราคา/หน่วย</th>
+                              <th className="text-right p-3 font-medium text-gray-600 w-32">ส่วนลดรวม</th>
+                              <th className="text-right p-3 font-medium text-gray-600 w-32">รวม</th>
+                              <th className="w-10"></th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {lines.length === 0 ? (
+                              <tr>
+                                <td colSpan={6} className="p-8 text-center text-gray-400 italic">ยังไม่มีรายการสินค้า</td>
+                              </tr>
+                            ) : (
+                              lines.map((l, i) => (
+                                <tr key={i} className="border-t">
+                                  <td className="p-3">
+                                    <div className="font-mono text-xs text-gray-500">{l.sku}</div>
+                                    <div className="font-medium">{l.name_th}</div>
+                                  </td>
+                                  <td className="p-2"><input type="number" min="0.01" step="any" value={l.qty_ordered} onChange={(e) => updateLine(i, 'qty_ordered', parseFloat(e.target.value) || 0)} className="w-full text-right rounded border px-2 py-1 font-mono" /></td>
+                                  <td className="p-2"><input type="number" min="0" step="any" value={l.unit_price} onChange={(e) => updateLine(i, 'unit_price', parseFloat(e.target.value) || 0)} className="w-full text-right rounded border px-2 py-1 font-mono" /></td>
+                                  <td className="p-2"><input type="number" min="0" step="any" value={l.line_discount} onChange={(e) => updateLine(i, 'line_discount', parseFloat(e.target.value) || 0)} className="w-full text-right rounded border px-2 py-1 font-mono text-red-600" /></td>
+                                  <td className="p-3 text-right font-mono">{formatCurrency(l.qty_ordered * l.unit_price - l.line_discount)}</td>
+                                  <td className="p-2 text-center"><button onClick={() => removeLine(i)} className="text-red-400 hover:text-red-600">✕</button></td>
+                                </tr>
+                              ))
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {activeTab === 'details' && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <Input label="วันที่เอกสาร" type="date" value={form.doc_date} onChange={(e) => setF('doc_date', e.target.value)} />
+                      <Input label="วันที่คาดรับ" type="date" value={form.expected_date} onChange={(e) => setF('expected_date', e.target.value)} error={errors.expected_date} />
+                      <Input label="วันครบกำหนด" type="date" value={form.expiry_date} onChange={(e) => setF('expiry_date', e.target.value)} />
+                      <Input label="วันที่ส่งของ" type="date" value={form.delivery_date} onChange={(e) => setF('delivery_date', e.target.value)} />
+                      <Input label="เงื่อนไขการชำระ (วัน)" type="number" value={form.payment_terms_days} onChange={(e) => setF('payment_terms_days', parseInt(e.target.value) || 0)} />
+                      <Input label="อ้างอิง" value={form.reference} onChange={(e) => setF('reference', e.target.value)} />
+                      <div className="col-span-2">
+                        <Textarea label="ที่อยู่ผู้ส่ง" value={form.from_address} onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setF('from_address', e.target.value)} />
+                      </div>
+                      <div className="col-span-2">
+                        <Textarea label="ที่อยู่ผู้รับ" value={form.to_address} onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setF('to_address', e.target.value)} />
+                      </div>
+                      <div className="col-span-2">
+                        <Textarea label="หมายเหตุ" value={form.notes} onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setF('notes', e.target.value)} />
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -395,7 +553,7 @@ function NewPurchaseOrderPageInner() {
 
             <div className="grid grid-cols-2 gap-3 pt-4">
               <Button variant="secondary" onClick={() => handleSubmit(false)} loading={saving}>ขอบบิล</Button>
-              <Button onClick={() => setShowApproval(true)} disabled={saving}>อนุมัติกัน</Button>
+              <Button onClick={() => setShowApproval(true)} disabled={saving || (selectedIOIds.length === 0 && lines.length === 0)}>อนุมัติกัน</Button>
             </div>
           </div>
         </div>
@@ -405,7 +563,15 @@ function NewPurchaseOrderPageInner() {
         open={showApproval}
         onClose={() => setShowApproval(false)}
         vendorName={vendorName}
-        lines={lines}
+        lines={selectedIOIds.length > 0 ? ioLines.map((l) => ({
+          product_id: l.product_id,
+          sku: l.sku,
+          name_th: l.name_th,
+          selling_price: 0,
+          qty_ordered: l.qty_received,
+          unit_price: l.unit_price,
+          line_discount: 0,
+        })) : lines}
         summary={summary}
         onConfirm={() => handleSubmit(true)}
         loading={saving}

@@ -41,7 +41,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   );
 
   const grns = await query(
-    `SELECT g.id, g.grn_number, g.status, g.received_date, u.name_en AS received_by_name
+    `SELECT g.id, g.grn_number, g.status, g.received_date,
+            g.rejection_notes, g.received_by_names,
+            u.name_en AS received_by_name
      FROM goods_receipt_notes g
      JOIN users u ON u.id = g.received_by
      WHERE g.inbound_order_id = $1

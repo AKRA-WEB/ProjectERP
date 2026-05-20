@@ -119,6 +119,7 @@ export default function NewInboundOrderPage() {
 
   const [vendorId, setVendorId] = useState('');
   const [warehouseId, setWarehouseId] = useState('');
+  const [orderDate, setOrderDate] = useState(new Date().toISOString().slice(0, 10));
   const [notes, setNotes] = useState('');
   const [lines, setLines] = useState<IOLine[]>([]);
   const [saving, setSaving] = useState(false);
@@ -175,6 +176,7 @@ export default function NewInboundOrderPage() {
       await post<{ id: string }>('/api/inbound-orders', {
         vendor_id: vendorId,
         warehouse_id: warehouseId,
+        order_date: orderDate,
         notes: notes || undefined,
         lines: lines.map((l) => ({
           product_id: l.product_id,
@@ -198,7 +200,7 @@ export default function NewInboundOrderPage() {
       </div>
 
       <div className="rounded-xl bg-white shadow-sm border border-gray-100 p-6 space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Select
             label="ผู้จำหน่าย / Vendor *"
             value={vendorId}
@@ -206,6 +208,10 @@ export default function NewInboundOrderPage() {
             options={vendors}
             placeholder="เลือกผู้จำหน่าย"
           />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">วันที่สั่ง</label>
+            <Input type="date" value={orderDate} onChange={(e) => setOrderDate(e.target.value)} />
+          </div>
           <Select
             label="คลังสินค้า *"
             value={warehouseId}

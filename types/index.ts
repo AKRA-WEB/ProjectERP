@@ -12,8 +12,8 @@ export type RmaStatus = 'open' | 'in_review' | 'resolved' | 'closed';
 export type ClaimStatus = 'open' | 'in_review' | 'resolved' | 'closed';
 export type ClaimResolutionType = 'credit_note' | 'replacement_shipment' | 'both';
 export type TransferStatus = 'pending' | 'completed' | 'cancelled';
-export type InboundOrderStatus = 'open' | 'receiving' | 'pending_verification' | 'verified' | 'closed';
-export type GrnStatus = 'draft' | 'received' | 'verified' | 'qc_pending' | 'qc_passed' | 'qc_failed' | 'stocked';
+export type InboundOrderStatus = 'open' | 'receiving' | 'pending_verification' | 'verified' | 'closed' | 'rejected' | 'converted_to_po';
+export type GrnStatus = 'draft' | 'received' | 'verified' | 'qc_pending' | 'qc_passed' | 'qc_failed' | 'stocked' | 'rejected';
 export type PrStatus = 'draft' | 'submitted' | 'manager_approved' | 'admin_approved' | 'rejected' | 'converted_to_po' | 'received';
 export type PoStatus = 'draft' | 'sent' | 'partially_received' | 'fully_received' | 'invoiced' | 'paid' | 'closed' | 'cancelled';
 export type CycleCountStatus = 'open' | 'counting' | 'pending_approval' | 'approved' | 'closed';
@@ -480,6 +480,7 @@ export interface InboundOrder {
   warehouse_code: string;
   warehouse_name: string;
   status: InboundOrderStatus;
+  order_date: string;
   notes: string | null;
   vendor_ref: string | null;
   verified_by: string | null;

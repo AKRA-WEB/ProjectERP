@@ -7,7 +7,7 @@ import { get, post } from '@/lib/api-client';
 import { formatQty } from '@/lib/format';
 import { useSession } from 'next-auth/react';
 import type { Warehouse, PaginatedResponse } from '@/types';
-import { ArrowLeft, MoreHorizontal, ScanLine, Calendar, CheckCircle2, Circle } from 'lucide-react';
+import { ArrowLeft, MoreHorizontal, ScanLine, CheckCircle2, Circle } from 'lucide-react';
 
 interface GRNLine {
   po_line_item_id?: string;
@@ -22,6 +22,8 @@ interface GRNLine {
   lot_number: string;
   expiry_date: string;
   storage_location: string;
+  date_type: 'expiry' | 'mfg';
+  mfg_date: string;
 }
 
 interface POItem {
@@ -110,16 +112,33 @@ function NewGRNPageInner() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
+  // New states for Task 10
+  const [receivedByNames, setReceivedByNames] = useState('');
+  const [liftFeeEnabled, setLiftFeeEnabled] = useState(false);
+  const [liftFeeRounds, setLiftFeeRounds] = useState(0);
+  const [isW2Warehouse, setIsW2Warehouse] = useState(false);
+  const [warehouseList, setWarehouseList] = useState<{ id: string; code: string; name_th: string }[]>([]);
+
   useEffect(() => {
-    get<Warehouse[]>('/api/admin/warehouses').then((data) =>
-      setWarehouses(data.map((w) => ({ value: w.id, label: `${w.code} — ${w.name_th}` })))
-    );
+    get<Warehouse[]>('/api/admin/warehouses').then((data) => {
+      setWarehouseList(data);
+      setWarehouses(data.map((w) => ({ value: w.id, label: `${w.code} — ${w.name_th}` })));
+    });
     if (mode === 'po') {
       get<PaginatedResponse<POItem>>('/api/purchase-orders?status=sent&limit=100').then((r) =>
         setPoOptions(r.data.map((po) => ({ value: po.id, label: `${po.po_number} — ${po.vendor_name}` })))
       );
     }
   }, [mode]);
+
+  useEffect(() => {
+    const w = warehouseList.find((wh) => wh.id === warehouseId);
+    setIsW2Warehouse(w?.code === 'W2');
+    if (w?.code !== 'W2') {
+      setLiftFeeEnabled(false);
+      setLiftFeeRounds(0);
+    }
+  }, [warehouseId, warehouseList]);
 
   useEffect(() => {
     if (mode !== 'po' || !selectedPoId) { if (mode === 'po') setLines([]); return; }
@@ -137,6 +156,8 @@ function NewGRNPageInner() {
           qty_available: Number(l.qty_available ?? 0),
           lot_number: '',
           expiry_date: '',
+          date_type: 'expiry',
+          mfg_date: '',
           storage_location: '',
         }))
       );
@@ -161,6 +182,8 @@ function NewGRNPageInner() {
           qty_available: Number(l.qty_available ?? 0),
           lot_number: '',
           expiry_date: '',
+          date_type: 'expiry',
+          mfg_date: '',
           storage_location: '',
         }))
       );
@@ -186,13 +209,14 @@ function NewGRNPageInner() {
     if (next !== -1) setActiveLine(next);
   }
 
-  async function handleSubmit() {
+  async function handleSubmit(submitMode: 'draft' | 'submit') {
     if (mode === 'po' && !selectedPoId) { setError('กรุณาเลือกใบสั่งซื้อ'); return; }
     if (mode === 'io' && !ioIdParam) { setError('ไม่พบรหัส IO'); return; }
     if (!warehouseId) { setError('กรุณาเลือกคลังสินค้า'); return; }
     if (lines.length === 0) { setError('ไม่มีรายการสินค้า'); return; }
     const activeLines = lines.filter((l) => l.qty_received > 0);
     if (activeLines.length === 0) { setError('กรุณาระบุจำนวนที่รับ'); return; }
+    if (submitMode === 'submit' && !receivedByNames.trim()) { setError('กรุณาระบุชื่อผู้รับลงสินค้า'); return; }
 
     setError('');
     setSaving(true);
@@ -201,19 +225,38 @@ function NewGRNPageInner() {
         warehouse_id: warehouseId,
         received_date: receivedDate,
         notes: notes || undefined,
+        received_by_names: receivedByNames || undefined,
+        lift_fee_rounds: liftFeeEnabled ? liftFeeRounds : 0,
         lines: activeLines.map((l) => ({
           po_line_item_id: l.po_line_item_id,
           inbound_order_line_id: l.inbound_order_line_id,
           product_id: l.product_id,
           qty_received: l.qty_received,
           lot_number: l.lot_number || undefined,
-          expiry_date: l.expiry_date || undefined,
           storage_location: l.storage_location || undefined,
+          date_type: l.date_type,
+          expiry_date: l.date_type === 'expiry' ? (l.expiry_date || undefined) : undefined,
+          mfg_date: l.date_type === 'mfg' ? (l.mfg_date || undefined) : undefined,
         })),
       };
       if (mode === 'po') payload.po_id = selectedPoId;
       else payload.inbound_order_id = ioIdParam;
+
       const result = await post<{ id: string }>('/api/grn', payload);
+
+      if (submitMode === 'submit') {
+        const grnDetail = await get<{ lines: { id: string; qty_received: number; storage_location: string }[] }>(`/api/grn/${result.id}`);
+        await post(`/api/grn/${result.id}/receive`, {
+          delivery_date: receivedDate,
+          receiver_name: receivedByNames || undefined,
+          lines: (grnDetail.lines ?? []).map((l) => ({
+            id: l.id,
+            qty_received: Number(l.qty_received),
+            storage_location: l.storage_location || undefined,
+          })),
+        });
+      }
+
       router.push(`/app/grn/${result.id}`);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
@@ -224,7 +267,6 @@ function NewGRNPageInner() {
 
   const doneCount = lines.filter((l) => getLineStatus(l) !== 'pending').length;
   const totalCount = lines.length;
-  const allDone = doneCount === totalCount && totalCount > 0;
   const docNumber = mode === 'io' ? ioDetail?.io_number : undefined;
   const vendorName = mode === 'io' ? ioDetail?.vendor_name : undefined;
   const activeL = lines[activeLine];
@@ -261,7 +303,7 @@ function NewGRNPageInner() {
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 pb-28">
+      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 pb-32">
         {lines.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-stone-300">
             <p className="text-sm">ไม่มีรายการสินค้า</p>
@@ -271,6 +313,41 @@ function NewGRNPageInner() {
           </div>
         ) : (
           <>
+            {/* Header Info Card */}
+            <div className="rounded-2xl bg-white border border-stone-200 p-4 space-y-3">
+              <p className="text-[12px] font-bold text-stone-500 uppercase tracking-wider">ข้อมูลการรับลงสินค้า</p>
+              <div>
+                <label className="block text-xs font-medium text-stone-700 mb-1">
+                  ผู้รับลงสินค้า <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  placeholder="ชื่อผู้รับลง (คั่นด้วยจุลภาค เช่น สมชาย, วิภา)"
+                  value={receivedByNames}
+                  onChange={(e) => setReceivedByNames(e.target.value)}
+                />
+              </div>
+              {isW2Warehouse && (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={liftFeeEnabled}
+                      onChange={(e) => { setLiftFeeEnabled(e.target.checked); if (!e.target.checked) setLiftFeeRounds(0); }}
+                      className="w-4 h-4 rounded" />
+                    <span className="text-sm font-medium text-amber-800">มีค่าลิฟท์</span>
+                  </label>
+                  {liftFeeEnabled && (
+                    <div className="mt-2 flex items-center gap-2">
+                      <span className="text-sm text-amber-700">จำนวนรอบ</span>
+                      <Input type="number" min="0" value={liftFeeRounds || ''}
+                        onChange={(e) => setLiftFeeRounds(Math.max(0, parseInt(e.target.value) || 0))}
+                        className="w-20 text-center bg-white" />
+                      <span className="text-sm text-amber-700">รอบ =</span>
+                      <span className="font-semibold text-emerald-700">฿{(liftFeeRounds * 50).toLocaleString()}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
             {/* Scan banner */}
             <div className="bg-stone-900 text-white rounded-xl p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -361,21 +438,33 @@ function NewGRNPageInner() {
                   </div>
                 </div>
 
-                {/* Expiry date */}
+                {/* Expiry / MFG date toggle */}
                 <div>
-                  <label className="text-[11px] text-stone-600 mb-1 flex items-center gap-1">
-                    <Calendar className="w-3 h-3" /> วันหมดอายุ
-                  </label>
+                  <div className="flex items-center gap-2 mb-1">
+                    {activeL.date_type === 'expiry' ? (
+                      <>
+                        <span className="text-xs font-semibold text-red-600">📅 วันหมดอายุ</span>
+                        <button type="button" onClick={() => updateLine(activeLine, 'date_type', 'mfg')}
+                          className="text-xs text-blue-500 underline underline-offset-2">→ เปลี่ยนเป็น MFG</button>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-xs font-semibold text-blue-600">🏭 วันที่ผลิต</span>
+                        <button type="button" onClick={() => updateLine(activeLine, 'date_type', 'expiry')}
+                          className="text-xs text-blue-500 underline underline-offset-2">→ เปลี่ยนเป็น EXP</button>
+                      </>
+                    )}
+                  </div>
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-sm text-stone-700">
-                      {activeL.expiry_date || '—'}
+                      {(activeL.date_type === 'expiry' ? activeL.expiry_date : activeL.mfg_date) || '—'}
                     </span>
-                    <ExpiryChip days={expiryDaysLeft(activeL.expiry_date)} />
+                    {activeL.date_type === 'expiry' && <ExpiryChip days={expiryDaysLeft(activeL.expiry_date)} />}
                     <div className="ml-auto">
                       <input
                         type="date"
-                        value={activeL.expiry_date}
-                        onChange={(e) => updateLine(activeLine, 'expiry_date', e.target.value)}
+                        value={activeL.date_type === 'expiry' ? activeL.expiry_date : activeL.mfg_date}
+                        onChange={(e) => updateLine(activeLine, activeL.date_type === 'expiry' ? 'expiry_date' : 'mfg_date', e.target.value)}
                         className="h-8 px-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-stone-300"
                       />
                     </div>
@@ -439,21 +528,26 @@ function NewGRNPageInner() {
         {error && <p className="text-sm text-red-600 text-center">{error}</p>}
       </div>
 
-      {/* Sticky bottom submit */}
+      {/* Sticky bottom submit dual-action buttons */}
       <div className="fixed bottom-0 inset-x-0 p-4 bg-white border-t border-stone-200 z-40">
-        <button
-          onClick={handleSubmit}
-          disabled={!allDone || saving}
-          className={`w-full h-12 rounded-xl text-[14px] font-semibold transition-all ${
-            allDone
-              ? 'bg-emerald-600 text-white hover:bg-emerald-700'
-              : 'bg-stone-200 text-stone-600 cursor-not-allowed'
-          }`}
-        >
-          {saving ? 'กำลังบันทึก...' : allDone
-            ? 'ส่งใบรับสินค้า ✓'
-            : `ส่งใบรับสินค้า · ยังเหลืออีก ${totalCount - doneCount} รายการ`}
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => handleSubmit('draft')}
+            disabled={saving || lines.length === 0}
+            className="flex-1 h-12 rounded-xl border border-gray-300 text-[13px] font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-40"
+          >
+            ⏸ พักบิล
+          </button>
+          <button
+            type="button"
+            onClick={() => handleSubmit('submit')}
+            disabled={saving || lines.length === 0}
+            className="flex-[3] h-12 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 text-[13px] font-semibold disabled:opacity-40"
+          >
+            {saving ? 'กำลังบันทึก...' : '✅ รับลงสินค้าเรียบร้อย'}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -499,10 +593,38 @@ function NewGRNPageInner() {
             <Input label="วันที่รับสินค้า *" type="date" value={receivedDate} onChange={(e) => setReceivedDate(e.target.value)} />
             <Input label="หมายเหตุ" value={notes} onChange={(e) => setNotes(e.target.value)} />
           </div>
-          <div className="bg-stone-50 rounded-lg p-4 flex flex-col justify-center">
-            <label className="text-xs font-medium text-stone-500 uppercase tracking-wider mb-1">ผู้รับสินค้า</label>
-            <p className="text-sm font-semibold text-stone-900">{session?.user?.name ?? '—'}</p>
-            <p className="text-xs text-stone-600 mt-1">บันทึกอัตโนมัติจากผู้ใช้ที่ล็อกอิน</p>
+          <div className="bg-stone-50 rounded-lg p-4 flex flex-col justify-start space-y-2">
+            <div>
+              <label className="text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-0.5">ผู้ทำรายการ</label>
+              <p className="text-sm font-semibold text-stone-900">{session?.user?.name ?? '—'}</p>
+            </div>
+            <hr className="border-stone-200" />
+            <Input
+              label="ผู้รับลงสินค้า *"
+              placeholder="คั่นด้วยจุลภาค เช่น สมชาย, วิภา"
+              value={receivedByNames}
+              onChange={(e) => setReceivedByNames(e.target.value)}
+            />
+            {isW2Warehouse && (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 p-2.5 mt-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={liftFeeEnabled}
+                    onChange={(e) => { setLiftFeeEnabled(e.target.checked); if (!e.target.checked) setLiftFeeRounds(0); }}
+                    className="w-4 h-4 rounded" />
+                  <span className="text-xs font-semibold text-amber-800">มีค่าลิฟท์</span>
+                </label>
+                {liftFeeEnabled && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className="text-xs text-amber-700">จำนวนรอบ</span>
+                    <input type="number" min="0" value={liftFeeRounds || ''}
+                      onChange={(e) => setLiftFeeRounds(Math.max(0, parseInt(e.target.value) || 0))}
+                      className="w-16 text-center border rounded bg-white px-1.5 py-0.5 text-xs" />
+                    <span className="text-xs text-amber-700">รอบ =</span>
+                    <span className="text-xs font-bold text-emerald-700">฿{(liftFeeRounds * 50).toLocaleString()}</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -519,7 +641,7 @@ function NewGRNPageInner() {
                     <th className="text-right p-3 font-medium text-stone-600 w-24">รับครั้งนี้</th>
                     <th className="p-3 font-medium text-stone-600 w-32">Lot Number</th>
                     <th className="p-3 font-medium text-stone-600 w-32">ตำแหน่งเก็บ</th>
-                    <th className="p-3 font-medium text-stone-600 w-36">วันหมดอายุ</th>
+                    <th className="p-3 font-medium text-stone-600 w-44">วันที่ควบคุม (EXP/MFG)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -544,10 +666,26 @@ function NewGRNPageInner() {
                           className="w-full rounded-lg border border-stone-200 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-stone-300" placeholder="A-1" />
                       </td>
                       <td className="p-2">
-                        <div className="space-y-1">
-                          <input type="date" value={l.expiry_date} onChange={(e) => updateLine(i, 'expiry_date', e.target.value)}
-                            className="w-full rounded-lg border border-stone-200 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-stone-300" />
-                          <ExpiryChip days={expiryDaysLeft(l.expiry_date)} />
+                        <div className="space-y-1.5">
+                          <div className="flex items-center justify-between gap-2">
+                            {l.date_type === 'expiry' ? (
+                              <>
+                                <span className="text-xs font-semibold text-red-600">📅 EXP</span>
+                                <button type="button" onClick={() => updateLine(i, 'date_type', 'mfg')}
+                                  className="text-[10px] text-blue-500 hover:underline">→ MFG</button>
+                              </>
+                            ) : (
+                              <>
+                                <span className="text-xs font-semibold text-blue-600">🏭 MFG</span>
+                                <button type="button" onClick={() => updateLine(i, 'date_type', 'expiry')}
+                                  className="text-[10px] text-blue-500 hover:underline">→ EXP</button>
+                              </>
+                            )}
+                          </div>
+                          <input type="date" value={l.date_type === 'expiry' ? l.expiry_date : l.mfg_date}
+                            onChange={(e) => updateLine(i, l.date_type === 'expiry' ? 'expiry_date' : 'mfg_date', e.target.value)}
+                            className="w-full rounded-lg border border-stone-200 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-stone-300" />
+                          {l.date_type === 'expiry' && <ExpiryChip days={expiryDaysLeft(l.expiry_date)} />}
                         </div>
                       </td>
                     </tr>
@@ -565,9 +703,24 @@ function NewGRNPageInner() {
         )}
 
         {error && <p className="text-sm text-red-600">{error}</p>}
-        <div className="flex justify-end">
-          <Button onClick={handleSubmit} loading={saving} disabled={(mode === 'po' && !selectedPoId) || lines.length === 0}>
-            {mode === 'io' ? 'บันทึกการรับสินค้า' : 'สร้าง GRN'}
+        <div className="flex justify-end gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => handleSubmit('draft')}
+            loading={saving}
+            disabled={(mode === 'po' && !selectedPoId) || lines.length === 0}
+          >
+            ⏸ พักบิล
+          </Button>
+          <Button
+            type="button"
+            variant="primary"
+            onClick={() => handleSubmit('submit')}
+            loading={saving}
+            disabled={(mode === 'po' && !selectedPoId) || lines.length === 0}
+          >
+            ✅ รับลงสินค้าเรียบร้อย
           </Button>
         </div>
       </div>
