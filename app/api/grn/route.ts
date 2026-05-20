@@ -28,6 +28,15 @@ const createSchema = z.object({
   notes: z.string().optional(),
   received_by_names: z.string().optional(),
   lift_fee_rounds: z.number().int().min(0).default(0),
+  lift_fee_payment_method: z.enum(['cash', 'credit']).optional().nullable(),
+  bonus_items: z.array(z.object({
+    product_id: z.string().uuid().optional().nullable(),
+    product_name: z.string().max(255).optional().nullable(),
+    qty: z.number().positive(),
+    unit: z.string().max(50).optional().nullable(),
+    expiry_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
+    notes: z.string().optional().nullable(),
+  })).optional().default([]),
   lines: z.array(lineSchema).min(1),
 }).refine(
   (d) => (d.po_id != null) !== (d.inbound_order_id != null),
@@ -265,8 +274,8 @@ export async function POST(req: Request) {
     await client2.query('BEGIN');
 
     const grnResult = await client2.query<{ id: string; grn_number: string; status: string }>(
-      `INSERT INTO goods_receipt_notes (po_id, inbound_order_id, warehouse_id, vendor_id, received_by, received_date, notes, source_type, received_by_names, lift_fee_rounds)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8::grn_source_type, $9, $10) RETURNING id, grn_number, status`,
+      `INSERT INTO goods_receipt_notes (po_id, inbound_order_id, warehouse_id, vendor_id, received_by, received_date, notes, source_type, received_by_names, lift_fee_rounds, lift_fee_payment_method)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8::grn_source_type, $9, $10, $11) RETURNING id, grn_number, status`,
       [
         parsed.data.po_id ?? null,
         parsed.data.inbound_order_id ?? null,
@@ -277,7 +286,8 @@ export async function POST(req: Request) {
         parsed.data.notes ?? null,
         sourceType,
         parsed.data.received_by_names ?? null,
-        parsed.data.lift_fee_rounds ?? 0
+        parsed.data.lift_fee_rounds ?? 0,
+        parsed.data.lift_fee_payment_method ?? null
       ]
     );
     const grn = grnResult.rows[0];
@@ -309,6 +319,26 @@ export async function POST(req: Request) {
        VALUES ${lineValues}`,
       lineParams
     );
+
+    if (parsed.data.bonus_items && parsed.data.bonus_items.length > 0) {
+      for (let i = 0; i < parsed.data.bonus_items.length; i++) {
+        const b = parsed.data.bonus_items[i];
+        await client2.query(
+          `INSERT INTO grn_bonus_items (grn_id, product_id, product_name, qty, unit, expiry_date, notes, line_number)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+          [
+            grn.id,
+            b.product_id ?? null,
+            b.product_name ?? null,
+            b.qty,
+            b.unit ?? null,
+            b.expiry_date ?? null,
+            b.notes ?? null,
+            i + 1
+          ]
+        );
+      }
+    }
 
     if (parsed.data.inbound_order_id) {
       await client2.query(

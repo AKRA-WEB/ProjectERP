@@ -17,6 +17,7 @@
 | Track | Status | Plan | Rework Plan |
 |-------|--------|------|-------------|
 | grn-receiving-fix | Completed | [plan.md](tracks/grn-receiving-fix/plan.md) | — |
+| grn-simplified-workflow | Completed | [plan.md](tracks/grn-simplified-workflow/plan.md) | — |
 
 
 ## Rework Required
@@ -64,3 +65,4 @@
 | [hr-ui-redesign — HR UI Redesign (Dashboard · Employees · Leave · Payroll)](./tracks/hr-ui-redesign/plan.md) | Completed | 2026-05-19 | 2026-05-20 |
 | [IO → GR → PO Workflow — IO card + GRN receive + Supervisor confirm + PO from IO](./tracks/io-gr-po-workflow/plan.md) | Completed | 2026-05-20 | 2026-05-20 |
 | [GRN Receiving Fix — Mobile Date + IO Over-Receiving](./tracks/grn-receiving-fix/plan.md) | Completed | 2026-05-20 | 2026-05-20 |
+| [GRN Simplified Workflow](./tracks/grn-simplified-workflow/plan.md) | Completed | 2026-05-20 | 2026-05-20 |

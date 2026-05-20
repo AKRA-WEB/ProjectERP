@@ -14,7 +14,7 @@ updated_by: Gemini
 
 | Track | Status | Description |
 |-------|--------|-------------|
-| None | | All Active and Rework Required tracks are Completed. |
+| — | — | — |
 
 ## Needs QA (Billy: `QA: <track>`)
 
@@ -67,8 +67,9 @@ work_schedule_id UUID → work_schedules
 | `payroll_runs` | id, run_number, period_start, period_end, status, pay_date |
 | `payroll_lines` | id, payroll_run_id, employee_id, base_salary, ot_amount, allowance_amount, sso_deduction, pvf_deduction, tax_deduction, net_pay |
 | `stock_ledger` | id, product_id, warehouse_id, entry_type, qty_change, reference_id, created_by |
-| `goods_receipt_notes` | id, grn_number, source_type, po_id, inbound_order_id, warehouse_id, status |
+| `goods_receipt_notes` | id, grn_number, source_type, po_id, inbound_order_id, warehouse_id, status, **lift_fee_payment_method** |
 | `grn_line_items` | id, grn_id, product_id, qty_received, qty_accepted, qty_rejected, **unit_cost**, line_total |
+| `grn_bonus_items` | id, grn_id, product_id, product_name, qty, unit, expiry_date, notes, line_number |
 | `leave_types` | id, code, name_th, name_en, default_days_per_year |
 
 ## Import Traps (verified from pitfalls.md)
@@ -169,18 +170,18 @@ When creating new module pages, add path prefix to `components/layout/Sidebar.ts
 
 | Track | Date | Key Changes |
 |-------|------|-------------|
+| `grn-simplified-workflow` | 2026-05-20 | Simplify GRN receiving UX to single scrollable form with bonus items, lift fee payment, Thai labels, and 72-hour overdue badges |
 | `io-gr-po-workflow` | 2026-05-20 | Implement IO → GR → PO warehouse-first workflow, UI list redesign, W2 lift fee, supervisor panel |
 | `ui-improvement-inventory` | 2026-05-20 | Optimization: Heatmap Matrix, Warehouse Cards, Stock Segments |
 | `ui-improvement-pos` | 2026-05-20 | Optimization: Tier colors, 15m Stock Lock timer, Receipt Modal |
 | `bug-hunt-wms-polish` | 2026-05-20 | Optimization: `last_cost` API, PR/PO button text & icon polish |
-| `hr-ui-redesign` | 2026-05-20 | REWORK: UI redesign, View Transitions, probation stats, detail page |
 
 ---
 
-## Migration Numbers (latest: 038)
+## Migration Numbers (latest: 039)
 
-Next migration = `039_<name>.sql`
-Latest: `038_io_gr_po_workflow.sql`
+Next migration = `040_<name>.sql`
+Latest: `039_grn_bonus_items.sql`
 
 ---
 *Update this file: append to "Last 5 Completed Tracks", update "Active Work", add new DB facts discovered*

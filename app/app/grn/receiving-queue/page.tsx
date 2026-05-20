@@ -56,6 +56,18 @@ function isUrgent(dateStr: string): boolean {
   return Date.now() - new Date(dateStr).getTime() > 4 * 60 * 60 * 1000;
 }
 
+const IO_STATUS_LABEL: Record<string, string> = {
+  open:      'รอสินค้าเข้า',
+  receiving: 'กำลังลงสินค้า',
+  received:  'รอตรวจสอบ',
+  stocked:   'รับสินค้าแล้ว',
+};
+
+function isOverdue(dateStr: string, status: string): boolean {
+  if (status !== 'open' && status !== 'receiving') return false;
+  return Date.now() - new Date(dateStr).getTime() > 72 * 60 * 60 * 1000;
+}
+
 function MobileBottomTabBar() {
   const router = useRouter();
   const tabs = [
@@ -196,16 +208,25 @@ export default function ReceivingQueuePage() {
                 <div className="space-y-3">
                   {data.inbound_orders.map((io) => {
                     const urgent = isUrgent(io.created_at);
+                    const overdue = isOverdue(io.created_at, io.status);
                     return (
                       <div key={io.id} className={`bg-white rounded-2xl border p-4 space-y-2.5 ${
-                        urgent ? 'border-amber-300 ring-1 ring-amber-200/50' : 'border-stone-200'
+                        overdue ? 'border-red-300 ring-1 ring-red-200/50' : urgent ? 'border-amber-300 ring-1 ring-amber-200/50' : 'border-stone-200'
                       }`}>
                         <div className="flex items-start justify-between gap-2">
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono text-[13px] font-bold text-emerald-700">{io.io_number}</span>
-                            {urgent && (
-                              <span className="text-[10px] font-bold text-amber-700 border border-amber-300 bg-amber-50 rounded-full px-1.5 py-0.5">ด่วน</span>
-                            )}
+                          <div className="flex flex-col gap-1.5">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-mono text-[13px] font-bold text-emerald-700">{io.io_number}</span>
+                              {urgent && (
+                                <span className="text-[10px] font-bold text-amber-700 border border-amber-300 bg-amber-50 rounded-full px-1.5 py-0.5">ด่วน</span>
+                              )}
+                              {overdue && (
+                                <span className="text-[10px] font-bold text-red-700 border border-red-300 bg-red-50 rounded-full px-1.5 py-0.5">นานผิดปกติ</span>
+                              )}
+                            </div>
+                            <div>
+                              <StatusBadge status={io.status} labelOverride={IO_STATUS_LABEL[io.status]} />
+                            </div>
                           </div>
                           <div className="text-right">
                             <p className="text-xl font-mono font-bold tabular-nums text-stone-900">{formatQty(io.total_qty_remaining)}</p>
@@ -333,7 +354,7 @@ export default function ReceivingQueuePage() {
                         <Td className="text-sm hidden sm:table-cell">{io.warehouse_code}</Td>
                         <Td className="text-right font-mono text-sm hidden sm:table-cell tabular-nums">{formatQty(io.total_qty_remaining)}</Td>
                         <Td className="text-sm text-stone-500 hidden sm:table-cell">{formatDate(io.created_at)}</Td>
-                        <Td><StatusBadge status={io.status} /></Td>
+                        <Td><StatusBadge status={io.status} labelOverride={IO_STATUS_LABEL[io.status]} /></Td>
                         <Td className="text-right">
                           <Link href={`/app/grn/new?io_id=${io.id}`} transitionTypes={['nav-forward']}>
                             <Button size="sm">รับสินค้า</Button>
