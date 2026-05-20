@@ -63,11 +63,11 @@ CREATE TABLE IF NOT EXISTS repack_order_items (
 -- 5. Triggers for updated_at
 CREATE OR REPLACE TRIGGER trg_repack_templates_updated_at
     BEFORE UPDATE ON repack_templates
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 CREATE OR REPLACE TRIGGER trg_repack_orders_updated_at
     BEFORE UPDATE ON repack_orders
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 -- 6. Indexes
 CREATE INDEX idx_repack_orders_source_product ON repack_orders(source_product_id);
