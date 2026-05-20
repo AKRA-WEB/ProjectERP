@@ -1,6 +1,6 @@
 ---
 track: io-gr-po-workflow
-status: Active
+status: Completed
 owner: paku, puka
 module: WMS, Purchasing
 updated: 2026-05-20

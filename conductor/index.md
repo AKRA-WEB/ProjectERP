@@ -16,7 +16,7 @@
 
 | Track | Status | Plan | Rework Plan |
 |-------|--------|------|-------------|
-| IO → GR → PO Workflow | Active | [plan.md](./tracks/io-gr-po-workflow/plan.md) | — |
+| None  | —      | —    | —           |
 
 
 ## Rework Required
@@ -62,4 +62,4 @@
 | [UI Improvement — POS Tier Badges · Lock Timer · Thermal Receipt](./tracks/ui-improvement-pos/plan.md) | Completed | 2026-05-15 | 2026-05-20 |
 | [Hamburger Sidebar Z-Index Fix](./tracks/hamburger-zindex-fix/plan.md) | Completed | 2026-05-16 | 2026-05-17 |
 | [hr-ui-redesign — HR UI Redesign (Dashboard · Employees · Leave · Payroll)](./tracks/hr-ui-redesign/plan.md) | Completed | 2026-05-19 | 2026-05-20 |
-| [IO → GR → PO Workflow — IO card + GRN receive + Supervisor confirm + PO from IO](./tracks/io-gr-po-workflow/plan.md) | Active | 2026-05-20 | 2026-05-20 |
+| [IO → GR → PO Workflow — IO card + GRN receive + Supervisor confirm + PO from IO](./tracks/io-gr-po-workflow/plan.md) | Completed | 2026-05-20 | 2026-05-20 |
