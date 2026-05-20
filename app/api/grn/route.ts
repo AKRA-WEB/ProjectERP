@@ -252,13 +252,6 @@ export async function POST(req: Request) {
       if (!line.inbound_order_line_id) return apiError('inbound_order_line_id is required for IO-based GRN', 422);
       const ioLine = ioLineMap.get(line.inbound_order_line_id);
       if (!ioLine) return apiError(`IO line ${line.inbound_order_line_id} not found`, 422);
-      const remaining = Number(ioLine.qty_ordered) - Number(ioLine.already_received);
-      if (line.qty_received > remaining + 0.0001) {
-        return apiError(
-          `qty_received (${line.qty_received}) exceeds remaining qty (${remaining.toFixed(4)}) for line ${line.inbound_order_line_id}`,
-          422
-        );
-      }
       unitCosts.set(line.inbound_order_line_id, Number(ioLine.unit_cost));
     }
   }

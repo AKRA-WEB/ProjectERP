@@ -16,7 +16,7 @@
 
 | Track | Status | Plan | Rework Plan |
 |-------|--------|------|-------------|
-| None  | —      | —    | —           |
+| grn-receiving-fix | Completed | [plan.md](tracks/grn-receiving-fix/plan.md) | — |
 
 
 ## Rework Required
@@ -63,3 +63,4 @@
 | [Hamburger Sidebar Z-Index Fix](./tracks/hamburger-zindex-fix/plan.md) | Completed | 2026-05-16 | 2026-05-17 |
 | [hr-ui-redesign — HR UI Redesign (Dashboard · Employees · Leave · Payroll)](./tracks/hr-ui-redesign/plan.md) | Completed | 2026-05-19 | 2026-05-20 |
 | [IO → GR → PO Workflow — IO card + GRN receive + Supervisor confirm + PO from IO](./tracks/io-gr-po-workflow/plan.md) | Completed | 2026-05-20 | 2026-05-20 |
+| [GRN Receiving Fix — Mobile Date + IO Over-Receiving](./tracks/grn-receiving-fix/plan.md) | Completed | 2026-05-20 | 2026-05-20 |

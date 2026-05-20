@@ -462,9 +462,13 @@ function NewGRNPageInner() {
                     {activeL.date_type === 'expiry' && <ExpiryChip days={expiryDaysLeft(activeL.expiry_date)} />}
                     <div className="ml-auto">
                       <input
-                        type="date"
+                        type="text"
                         value={activeL.date_type === 'expiry' ? activeL.expiry_date : activeL.mfg_date}
                         onChange={(e) => updateLine(activeLine, activeL.date_type === 'expiry' ? 'expiry_date' : 'mfg_date', e.target.value)}
+                        placeholder="YYYY-MM-DD"
+                        pattern="\d{4}-\d{2}-\d{2}"
+                        maxLength={10}
+                        inputMode="numeric"
                         className="h-8 px-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-stone-300"
                       />
                     </div>
@@ -590,7 +594,7 @@ function NewGRNPageInner() {
             />
           </div>
           <div className="space-y-4">
-            <Input label="วันที่รับสินค้า *" type="date" value={receivedDate} onChange={(e) => setReceivedDate(e.target.value)} />
+            <Input label="วันที่รับสินค้า *" type="text" placeholder="YYYY-MM-DD" pattern="\d{4}-\d{2}-\d{2}" maxLength={10} value={receivedDate} onChange={(e) => setReceivedDate(e.target.value)} />
             <Input label="หมายเหตุ" value={notes} onChange={(e) => setNotes(e.target.value)} />
           </div>
           <div className="bg-stone-50 rounded-lg p-4 flex flex-col justify-start space-y-2">
@@ -682,8 +686,11 @@ function NewGRNPageInner() {
                               </>
                             )}
                           </div>
-                          <input type="date" value={l.date_type === 'expiry' ? l.expiry_date : l.mfg_date}
+                          <input type="text" value={l.date_type === 'expiry' ? l.expiry_date : l.mfg_date}
                             onChange={(e) => updateLine(i, l.date_type === 'expiry' ? 'expiry_date' : 'mfg_date', e.target.value)}
+                            placeholder="YYYY-MM-DD"
+                            pattern="\d{4}-\d{2}-\d{2}"
+                            maxLength={10}
                             className="w-full rounded-lg border border-stone-200 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-stone-300" />
                           {l.date_type === 'expiry' && <ExpiryChip days={expiryDaysLeft(l.expiry_date)} />}
                         </div>
