@@ -32,6 +32,7 @@ const createSchema = z.object({
   payment_terms_days: z.number().int().nonnegative().default(30),
   notes: z.string().optional(),
   pr_ids: z.array(z.string().uuid()).optional(),
+  io_ids: z.array(z.string().uuid()).optional(),
   lines: z.array(lineSchema).min(1),
 });
 
@@ -186,6 +187,40 @@ export async function POST(req: Request) {
         `UPDATE purchase_requisitions SET status = 'converted_to_po' WHERE id = ANY($1::uuid[])`,
         [parsed.data.pr_ids]
       );
+    }
+
+    if (parsed.data.io_ids?.length) {
+      const ios = await client.query<{ id: string; vendor_id: string; status: string }>(
+        'SELECT id, vendor_id, status FROM inbound_orders WHERE id = ANY($1::uuid[])',
+        [parsed.data.io_ids]
+      );
+      const notVerified = ios.rows.filter((io) => io.status !== 'verified');
+      if (notVerified.length > 0) throw new Error('All IOs must be verified before creating PO');
+
+      for (const ioId of parsed.data.io_ids) {
+        await client.query(
+          'INSERT INTO io_po_links (io_id, po_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+          [ioId, poRow.id]
+        );
+      }
+      await client.query(
+        `UPDATE inbound_orders SET status = 'converted_to_po', updated_at = NOW()
+         WHERE id = ANY($1::uuid[])`,
+        [parsed.data.io_ids]
+      );
+      // Update unit_cost on GRN lines so stock cost is correct
+      for (const line of parsed.data.lines) {
+        await client.query(
+          `UPDATE grn_line_items gli
+           SET unit_cost = $1
+           FROM goods_receipt_notes g
+           JOIN io_po_links ipl ON ipl.io_id = g.inbound_order_id
+           WHERE gli.grn_id = g.id
+             AND gli.product_id = $2
+             AND ipl.po_id = $3`,
+          [line.unit_price, line.product_id, poRow.id]
+        );
+      }
     }
 
     await client.query('COMMIT');
