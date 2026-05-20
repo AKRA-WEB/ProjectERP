@@ -1,9 +1,9 @@
 ---
 track: po-gr-audit
-status: Active
+status: Completed
 owner: paku
 module: WMS
-updated: 2026-05-18
+updated: 2026-05-20
 ---
 
 # Track: po-gr-audit — PO & GRN Transaction Integrity Fix

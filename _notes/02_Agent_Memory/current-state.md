@@ -170,11 +170,11 @@ When creating new module pages, add path prefix to `components/layout/Sidebar.ts
 
 | Track | Date | Key Changes |
 |-------|------|-------------|
+| `product-stock-summary` | 2026-05-20 | Add "Stock" tab to Product Detail page showing real-time warehouse balances |
+| `po-gr-audit` | 2026-05-20 | Wrap PO and GRN POST routes in PostgreSQL transactions; add role guard to QC route |
+| `chen-plan-enforcement` | 2026-05-20 | Add UserPromptSubmit hook to enforce Chen spawn; update Chen Phase 3 with atomic checklist |
+| `grn-role-segregation` | 2026-05-20 | Implement unloader vs supervisor role segregation in both UI buttons and backend API, redirecting received GRNs back to the queue with a toast |
 | `grn-simplified-workflow` | 2026-05-20 | Simplify GRN receiving UX to single scrollable form with bonus items, lift fee payment, Thai labels, and 72-hour overdue badges |
-| `io-gr-po-workflow` | 2026-05-20 | Implement IO → GR → PO warehouse-first workflow, UI list redesign, W2 lift fee, supervisor panel |
-| `ui-improvement-inventory` | 2026-05-20 | Optimization: Heatmap Matrix, Warehouse Cards, Stock Segments |
-| `ui-improvement-pos` | 2026-05-20 | Optimization: Tier colors, 15m Stock Lock timer, Receipt Modal |
-| `bug-hunt-wms-polish` | 2026-05-20 | Optimization: `last_cost` API, PR/PO button text & icon polish |
 
 ---
 

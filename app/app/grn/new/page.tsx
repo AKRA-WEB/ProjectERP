@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Input, Select } from '@/components/ui';
+import { Input, Select, useToast } from '@/components/ui';
 import { get, post } from '@/lib/api-client';
 import { formatQty } from '@/lib/format';
 import type { Warehouse, PaginatedResponse } from '@/types';
@@ -121,6 +121,7 @@ function ExpiryChip({ days }: { days: number | null }) {
 
 function NewGRNPageInner() {
   const router = useRouter();
+  const toast = useToast();
   const searchParams = useSearchParams();
   const poIdParam = searchParams.get('po_id');
   const ioIdParam = searchParams.get('io_id');
@@ -414,9 +415,12 @@ function NewGRNPageInner() {
             storage_location: l.storage_location || undefined,
           })),
         });
+        toast('success', 'บันทึกการรับลงสินค้าเรียบร้อยแล้ว รอหัวหน้างานตรวจสอบ');
+        router.push('/app/grn/receiving-queue');
+      } else {
+        toast('success', 'บันทึกฉบับร่างเรียบร้อยแล้ว');
+        router.push('/app/grn/receiving-queue');
       }
-
-      router.push(`/app/grn/${result.id}`);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาดในการบันทึก / Save failed');
     } finally {

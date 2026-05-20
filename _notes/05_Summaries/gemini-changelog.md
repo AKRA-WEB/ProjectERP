@@ -2,6 +2,8 @@
 
 | Date | Change |
 |------|--------|
+| 2026-05-20 | **grn-role-segregation track completed** — Gated QC and Stock-In buttons under isManager in Detail page, secured POST /api/grn/[id]/stock on backend, and updated redirects to Receiving Queue with success toast |
+| 2026-05-20 | **grn-simplified-workflow track completed** — Refactored GRN receiving UX to single scrollable form with bonus items, lift fee payment, Thai labels, and 72-hour overdue badges |
 | 2026-05-20 | **repack-order track completed** — New module for multi-UoM repack system; integrated stock synchronization with stock_ledger; added print barcode stub |
 | 2026-05-20 | **Rework Cleanup** — Verified and completed `po-gr-audit`, `io-grn-500`, `wms-search-nav-fix`, and `hr-ui-redesign`; fixed global lint errors across multiple modules |
 | 2026-05-19 | **hr-ui-redesign track completed** — Full redesign of HR Dashboard, Employees, Leave, and Payroll pages; extended 4 APIs; added 13 stub pages; updated Sidebar to 8 groups |

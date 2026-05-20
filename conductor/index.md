@@ -16,6 +16,9 @@
 
 | Track | Status | Plan | Rework Plan |
 |-------|--------|------|-------------|
+| product-stock-summary | Completed | [plan.md](tracks/product-stock-summary/plan.md) | — |
+| po-gr-audit | Completed | [plan.md](tracks/po-gr-audit/plan.md) | — |
+| chen-plan-enforcement | Completed | [plan.md](tracks/chen-plan-enforcement/plan.md) | — |
 | grn-receiving-fix | Completed | [plan.md](tracks/grn-receiving-fix/plan.md) | — |
 | grn-simplified-workflow | Completed | [plan.md](tracks/grn-simplified-workflow/plan.md) | — |
 
@@ -31,6 +34,10 @@
 
 | Track | Status | Created | Last Updated |
 |-------|--------|---------|--------------|
+| [Product Detail Stock Overview](./tracks/product-stock-summary/plan.md) | Completed | 2026-05-19 | 2026-05-20 |
+| [PO & GRN Transaction Integrity](./tracks/po-gr-audit/plan.md) | Completed | 2026-05-18 | 2026-05-20 |
+| [Chen Plan Enforcement](./tracks/chen-plan-enforcement/plan.md) | Completed | 2026-05-18 | 2026-05-20 |
+| [GRN Role Segregation](./tracks/grn-role-segregation/plan.md) | Completed | 2026-05-20 | 2026-05-20 |
 | [Repack Order System](./tracks/repack-order/plan.md) | Completed | 2026-05-19 | 2026-05-20 |
 | [Collaboration Protocol](./PROTOCOLS.md) | Active | 2024-05-12 | 2024-05-12 |
 | [Audit PR→PO→GRN Flow](./tracks/audit-pr-po-grn/plan.md) | Completed | 2026-05-10 | 2026-05-17 |

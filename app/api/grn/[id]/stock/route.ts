@@ -1,12 +1,18 @@
 import { auth } from '@/auth';
 import { apiSuccess, apiError } from '@/lib/api-response';
 import pool from '@/lib/db/client';
-import type { SessionUser } from '@/lib/authz';
+import { assertRole, type SessionUser } from '@/lib/authz';
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session?.user) return apiError('Unauthorized', 401);
   const u = session.user as unknown as SessionUser;
+
+  try {
+    assertRole(u, ['manager', 'admin']);
+  } catch {
+    return apiError('Forbidden', 403);
+  }
 
   const { id } = await params;
   const client = await pool.connect();

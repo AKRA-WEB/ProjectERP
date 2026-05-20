@@ -555,13 +555,17 @@ export default function GRNDetailPage() {
                 ✓ ตรวจสอบความถูกต้อง / Verify
               </Button>
             ) : (
-              <Button onClick={() => setShowQC(true)}>เริ่ม QC / Quality Control</Button>
+              <Button onClick={() => setShowQC(true)} disabled={!isManager} title={!isManager ? 'Manager/Admin access required' : ''}>
+                เริ่ม QC / Quality Control
+              </Button>
             )}
           </>
         )}
 
         {['qc_passed', 'verified'].includes(grn.status) && (
-          <Button onClick={() => action('stock')} loading={acting}>นำเข้าคลัง / Stock In</Button>
+          <Button onClick={() => action('stock')} loading={acting} disabled={!isManager} title={!isManager ? 'Manager/Admin access required' : ''}>
+            นำเข้าคลัง / Stock In
+          </Button>
         )}
       </div>
 
