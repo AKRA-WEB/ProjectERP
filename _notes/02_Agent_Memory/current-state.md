@@ -1,6 +1,6 @@
 ---
-updated: 2026-05-19
-updated_by: Claude
+updated: 2026-05-20
+updated_by: Gemini
 ---
 
 # Project Current State — Anti-Context-Loss Briefing
@@ -20,6 +20,7 @@ updated_by: Claude
 
 | Track | Content |
 |-------|---------|
+| `grn-receiving-fix` | Mobile date inputs + allow IO over-receiving |
 | `view-transitions` | App-wide View Transitions implementation |
 | `po-gr-audit` | PO + GRN transaction integrity, status transitions |
 | `ui-improvement-inventory` | Heatmap Matrix + Warehouse Cards |
