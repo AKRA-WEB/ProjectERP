@@ -17,6 +17,8 @@
    -> ให้ไปอ่านกฎที่: `docs/skills/database_sql_rules.md` (ข้อควรระวัง: บังคับใช้ Parameterized queries `$1, $2` เท่านั้น ห้ามต่อ String)
 4. **[QA_Audit]**: สำหรับงานตรวจสอบโค้ดตามแผน `plan.md` (หน้าที่ของ Billy), การรัน Lint/Build, หรือการสร้าง `rework-plan.md`
    -> ให้ไปอ่านกฎที่: `docs/skills/qa_audit_rules.md`
+5. **[Vercel_Rules]**: สำหรับงานตรวจสอบความเข้ากันได้กับการติดตั้งบน Vercel, การจัดการ Async Waterfall, การทำ Bundle Optimization, และการหลีกเลี่ยง traps ของ Serverless Environment
+   -> ให้ไปอ่านกฎที่: `docs/skills/vercel_rules.md`
 
 # Operating Protocol (กฎการทำงาน 3 ขั้นตอน)
 เมื่อได้รับคำสั่ง (เช่น `Architect: ...` หรือ `QA: ...`) ให้คุณทำงานตามลำดับนี้เสมอ:
