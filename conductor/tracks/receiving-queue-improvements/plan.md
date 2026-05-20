@@ -137,3 +137,8 @@ The selector defaults to `io.warehouse_id` (set at line 119 via `setWarehouseId(
   - [x] Warehouse defaults to IO's warehouse_id (pre-selected)
   - [x] Changing warehouse and submitting → GRN created with the selected warehouse_id (verify in DB)
   - [x] Staff with no warehouse assignment still blocked by API (unchanged)
+
+---
+## Execution Logs
+- [[execution-summary]]
+

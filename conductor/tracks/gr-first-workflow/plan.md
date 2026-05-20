@@ -492,3 +492,8 @@ After all tasks: `npm run lint` + `npx tsc --noEmit`. Fix all errors before mark
 - [ ] No `any` types in new files
 - [ ] `npx tsc --noEmit` passes project-wide
 - [ ] `npm run lint` passes
+
+---
+## Execution Logs
+- [[execution-summary]]
+

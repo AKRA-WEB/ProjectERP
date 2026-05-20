@@ -22,10 +22,11 @@ updated_by: Claude
 |-------|---------|
 | `view-transitions` | App-wide View Transitions implementation |
 | `po-gr-audit` | PO + GRN transaction integrity, status transitions |
-| `ui-improvement-dashboard` | Dashboard KPIs (POS today, top products, activity) |
-| `product-stock-summary` | Product detail page stock overview |
-| `wms-search-nav-fix` | Product search dropdown fix + nav 404 |
-| `io-grn-500` | Batch INSERT stride fix in `/api/grn` |
+| `ui-improvement-inventory` | Heatmap Matrix + Warehouse Cards |
+| `ui-improvement-pos` | POS Tiers + Stock Timer + Thermal Receipt |
+| `bug-hunt-wms-polish` | last_cost API + UI button polish |
+| `hr-ui-redesign` | Full HR module rework verification |
+| `io-grn-500` | Fixed invalid enum comparison in `/api/grn` |
 
 ---
 
@@ -119,6 +120,17 @@ import { ViewTransition } from 'react'       // experimental, breaks build
 
 ---
 
+## API Routes — POS Module
+
+| Method | Path | Notes |
+|--------|------|-------|
+| GET | `/api/pos/sessions/[id]/products` | list for terminal |
+| GET | `/api/pos/members` | lookup by phone |
+| POST | `/api/pos/orders` | checkout transaction |
+| PATCH | `/api/pos/sessions/[id]` | close session |
+
+---
+
 ## PayrollRunStatus Enum
 
 ```typescript
@@ -154,11 +166,11 @@ When creating new module pages, add path prefix to `components/layout/Sidebar.ts
 
 | Track | Date | Key Changes |
 |-------|------|-------------|
-| `encoding-fix` | 2026-05-20 | Optimization Suggested (Completed): Fixed Thai text double encoding |
-| `hamburger-zindex-fix` | 2026-05-20 | Optimization Suggested (Completed): Sidebar Hamburger Z-Index fix |
-| `pos-bugfix` | 2026-05-20 | Optimization Suggested (Completed): session close auth + formatDatetime + VAT constant |
-| `hr-ui-redesign` | 2026-05-20 | REWORK: UI redesign, View Transitions, probation stats, Gantt calendar, dept colors |
-| `repack-order` | 2026-05-20 | New module: Repack system with transaction stock sync |
+| `ui-improvement-inventory` | 2026-05-20 | Optimization: Heatmap Matrix, Warehouse Cards, Stock Segments |
+| `ui-improvement-pos` | 2026-05-20 | Optimization: Tier colors, 15m Stock Lock timer, Receipt Modal |
+| `bug-hunt-wms-polish` | 2026-05-20 | Optimization: `last_cost` API, PR/PO button text & icon polish |
+| `hr-ui-redesign` | 2026-05-20 | REWORK: UI redesign, View Transitions, probation stats, detail page |
+| `io-grn-500` | 2026-05-20 | REWORK: Fix invalid enum 'cancelled' in GRN queries |
 
 ---
 

@@ -404,3 +404,8 @@ Check if `BarChart2` from lucide-react is already imported: `grep "BarChart" com
 
 - [x] Verify sidebar shows new link
 - [x] Commit: `feat(reports): add Inventory Valuation to sidebar`
+
+---
+## Execution Logs
+- [[execution-summary]]
+

@@ -427,3 +427,8 @@ After all tasks: run `npm run lint` and `npx tsc --noEmit`. Fix all errors befor
 - [ ] อนุมัติกัน visible only for draft + manager/admin
 - [ ] Approval info shown using `formatDate()`
 - [ ] No `any` types, tsc passes
+
+---
+## Execution Logs
+- [[execution-summary]]
+

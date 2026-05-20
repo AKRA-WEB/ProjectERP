@@ -58,3 +58,8 @@ Confirm backdrop div retains `z-40` and `onClick={() => setSidebarOpen(false)}`.
 - Backdrop click-to-close still works
 - `npx tsc --noEmit` — clean
 - `npm run lint` — no new errors
+
+---
+## Execution Logs
+- [[execution-summary]]
+

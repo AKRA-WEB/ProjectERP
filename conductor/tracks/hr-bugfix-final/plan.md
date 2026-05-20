@@ -153,3 +153,8 @@ updated: 2026-05-13
 - [x] **Verify no `toLocaleDateString`/`toLocaleString` remains in HR UI**
 - [x] **Verify no `@/lib/utils` format imports remain in HR UI**
 - [x] **Verify no stale `manager_name` field (without `_th`/`_en` suffix)**
+
+---
+## Execution Logs
+- [[execution-summary]]
+

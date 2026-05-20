@@ -450,3 +450,8 @@ Read the full file before starting. This is the largest task — do NOT batch ed
 
 ### Shifts Page
 - [ ] Sessions with no shift → "ไม่ระบุกะ / No Shift" group
+
+---
+## Execution Logs
+- [[execution-summary]]
+

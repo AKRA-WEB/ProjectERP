@@ -406,3 +406,8 @@ components/ui/index.ts                 (edit — export SegControl, Tabs)
 - SVG icons in main menu: copy paths verbatim from `docs/design/main-menu.html` — do NOT approximate
 - `⌘K` shortcut: on Windows = `Ctrl+K`, on Mac = `Cmd+K` — detect via `e.metaKey || e.ctrlKey`
 - Phase 6 (new components) is independent — can execute in parallel with Phases 3-5
+
+---
+## Execution Logs
+- [[execution-summary]]
+

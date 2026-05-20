@@ -94,3 +94,8 @@ The "Repack Order" system is designed for Bakery Mart business to handle the pro
 - [ ] Output unit costs are correctly recorded in the stock ledger.
 - [ ] Barcode labels can be generated from the order detail page.
 - [ ] `npx tsc --noEmit` passes with 0 errors.
+
+---
+## Execution Logs
+- [[execution-summary]]
+

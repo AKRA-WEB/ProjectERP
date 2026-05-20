@@ -218,3 +218,8 @@ app/(app)/bom/new/page.tsx                  (new)
 app/(app)/bom/[id]/page.tsx                 (new)
 components/layout/Sidebar.tsx               (edit)
 ```
+
+---
+## Execution Logs
+- [[execution-summary]]
+

@@ -311,3 +311,8 @@ The API's `unit_cost` field has `.default(0)` so omitting it is safe.
 - [x] No "ราคาทุน" column visible in the table
 - [x] Submit with valid data → IO created successfully, redirects to IO detail
 - [x] `npm run build` passes — no TypeScript errors
+
+---
+## Execution Logs
+- [[execution-summary]]
+

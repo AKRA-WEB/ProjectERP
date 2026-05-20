@@ -114,3 +114,8 @@ In the table, rename column header from `รับครั้งนี้` → 
 - UI blocks submission before API call with Thai error message
 - `npm run lint` passes
 - BUG-001 marked resolved in `conductor/tracks/audit-pr-po-grn/bugs.md`
+
+---
+## Execution Logs
+- [[execution-summary]]
+

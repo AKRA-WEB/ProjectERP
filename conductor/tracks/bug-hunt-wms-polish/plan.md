@@ -4,7 +4,7 @@ status: Completed
 aliases: ["Bug Hunt & Polish — WMS Core"]
 owner: paku, puka
 module: WMS
-updated: 2026-05-11
+updated: 2026-05-20
 ---
 
 # Track: Bug Hunt & Polish — WMS Core
@@ -403,3 +403,8 @@ Total: 6 modified, 3 created.
 10. "ตรวจสอบแล้ว" tab appears in GRN list
 11. GRN Receiving Queue link appears in sidebar
 12. No regression in existing GRN, PO, or Transfer flows
+
+---
+## Execution Logs
+- [[execution-summary]]
+

@@ -1117,3 +1117,8 @@ Pagination: show 12 per page. Display `แสดง 1 – N จาก M คน` 
 - [x] `/app/hr/payroll/[id]` shows workflow stepper, 5-card KPI, payroll table with footer totals
 - [x] `npx tsc --noEmit` — zero errors
 - [x] `npm run lint` — zero errors
+
+---
+## Execution Logs
+- [[execution-summary]]
+

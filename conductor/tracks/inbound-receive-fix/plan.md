@@ -99,3 +99,8 @@ Result: `chk_grn_line_source` constraint requires exactly one FK to be set, but 
 - Migration is additive (DROP + ADD constraint) — safe on existing data since no existing rows can have both FKs set
 - Split GRN flow for PO-based GRN is unchanged (po_id not null, inbound_order_id null — constraint passes as before)
 - If DB hasn't run migration 027 yet, `qty_expected` and `receiver_name` columns don't exist — run `npm run migrate` first
+
+---
+## Execution Logs
+- [[execution-summary]]
+

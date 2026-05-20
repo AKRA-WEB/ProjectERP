@@ -2424,3 +2424,8 @@ After Gemini completes tasks 23-29:
 - [ ] Manual: load `/app/hr/payroll` → pagination works
 - [ ] Manual: approve own leave request → gets 403
 - [ ] Manual: payroll slip PDF renders with correct employee name
+
+---
+## Execution Logs
+- [[execution-summary]]
+

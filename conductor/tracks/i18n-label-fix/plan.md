@@ -126,3 +126,8 @@ pending_approval → รออนุมัติ
 - [x] Role assignment date in UserRoleModal uses Thai locale (Bangkok TZ)
 - [x] No new TypeScript errors
 - [x] `npm run build` passes cleanly
+
+---
+## Execution Logs
+- [[execution-summary]]
+

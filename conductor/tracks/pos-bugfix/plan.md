@@ -145,3 +145,8 @@ Add `DEFAULT_PAGE_SIZE` to the import from `@/lib/constants` if not already pres
 - [x] `npm run lint` — exit 0
 - [x] `grep -rn "toLocaleString\|toLocaleDateString" app/app/pos/` — expect no output
 - [x] `grep -rn "7 / 107\|7/107" app/api/pos/` — expect no output
+
+---
+## Execution Logs
+- [[execution-summary]]
+

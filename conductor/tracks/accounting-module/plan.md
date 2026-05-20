@@ -776,3 +776,8 @@ When ready, create `conductor/tracks/accounting-auto-posting/plan.md` to cover:
 - Hook POS checkout → post Dr. Cash / Cr. Revenue + VAT
 - Hook PO invoice paid → post Dr. AP / Cr. Cash
 - Hook Sales invoice paid → post Dr. Cash / Cr. AR
+
+---
+## Execution Logs
+- [[execution-summary]]
+

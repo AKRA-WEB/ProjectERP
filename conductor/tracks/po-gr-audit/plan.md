@@ -290,3 +290,9 @@ Tasks 1, 2, 3 are independent — can execute in any order. No migrations requir
 - [ ] Grep `pool.connect()` in each of the 3 modified files → must exist
 - [ ] `npx tsc --noEmit` passes
 - [ ] `npm run lint` passes
+
+---
+## Execution Logs
+- [[execution-summary]]
+- [[rework-execution-summary]]
+

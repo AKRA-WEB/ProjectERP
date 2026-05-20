@@ -2,7 +2,7 @@
 
 ## ⚡ Shared Principles — อ่านก่อนทุกครั้ง (ทุก Agent)
  
-อ่าน `docs/skills/agent-principles.md` ก่อนเริ่มงานทุกครั้ง — กฎเหล็ก 9 ข้อ (รวม Andrej Karpathy Guidelines) เพื่อลดความผิดพลาดและรักษามาตรฐานโปรเจกต์
+อ่าน `[[agent-principles|docs/skills/agent-principles.md]]` ก่อนเริ่มงานทุกครั้ง — กฎเหล็ก 9 ข้อ (รวม Andrej Karpathy Guidelines) เพื่อลดความผิดพลาดและรักษามาตรฐานโปรเจกต์
  
 ---
  
@@ -10,15 +10,15 @@
 เพื่อประหยัด Token ห้ามอ่านไฟล์เหล่านี้ล่วงหน้า ให้ใช้คำสั่ง File Read เพื่อดึงมาอ่านเมื่อตรงกับบริบทของงานเท่านั้น:
 
 1. **[Frontend_UI]**: สำหรับงานสร้าง UI, React Components, Tailwind CSS, หรือ Client Pages (`'use client'`)
-   -> ให้ไปอ่านกฎที่: `docs/skills/frontend_ui_rules.md` (ข้อควรระวัง: ห้ามทำ RSC data fetching ในฝั่ง Client)
+   -> ให้ไปอ่านกฎที่: `[[frontend_ui_rules|docs/skills/frontend_ui_rules.md]]` (ข้อควรระวัง: ห้ามทำ RSC data fetching ในฝั่ง Client)
 2. **[Backend_API]**: สำหรับงานสร้าง Next.js API Routes (App Router), NextAuth v5, การ Validate ข้อมูลด้วย Zod
-   -> ให้ไปอ่านกฎที่: `docs/skills/backend_api_rules.md` (ข้อควรระวัง: ต้องใช้ `apiError()` / `apiSuccess()` ในการตอบกลับเสมอ)
+   -> ให้ไปอ่านกฎที่: `[[backend_api_rules|docs/skills/backend_api_rules.md]]` (ข้อควรระวัง: ต้องใช้ `apiError()` / `apiSuccess()` ในการตอบกลับเสมอ)
 3. **[Database_SQL]**: สำหรับงานเชื่อมต่อ PostgreSQL (raw `pg`), การทำ Pagination, จัดการ Stock Ledger, หรือการเขียน Query
-   -> ให้ไปอ่านกฎที่: `docs/skills/database_sql_rules.md` (ข้อควรระวัง: บังคับใช้ Parameterized queries `$1, $2` เท่านั้น ห้ามต่อ String)
+   -> ให้ไปอ่านกฎที่: `[[database_sql_rules|docs/skills/database_sql_rules.md]]` (ข้อควรระวัง: บังคับใช้ Parameterized queries `$1, $2` เท่านั้น ห้ามต่อ String)
 4. **[QA_Audit]**: สำหรับงานตรวจสอบโค้ดตามแผน `plan.md` (หน้าที่ของ Billy), การรัน Lint/Build, หรือการสร้าง `rework-plan.md`
-   -> ให้ไปอ่านกฎที่: `docs/skills/qa_audit_rules.md`
+   -> ให้ไปอ่านกฎที่: `[[qa_audit_rules|docs/skills/qa_audit_rules.md]]`
 5. **[Vercel_Rules]**: สำหรับงานตรวจสอบความเข้ากันได้กับการติดตั้งบน Vercel, การจัดการ Async Waterfall, การทำ Bundle Optimization, และการหลีกเลี่ยง traps ของ Serverless Environment
-   -> ให้ไปอ่านกฎที่: `docs/skills/vercel_rules.md`
+   -> ให้ไปอ่านกฎที่: `[[vercel_rules|docs/skills/vercel_rules.md]]`
 
 # Operating Protocol (กฎการทำงาน 3 ขั้นตอน)
 เมื่อได้รับคำสั่ง (เช่น `Architect: ...` หรือ `QA: ...`) ให้คุณทำงานตามลำดับนี้เสมอ:

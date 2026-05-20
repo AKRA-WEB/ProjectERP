@@ -336,6 +336,18 @@ export default function POSSessionPage() {
   const [desktopTab, setDesktopTab] = useState<'products' | 'history'>('products');
   const searchRef = useRef<HTMLInputElement>(null);
 
+  // ── Keyboard Shortcuts ──
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'F2') {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // ── Clock ──
   useEffect(() => {
     const iv = setInterval(() => {

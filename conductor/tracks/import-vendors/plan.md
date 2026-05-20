@@ -154,3 +154,8 @@ SELECT code, name_th, name_en FROM vendors ORDER BY code LIMIT 5;
 git add scripts/import-vendors.ts
 git commit -m "feat: import-vendors script — upserts 172 vendors from data/imports/Vendor.xlsx"
 ```
+
+---
+## Execution Logs
+- [[execution-summary]]
+

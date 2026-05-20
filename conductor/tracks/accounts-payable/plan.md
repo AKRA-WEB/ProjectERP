@@ -464,3 +464,8 @@ export interface ApAgingRow {
 
 ### Phase 5 — Types
 - [x] 5.1 Add `ApInvoice`, `ApPayment`, `ApAgingRow` to `types/index.ts`
+
+---
+## Execution Logs
+- [[execution-summary]]
+

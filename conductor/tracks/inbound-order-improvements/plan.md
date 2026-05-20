@@ -465,3 +465,8 @@ async function handleSaveCosts() {
   - [x] Save calls `patch({ action: 'update_costs', lines: [...] })`
   - [x] API updates `inbound_order_lines.unit_cost` + `products.unit_cost` for each line
   - [x] After save: `editingCosts = false`, IO data refreshed
+
+---
+## Execution Logs
+- [[execution-summary]]
+

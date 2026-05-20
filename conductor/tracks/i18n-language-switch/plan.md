@@ -976,3 +976,8 @@ const t = useT();
 - **Sidebar.tsx** — move `MODULE_META` and `MODULE_NAV` constants from module scope INTO the component function body (they become `moduleMeta` and `moduleNav` variables). This is required because they reference `t()`.
 - **Check if `app/app/grn/page.tsx` exists** before converting it — may be at different path.
 - **`localeName()` usage** — when displaying product/vendor names from DB that have both `name_th` and `name_en` columns, use: `localeName(item.name_th, item.name_en, lang)` where `lang` comes from `const { lang } = useLanguage()`.
+
+---
+## Execution Logs
+- [[execution-summary]]
+

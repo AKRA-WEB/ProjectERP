@@ -457,3 +457,8 @@ Total: 2 modified, 10 created.
 8. Session close records `closing_float` and sets status=`closed`
 9. Sidebar shows POS group; title updated to ERP
 10. Staff without `pos:cashier` permission cannot access terminal page
+
+---
+## Execution Logs
+- [[execution-summary]]
+

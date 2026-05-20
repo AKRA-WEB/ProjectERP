@@ -37,10 +37,6 @@ Derived from [Andrej Karpathy's observations](https://x.com/karpathy/status/2015
 - **Loop until verified.** Use small, verifiable steps.
 - **Plan first.** State a brief plan with verification steps for each item.
 
----
-
-## Part B: Project-Specific Principles (ERP Architecture)
-
 ### 5. NO MAGIC — ห้ามเดา
 Never hallucinate hidden infra or invent unspecified services. If context is missing, stop and research.
 

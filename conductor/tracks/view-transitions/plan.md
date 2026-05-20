@@ -56,3 +56,8 @@ Implement native React View Transitions across the entire ERP application using 
 - Verify that hitting "Back" in custom UI triggers the left-sliding animation, and clicking list items triggers the right-sliding animation.
 - Ensure that filtering/sorting (if it uses `router.replace`) crossfades or re-orders properly.
 - Verify `npm run lint` and `npm run build` pass without errors.
+
+---
+## Execution Logs
+- [[execution-summary]]
+

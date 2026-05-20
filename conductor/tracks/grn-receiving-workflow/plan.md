@@ -1109,3 +1109,8 @@ const STATUS_LABEL: Record<string, string> = {
 
 - [x] Mark this track Completed in `conductor/index.md`
 - [x] Commit: `chore: conductor — grn-receiving-workflow track completed`
+
+---
+## Execution Logs
+- [[execution-summary]]
+

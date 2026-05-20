@@ -4,7 +4,7 @@ status: Completed
 aliases: ["UI Improvement — Inventory Stock Balances (Heatmap Matrix)"]
 owner: puka
 module: Inventory
-updated: 2026-05-15
+updated: 2026-05-20
 ---
 
 # Track: UI Improvement — Inventory Stock Balances (Heatmap Matrix)
@@ -136,3 +136,8 @@ One row per (product × warehouse) combination. Client must pivot to get the hea
 - [x] Segment filter (ทั้งหมด | ใกล้หมด | หมด | Top 5) works correctly
 - [x] Column total row visible in tfoot
 - [x] `npm run build` exits 0
+
+---
+## Execution Logs
+- [[execution-summary]]
+

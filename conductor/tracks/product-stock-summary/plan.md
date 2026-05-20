@@ -66,3 +66,8 @@ Add a branch for `tab === 'stock'` that renders a table similar to the 'supplier
 - [ ] Click "สต็อก" tab.
 - [ ] Verify warehouse names and quantities match the `stock_balances` table.
 - [ ] Verify mobile responsiveness of the new table.
+
+---
+## Execution Logs
+- [[execution-summary]]
+

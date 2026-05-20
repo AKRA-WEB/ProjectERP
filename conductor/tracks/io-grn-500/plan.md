@@ -4,7 +4,7 @@ status: Completed
 aliases: ["Fix POST /api/grn 500 from IO Receive"]
 owner: puka, paku
 module: WMS
-updated: 2026-05-19
+updated: 2026-05-20
 ---
 
 # Track: io-grn-500 — Fix POST /api/grn 500 from IO Receive
@@ -51,3 +51,8 @@ Fix the 500 Internal Server Error when submitting a Goods Receipt Note (GRN) for
 - [x] Browser console no longer shows 500 Error, or shows a descriptive error message if a constraint is violated.
 - [x] `npx tsc --noEmit` — zero errors.
 - [x] `npm run lint` — zero errors.
+
+---
+## Execution Logs
+- [[execution-summary]]
+
