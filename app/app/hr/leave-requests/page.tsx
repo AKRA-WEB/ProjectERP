@@ -312,15 +312,63 @@ export default function LeaveManagementPage() {
                     <div key={`empty-${i}`} className="bg-white h-24 p-2 opacity-50" />
                   ))}
                   
+                  {/* Day cells */}
+                  {Array.from({ length: calendar?.month_days ?? 30 }).map((_, i) => {
+                    const day = i + 1;
+                    const dayLeaves = calendar?.leaves.filter(l => day >= l.from_day && day <= l.to_day) || [];
+                    
+                    return (
+                      <div key={`day-${day}`} className="bg-white h-24 p-2 flex flex-col justify-between hover:bg-stone-50/50 transition-colors">
+                        <div className="text-[11px] font-semibold text-stone-500 font-mono">{day}</div>
+                        <div className="space-y-1 overflow-y-auto max-h-[60px] custom-scrollbar">
+                          {dayLeaves.map((lv, idx) => {
+                            const emp = calendar?.team.find(t => t.employee_id === lv.employee_id);
+                            return (
+                              <div
+                                key={idx}
+                                className="text-[9px] px-1 py-0.5 rounded text-white truncate font-medium"
+                                style={{ backgroundColor: lv.color }}
+                                title={`${emp?.name_th || 'พนักงาน'}: ${lv.type}`}
+                              >
+                                {emp?.name_th ? emp.name_th.split(' ')[0] : 'ลากิจ'}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              ))}
-              {calendar?.team.filter(m => calendar.leaves.some(l => l.employee_id === m.employee_id)).length === 0 && (
-                <span className="text-[12px] text-stone-400 italic">ไม่มีพนักงานลางานในเดือนนี้</span>
-              )}
+
+                {/* Monthly leave list summary */}
+                <div className="mt-4 border-t border-stone-100 pt-4">
+                  <h3 className="text-[13px] font-semibold text-stone-900 mb-2">สรุปการลาประจำเดือน</h3>
+                  <div className="space-y-2">
+                    {calendar?.team.filter(m => calendar.leaves.some(l => l.employee_id === m.employee_id)).map((m) => {
+                      const empLeaves = calendar.leaves.filter(l => l.employee_id === m.employee_id);
+                      return (
+                        <div key={m.employee_id} className="flex items-center justify-between text-[12px] bg-stone-50 px-3 py-2 rounded-md">
+                          <span className="font-medium text-stone-700">{m.name_th} ({m.department_name_en})</span>
+                          <div className="flex gap-1.5">
+                            {empLeaves.map((l, idx) => (
+                              <span key={idx} className="px-2 py-0.5 rounded text-[10px] text-white" style={{ backgroundColor: l.color }}>
+                                วันที่ {l.from_day} - {l.to_day}: {l.type}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {(!calendar?.team || calendar?.team.filter(m => calendar.leaves.some(l => l.employee_id === m.employee_id)).length === 0) && (
+                      <span className="text-[12px] text-stone-400 italic">ไม่มีพนักงานลางานในเดือนนี้</span>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </DirectionalTransition>
   );
 }

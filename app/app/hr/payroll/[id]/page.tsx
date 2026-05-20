@@ -274,6 +274,7 @@ export default function PayrollRunDetailPage({ params }: { params: Promise<{ id:
           </table>
         </div>
       </div>
+      </div>
     </DirectionalTransition>
   );
 }

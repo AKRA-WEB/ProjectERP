@@ -27,12 +27,14 @@
 ---
 
 ## Daily Log
-[[_notes/daily/]] ← สร้าง note ใหม่ทุกวัน (`Alt+D`)
+- [[_notes/daily/README|📅 Daily Log]] — ดูความคืบหน้ารายวัน
+- สร้าง note ใหม่ทุกวันด้วย `Alt+D` ผ่าน Hotkey
 
 > Template: `_notes/templates/daily-standup.md`
 
 ## Weekly Review
-[[_notes/weekly/]] ← สร้างทุกวันจันทร์
+- [[_notes/weekly/README|📅 Weekly Review]] — สรุปงานรายสัปดาห์
+- สร้างทุกวันจันทร์
 
 > Template: `_notes/templates/weekly-review.md`
 
@@ -70,7 +72,7 @@ LIMIT 5
 ## Module Notes
 - [[_notes/00_Project_Map/modules/WMS|WMS]] · [[_notes/00_Project_Map/modules/POS|POS]] · [[_notes/00_Project_Map/modules/Sales|Sales]]
 - [[_notes/00_Project_Map/modules/Accounting|Accounting]] · [[_notes/00_Project_Map/modules/HR|HR]] · [[_notes/00_Project_Map/modules/BOM|BOM]]
-- [[_notes/00_Project_Map/modules/Inventory|Inventory]] · [[_notes/00_Project_Map/modules/Vendors|Vendors]]
+- [[_notes/00_Project_Map/modules/Inventory|Inventory]] · [[_notes/00_Project_Map/modules/Vendors|Vendors]] · [[_notes/00_Project_Map/modules/Repack|Repack]]
 - [[_notes/00_Project_Map/modules/Security|Security]] · [[_notes/00_Project_Map/modules/Core|Core]]
 - [[_notes/02_Agent_Memory/pitfalls|AI Pitfalls & Traps]]
 

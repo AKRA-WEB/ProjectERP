@@ -11,6 +11,7 @@ type: module-summary
 - [[Inventory]] — ตรวจสอบสถานะสินค้าและจองสินค้า (Picking/Reservation)
 - [[Accounting]] — สร้างใบแจ้งหนี้ (Sales Invoices) และรายการลูกหนี้ (AR)
 - [[Core]] — ใช้ระบบรันเลขที่เอกสาร (SQ, SO, DO, SI, SR)
+- **Architectural Summary:** [[SALES_MODULE_SUMMARY]]
 
 ## Flow
 ```

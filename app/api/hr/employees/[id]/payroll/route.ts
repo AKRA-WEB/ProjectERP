@@ -2,7 +2,6 @@ import { NextRequest } from 'next/server';
 import { auth } from '@/auth';
 import { query } from '@/lib/db/client';
 import { apiSuccess, apiError } from '@/lib/api-response';
-import type { SessionUser } from '@/lib/authz';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();

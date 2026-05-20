@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Input, Select, SearchInput } from '@/components/ui';
 import { get, post } from '@/lib/api-client';
-import { formatCurrency, formatNumber } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import { useLanguage } from '@/lib/i18n';
 import type { Product, PaginatedResponse, Warehouse, RepackTemplate } from '@/types';
 

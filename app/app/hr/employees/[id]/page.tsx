@@ -1,9 +1,9 @@
 import { useState, useEffect, use, useCallback } from 'react';
 import { get, patch, del } from '@/lib/api-client';
-import type { HrEmployee, Department, Position, SalaryGrade, SessionUser, LeaveRequest, AttendanceRecord, PayrollLine } from '@/types';
+import type { HrEmployee, Department, Position, SessionUser, LeaveRequest, AttendanceRecord, PayrollLine } from '@/types';
 import { useSession } from 'next-auth/react';
 import { formatDate, formatCurrency } from '@/lib/utils';
-import { useLanguage, useT } from '@/lib/i18n';
+import { useLanguage } from '@/lib/i18n';
 import Link from 'next/link';
 import { DirectionalTransition } from '@/components/ui/directional-transition';
 import { useRouter } from 'next/navigation';
@@ -21,12 +21,10 @@ export default function EmployeeDetailPage({ params }: { params: Promise<{ id: s
   const router = useRouter();
   const { data: session } = useSession();
   const { lang } = useLanguage();
-  const t = useT();
   
   const [employee, setEmployee] = useState<HrEmployee | null>(null);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [positions, setPositions] = useState<Position[]>([]);
-  const [salaryGrades, setSalaryGrades] = useState<SalaryGrade[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'info' | 'leave' | 'attendance' | 'payroll'>('info');
   
@@ -47,17 +45,15 @@ export default function EmployeeDetailPage({ params }: { params: Promise<{ id: s
 
   const fetchEmployee = useCallback(async () => {
     try {
-      const [emp, depts, pos, grades] = await Promise.all([
+      const [emp, depts, pos] = await Promise.all([
         get<HrEmployee>(`/api/hr/employees/${id}`),
         get<Department[]>('/api/hr/departments'),
         get<Position[]>('/api/hr/positions'),
-        get<SalaryGrade[]>('/api/hr/salary-grades'),
       ]);
       setEmployee(emp);
       setForm(emp);
       setDepartments(depts);
       setPositions(pos);
-      setSalaryGrades(grades);
     } catch (err) {
       console.error(err);
     } finally {
@@ -198,15 +194,15 @@ export default function EmployeeDetailPage({ params }: { params: Promise<{ id: s
 
           {/* Tab Navigation */}
           <div className="px-8 flex border-t border-stone-100">
-            {[
+            {([
               { id: 'info', label: 'โปรไฟล์', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> },
               { id: 'leave', label: 'ประวัติการลา', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> },
               { id: 'attendance', label: 'บันทึกเวลา', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> },
               { id: 'payroll', label: 'เงินเดือน/สลิป', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 15h0M2 9.5h20"/></svg> },
-            ].map(t => (
+            ] as const).map(t => (
               <button
                 key={t.id}
-                onClick={() => setTab(t.id as any)}
+                onClick={() => setTab(t.id)}
                 className={`py-4 px-6 flex items-center gap-2 text-[14px] font-semibold transition-all relative
                   ${tab === t.id ? 'text-stone-900' : 'text-stone-400 hover:text-stone-600'}`}
               >
@@ -294,7 +290,7 @@ export default function EmployeeDetailPage({ params }: { params: Promise<{ id: s
                           value={employee.employment_type.replace('_', ' ').toUpperCase()} 
                           editing={isEditing}
                           input={
-                            <select className="w-full bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-[14px]" value={form.employment_type} onChange={e => setForm({...form, employment_type: e.target.value as any})}>
+                            <select className="w-full bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-[14px]" value={form.employment_type} onChange={e => setForm({...form, employment_type: e.target.value as 'full_time' | 'part_time' | 'contract'})}>
                               <option value="full_time">Full-Time</option>
                               <option value="part_time">Part-Time</option>
                               <option value="contract">Contract</option>
@@ -513,7 +509,7 @@ export default function EmployeeDetailPage({ params }: { params: Promise<{ id: s
   );
 }
 
-function InfoBlock({ label, value, editing, input }: { label: string; value: any; editing?: boolean; input?: React.ReactNode }) {
+function InfoBlock({ label, value, editing, input }: { label: string; value: React.ReactNode; editing?: boolean; input?: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
       <label className="text-[11.5px] font-bold text-stone-400 uppercase tracking-wider">{label}</label>
