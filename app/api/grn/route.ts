@@ -16,6 +16,8 @@ const lineSchema = z.object({
   expiry_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   storage_location: z.string().max(100).optional(),
   notes: z.string().optional(),
+  date_type: z.enum(['expiry', 'mfg']).default('expiry'),
+  mfg_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
 });
 
 const createSchema = z.object({
@@ -24,6 +26,8 @@ const createSchema = z.object({
   warehouse_id: z.string().uuid(),
   received_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   notes: z.string().optional(),
+  received_by_names: z.string().optional(),
+  lift_fee_rounds: z.number().int().min(0).default(0),
   lines: z.array(lineSchema).min(1),
 }).refine(
   (d) => (d.po_id != null) !== (d.inbound_order_id != null),
@@ -268,8 +272,8 @@ export async function POST(req: Request) {
     await client2.query('BEGIN');
 
     const grnResult = await client2.query<{ id: string; grn_number: string; status: string }>(
-      `INSERT INTO goods_receipt_notes (po_id, inbound_order_id, warehouse_id, vendor_id, received_by, received_date, notes, source_type)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8::grn_source_type) RETURNING id, grn_number, status`,
+      `INSERT INTO goods_receipt_notes (po_id, inbound_order_id, warehouse_id, vendor_id, received_by, received_date, notes, source_type, received_by_names, lift_fee_rounds)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8::grn_source_type, $9, $10) RETURNING id, grn_number, status`,
       [
         parsed.data.po_id ?? null,
         parsed.data.inbound_order_id ?? null,
@@ -278,14 +282,16 @@ export async function POST(req: Request) {
         u.id,
         parsed.data.received_date,
         parsed.data.notes ?? null,
-        sourceType
+        sourceType,
+        parsed.data.received_by_names ?? null,
+        parsed.data.lift_fee_rounds ?? 0
       ]
     );
     const grn = grnResult.rows[0];
     if (!grn) throw new Error('Failed to create GRN');
 
     const lineValues = parsed.data.lines
-      .map((_, i) => `($1, $${i * 10 + 2}, $${i * 10 + 3}, $${i * 10 + 4}, $${i * 10 + 5}, $${i * 10 + 6}, $${i * 10 + 7}, $${i * 10 + 8}, $${i * 10 + 9}, $${i * 10 + 10}::grn_source_type, $${i * 10 + 11}, ${i + 1})`)
+      .map((_, i) => `($1, $${i * 12 + 2}, $${i * 12 + 3}, $${i * 12 + 4}, $${i * 12 + 5}, $${i * 12 + 6}, $${i * 12 + 7}, $${i * 12 + 8}, $${i * 12 + 9}, $${i * 12 + 10}::grn_source_type, $${i * 12 + 11}, $${i * 12 + 12}, $${i * 12 + 13}, ${i + 1})`)
       .join(', ');
     const lineParams: unknown[] = [grn.id];
     for (const l of parsed.data.lines) {
@@ -300,11 +306,13 @@ export async function POST(req: Request) {
         l.expiry_date ?? null,
         l.storage_location ?? null,
         sourceType,
-        cost
+        cost,
+        l.date_type ?? 'expiry',
+        l.mfg_date ?? null
       );
     }
     await client2.query(
-      `INSERT INTO grn_line_items (grn_id, po_line_item_id, inbound_order_line_id, product_id, qty_received, lot_number, serial_number, expiry_date, storage_location, source_type, unit_cost, line_number)
+      `INSERT INTO grn_line_items (grn_id, po_line_item_id, inbound_order_line_id, product_id, qty_received, lot_number, serial_number, expiry_date, storage_location, source_type, unit_cost, date_type, mfg_date, line_number)
        VALUES ${lineValues}`,
       lineParams
     );
