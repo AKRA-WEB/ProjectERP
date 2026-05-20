@@ -4,7 +4,7 @@ status: Completed
 aliases: ["Plan — Hamburger Sidebar Z-Index Fix"]
 owner: puka
 module: Core
-updated: 2026-05-16
+updated: 2026-05-20
 ---
 
 # Plan — Hamburger Sidebar Z-Index Fix

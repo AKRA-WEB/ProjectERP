@@ -195,7 +195,7 @@ export async function POST(req: Request) {
               COALESCE(SUM(gli.qty_received), 0) AS already_received
        FROM po_line_items pol
        LEFT JOIN grn_line_items gli ON gli.po_line_item_id = pol.id
-       LEFT JOIN goods_receipt_notes grn ON grn.id = gli.grn_id AND grn.status != 'cancelled'
+       LEFT JOIN goods_receipt_notes grn ON grn.id = gli.grn_id
        WHERE pol.po_id = $1
        GROUP BY pol.id`,
       [parsed.data.po_id]
@@ -236,7 +236,7 @@ export async function POST(req: Request) {
               COALESCE(SUM(gli.qty_received), 0) AS already_received
        FROM inbound_order_lines iol
        LEFT JOIN grn_line_items gli ON gli.inbound_order_line_id = iol.id
-       LEFT JOIN goods_receipt_notes grn ON grn.id = gli.grn_id AND grn.status != 'cancelled'
+       LEFT JOIN goods_receipt_notes grn ON grn.id = gli.grn_id
        WHERE iol.io_id = $1
        GROUP BY iol.id`,
       [parsed.data.inbound_order_id]

@@ -33,6 +33,8 @@ const AVATAR_PALETTE = [
   { bg: '#cffafe', txt: '#164e63' }, { bg: '#fce7f3', txt: '#831843' },
 ];
 
+const DEPT_COLORS = ['#6366f1', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#06b6d4', '#f97316', '#ec4899'];
+
 function nameToColor(name: string) {
   if (!name) return AVATAR_PALETTE[0];
   let h = 0;
@@ -295,8 +297,11 @@ export default function EmployeesPage() {
                       </div>
                     </td>
                     <td className="px-5 py-3">
-                      <div className="text-[13px] text-stone-700 font-medium">{emp.department_name_th || '—'}</div>
-                      <div className="text-[11px] text-stone-500">{emp.branch_name || '—'}</div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full shrink-0" style={{ background: DEPT_COLORS[Math.max(0, departments.findIndex(d => d.id === emp.department_id)) % DEPT_COLORS.length] || '#e5e7eb' }} />
+                        <span className="text-[13px] text-stone-700 font-medium truncate">{emp.department_name_th || '—'}</span>
+                      </div>
+                      <div className="text-[11px] text-stone-500 mt-0.5 ml-3.5">{emp.branch_name || '—'}</div>
                     </td>
                     <td className="px-5 py-3 text-[13px] text-stone-600">
                       {getTenure(emp.hire_date)}

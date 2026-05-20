@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { formatCurrency, formatQty } from '@/lib/format';
 import { get } from '@/lib/api-client';
@@ -102,8 +102,10 @@ export default function InventoryPage() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [warehouseFilter, setWarehouseFilter] = useState('');
-  const [lowStockFilter, setLowStockFilter] = useState(false);
-  const [view, setView] = useState<'table' | 'card'>('table');
+  const [view, setView] = useState<'table' | 'card' | 'heatmap'>('heatmap');
+  const [segment, setSegment] = useState<'all' | 'low' | 'out' | 'top'>('all');
+  const [allStock, setAllStock] = useState<StockItem[]>([]);
+  const [allLoading, setAllLoading] = useState(false);
   const [showImport, setShowImport] = useState(false);
 
   const fetchInventory = useCallback(async () => {
@@ -112,7 +114,7 @@ export default function InventoryPage() {
       const params = new URLSearchParams();
       if (search) params.set('search', search);
       if (warehouseFilter) params.set('warehouse_id', warehouseFilter);
-      if (lowStockFilter) params.set('low_stock', 'true');
+      if (segment === 'low' || segment === 'out') params.set('low_stock', 'true');
       params.set('page', String(page));
       params.set('limit', '30');
       const data = await get<InventoryData>(`/api/inventory?${params.toString()}`);
@@ -122,12 +124,29 @@ export default function InventoryPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, page, warehouseFilter, lowStockFilter]);
+  }, [search, page, warehouseFilter, segment]);
 
+  const fetchAllStock = useCallback(async () => {
+    setAllLoading(true);
+    try {
+      const params = new URLSearchParams({ limit: '500' });
+      if (search) params.set('search', search);
+      const data = await get<InventoryData>(`/api/inventory?${params.toString()}`);
+      setAllStock(data.data);
+    } catch {
+      setAllStock([]);
+    } finally {
+      setAllLoading(false);
+    }
+  }, [search]);
 
   useEffect(() => {
     fetchInventory();
   }, [fetchInventory]);
+
+  useEffect(() => {
+    if (view === 'heatmap') fetchAllStock();
+  }, [view, fetchAllStock]);
 
   function handleSearch(val: string) {
     setSearch(val);
@@ -144,6 +163,45 @@ export default function InventoryPage() {
   const totalValue = allItems.reduce((s, i) => s + i.qty_on_hand * i.unit_cost, 0);
   const belowReorderCount = allItems.filter((i) => i.qty_available <= i.reorder_point && i.qty_available > 0).length;
   const outOfStockCount = allItems.filter((i) => i.qty_available <= 0).length;
+
+  // ── Heatmap Pivot ──
+  const pivotData = useMemo(() => {
+    const baseData = allStock;
+    const map = new Map<string, { sku: string; name_th: string; name_en: string; warehouses: Record<string, number>; total: number; reorder_point: number }>();
+    
+    baseData.forEach((i) => {
+      if (!map.has(i.sku)) {
+        map.set(i.sku, { sku: i.sku, name_th: i.name_th, name_en: i.name_en, warehouses: {}, total: 0, reorder_point: i.reorder_point });
+      }
+      const entry = map.get(i.sku)!;
+      entry.warehouses[i.warehouse_id] = i.qty_available;
+      entry.total += i.qty_available;
+    });
+
+    let results = Array.from(map.values());
+
+    if (segment === 'low') {
+      results = results.filter(r => Object.values(r.warehouses).some(q => q <= r.reorder_point && q > 0));
+    } else if (segment === 'out') {
+      results = results.filter(r => Object.values(r.warehouses).some(q => q === 0));
+    } else if (segment === 'top') {
+      results = [...results].sort((a, b) => b.total - a.total).slice(0, 10);
+    } else {
+      results.sort((a, b) => a.sku.localeCompare(b.sku));
+    }
+
+    return results;
+  }, [allStock, segment]);
+
+  const maxQty = Math.max(...allStock.map(i => i.qty_available), 1);
+
+  function getCellColor(qty: number, reorderPoint: number, max: number): { bg: string; color: string } {
+    if (qty === 0) return { bg: '#fef2f2', color: '#991b1b' };
+    if (qty <= reorderPoint) return { bg: '#fffbeb', color: '#92400e' };
+    const intensity = Math.min(1, qty / max);
+    const a = 0.08 + intensity * 0.52;
+    return { bg: `rgba(99,102,241,${a.toFixed(2)})`, color: intensity > 0.6 ? 'white' : '#312e81' };
+  }
 
   // ── Export CSV ──
   function exportCSV() {
@@ -264,14 +322,6 @@ export default function InventoryPage() {
                 {wh.code}
               </button>
             ))}
-            <button
-              onClick={() => { setLowStockFilter(!lowStockFilter); setPage(1); }}
-              className={`px-3 py-1 rounded-full text-[11px] font-bold whitespace-nowrap flex-shrink-0 ${
-                lowStockFilter ? 'bg-amber-500 text-white shadow-sm' : 'bg-stone-100 text-stone-600'
-              }`}
-            >
-              ต่ำกว่า reorder
-            </button>
           </div>
 
           {/* KPI mini cards — horizontal scroll */}
@@ -323,7 +373,7 @@ export default function InventoryPage() {
           <div className="flex items-center gap-2">
             {/* View toggle */}
             <div className="flex border border-stone-200 rounded-lg overflow-hidden">
-              {(['table', 'card'] as const).map((v) => (
+              {(['heatmap', 'table', 'card'] as const).map((v) => (
                 <button
                   key={v}
                   onClick={() => setView(v)}
@@ -331,26 +381,26 @@ export default function InventoryPage() {
                     view === v ? 'bg-stone-950 text-white' : 'text-stone-600 hover:bg-stone-50'
                   }`}
                 >
-                  {v === 'table' ? t('action.view') : 'การ์ด'}
+                  {v === 'heatmap' ? 'Heatmap' : v === 'table' ? t('action.view') : 'การ์ด'}
                 </button>
-                ))}
-                </div>
-                <button
-                onClick={() => setShowImport(true)}
-                className="flex items-center gap-1.5 border border-emerald-200 bg-emerald-50 text-emerald-700 rounded-md px-3 py-1.5 text-sm font-medium hover:bg-emerald-100 shadow-sm"
-                >
-                <Upload className="w-3.5 h-3.5" />
-                {t('action.import')} (Excel)
-                </button>
-                <button
-                onClick={exportCSV}
-                className="flex items-center gap-1.5 border border-stone-200 bg-white rounded-md px-3 py-1.5 text-sm text-stone-700 hover:bg-stone-50 shadow-sm"
-                >
-                <Download className="w-3.5 h-3.5" />
-                {t('action.export')} CSV
-              </button>
+              ))}
             </div>
+            <button
+              onClick={() => setShowImport(true)}
+              className="flex items-center gap-1.5 border border-emerald-200 bg-emerald-50 text-emerald-700 rounded-md px-3 py-1.5 text-sm font-medium hover:bg-emerald-100 shadow-sm"
+            >
+              <Upload className="w-3.5 h-3.5" />
+              {t('action.import')} (Excel)
+            </button>
+            <button
+              onClick={exportCSV}
+              className="flex items-center gap-1.5 border border-stone-200 bg-white rounded-md px-3 py-1.5 text-sm text-stone-700 hover:bg-stone-50 shadow-sm"
+            >
+              <Download className="w-3.5 h-3.5" />
+              {t('action.export')} CSV
+            </button>
           </div>
+        </div>
 
         {/* KPI strip */}
         <div className="bg-white border border-stone-200 rounded-[10px] shadow-sm flex divide-x divide-stone-100">
@@ -372,6 +422,43 @@ export default function InventoryPage() {
           </div>
         </div>
 
+        {/* Warehouse summary cards */}
+        {view === 'heatmap' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+            {warehouses.map((wh) => {
+              const whTotal = pivotData.reduce((s, r) => s + (r.warehouses[wh.id] ?? 0), 0);
+              const grandTotal = pivotData.reduce((s, r) => s + r.total, 0) || 1;
+              const pct = (whTotal / grandTotal) * 100;
+              const lowCount = pivotData.filter(r => (r.warehouses[wh.id] ?? 0) <= r.reorder_point && (r.warehouses[wh.id] ?? 0) > 0).length;
+              const outCount = pivotData.filter(r => (r.warehouses[wh.id] ?? 0) === 0).length;
+              
+              return (
+                <div key={wh.id} className="bg-white border border-stone-200 rounded-[10px] shadow-sm p-4">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[11px] font-mono font-bold text-stone-400 tabular-nums uppercase">{wh.code}</span>
+                    <span className="text-[10px] text-stone-400">{pct.toFixed(1)}%</span>
+                  </div>
+                  <div className="text-[14px] font-bold text-stone-900 truncate mb-2">{wh.name}</div>
+                  <div className="flex items-baseline gap-1 mb-3">
+                    <span className="text-xl font-mono font-bold text-stone-900 tabular-nums">{formatQty(whTotal)}</span>
+                    <span className="text-[11px] text-stone-400">{t('label.unit')}</span>
+                  </div>
+                  <div className="h-1.5 bg-stone-100 rounded-full overflow-hidden mb-3">
+                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${pct}%` }} />
+                  </div>
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-stone-500">{pivotData.length} SKU</span>
+                    <div className="flex gap-2">
+                      {lowCount > 0 && <span className="text-amber-600 font-bold">!{lowCount}</span>}
+                      {outCount > 0 && <span className="text-red-600 font-bold">x{outCount}</span>}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
         {/* Filter row */}
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex-1 min-w-48">
@@ -381,28 +468,114 @@ export default function InventoryPage() {
               placeholder={t('label.search_placeholder')}
             />
           </div>
+          
+          {/* Segment Control */}
+          <div className="flex bg-stone-100 p-0.5 rounded-lg border border-stone-200">
+            {(['all', 'low', 'out', 'top'] as const).map((s) => (
+              <button
+                key={s}
+                onClick={() => setSegment(s)}
+                className={`px-3 py-1 rounded-md text-[11px] font-bold transition-all ${
+                  segment === s ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-400 hover:text-stone-600'
+                }`}
+              >
+                {s === 'all' ? 'ทั้งหมด' : s === 'low' ? 'ใกล้หมด' : s === 'out' ? 'สินค้าหมด' : 'Top 10'}
+              </button>
+            ))}
+          </div>
+
           <select
             value={warehouseFilter}
             onChange={(e) => { setWarehouseFilter(e.target.value); setPage(1); }}
             className="h-9 border border-stone-200 rounded-lg px-3 text-sm text-stone-700 bg-white focus:outline-none focus:ring-2 focus:ring-stone-300"
           >
-            <option value="">{t('label.all')}</option>
+            <option value="">{t('label.all')}{t('label.warehouse')}</option>
             {warehouses.map((wh) => (
               <option key={wh.id} value={wh.id}>{wh.code} – {wh.name}</option>
             ))}
           </select>
-          <button
-            onClick={() => { setLowStockFilter(!lowStockFilter); setPage(1); }}
-            className={`px-3 py-1 rounded-full text-[11px] font-bold ${
-              lowStockFilter ? 'bg-amber-500 text-white shadow-sm' : 'bg-stone-100 text-stone-600'
-            }`}
-          >
-            ต่ำกว่า reorder
-          </button>
         </div>
 
-        {/* Table / Card view */}
-        {view === 'table' ? (
+        {/* Table / Card / Heatmap view */}
+        {view === 'heatmap' ? (
+          <div className="bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden overflow-x-auto">
+            <table className="w-full text-sm border-collapse min-w-[1000px]">
+              <thead className="bg-stone-50 border-b border-stone-200">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wide sticky left-0 bg-stone-50 z-10 w-[100px] border-r">SKU</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wide sticky left-[100px] bg-stone-50 z-10 w-[240px] border-r">สินค้า / Product</th>
+                  {warehouses.map((wh) => (
+                    <th key={wh.id} className="px-4 py-3 text-center text-xs font-semibold text-stone-500 uppercase tracking-wide border-r min-w-[100px]">
+                      {wh.code}
+                    </th>
+                  ))}
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-stone-500 uppercase tracking-wide w-[100px] bg-stone-50/50">รวม (Sum)</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stone-100">
+                {allLoading ? (
+                  <tr><td colSpan={warehouses.length + 3} className="px-4 py-12 text-center text-stone-400 text-sm">{t('label.loading')}</td></tr>
+                ) : pivotData.length === 0 ? (
+                  <tr><td colSpan={warehouses.length + 3} className="px-4 py-12 text-center text-stone-400 text-sm">{t('label.no_data')}</td></tr>
+                ) : (
+                  pivotData.map((row) => (
+                    <tr key={row.sku} className="hover:bg-stone-50/50 transition-colors group">
+                      <td className="px-4 py-2.5 font-mono text-[12px] text-stone-600 sticky left-0 bg-white group-hover:bg-stone-50/50 z-10 border-r">{row.sku}</td>
+                      <td className="px-4 py-2.5 text-stone-800 font-medium truncate sticky left-[100px] bg-white group-hover:bg-stone-50/50 z-10 border-r" title={row.name_th}>
+                        {localeName(row.name_th, row.name_en, lang)}
+                      </td>
+                      {warehouses.map((wh) => {
+                        const qty = row.warehouses[wh.id] ?? 0;
+                        const { bg, color } = getCellColor(qty, row.reorder_point, maxQty);
+                        return (
+                          <td key={wh.id} className="px-1 py-1 border-r text-center">
+                            <div
+                              className="h-8 flex items-center justify-center rounded-md font-mono font-bold text-[13px] tabular-nums transition-all"
+                              style={{ backgroundColor: bg, color }}
+                            >
+                              {qty > 0 ? formatQty(qty) : qty === 0 ? '0' : '—'}
+                            </div>
+                          </td>
+                        );
+                      })}
+                      <td className="px-4 py-2.5 text-right font-mono font-bold tabular-nums text-stone-900 bg-stone-50/30">
+                        {formatQty(row.total)}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+              <tfoot className="bg-stone-50/80 font-bold border-t-2 border-stone-200">
+                <tr>
+                  <td colSpan={2} className="px-4 py-3 text-right sticky left-0 bg-stone-50/80 z-10 border-r">ยอดรวมหน่วย (Total Units)</td>
+                  {warehouses.map((wh) => {
+                    const whTotal = pivotData.reduce((s, r) => s + (r.warehouses[wh.id] ?? 0), 0);
+                    return (
+                      <td key={wh.id} className="px-4 py-3 text-center font-mono tabular-nums border-r">
+                        {formatQty(whTotal)}
+                      </td>
+                    );
+                  })}
+                  <td className="px-4 py-3 text-right font-mono tabular-nums">
+                    {formatQty(pivotData.reduce((s, r) => s + r.total, 0))}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+            
+            {/* Heatmap Legend */}
+            <div className="px-6 py-3 border-t border-stone-100 flex items-center gap-6 text-[11px] text-stone-400 font-medium uppercase tracking-wider">
+              <span>ระดับสต็อก:</span>
+              <div className="flex items-center gap-4">
+                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-[3px] bg-red-50 border border-red-200" /> หมด</span>
+                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-[3px] bg-amber-50 border border-amber-300" /> ใกล้หมด</span>
+                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-[3px] bg-indigo-50" /> น้อย</span>
+                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-[3px] bg-indigo-500/60" /> กลาง</span>
+                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-[3px] bg-indigo-500" /> สูง</span>
+              </div>
+            </div>
+          </div>
+        ) : view === 'table' ? (
           <div className="bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden">
             <table className="w-full text-sm">
               <thead className="bg-stone-50 border-b border-stone-200">
@@ -477,7 +650,7 @@ export default function InventoryPage() {
         )}
 
         {/* Pagination */}
-        {total > perPage && (
+        {total > perPage && view !== 'heatmap' && (
           <div className="flex justify-center">
             <Pagination
               page={page}

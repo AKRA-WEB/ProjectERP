@@ -209,3 +209,9 @@ If stride ≠ param count per row → all rows after the first get wrong values 
 - **Root cause:** การทำ INSERT/UPSERT และการ Query ใน loop ทีละแถวผ่านอินเทอร์เน็ตมี Roundtrip Time สูง ทำให้ฟังก์ชันรันเกินเวลาสูงสุดของ Vercel (Timeout)
 - **Fix:** ใช้ Batch Insert/Upsert สำหรับ Category, UOM และ Products เป็น chunk (เช่น 100 แถวต่อครั้ง) เพื่อลดจำนวนรอบการติดต่อฐานข้อมูล พร้อมมี Graceful Fallback รันแบบทีละแถวเฉพาะใน chunk ที่เกิด Error เพื่อการรายงานความผิดพลาดที่ละเอียดแม่นยำ
 - **Found in:** `app/api/products/import/route.ts`
+
+### 14. Invalid Enum Value Comparison (PostgreSQL)
+- **Symptom:** 500 Internal Server Error: `invalid input value for enum type_name: "invalid_value"`
+- **Root cause:** การทำ WHERE condition เทียบ string ที่ไม่มีอยู่ใน enum type (เช่น `status != 'cancelled'` โดยที่ `cancelled` ไม่มีใน `grn_status`) PostgreSQL จะถือเป็น error ระดับ syntax ทำให้ Query พังทันที (ต่างจาก MySQL ที่จะแค่ return false)
+- **Fix:** ห้ามเทียบ enum column กับ string เปล่าหรือสถานะที่ไม่มีใน schema ถ้าไม่แน่ใจต้อง check definition ของ enum ก่อน
+- **Found in:** `app/api/grn/route.ts` (io-grn-500 rework)

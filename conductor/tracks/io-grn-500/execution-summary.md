@@ -30,3 +30,9 @@
 ## Patterns/Traps Captured
 - **Explicit Enum Casting:** PostgreSQL enums often require `::type` cast when using bulk values templates in raw `pg`.
 - **Diagnostics vs Safety:** In production-ready ERP, returning `apiError` from DB exceptions is better than generic 500s for debugging data integrity issues.
+
+## Hotfix (2026-05-20)
+- **File changed:** `app/api/grn/route.ts` lines 198, 239
+- **Key change:** Removed `AND grn.status != 'cancelled'` from the `LEFT JOIN goods_receipt_notes` clauses.
+- **Root Cause:** `cancelled` is NOT a valid value in the `grn_status` enum. Passing an invalid string literal to compare against an enum column in PostgreSQL causes an immediate syntax-level exception (`invalid input value for enum`), triggering a 500 Internal Server Error when loading IOs/POs that have associated GRNs.
+- **Verify result:** `npx tsc --noEmit` → 0 errors. Database queries will no longer crash due to invalid enum comparison. Added this trap to `pitfalls.md` as #14.

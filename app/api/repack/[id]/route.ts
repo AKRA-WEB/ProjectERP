@@ -92,13 +92,17 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         ) VALUES ($1, $2, 'repack_out', 'repack', $3, $4, $5, $6)
       `, [order.warehouse_id, order.source_product_id, id, -Number(order.source_qty), qtyAfterSource, user.id]);
 
+      // Fetch all target balances
+      const productIds = items.map((i: { product_id: string }) => i.product_id);
+      const { rows: balances } = await client.query(
+        'SELECT product_id, qty_on_hand FROM stock_balances WHERE warehouse_id = $1 AND product_id = ANY($2::uuid[])',
+        [order.warehouse_id, productIds]
+      );
+      const balanceMap = new Map(balances.map(b => [b.product_id, Number(b.qty_on_hand || 0)]));
+
       // 4. Stock IN (Outputs)
       for (const item of items) {
-        const { rows: [targetBalance] } = await client.query(
-          'SELECT qty_on_hand FROM stock_balances WHERE warehouse_id = $1 AND product_id = $2',
-          [order.warehouse_id, item.product_id]
-        );
-        const currentTargetQty = Number(targetBalance?.qty_on_hand || 0);
+        const currentTargetQty = balanceMap.get(item.product_id) || 0;
         const qtyAfterTarget = currentTargetQty + Number(item.qty);
 
         await client.query(`

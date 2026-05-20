@@ -12,6 +12,10 @@
   `app/api/repack/route.ts` (lines 80-83) generates the order number in JS using `nextval`. According to the project rules, all document numbers must pass through the `next_doc_number()` PostgreSQL function for consistency.
   **Fix:** Update the POST route to use `SELECT next_doc_number('RPK', 'seq_repack_order_no')`.
 
+- [x] **MF-2 · Fix N+1 Query in Repack Completion**
+  `app/api/repack/[id]/route.ts` (lines 96-103) contains a SQL query `SELECT qty_on_hand FROM stock_balances...` inside a `for (const item of items)` loop, violating the "No N+1 SQL Query in loop" rule.
+  **Fix:** Fetch target balances for all items before the loop using `IN ($1::uuid[])`.
+
 ---
 
 ## 🟡 Should Fix

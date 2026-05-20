@@ -27,6 +27,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const { id } = await params;
   const product = await queryOne(
     `SELECT p.*, u.code AS uom_code, u.name_en AS uom_name, c.name_en AS category_name,
+            (SELECT gli.unit_cost FROM grn_line_items gli 
+             JOIN goods_receipt_notes grn ON grn.id = gli.grn_id
+             WHERE gli.product_id = p.id AND grn.status = 'stocked'
+             ORDER BY grn.created_at DESC LIMIT 1) AS last_cost,
             json_agg(json_build_object(
               'warehouse_id', sb.warehouse_id, 'qty_on_hand', sb.qty_on_hand,
               'qty_available', sb.qty_available, 'warehouse_name', w.name_en

@@ -20,8 +20,6 @@ updated_by: Claude
 
 | Track | Content |
 |-------|---------|
-| `repack-order` | Multi-UoM repack system with stock sync |
-| `hr-ui-redesign` | Dashboard, Employees, Leave, Payroll redesign |
 | `view-transitions` | App-wide View Transitions implementation |
 | `po-gr-audit` | PO + GRN transaction integrity, status transitions |
 | `ui-improvement-dashboard` | Dashboard KPIs (POS today, top products, activity) |
@@ -156,11 +154,11 @@ When creating new module pages, add path prefix to `components/layout/Sidebar.ts
 
 | Track | Date | Key Changes |
 |-------|------|-------------|
-| `hr-ui-redesign` | 2026-05-20 | REWORK: UI redesign, View Transitions, probation stats |
+| `encoding-fix` | 2026-05-20 | Optimization Suggested (Completed): Fixed Thai text double encoding |
+| `hamburger-zindex-fix` | 2026-05-20 | Optimization Suggested (Completed): Sidebar Hamburger Z-Index fix |
+| `pos-bugfix` | 2026-05-20 | Optimization Suggested (Completed): session close auth + formatDatetime + VAT constant |
+| `hr-ui-redesign` | 2026-05-20 | REWORK: UI redesign, View Transitions, probation stats, Gantt calendar, dept colors |
 | `repack-order` | 2026-05-20 | New module: Repack system with transaction stock sync |
-| `po-gr-audit` | 2026-05-20 | REWORK: N+1 optimization, transaction boundaries |
-| `io-grn-500` | 2026-05-20 | REWORK: Fixed batch INSERT stride (8→10) + enum cast |
-| `wms-search-nav-fix` | 2026-05-20 | REWORK: Fixed breadcrumb home link + clipping issue |
 
 ---
 

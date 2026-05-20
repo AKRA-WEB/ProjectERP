@@ -294,77 +294,71 @@ export default function LeaveManagementPage() {
               </div>
             </div>
 
-            <div className="p-5 overflow-x-auto">
-              <div className="min-w-[600px]">
-                {/* Day Headers */}
-                <div className="grid grid-cols-7 mb-2">
-                  {['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'].map((d, i) => (
-                    <div key={d} className={`text-center text-[11px] font-bold py-2 ${i === 0 || i === 6 ? 'text-red-400' : 'text-stone-400'}`}>
-                      {d}
-                    </div>
-                  ))}
-                </div>
-                
-                {/* Calendar Grid */}
-                <div className="grid grid-cols-7 gap-px bg-stone-100 border border-stone-100 rounded-lg overflow-hidden relative">
-                  {/* Empty cells for weekday offset */}
-                  {Array.from({ length: calendar?.first_weekday ?? 0 }).map((_, i) => (
-                    <div key={`empty-${i}`} className="bg-white h-24 p-2 opacity-50" />
-                  ))}
-                  
-                  {/* Day cells */}
-                  {Array.from({ length: calendar?.month_days ?? 30 }).map((_, i) => {
-                    const day = i + 1;
-                    const dayLeaves = calendar?.leaves.filter(l => day >= l.from_day && day <= l.to_day) || [];
-                    
-                    return (
-                      <div key={`day-${day}`} className="bg-white h-24 p-2 flex flex-col justify-between hover:bg-stone-50/50 transition-colors">
-                        <div className="text-[11px] font-semibold text-stone-500 font-mono">{day}</div>
-                        <div className="space-y-1 overflow-y-auto max-h-[60px] custom-scrollbar">
-                          {dayLeaves.map((lv, idx) => {
-                            const emp = calendar?.team.find(t => t.employee_id === lv.employee_id);
-                            return (
-                              <div
-                                key={idx}
-                                className="text-[9px] px-1 py-0.5 rounded text-white truncate font-medium"
-                                style={{ backgroundColor: lv.color }}
-                                title={`${emp?.name_th || 'พนักงาน'}: ${lv.type}`}
-                              >
-                                {emp?.name_th ? emp.name_th.split(' ')[0] : 'ลากิจ'}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Monthly leave list summary */}
-                <div className="mt-4 border-t border-stone-100 pt-4">
-                  <h3 className="text-[13px] font-semibold text-stone-900 mb-2">สรุปการลาประจำเดือน</h3>
-                  <div className="space-y-2">
-                    {calendar?.team.filter(m => calendar.leaves.some(l => l.employee_id === m.employee_id)).map((m) => {
-                      const empLeaves = calendar.leaves.filter(l => l.employee_id === m.employee_id);
+            <div className="overflow-x-auto pb-4 custom-scrollbar">
+              {calendar ? (
+                <div className="min-w-fit border-l border-t border-stone-200 mt-4 mx-5">
+                  {/* Header row with day numbers */}
+                  <div className="grid" style={{ gridTemplateColumns: `170px repeat(${calendar.month_days}, 30px)` }}>
+                    <div className="px-3 py-2 border-r border-b border-stone-200 bg-stone-50 text-[10.5px] font-semibold text-stone-400 uppercase tracking-wider flex items-center">พนักงาน</div>
+                    {Array.from({ length: calendar.month_days }).map((_, i) => {
+                      const day = i + 1;
+                      const dow = (calendar.first_weekday + i) % 7;
+                      const we = dow === 0 || dow === 6;
+                      const isToday = new Date().toISOString().slice(0, 7) === month && day === new Date().getDate();
+                      const weekdayLabels = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
                       return (
-                        <div key={m.employee_id} className="flex items-center justify-between text-[12px] bg-stone-50 px-3 py-2 rounded-md">
-                          <span className="font-medium text-stone-700">{m.name_th} ({m.department_name_en})</span>
-                          <div className="flex gap-1.5">
-                            {empLeaves.map((l, idx) => (
-                              <span key={idx} className="px-2 py-0.5 rounded text-[10px] text-white" style={{ backgroundColor: l.color }}>
-                                วันที่ {l.from_day} - {l.to_day}: {l.type}
-                              </span>
-                            ))}
-                          </div>
+                        <div key={day} className={'border-r border-b border-stone-200 px-1 py-1 text-center ' + (we ? 'bg-stone-100/70' : 'bg-stone-50') + (isToday ? ' bg-amber-50' : '')}>
+                          <div className={'text-[10px] font-medium ' + (isToday ? 'text-amber-700' : 'text-stone-400')}>{weekdayLabels[dow]}</div>
+                          <div className={'text-[11.5px] font-mono tabular-nums ' + (isToday ? 'font-bold text-amber-900' : we ? 'text-stone-500' : 'text-stone-700')}>{day}</div>
                         </div>
                       );
                     })}
-                    {(!calendar?.team || calendar?.team.filter(m => calendar.leaves.some(l => l.employee_id === m.employee_id)).length === 0) && (
-                      <span className="text-[12px] text-stone-400 italic">ไม่มีพนักงานลางานในเดือนนี้</span>
-                    )}
                   </div>
+
+                  {/* Body rows */}
+                  {calendar.team.map((e) => {
+                    const empLeaves = calendar.leaves.filter((l) => l.employee_id === e.employee_id);
+                    return (
+                      <div key={e.employee_id} className="grid relative" style={{ gridTemplateColumns: `170px repeat(${calendar.month_days}, 30px)`, height: '36px' }}>
+                        <div className="px-3 flex items-center gap-2 border-r border-b border-stone-100 bg-white">
+                          <Avatar name={e.name_th} size={22} />
+                          <div className="min-w-0">
+                            <div className="text-[12px] font-medium text-stone-900 truncate leading-tight">{e.name_th.split(' ')[0]}</div>
+                            <div className="text-[9.5px] text-stone-400 truncate uppercase tracking-wider">{e.department_name_en}</div>
+                          </div>
+                        </div>
+                        {Array.from({ length: calendar.month_days }).map((_, i) => {
+                          const day = i + 1;
+                          const dow = (calendar.first_weekday + i) % 7;
+                          const we = dow === 0 || dow === 6;
+                          const isToday = new Date().toISOString().slice(0, 7) === month && day === new Date().getDate();
+                          return <div key={day} className={'border-r border-b border-stone-100 ' + (we ? 'bg-stone-50/70' : '') + (isToday ? ' bg-amber-50/40' : '')}></div>;
+                        })}
+
+                        {/* Overlaid leave bars */}
+                        {empLeaves.map((lv, idx) => {
+                          const left = 170 + (lv.from_day - 1) * 30 + 2;
+                          const width = (lv.to_day - lv.from_day + 1) * 30 - 4;
+                          return (
+                            <div key={idx}
+                              className="absolute top-1/2 -translate-y-1/2 rounded text-[10px] font-semibold text-white px-1.5 flex items-center shadow-sm"
+                              style={{ left, width, height: 18, background: lv.color }}>
+                              <span className="truncate">{lv.type}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
+                  {calendar.team.length === 0 && (
+                    <div className="py-8 text-center text-stone-400 text-[12px] italic border-b border-stone-100">
+                      ไม่พบข้อมูลพนักงาน
+                    </div>
+                  )}
                 </div>
-              </div>
+              ) : (
+                <div className="py-24 text-center text-[13.5px] text-stone-400">กำลังโหลดปฏิทิน...</div>
+              )}
             </div>
           </div>
         </div>
