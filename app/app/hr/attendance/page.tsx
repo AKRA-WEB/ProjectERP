@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { get } from '@/lib/api-client';
 import type { AttendanceRecord, HrEmployee } from '@/types';
 import { formatDate } from '@/lib/utils';
+import { useLanguage } from '@/lib/i18n';
 import { Pagination } from '@/components/ui/Pagination';
 import { DirectionalTransition } from '@/components/ui/directional-transition';
 
@@ -15,6 +16,7 @@ interface PaginatedAttendance {
 }
 
 export default function AdminAttendancePage() {
+  const { lang } = useLanguage();
   const [data, setData] = useState<PaginatedAttendance | null>(null);
   const [employees, setEmployees] = useState<HrEmployee[]>([]);
   const [loading, setLoading] = useState(true);
@@ -95,7 +97,7 @@ export default function AdminAttendancePage() {
                   <tr><td colSpan={7} className="py-12 text-center text-stone-400">ไม่พบข้อมูล</td></tr>
                 ) : data.data.map((r) => (
                   <tr key={r.id} className="border-b border-stone-50 last:border-0 hover:bg-stone-50/50 transition-colors">
-                    <td className="py-3 px-4 font-medium text-stone-900">{formatDate(r.work_date)}</td>
+                    <td className="py-3 px-4 font-medium text-stone-900">{formatDate(r.work_date, lang)}</td>
                     <td className="py-3 px-4 text-stone-700">
                       <div>{r.employee_name_th}</div>
                       <div className="text-[11px] text-stone-400">{r.employee_name_en}</div>

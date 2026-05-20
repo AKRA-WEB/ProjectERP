@@ -9,7 +9,7 @@ import {
   Archive, ArrowLeftRight, Hash, Undo2, AlertTriangle, Package, Layers,
   Building2, UserCircle, FileText, Receipt, Truck, CreditCard, ShoppingBag,
   History, BarChart3, BarChart2, Calendar, BookOpen, Scale, TrendingDown, Landmark,
-  Clock, Banknote, Users, Building, Timer, Wallet, Settings, KeyRound,
+  Clock, Banknote, Users, Timer, Settings, KeyRound,
   Warehouse, ChevronLeft, ChevronDown, CheckSquare, Square,
   GitBranch, UserPlus, CalendarRange, CalendarCheck, CalendarDays, ListChecks,
   Briefcase, UserSearch, Tag, TrendingUp
@@ -274,6 +274,7 @@ export function Sidebar({ open, onClose, userRole, permissions, collapsed, onTog
         items: [
           { href: '/app/products', label: t('page.products'), icon: Package,  permission: 'products:view' },
           { href: '/app/bom',      label: t('page.bom'),      icon: Layers,   permission: 'products:view' },
+          { href: '/app/repack',   label: 'การแบ่งบรรจุ (Repack)', icon: ClipboardList, permission: 'inventory:view' },
           { href: '/app/vendors',  label: t('page.vendors'),  icon: Building2, permission: 'vendors:view' },
         ],
       },

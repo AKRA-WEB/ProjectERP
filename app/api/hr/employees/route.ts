@@ -33,6 +33,8 @@ export async function GET(req: NextRequest) {
   const search = searchParams.get('search') ?? '';
   const dept = searchParams.get('department_id') ?? '';
   const status = searchParams.get('employee_status') ?? '';
+  const branchId = searchParams.get('branch_id') ?? '';
+  const empType = searchParams.get('employment_type') ?? '';
   const page = parseInt(searchParams.get('page') ?? '1');
   const limit = parseInt(searchParams.get('pageSize') ?? '20');
   const offset = (page - 1) * limit;
@@ -47,6 +49,11 @@ export async function GET(req: NextRequest) {
   }
   if (dept) { conditions.push(`u.department_id = $${idx++}`); params.push(dept); }
   if (status) { conditions.push(`u.employee_status = $${idx++}`); params.push(status); }
+  if (branchId) {
+    conditions.push(`EXISTS (SELECT 1 FROM user_warehouse_assignments uwa2 WHERE uwa2.user_id = u.id AND uwa2.warehouse_id = $${idx++} AND uwa2.is_active = TRUE)`);
+    params.push(branchId);
+  }
+  if (empType) { conditions.push(`u.employment_type = $${idx++}`); params.push(empType); }
 
   const scope = buildWarehouseScopeClause(u, 'uwa.warehouse_id', idx);
   if (scope) {
@@ -81,8 +88,33 @@ export async function GET(req: NextRequest) {
     `, params)
   ]);
 
+  interface EmployeeRow {
+    id: string;
+    employee_id: string | null;
+    name_th: string;
+    name_en: string;
+    email: string;
+    role: string;
+    department_id: string | null;
+    department_name_th: string | null;
+    department_name_en: string | null;
+    position_id: string | null;
+    position_name_th: string | null;
+    position_name_en: string | null;
+    salary_grade_id: string | null;
+    salary_grade_name: string | null;
+    base_salary: string | number | null;
+    employment_type: string;
+    employee_status: string;
+    hired_date: string | null;
+    resignation_date: string | null;
+    phone: string | null;
+    created_at: string;
+    branch_name: string | null;
+  }
+
   const canSeeSalary = u.role === 'admin' || u.role === 'manager';
-  const data = rows.map((r: any) => ({
+  const data = (rows as EmployeeRow[]).map((r) => ({
     ...r,
     base_salary: canSeeSalary ? r.base_salary : null,
     hire_date: r.hired_date

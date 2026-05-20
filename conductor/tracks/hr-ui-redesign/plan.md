@@ -1,16 +1,16 @@
 ---
 track: hr-ui-redesign
-status: Active
+status: Completed
 aliases: ["HR UI Redesign — Dashboard · Employees · Leave · Payroll"]
 owner: puka, paku
 module: HR
-updated: 2026-05-19
+updated: 2026-05-20
 ---
 
 # Track: hr-ui-redesign — HR UI Redesign
 
 **Created:** 2026-05-19
-**Status:** Active
+**Status:** Completed
 **Architect:** Chen
 
 **Goal:** Redesign 4 HR pages (Dashboard, Employees, Leave Requests, Payroll Detail) to match `docs/design/hr-bundle/` mockups; update sidebar HR nav to full 8-group layout; add 13 stub pages for new routes; extend 4 API routes with new data.
@@ -681,14 +681,15 @@ Status pill:
 
 Salary column: only render `<th>` and `<td>` cells when session role is `admin` or `manager`. Use `useSession()` to get role client-side. If no session role, default to hidden.
 
-- [ ] Extend employees GET: add hire_date, branch_name, salary gating, branch_id + employment_type filters
-- [ ] Create `/api/hr/employees/stats/route.ts`
-- [ ] Redesign `app/app/hr/employees/page.tsx` with KPI strip, filter bar, redesigned table
-- [ ] Verify `npx tsc --noEmit` passes
+- [x] Extend employees GET: add hire_date, branch_name, salary gating, branch_id + employment_type filters
+- [x] Create `/api/hr/employees/stats/route.ts`
+- [x] Redesign `app/app/hr/employees/page.tsx` with KPI strip, filter bar, redesigned table
+- [x] Verify `npx tsc --noEmit` passes
+**Q1/Q2/Q3:** Q1: Local interface extension `interface ExtendedHrEmployee extends HrEmployee` pattern for page-specific API fields.
 
 ---
 
-## Task 6: Leave Calendar API + Leave Requests UI Redesign
+## Task 6: Leave Calendar API + Management Redesign
 
 ### 6a. Create /api/hr/leave-requests/calendar
 
@@ -940,11 +941,11 @@ function formatMonthLabel(ym: string): string {
 }
 ```
 
-- [ ] Create `/api/hr/leave-requests/calendar/route.ts`
-- [ ] Create `/api/hr/leave-requests/stats/route.ts`
-- [ ] Verify PATCH `/api/hr/leave-requests/[id]` handles `approve` and `reject` actions (add if missing)
-- [ ] Redesign `app/app/hr/leave-requests/page.tsx` — KPI strip + split layout + detail card + team calendar
-- [ ] Verify `npx tsc --noEmit` passes
+- [x] Create `/api/hr/leave-requests/calendar/route.ts`
+- [x] Create `/api/hr/leave-requests/stats/route.ts`
+- [x] Verify PATCH `/api/hr/leave-requests/[id]` handles `approve` and `reject` actions (add if missing)
+- [x] Redesign `app/app/hr/leave-requests/page.tsx` — KPI strip + split layout + detail card + team calendar
+- [x] Verify `npx tsc --noEmit` passes
 
 ---
 
@@ -1091,28 +1092,28 @@ Client-side filter: search by `name_th` or `employee_code` (simple string includ
 
 Pagination: show 12 per page. Display `แสดง 1 – N จาก M คน` footer text.
 
-- [ ] Extend GET `/api/hr/payroll-runs/[id]` to include `rows` and `summary` (check actual column names first)
-- [ ] Add `submit_review` PATCH action to `/api/hr/payroll-runs/[id]`
-- [ ] Redesign `app/app/hr/payroll/[id]/page.tsx` with stepper + KPI + table + footer
-- [ ] Verify `npx tsc --noEmit` passes
+- [x] Extend GET `/api/hr/payroll-runs/[id]` to include `rows` and `summary` (check actual column names first)
+- [x] Add `submit_review` PATCH action to `/api/hr/payroll-runs/[id]`
+- [x] Redesign `app/app/hr/payroll/[id]/page.tsx` with stepper + KPI + table + footer
+- [x] Verify `npx tsc --noEmit` passes
 
 ---
 
 ## Acceptance Criteria
 
-- [ ] Sidebar shows 8 HR nav groups with 20 items, all links render without 404 (stubs show coming-soon page)
-- [ ] 13 stub pages render at their routes with "กำลังพัฒนา" badge + back link
-- [ ] `/api/hr/stats` returns `attendanceFeed`, `pendingLeaveQueue`, `headcountByDept`, `upcoming` arrays
-- [ ] `/app/hr` dashboard shows 4-card KPI strip, attendance table, leave queue, bar chart, upcoming events
-- [ ] `/api/hr/employees` returns `hire_date`, `branch_name`; salary only for admin/manager
-- [ ] `/api/hr/employees/stats` returns 5 KPI fields
-- [ ] `/app/hr/employees` shows redesigned table with avatar, dept dot, tenure, type/status pills
-- [ ] `/api/hr/leave-requests/calendar` returns team + leaves + month metadata
-- [ ] `/api/hr/leave-requests/stats` returns 4 KPI fields
-- [ ] `/app/hr/leave-requests` shows KPI strip + split layout + detail card + team calendar grid
-- [ ] Calendar month navigation (‹ ›) works; leave bars render with correct colors and widths
-- [ ] Approve/Reject buttons trigger PATCH and re-fetch pending list
-- [ ] `/api/hr/payroll-runs/[id]` GET returns `rows` + `summary`; PATCH handles `submit_review`
-- [ ] `/app/hr/payroll/[id]` shows workflow stepper, 5-card KPI, payroll table with footer totals
-- [ ] `npx tsc --noEmit` — zero errors
-- [ ] `npm run lint` — zero errors
+- [x] Sidebar shows 8 HR nav groups with 20 items, all links render without 404 (stubs show coming-soon page)
+- [x] 13 stub pages render at their routes with "กำลังพัฒนา" badge + back link
+- [x] `/api/hr/stats` returns `attendanceFeed`, `pendingLeaveQueue`, `headcountByDept`, `upcoming` arrays
+- [x] `/app/hr` dashboard shows 4-card KPI strip, attendance table, leave queue, bar chart, upcoming events
+- [x] `/api/hr/employees` returns `hire_date`, `branch_name`; salary only for admin/manager
+- [x] `/api/hr/employees/stats` returns 5 KPI fields
+- [x] `/app/hr/employees` shows redesigned table with avatar, dept dot, tenure, type/status pills
+- [x] `/api/hr/leave-requests/calendar` returns team + leaves + month metadata
+- [x] `/api/hr/leave-requests/stats` returns 4 KPI fields
+- [x] `/app/hr/leave-requests` shows KPI strip + split layout + detail card + team calendar grid
+- [x] Calendar month navigation (‹ ›) works; leave bars render with correct colors and widths
+- [x] Approve/Reject buttons trigger PATCH and re-fetch pending list
+- [x] `/api/hr/payroll-runs/[id]` GET returns `rows` + `summary`; PATCH handles `submit_review`
+- [x] `/app/hr/payroll/[id]` shows workflow stepper, 5-card KPI, payroll table with footer totals
+- [x] `npx tsc --noEmit` — zero errors
+- [x] `npm run lint` — zero errors

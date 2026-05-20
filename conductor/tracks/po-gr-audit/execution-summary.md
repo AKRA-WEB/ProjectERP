@@ -46,7 +46,7 @@ Implemented transactional integrity for Purchase Order and Goods Receipt Note (G
     client2.release();
   }
 ```
-- **Verify result:** Batch insert stride (10) confirmed matching `lineParams.push` count. Standalone path remains correctly isolated with its own transaction.
+- **Verify result:** Batch insert stride confirmed: 11 values per row (10 parameters + 1 literal `line_number`), with `$1` shared across all rows. Standalone path remains correctly isolated with its own transaction.
 
 ### Task 3 — GRN QC: add role check + transaction
 - **File changed:** `app/api/grn/[id]/qc/route.ts` lines 22–84

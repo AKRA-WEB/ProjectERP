@@ -2,6 +2,49 @@ import { auth } from '@/auth';
 import { apiSuccess, apiError } from '@/lib/api-response';
 import { query, queryOne } from '@/lib/db/client';
 
+interface AttendanceFeedRow {
+  employee_id: string;
+  name_th: string;
+  position: string;
+  department_name_th: string;
+  clock_in: string | null;
+  clock_out: string | null;
+  status: string;
+  late_minutes: number;
+  shift_label: string;
+  leave_type_name_th: string | null;
+}
+
+interface PendingLeaveRow {
+  id: string;
+  employee_name_th: string;
+  employee_code: string;
+  leave_type_name_th: string;
+  start_date: string;
+  end_date: string;
+  days_requested: number;
+  reason: string;
+  created_at: string;
+  is_urgent: boolean;
+  approver_name_th: string;
+}
+
+interface DeptHeadcountRow {
+  department_id: string;
+  name_th: string;
+  name_en: string;
+  count: number;
+}
+
+interface UpcomingEventRow {
+  employee_id: string;
+  name_th: string;
+  event_date: string;
+  kind: string;
+  label: string;
+  sub: string;
+}
+
 export async function GET() {
   const session = await auth();
   if (!session?.user) return apiError('Unauthorized', 401);
@@ -20,12 +63,13 @@ export async function GET() {
     upcomingEvents
   ] = await Promise.all([
     // 1. Employee Stats
-    queryOne<{ total: string; active: string; probation: string; resigned_this_month: string }>(
+    queryOne<{ total: string; active: string; probation: string; resigned_this_month: string; probation_days_remaining: string }>(
       `SELECT 
          COUNT(*) AS total,
          COUNT(*) FILTER (WHERE employee_status = 'active') AS active,
          COUNT(*) FILTER (WHERE hired_date >= CURRENT_DATE - 120) AS probation,
-         COUNT(*) FILTER (WHERE resignation_date >= date_trunc('month', CURRENT_DATE)) AS resigned_this_month
+         COUNT(*) FILTER (WHERE resignation_date >= date_trunc('month', CURRENT_DATE)) AS resigned_this_month,
+         MIN(EXTRACT(DAY FROM (hired_date + INTERVAL '120 days' - CURRENT_DATE))) FILTER (WHERE hired_date >= CURRENT_DATE - 120) AS probation_days_remaining
        FROM users WHERE role NOT IN ('admin', 'superadmin')`,
       []
     ),
@@ -59,10 +103,10 @@ export async function GET() {
       []
     ),
     // 6. Attendance Feed
-    query<any>(
+    query<AttendanceFeedRow>(
       `SELECT
         u.id AS employee_id,
-        u.name AS name_th,
+        u.name_th,
         u.position,
         COALESCE(d.name_th, u.department) AS department_name_th,
         TO_CHAR(ar.clock_in AT TIME ZONE 'Asia/Bangkok', 'HH24:MI') AS clock_in,
@@ -75,12 +119,13 @@ export async function GET() {
         END AS status,
         CASE
           WHEN ar.status = 'late'
-          THEN EXTRACT(EPOCH FROM (ar.clock_in::time - '09:00:00'::time)) / 60
+          THEN EXTRACT(EPOCH FROM (ar.clock_in::time - COALESCE(ws.shift_start, '08:00:00')::time)) / 60
           ELSE 0
         END::int AS late_minutes,
-        'กะเช้า 09:00-18:00' AS shift_label,
+        COALESCE(ws.name_th, 'กะมาตรฐาน 08:00-17:00') AS shift_label,
         lt.name_th AS leave_type_name_th
       FROM users u
+      LEFT JOIN work_schedules ws ON ws.id = u.work_schedule_id
       LEFT JOIN attendance_records ar
         ON ar.employee_id = u.id AND ar.work_date = CURRENT_DATE
       LEFT JOIN leave_requests lr
@@ -95,11 +140,11 @@ export async function GET() {
       []
     ),
     // 7. Pending Leave Queue
-    query<any>(
+    query<PendingLeaveRow>(
       `SELECT
         lr.id,
-        u.name AS employee_name_th,
-        u.employee_code,
+        u.name_th AS employee_name_th,
+        u.employee_id AS employee_code,
         lt.name_th AS leave_type_name_th,
         lr.start_date::text,
         lr.end_date::text,
@@ -107,7 +152,7 @@ export async function GET() {
         COALESCE(lr.notes, '') AS reason,
         lr.created_at::text,
         (lr.start_date <= CURRENT_DATE + 1) AS is_urgent,
-        COALESCE(approver.name, '') AS approver_name_th
+        COALESCE(approver.name_th, '') AS approver_name_th
       FROM leave_requests lr
       JOIN users u ON u.id = lr.employee_id
       JOIN leave_types lt ON lt.id = lr.leave_type_id
@@ -118,7 +163,7 @@ export async function GET() {
       []
     ),
     // 8. Headcount by Dept
-    query<any>(
+    query<DeptHeadcountRow>(
       `SELECT
         d.id AS department_id,
         d.name_th,
@@ -131,10 +176,10 @@ export async function GET() {
       []
     ),
     // 9. Upcoming Events
-    query<any>(
+    query<UpcomingEventRow>(
       `SELECT
         u.id AS employee_id,
-        u.name AS name_th,
+        u.name_th,
         TO_CHAR(u.hired_date, 'MM-DD') AS event_date,
         'anniv' AS kind,
         'ครบรอบทำงาน' AS label,
@@ -155,7 +200,7 @@ export async function GET() {
     )
   ]);
 
-  const headcountByDept = deptHeadcount.map((d: any, i: number) => ({
+  const headcountByDept = deptHeadcount.map((d, i: number) => ({
     ...d,
     color: DEPT_COLORS[i % DEPT_COLORS.length]
   }));
@@ -165,6 +210,7 @@ export async function GET() {
     totalEmployees: parseInt(empStats?.total || '0'),
     activeEmployees: parseInt(empStats?.active || '0'),
     probationCount: parseInt(empStats?.probation || '0'),
+    probationDaysRemaining: empStats?.probation_days_remaining ? parseInt(empStats.probation_days_remaining) : null,
     resignedThisMonth: parseInt(empStats?.resigned_this_month || '0'),
     presentToday: parseInt(attendanceStats?.present || '0'),
     lateCount: parseInt(attendanceStats?.late || '0'),

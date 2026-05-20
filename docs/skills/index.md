@@ -1,16 +1,11 @@
 # Skill Modules Index
 
 ## ⚡ Shared Principles — อ่านก่อนทุกครั้ง (ทุก Agent)
-
-อ่าน `docs/skills/agent-principles.md` ก่อนเริ่มงานทุกครั้ง — 5 กฎที่ทุก agent ต้องปฏิบัติตาม:
-- **NO MAGIC** — ห้ามเดา ต้องยืนยันจากโค้ดจริงเสมอ
-- **VERIFY BEFORE DONE** — ต้องมี evidence ก่อนบอกว่าเสร็จ
-- **DISSENT** — ต้องตั้งคำถามก่อน commit การเปลี่ยนแปลงใหญ่
-- **SCOPE DRIFT** — flag ทุกครั้งที่ scope เริ่มขยาย
-- **R0/R1/R2** — แบ่งระดับก่อนทำ destructive action
-
+ 
+อ่าน `docs/skills/agent-principles.md` ก่อนเริ่มงานทุกครั้ง — กฎเหล็ก 9 ข้อ (รวม Andrej Karpathy Guidelines) เพื่อลดความผิดพลาดและรักษามาตรฐานโปรเจกต์
+ 
 ---
-
+ 
 ## Skill Modules (โหลดเฉพาะกิจ — ห้ามโหลดล่วงหน้าหลายไฟล์พร้อมกัน)
 เพื่อประหยัด Token ห้ามอ่านไฟล์เหล่านี้ล่วงหน้า ให้ใช้คำสั่ง File Read เพื่อดึงมาอ่านเมื่อตรงกับบริบทของงานเท่านั้น:
 
@@ -22,8 +17,6 @@
    -> ให้ไปอ่านกฎที่: `docs/skills/database_sql_rules.md` (ข้อควรระวัง: บังคับใช้ Parameterized queries `$1, $2` เท่านั้น ห้ามต่อ String)
 4. **[QA_Audit]**: สำหรับงานตรวจสอบโค้ดตามแผน `plan.md` (หน้าที่ของ Billy), การรัน Lint/Build, หรือการสร้าง `rework-plan.md`
    -> ให้ไปอ่านกฎที่: `docs/skills/qa_audit_rules.md`
-5. **[Security_Audit]**: สำหรับงาน security audit, Vercel performance, OWASP, auth guards (หน้าที่ของ Meena)
-   -> ให้ไปอ่านกฎที่: `docs/skills/security_audit_rules.md`
 
 # Operating Protocol (กฎการทำงาน 3 ขั้นตอน)
 เมื่อได้รับคำสั่ง (เช่น `Architect: ...` หรือ `QA: ...`) ให้คุณทำงานตามลำดับนี้เสมอ:

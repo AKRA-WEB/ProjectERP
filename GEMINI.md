@@ -55,6 +55,7 @@ Next action needed: [QA: trackname / rework / new plan]
 
 Run through this before writing a single line of code:
 
+- [ ] Read `docs/skills/agent-principles.md` — Karpathy & Shared operating principles
 - [ ] Read `_notes/02_Agent_Memory/current-state.md` — active work, DB facts, API routes, import traps
 - [ ] Read `_notes/02_Agent_Memory/pitfalls.md` fully
 - [ ] Read `conductor/tracks/<track>/plan.md` fully
@@ -128,7 +129,7 @@ updated: YYYY-MM-DD
 ```
 And update the track row in `conductor/index.md`.
 
-**6. Post-Task Knowledge Capture** — After every task, answer 3 questions (see `docs/skills/knowledge-capture.md`). Takes 30 seconds. Skip only if all 3 answers are NO.
+**6. Post-Task Knowledge Capture** — After every task, answer 3 questions: (1) Did you discover any new DB columns/tables? (2) Did you find any new API routes or import traps? (3) Should any new pattern be added to pitfalls.md? Skip only if all are NO.
 
 **7. Execution Summary Evidence** — Each entry must include quoted evidence:
 ```
@@ -144,8 +145,9 @@ And update the track row in `conductor/index.md`.
 
 | Source | When to read |
 |--------|-------------|
-| `_notes/02_Agent_Memory/pitfalls.md` | **Start of every track** (mandatory) |
-| `conductor/tracks/<track>/plan.md` | **Start of every track** (full read) |
+| `docs/skills/agent-principles.md` | **Start of every track** (Karpathy + Core Principles) |
+| `_notes/02_Agent_Memory/pitfalls.md` | **Start of every task** (mandatory) |
+| `conductor/tracks/<track>/plan.md` | **Start of every task** (full read) |
 | `_notes/00_Project_Map/modules/` | Before touching a module you haven't worked in this session |
 | `_notes/01_Decisions/` | Before making any architecture or schema decision |
 | `migrations/*.sql` | Before writing any SQL (column name verification) |
@@ -172,7 +174,6 @@ Read `docs/skills/index.md` first. Load only what's relevant:
 | API Routes, NextAuth, Zod | `docs/skills/backend_api_rules.md` |
 | SQL, Migration, Stock Ledger | `docs/skills/database_sql_rules.md` |
 | QA, Audit, rework-plan | `docs/skills/qa_audit_rules.md` |
-| Post-task knowledge capture | `docs/skills/knowledge-capture.md` |
 
 ---
 

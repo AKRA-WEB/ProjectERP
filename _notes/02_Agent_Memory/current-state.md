@@ -10,18 +10,21 @@ updated_by: Claude
 
 ---
 
-## Active Work (2026-05-19)
+## Active Work (2026-05-20)
 
-| Track | Status | Details |
-|-------|--------|---------|
-| `hr-ui-redesign` | **Active** | 7 tasks: sidebar+i18n → 13 stubs → Dashboard API+UI → Employees API+UI → Leave API+UI → Payroll API+UI |
-| `view-transitions` | **Rework Required** | ViewTransition import fix — read `conductor/tracks/view-transitions/rework-plan.md` |
+| Track | Status | Description |
+|-------|--------|-------------|
+| None | | All Active and Rework Required tracks are Completed. |
 
 ## Needs QA (Billy: `QA: <track>`)
 
 | Track | Content |
 |-------|---------|
+| `repack-order` | Multi-UoM repack system with stock sync |
+| `hr-ui-redesign` | Dashboard, Employees, Leave, Payroll redesign |
+| `view-transitions` | App-wide View Transitions implementation |
 | `po-gr-audit` | PO + GRN transaction integrity, status transitions |
+| `ui-improvement-dashboard` | Dashboard KPIs (POS today, top products, activity) |
 | `product-stock-summary` | Product detail page stock overview |
 | `wms-search-nav-fix` | Product search dropdown fix + nav 404 |
 | `io-grn-500` | Batch INSERT stride fix in `/api/grn` |
@@ -149,18 +152,18 @@ When creating new module pages, add path prefix to `components/layout/Sidebar.ts
 
 | Track | Date | Key Changes |
 |-------|------|-------------|
-| `wms-search-nav-fix` | 2026-05-19 | Removed overflow-hidden from IO table wrapper; fixed breadcrumb home link |
-| `io-grn-500` | 2026-05-19 | Fixed batch INSERT stride (8→10) in `/api/grn`; enum cast fix; relaxed XOR constraint |
-| `po-gr-audit` | 2026-05-18 | Wrapped PO+GRN POST in transactions; added role check to QC; status side effects |
-| `gr-first-workflow` | 2026-05-18 | Standalone GRN + GR→PO retrospective + PR→GR direct flows |
-| `i18n-language-switch` | 2026-05-18 | Thai ↔ English toggle system-wide; `useT()` hook; `lib/i18n/` |
+| `hr-ui-redesign` | 2026-05-20 | REWORK: UI redesign, View Transitions, probation stats |
+| `repack-order` | 2026-05-20 | New module: Repack system with transaction stock sync |
+| `po-gr-audit` | 2026-05-20 | REWORK: N+1 optimization, transaction boundaries |
+| `io-grn-500` | 2026-05-20 | REWORK: Fixed batch INSERT stride (8→10) + enum cast |
+| `wms-search-nav-fix` | 2026-05-20 | REWORK: Fixed breadcrumb home link + clipping issue |
 
 ---
 
-## Migration Numbers (latest: 036)
+## Migration Numbers (latest: 037)
 
-Next migration = `037_<name>.sql`
-Latest: `036_grn_unit_cost_fix.sql`
+Next migration = `038_<name>.sql`
+Latest: `037_repack_system.sql`
 
 ---
 *Update this file: append to "Last 5 Completed Tracks", update "Active Work", add new DB facts discovered*

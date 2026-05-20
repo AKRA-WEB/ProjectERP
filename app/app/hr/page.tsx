@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { get } from '@/lib/api-client';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { useT } from '@/lib/i18n';
+import { useLanguage } from '@/lib/i18n';
+import { DirectionalTransition } from '@/components/ui/directional-transition';
 
 // --- Shared Components ---
 
@@ -71,6 +72,44 @@ function KpiCard({ label, value, sub, accent = 'text-stone-900' }: { label: stri
 
 // --- Main Page ---
 
+interface AttendanceFeedRow {
+  employee_id: string;
+  name_th: string;
+  position: string;
+  department_name_th: string;
+  clock_in: string | null;
+  clock_out: string | null;
+  status: string;
+  late_minutes: number;
+  shift_label: string;
+}
+
+interface PendingLeaveRow {
+  id: string;
+  employee_name_th: string;
+  leave_type_name_th: string;
+  start_date: string;
+  end_date: string;
+  days_requested: number;
+  is_urgent: boolean;
+}
+
+interface DeptHeadcountRow {
+  department_id: string;
+  name_th: string;
+  count: number;
+  color: string;
+}
+
+interface UpcomingEventRow {
+  employee_id: string;
+  name_th: string;
+  event_date: string;
+  kind: string;
+  label: string;
+  sub: string;
+}
+
 interface HRStats {
   totalEmployees: number;
   probationCount: number;
@@ -82,17 +121,17 @@ interface HRStats {
   pendingLeaveCount: number;
   latestPayrollNet: number | null;
   latestPayrollDate: string | null;
-  attendanceFeed: any[];
-  pendingLeaveQueue: any[];
-  headcountByDept: any[];
-  upcoming: any[];
+  attendanceFeed: AttendanceFeedRow[];
+  pendingLeaveQueue: PendingLeaveRow[];
+  headcountByDept: DeptHeadcountRow[];
+  upcoming: UpcomingEventRow[];
 }
 
 export default function HrDashboardPage() {
+  const { lang } = useLanguage();
   const [stats, setStats] = useState<HRStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const t = useT();
-  const formattedDate = formatDate(new Date());
+  const formattedDate = formatDate(new Date(), lang);
 
   useEffect(() => {
     get<HRStats>('/api/hr/stats').then(setStats).finally(() => setLoading(false));
@@ -107,176 +146,178 @@ export default function HrDashboardPage() {
   const onTimeCount = stats.presentToday - stats.lateCount;
 
   return (
-    <div className="max-w-[1440px] mx-auto pb-12 space-y-6">
-      {/* Page Header */}
-      <div className="flex items-end justify-between gap-4">
-        <div>
-          <h1 className="font-display text-[26px] font-semibold tracking-tight text-stone-900">
-            ภาพรวมบุคลากร <span className="text-stone-400 font-normal">/ HR Dashboard</span>
-          </h1>
-          <p className="text-[13.5px] text-stone-500 mt-1">{formattedDate}</p>
-        </div>
-        <div className="flex gap-2">
-          <button className="h-9 px-3.5 rounded-md text-[13px] font-medium text-stone-700 bg-white border border-stone-200 hover:bg-stone-50">
-            รายงานประจำเดือน
-          </button>
-          <Link href="/app/hr/employees/new" className="h-9 px-3.5 rounded-md text-[13px] font-medium text-white bg-stone-900 hover:bg-stone-800 inline-flex items-center gap-1.5">
-            + เพิ่มพนักงาน
-          </Link>
-        </div>
-      </div>
-
-      {/* KPI Strip */}
-      <div className="flex bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden">
-        <KpiCard
-          label="พนักงานทั้งหมด"
-          value={stats.totalEmployees}
-          sub={`${stats.probationCount} ทดลองงาน · ${stats.resignedThisMonth} ออกเดือนนี้`}
-        />
-        <KpiCard
-          label="เข้างานวันนี้"
-          value={`${stats.presentToday} / ${stats.totalEmployees - stats.onLeaveToday}`}
-          sub={`ตรงเวลา ${onTimeCount} · สาย ${stats.lateCount}`}
-        />
-        <KpiCard
-          label="คำขอลาที่ค้าง"
-          value={stats.pendingLeaveCount}
-          sub="ต้องอนุมัติภายใน 24 ชม."
-          accent={stats.pendingLeaveCount > 0 ? 'text-amber-600' : 'text-stone-900'}
-        />
-        <KpiCard
-          label="เงินเดือนงวดนี้"
-          value={stats.latestPayrollNet ? formatCurrency(stats.latestPayrollNet) : '—'}
-          sub={stats.latestPayrollDate ? `งวดเดือน ${stats.latestPayrollDate}` : 'ยังไม่มีข้อมูล'}
-          accent="text-emerald-700"
-        />
-      </div>
-
-      {/* Row 1 */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Attendance Feed Table */}
-        <div className="lg:col-span-7 bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-stone-100 flex items-center justify-between">
-            <h2 className="font-semibold text-stone-900 text-[15px]">การเข้างานวันนี้</h2>
-            <Link href="/app/hr/attendance" className="text-[12.5px] text-stone-500 hover:text-stone-900">ดูทั้งหมด →</Link>
+    <DirectionalTransition>
+      <div className="max-w-[1440px] mx-auto pb-12 space-y-6">
+        {/* Page Header */}
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <h1 className="font-display text-[26px] font-semibold tracking-tight text-stone-900">
+              ภาพรวมบุคลากร <span className="text-stone-400 font-normal">/ HR Dashboard</span>
+            </h1>
+            <p className="text-[13.5px] text-stone-500 mt-1">{formattedDate}</p>
           </div>
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-stone-50 border-b border-stone-100">
-              <tr className="text-[10.5px] font-semibold text-stone-500 uppercase tracking-wider">
-                <th className="px-4 py-2.5">พนักงาน</th>
-                <th className="px-4 py-2.5">แผนก</th>
-                <th className="px-4 py-2.5">เข้างาน</th>
-                <th className="px-4 py-2.5">ออกงาน</th>
-                <th className="px-4 py-2.5">สถานะ</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-50">
-              {stats.attendanceFeed?.map((emp) => (
-                <tr key={emp.employee_id} className="hover:bg-stone-50/60 transition-colors">
-                  <td className="px-4 py-2.5">
-                    <div className="flex items-center gap-2">
-                      <Avatar name={emp.name_th} size={28} />
-                      <div>
-                        <div className="text-[13px] font-medium text-stone-900">{emp.name_th}</div>
-                        <div className="text-[10.5px] text-stone-400">{emp.position}</div>
+          <div className="flex gap-2">
+            <button className="h-9 px-3.5 rounded-md text-[13px] font-medium text-stone-700 bg-white border border-stone-200 hover:bg-stone-50">
+              รายงานประจำเดือน
+            </button>
+            <Link href="/app/hr/employees/new" className="h-9 px-3.5 rounded-md text-[13px] font-medium text-white bg-stone-900 hover:bg-stone-800 inline-flex items-center gap-1.5">
+              + เพิ่มพนักงาน
+            </Link>
+          </div>
+        </div>
+
+        {/* KPI Strip */}
+        <div className="flex bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden">
+          <KpiCard
+            label="พนักงานทั้งหมด"
+            value={stats.totalEmployees}
+            sub={`${stats.probationCount} ทดลองงาน · ${stats.resignedThisMonth} ออกเดือนนี้`}
+          />
+          <KpiCard
+            label="เข้างานวันนี้"
+            value={`${stats.presentToday} / ${stats.totalEmployees - stats.onLeaveToday}`}
+            sub={`ตรงเวลา ${onTimeCount} · สาย ${stats.lateCount}`}
+          />
+          <KpiCard
+            label="คำขอลาที่ค้าง"
+            value={stats.pendingLeaveCount}
+            sub="ต้องอนุมัติภายใน 24 ชม."
+            accent={stats.pendingLeaveCount > 0 ? 'text-amber-600' : 'text-stone-900'}
+          />
+          <KpiCard
+            label="เงินเดือนงวดนี้"
+            value={stats.latestPayrollNet ? formatCurrency(stats.latestPayrollNet, lang) : '—'}
+            sub={stats.latestPayrollDate ? `งวดเดือน ${stats.latestPayrollDate}` : 'ยังไม่มีข้อมูล'}
+            accent="text-emerald-700"
+          />
+        </div>
+
+        {/* Row 1 */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Attendance Feed Table */}
+          <div className="lg:col-span-7 bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-stone-100 flex items-center justify-between">
+              <h2 className="font-semibold text-stone-900 text-[15px]">การเข้างานวันนี้</h2>
+              <Link href="/app/hr/attendance" className="text-[12.5px] text-stone-500 hover:text-stone-900">ดูทั้งหมด →</Link>
+            </div>
+            <table className="w-full text-left border-collapse">
+              <thead className="bg-stone-50 border-b border-stone-100">
+                <tr className="text-[10.5px] font-semibold text-stone-500 uppercase tracking-wider">
+                  <th className="px-4 py-2.5">พนักงาน</th>
+                  <th className="px-4 py-2.5">แผนก</th>
+                  <th className="px-4 py-2.5">เข้างาน</th>
+                  <th className="px-4 py-2.5">ออกงาน</th>
+                  <th className="px-4 py-2.5">สถานะ</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stone-50">
+                {stats.attendanceFeed?.map((emp) => (
+                  <tr key={emp.employee_id} className="hover:bg-stone-50/60 transition-colors">
+                    <td className="px-4 py-2.5">
+                      <div className="flex items-center gap-2">
+                        <Avatar name={emp.name_th} size={28} />
+                        <div>
+                          <div className="text-[13px] font-medium text-stone-900">{emp.name_th}</div>
+                          <div className="text-[10.5px] text-stone-400">{emp.position}</div>
+                        </div>
                       </div>
+                    </td>
+                    <td className="px-4 py-2.5 text-[12.5px] text-stone-600">{emp.department_name_th}</td>
+                    <td className="px-4 py-2.5 font-mono text-[12.5px] text-stone-700">{emp.clock_in ?? '—'}</td>
+                    <td className="px-4 py-2.5 font-mono text-[12.5px] text-stone-500">{emp.clock_out ?? '—'}</td>
+                    <td className="px-4 py-2.5">
+                      <StatusBadge status={emp.status} lateMinutes={emp.late_minutes} />
+                    </td>
+                  </tr>
+                ))}
+                {(!stats.attendanceFeed || stats.attendanceFeed.length === 0) && (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-8 text-center text-[13px] text-stone-400 italic">ไม่มีข้อมูลการเข้างานวันนี้</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pending Leave Queue */}
+          <div className="lg:col-span-5 bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-stone-100 flex items-center justify-between">
+              <h2 className="font-semibold text-stone-900 text-[15px]">คำขอลารออนุมัติ</h2>
+              <Link href="/app/hr/leave-requests" className="text-[12.5px] text-stone-500 hover:text-stone-900">ดูทั้งหมด →</Link>
+            </div>
+            <div className="divide-y divide-stone-100">
+              {stats.pendingLeaveQueue?.map((req) => (
+                <div key={req.id} className="px-5 py-3.5 hover:bg-stone-50 transition-colors">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-[13px] text-stone-900">{req.employee_name_th}</span>
+                        {req.is_urgent && (
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-500 text-white uppercase">เร่งด่วน</span>
+                        )}
+                      </div>
+                      <div className="text-[11.5px] text-stone-500 mt-0.5">{req.leave_type_name_th} · {req.days_requested} วัน</div>
+                      <div className="text-[11px] text-stone-400 font-mono mt-0.5">{req.start_date} – {req.end_date}</div>
                     </div>
-                  </td>
-                  <td className="px-4 py-2.5 text-[12.5px] text-stone-600">{emp.department_name_th}</td>
-                  <td className="px-4 py-2.5 font-mono text-[12.5px] text-stone-700">{emp.clock_in ?? '—'}</td>
-                  <td className="px-4 py-2.5 font-mono text-[12.5px] text-stone-500">{emp.clock_out ?? '—'}</td>
-                  <td className="px-4 py-2.5">
-                    <StatusBadge status={emp.status} lateMinutes={emp.late_minutes} />
-                  </td>
-                </tr>
+                    <Link href="/app/hr/leave-requests" className="text-[11px] text-stone-400 hover:text-stone-900 underline">ตรวจสอบ</Link>
+                  </div>
+                </div>
               ))}
-              {(!stats.attendanceFeed || stats.attendanceFeed.length === 0) && (
-                <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-[13px] text-stone-400 italic">ไม่มีข้อมูลการเข้างานวันนี้</td>
-                </tr>
+              {(!stats.pendingLeaveQueue || stats.pendingLeaveQueue.length === 0) && (
+                <div className="px-5 py-12 text-center text-[13px] text-stone-400 italic">ไม่มีคำขอลาที่ค้างอยู่</div>
               )}
-            </tbody>
-          </table>
+            </div>
+          </div>
         </div>
 
-        {/* Pending Leave Queue */}
-        <div className="lg:col-span-5 bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-stone-100 flex items-center justify-between">
-            <h2 className="font-semibold text-stone-900 text-[15px]">คำขอลารออนุมัติ</h2>
-            <Link href="/app/hr/leave-requests" className="text-[12.5px] text-stone-500 hover:text-stone-900">ดูทั้งหมด →</Link>
-          </div>
-          <div className="divide-y divide-stone-100">
-            {stats.pendingLeaveQueue?.map((req) => (
-              <div key={req.id} className="px-5 py-3.5 hover:bg-stone-50 transition-colors">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-[13px] text-stone-900">{req.employee_name_th}</span>
-                      {req.is_urgent && (
-                        <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-500 text-white uppercase">เร่งด่วน</span>
-                      )}
+        {/* Row 2 */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Headcount Bar Chart */}
+          <div className="lg:col-span-7 bg-white border border-stone-200 rounded-[10px] shadow-sm p-5">
+            <h2 className="font-semibold text-stone-900 mb-4 text-[15px]">จำนวนพนักงานตามแผนก</h2>
+            <div className="space-y-3">
+              {stats.headcountByDept?.map((d) => {
+                const maxCount = Math.max(...(stats.headcountByDept?.map((x) => x.count) ?? [1]));
+                const pct = maxCount > 0 ? (d.count / maxCount) * 100 : 0;
+                return (
+                  <div key={d.department_id} className="flex items-center gap-3">
+                    <div className="w-32 text-[12.5px] text-stone-600 truncate text-right">{d.name_th}</div>
+                    <div className="flex-1 h-6 bg-stone-100 rounded-md overflow-hidden">
+                      <div className="h-full rounded-md transition-all duration-500" style={{ width: `${pct}%`, background: d.color }} />
                     </div>
-                    <div className="text-[11.5px] text-stone-500 mt-0.5">{req.leave_type_name_th} · {req.days_requested} วัน</div>
-                    <div className="text-[11px] text-stone-400 font-mono mt-0.5">{req.start_date} – {req.end_date}</div>
+                    <div className="w-8 text-[12.5px] font-mono text-stone-700 text-right">{d.count}</div>
                   </div>
-                  <Link href="/app/hr/leave-requests" className="text-[11px] text-stone-400 hover:text-stone-900 underline">ตรวจสอบ</Link>
+                );
+              })}
+              {(!stats.headcountByDept || stats.headcountByDept.length === 0) && (
+                <div className="py-12 text-center text-[13px] text-stone-400 italic">ยังไม่มีข้อมูลพนักงาน</div>
+              )}
+            </div>
+          </div>
+
+          {/* Upcoming Events */}
+          <div className="lg:col-span-5 bg-white border border-stone-200 rounded-[10px] shadow-sm p-5">
+            <h2 className="font-semibold text-stone-900 mb-4 text-[15px]">กิจกรรมที่กำลังจะมาถึง (7 วัน)</h2>
+            <div className="space-y-3">
+              {(!stats.upcoming || stats.upcoming.length === 0) && (
+                <p className="text-[12.5px] text-stone-400 italic py-12 text-center">ไม่มีกิจกรรมในช่วง 7 วัน</p>
+              )}
+              {stats.upcoming?.map((ev) => (
+                <div key={`${ev.employee_id}-${ev.kind}`} className="flex items-center gap-3 p-2 rounded-lg hover:bg-stone-50 transition-colors">
+                  <div className="w-10 h-10 rounded-lg bg-stone-50 border border-stone-200 grid place-items-center text-lg shadow-sm">
+                    {ev.kind === 'anniv' ? '🎂' : '🗓️'}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-[13px] font-medium text-stone-900 truncate">{ev.name_th}</div>
+                    <div className="text-[11.5px] text-stone-500 truncate">{ev.label} · {ev.sub}</div>
+                  </div>
+                  <div className="ml-auto text-[11px] font-mono text-stone-400 whitespace-nowrap">{ev.event_date}</div>
                 </div>
-              </div>
-            ))}
-            {(!stats.pendingLeaveQueue || stats.pendingLeaveQueue.length === 0) && (
-              <div className="px-5 py-12 text-center text-[13px] text-stone-400 italic">ไม่มีคำขอลาที่ค้างอยู่</div>
-            )}
+              ))}
+            </div>
           </div>
         </div>
       </div>
-
-      {/* Row 2 */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Headcount Bar Chart */}
-        <div className="lg:col-span-7 bg-white border border-stone-200 rounded-[10px] shadow-sm p-5">
-          <h2 className="font-semibold text-stone-900 mb-4 text-[15px]">จำนวนพนักงานตามแผนก</h2>
-          <div className="space-y-3">
-            {stats.headcountByDept?.map((d) => {
-              const maxCount = Math.max(...(stats.headcountByDept?.map((x) => x.count) ?? [1]));
-              const pct = maxCount > 0 ? (d.count / maxCount) * 100 : 0;
-              return (
-                <div key={d.department_id} className="flex items-center gap-3">
-                  <div className="w-32 text-[12.5px] text-stone-600 truncate text-right">{d.name_th}</div>
-                  <div className="flex-1 h-6 bg-stone-100 rounded-md overflow-hidden">
-                    <div className="h-full rounded-md transition-all duration-500" style={{ width: `${pct}%`, background: d.color }} />
-                  </div>
-                  <div className="w-8 text-[12.5px] font-mono text-stone-700 text-right">{d.count}</div>
-                </div>
-              );
-            })}
-            {(!stats.headcountByDept || stats.headcountByDept.length === 0) && (
-              <div className="py-12 text-center text-[13px] text-stone-400 italic">ยังไม่มีข้อมูลพนักงาน</div>
-            )}
-          </div>
-        </div>
-
-        {/* Upcoming Events */}
-        <div className="lg:col-span-5 bg-white border border-stone-200 rounded-[10px] shadow-sm p-5">
-          <h2 className="font-semibold text-stone-900 mb-4 text-[15px]">กิจกรรมที่กำลังจะมาถึง (7 วัน)</h2>
-          <div className="space-y-3">
-            {(!stats.upcoming || stats.upcoming.length === 0) && (
-              <p className="text-[12.5px] text-stone-400 italic py-12 text-center">ไม่มีกิจกรรมในช่วง 7 วัน</p>
-            )}
-            {stats.upcoming?.map((ev) => (
-              <div key={`${ev.employee_id}-${ev.kind}`} className="flex items-center gap-3 p-2 rounded-lg hover:bg-stone-50 transition-colors">
-                <div className="w-10 h-10 rounded-lg bg-stone-50 border border-stone-200 grid place-items-center text-lg shadow-sm">
-                  {ev.kind === 'anniv' ? '🎂' : '🗓️'}
-                </div>
-                <div className="min-w-0">
-                  <div className="text-[13px] font-medium text-stone-900 truncate">{ev.name_th}</div>
-                  <div className="text-[11.5px] text-stone-500 truncate">{ev.label} · {ev.sub}</div>
-                </div>
-                <div className="ml-auto text-[11px] font-mono text-stone-400 whitespace-nowrap">{ev.event_date}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
+    </DirectionalTransition>
   );
 }

@@ -213,6 +213,37 @@ if (!isMounted) return null; // หรือแสดง Skeleton
 ```
 **Found in:** Global hydration fix for AppLayout, DashboardPage (2026-05-19)
 
+## ✅ Pattern — CSS Grid Calendar Rendering
+**Context:** Rendering a monthly calendar grid with weekday headers and day cells, accounting for starting weekday offset.
+**Correct way:**
+```tsx
+<div className="grid grid-cols-7 gap-px bg-stone-100 border border-stone-100 rounded-lg overflow-hidden">
+  {/* Weekday headers */}
+  {['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'].map(d => (
+    <div key={d} className="text-center text-[11px] font-bold py-2 bg-white">
+      {d}
+    </div>
+  ))}
+  
+  {/* Offset for first day of month */}
+  {Array.from({ length: firstWeekday }).map((_, i) => (
+    <div key={`empty-${i}`} className="bg-white h-24" />
+  ))}
+  
+  {/* Day cells */}
+  {Array.from({ length: daysInMonth }).map((_, i) => {
+    const day = i + 1;
+    return (
+      <div key={day} className="bg-white h-24 p-2 relative">
+        <span className="text-[12px] font-mono">{day}</span>
+        {/* Render event markers here */}
+      </div>
+    );
+  })}
+</div>
+```
+**Found in:** task 6 of track hr-ui-redesign
+
 ## ✅ Pattern — Frontend Tenure Calculation
 **Context:** Calculating employee tenure (years and months) from a hire date string for display in HR modules.
 **Correct way:**
