@@ -16,6 +16,7 @@ const lineSchema = z.object({
 const createSchema = z.object({
   vendor_id: z.string().uuid(),
   warehouse_id: z.string().uuid(),
+  order_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   notes: z.string().optional(),
   lines: z.array(lineSchema).min(1),
 });
@@ -62,7 +63,7 @@ export async function GET(req: Request) {
 
   const rows = await query(
     `SELECT
-      io.id, io.io_number, io.status, io.notes, io.vendor_ref, io.created_at,
+      io.id, io.io_number, io.status, io.notes, io.vendor_ref, io.created_at, io.order_date,
       v.name_th AS vendor_name, v.code AS vendor_code,
       w.code AS warehouse_code, w.name_th AS warehouse_name,
       u.name_en AS created_by_name,
@@ -105,10 +106,16 @@ export async function POST(req: Request) {
   }
 
   const io = await queryOne<{ id: string; io_number: string }>(
-    `INSERT INTO inbound_orders (vendor_id, warehouse_id, notes, created_by)
-     VALUES ($1, $2, $3, $4)
+    `INSERT INTO inbound_orders (vendor_id, warehouse_id, order_date, notes, created_by)
+     VALUES ($1, $2, $3, $4, $5)
      RETURNING id, io_number`,
-    [parsed.data.vendor_id, parsed.data.warehouse_id, parsed.data.notes ?? null, u.id]
+    [
+      parsed.data.vendor_id,
+      parsed.data.warehouse_id,
+      parsed.data.order_date ?? new Date().toISOString().slice(0, 10),
+      parsed.data.notes ?? null,
+      u.id
+    ]
   );
 
   if (!io) return apiError('Failed to create Inbound Order', 500);
