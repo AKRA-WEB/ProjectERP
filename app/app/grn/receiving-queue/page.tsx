@@ -57,10 +57,12 @@ function isUrgent(dateStr: string): boolean {
 }
 
 const IO_STATUS_LABEL: Record<string, string> = {
-  open:      'รอสินค้าเข้า',
-  receiving: 'กำลังลงสินค้า',
-  received:  'รอตรวจสอบ',
-  stocked:   'รับสินค้าแล้ว',
+  open:                 'รอสินค้าเข้า',
+  receiving:            'กำลังลงสินค้า',
+  received:             'รอตรวจสอบ',
+  pending_verification: 'รอตรวจสอบ',
+  stocked:              'รับสินค้าแล้ว',
+  verified:             'รับสินค้าแล้ว',
 };
 
 function isOverdue(dateStr: string, status: string): boolean {
