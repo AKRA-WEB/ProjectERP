@@ -114,7 +114,9 @@ import { ViewTransition } from 'react'       // experimental, breaks build
 | POST | `/api/grn/[id]/stock` | stock ledger insert |
 | GET | `/api/grn/receiving-queue` | dashboard data |
 | GET/POST | `/api/inbound-orders` | IO list + create |
-| GET/PATCH | `/api/inbound-orders/[id]` | detail |
+| GET/PATCH | `/api/inbound-orders/[id]` | detail + update_header + update_lines PATCH actions |
+| POST | `/api/grn/[id]/reject` | reject received GRN |
+| POST | `/api/grn/[id]/resubmit` | resubmit rejected GRN |
 | GET/POST | `/api/inventory` | stock balances |
 | GET | `/api/inventory/reorder` | reorder point analysis |
 
@@ -166,18 +168,18 @@ When creating new module pages, add path prefix to `components/layout/Sidebar.ts
 
 | Track | Date | Key Changes |
 |-------|------|-------------|
+| `io-gr-po-workflow` | 2026-05-20 | Implement IO → GR → PO warehouse-first workflow, UI list redesign, W2 lift fee, supervisor panel |
 | `ui-improvement-inventory` | 2026-05-20 | Optimization: Heatmap Matrix, Warehouse Cards, Stock Segments |
 | `ui-improvement-pos` | 2026-05-20 | Optimization: Tier colors, 15m Stock Lock timer, Receipt Modal |
 | `bug-hunt-wms-polish` | 2026-05-20 | Optimization: `last_cost` API, PR/PO button text & icon polish |
 | `hr-ui-redesign` | 2026-05-20 | REWORK: UI redesign, View Transitions, probation stats, detail page |
-| `io-grn-500` | 2026-05-20 | REWORK: Fix invalid enum 'cancelled' in GRN queries |
 
 ---
 
-## Migration Numbers (latest: 037)
+## Migration Numbers (latest: 038)
 
-Next migration = `038_<name>.sql`
-Latest: `037_repack_system.sql`
+Next migration = `039_<name>.sql`
+Latest: `038_io_gr_po_workflow.sql`
 
 ---
 *Update this file: append to "Last 5 Completed Tracks", update "Active Work", add new DB facts discovered*
