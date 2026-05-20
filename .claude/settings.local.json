@@ -43,7 +43,8 @@
       "Bash(Write-Host \"dir created\")",
       "Bash(dir C:\\\\Users\\\\AKRA-Panich-Front\\\\OneDrive\\\\Desktop\\\\projectERP\\\\app\\\\app *)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\AKRA-Panich-Front\\\\OneDrive\\\\02-2 - AKRA\\\\projectERP\" -Filter \"*.md\" -File)",
-      "Bash(Select-Object Name)"
+      "Bash(Select-Object Name)",
+      "Bash(C:/Users/AKRA-Panich-Front/.claude/plugins/cache/claude-plugins-official/superpowers/5.1.0/skills/brainstorming/scripts/start-server.sh *)"
     ]
   },
   "hooks": {

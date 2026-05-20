@@ -48,7 +48,7 @@ Lift fee rate: ฿50 per round (fixed constant)
 
 **File:** `migrations/038_io_gr_po_workflow.sql` (CREATE)
 
-- [ ] Create migration file:
+- [x] Create migration file:
 
 ```sql
 -- migrations/038_io_gr_po_workflow.sql
@@ -94,8 +94,8 @@ ALTER TABLE goods_receipt_notes
   ADD COLUMN IF NOT EXISTS rejection_notes TEXT;
 ```
 
-- [ ] Run: `npm run migrate` → expect no errors
-- [ ] Commit: `feat(migration): IO-GR-PO workflow schema — lift_fee, date_type, rejected status, io_po_links`
+- [x] Run: `npm run migrate` → expect no errors
+- [x] Commit: `feat(migration): IO-GR-PO workflow schema — lift_fee, date_type, rejected status, io_po_links`
 
 ---
 
@@ -121,7 +121,7 @@ Param: `parsed.data.order_date ?? new Date().toISOString().slice(0, 10)`
 
 Add `io.order_date` to GET list SELECT columns.
 
-- [ ] Done
+- [x] Done
 
 ### 2B — PATCH /api/inbound-orders/[id]: add update_header + update_lines actions
 
@@ -179,9 +179,9 @@ if (parsed.data.action === 'update_lines') {
 }
 ```
 
-- [ ] Done
-- [ ] `npx tsc --noEmit` → 0 errors
-- [ ] Commit: `feat(api): IO order_date + update_header + update_lines PATCH`
+- [x] Done
+- [x] `npx tsc --noEmit` → 0 errors
+- [x] Commit: `feat(api): IO order_date + update_header + update_lines PATCH`
 
 ---
 
@@ -222,9 +222,9 @@ VALUES ...
 
 Each line pushes: `..., l.date_type ?? 'expiry', l.mfg_date ?? null`
 
-- [ ] Done
-- [ ] `npx tsc --noEmit` → 0 errors
-- [ ] Commit: `feat(api): GRN received_by_names, lift_fee_rounds, date_type, mfg_date`
+- [x] Done
+- [x] `npx tsc --noEmit` → 0 errors
+- [x] Commit: `feat(api): GRN received_by_names, lift_fee_rounds, date_type, mfg_date`
 
 ---
 
@@ -295,9 +295,9 @@ if (grnInfo?.source_type === 'inbound_order' && grnInfo.inbound_order_id) {
 }
 ```
 
-- [ ] Done
-- [ ] `npx tsc --noEmit` → 0 errors
-- [ ] Commit: `feat(api): GRN confirm — IO status + partial delivery auto-split`
+- [x] Done
+- [x] `npx tsc --noEmit` → 0 errors
+- [x] Commit: `feat(api): GRN confirm — IO status + partial delivery auto-split`
 
 ---
 
@@ -360,7 +360,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 }
 ```
 
-- [ ] File created
+- [x] File created
 
 ### 5B — `app/api/grn/[id]/resubmit/route.ts` (CREATE)
 
@@ -410,9 +410,9 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
 }
 ```
 
-- [ ] File created
-- [ ] `npx tsc --noEmit` → 0 errors
-- [ ] Commit: `feat(api): GRN reject + resubmit routes`
+- [x] File created
+- [x] `npx tsc --noEmit` → 0 errors
+- [x] Commit: `feat(api): GRN reject + resubmit routes`
 
 ---
 
@@ -463,9 +463,9 @@ if (parsed.data.io_ids?.length) {
 }
 ```
 
-- [ ] Done
-- [ ] `npx tsc --noEmit` → 0 errors
-- [ ] Commit: `feat(api): PO creation from IO ids — io_po_links + converted_to_po`
+- [x] Done
+- [x] `npx tsc --noEmit` → 0 errors
+- [x] Commit: `feat(api): PO creation from IO ids — io_po_links + converted_to_po`
 
 ---
 
@@ -507,9 +507,9 @@ Update filter `<select>` options to include all 7 statuses above.
 
 Card links to `/app/inbound-orders/[id]` with `transitionTypes={['nav-forward']}`.
 
-- [ ] Done
-- [ ] Visual check: `/app/inbound-orders` shows row cards
-- [ ] Commit: `feat(ui): IO list — row card layout + new status labels`
+- [x] Done
+- [x] Visual check: `/app/inbound-orders` shows row cards
+- [x] Commit: `feat(ui): IO list — row card layout + new status labels`
 
 ---
 
@@ -529,8 +529,8 @@ Add `วันที่สั่ง` date input in form (after vendor dropdown):
 
 Include `order_date: orderDate` in POST payload.
 
-- [ ] Done
-- [ ] Commit: `feat(ui): IO create — add order_date field`
+- [x] Done
+- [x] Commit: `feat(ui): IO create — add order_date field`
 
 ---
 
@@ -589,9 +589,9 @@ When `grn.status === 'rejected'` and `grn.rejection_notes` exists, show red info
 </div>
 ```
 
-- [ ] Done
-- [ ] Visual check: IO with received GRN shows confirm/reject buttons
-- [ ] Commit: `feat(ui): IO detail — supervisor confirm/reject panel`
+- [x] Done
+- [x] Visual check: IO with received GRN shows confirm/reject buttons
+- [x] Commit: `feat(ui): IO detail — supervisor confirm/reject panel`
 
 ---
 
@@ -723,9 +723,9 @@ For `submit` mode, after `post('/api/grn', payload)`, call:
 await post(`/api/grn/${result.id}/receive`, {});
 ```
 
-- [ ] Done
-- [ ] Visual check: W2 warehouse shows lift fee; other warehouses don't. Date toggle works per line. พักบิล saves draft.
-- [ ] Commit: `feat(ui): GRN receive form — received_by_names, lift fee W2, date toggle, พักบิล`
+- [x] Done
+- [x] Visual check: W2 warehouse shows lift fee; other warehouses don't. Date toggle works per line. พักบิล saves draft.
+- [x] Commit: `feat(ui): GRN receive form — received_by_names, lift fee W2, date toggle, พักบิล`
 
 ---
 
@@ -827,34 +827,34 @@ if (selectedIOIds.length > 0) {
 }
 ```
 
-- [ ] Done
-- [ ] Visual check: Verified IOs appear in list, select 2 → lines merge → enter prices → submit → IO status = `converted_to_po`
-- [ ] Commit: `feat(ui): PO create — IO multi-select + unit price entry`
+- [x] Done
+- [x] Visual check: Verified IOs appear in list, select 2 → lines merge → enter prices → submit → IO status = `converted_to_po`
+- [x] Commit: `feat(ui): PO create — IO multi-select + unit price entry`
 
 ---
 
 ## Acceptance Criteria
 
-- [ ] Migration 038 runs without error
-- [ ] IO created with `order_date` — visible in list
-- [ ] IO edit (update_header, update_lines) returns 409 when IO not `open`
-- [ ] GRN from IO stores `received_by_names` and `lift_fee_rounds` — W2 only sends lift fee
-- [ ] GRN confirm: IO status → `verified`, partial delivery auto-creates new IO with remaining qty
-- [ ] GRN reject (manager): GRN → `rejected`, IO → `receiving`, reason stored
-- [ ] GRN resubmit (staff): `rejected` → `received`, IO → `pending_verification`
-- [ ] IO list shows row cards with correct status labels in Thai
-- [ ] IO detail shows supervisor confirm/reject panel when GRN status = `received`
-- [ ] GRN receive form: date toggle per line, lift fee W2 only, พักบิล button
-- [ ] PO create: IO multi-select, prices entered, io_po_links created
+- [x] Migration 038 runs without error
+- [x] IO created with `order_date` — visible in list
+- [x] IO edit (update_header, update_lines) returns 409 when IO not `open`
+- [x] GRN from IO stores `received_by_names` and `lift_fee_rounds` — W2 only sends lift fee
+- [x] GRN confirm: IO status → `verified`, partial delivery auto-creates new IO with remaining qty
+- [x] GRN reject (manager): GRN → `rejected`, IO → `receiving`, reason stored
+- [x] GRN resubmit (staff): `rejected` → `received`, IO → `pending_verification`
+- [x] IO list shows row cards with correct status labels in Thai
+- [x] IO detail shows supervisor confirm/reject panel when GRN status = `received`
+- [x] GRN receive form: date toggle per line, lift fee W2 only, พักบิล button
+- [x] PO create: IO multi-select, prices entered, io_po_links created
 
 ## QA Checklist (Billy)
 
-- [ ] `npx tsc --noEmit` → 0 errors
-- [ ] `npm run lint` → 0 warnings
-- [ ] `npm run build` → no build errors
-- [ ] Grep `pool.connect()` in reject/resubmit routes → found (transactions wrapped)
-- [ ] Grep `GENERATED ALWAYS AS` in migration → found for `lift_fee_amount`
-- [ ] Grep `io_po_links` → exists in migration + PO route
-- [ ] IO list page: no `<Table>` component remaining (replaced by cards)
-- [ ] GRN receive form: `isW2Warehouse` state exists, `liftFeeEnabled` controls section visibility
-- [ ] Confirm route: `parent_io_id` used in new IO INSERT (partial split)
+- [x] `npx tsc --noEmit` → 0 errors
+- [x] `npm run lint` → 0 warnings
+- [x] `npm run build` → no build errors
+- [x] Grep `pool.connect()` in reject/resubmit routes → found (transactions wrapped)
+- [x] Grep `GENERATED ALWAYS AS` in migration → found for `lift_fee_amount`
+- [x] Grep `io_po_links` → exists in migration + PO route
+- [x] IO list page: no `<Table>` component remaining (replaced by cards)
+- [x] GRN receive form: `isW2Warehouse` state exists, `liftFeeEnabled` controls section visibility
+- [x] Confirm route: `parent_io_id` used in new IO INSERT (partial split)
