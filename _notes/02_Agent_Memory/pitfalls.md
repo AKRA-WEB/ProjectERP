@@ -203,3 +203,9 @@ If stride ≠ param count per row → all rows after the first get wrong values 
 - **Root cause:** ลืมใส่ directive `'use client';` ไว้ที่บรรทัดบนสุดในหน้าเว็บ (เช่น `/app/app/.../page.tsx`) ที่มีการใช้งาน React Hooks เช่น `useState`, `useEffect`, `useCallback` หรือ `useRouter` / `usePathname`
 - **Fix:** ใส่ `'use client';` ไว้ที่บรรทัดแรกสุดของไฟล์ที่เป็น Client Component เสมอ
 - **Found in:** `app/app/hr/employees/[id]/page.tsx`
+
+### 13. Sequential Import Loop Timeout
+- **Symptom:** Vercel/Connection Timeout 504 หรือนำเข้าไฟล์ขนาดใหญ่ (เช่น >1000 แถว) ล้มเหลวกลางทาง
+- **Root cause:** การทำ INSERT/UPSERT และการ Query ใน loop ทีละแถวผ่านอินเทอร์เน็ตมี Roundtrip Time สูง ทำให้ฟังก์ชันรันเกินเวลาสูงสุดของ Vercel (Timeout)
+- **Fix:** ใช้ Batch Insert/Upsert สำหรับ Category, UOM และ Products เป็น chunk (เช่น 100 แถวต่อครั้ง) เพื่อลดจำนวนรอบการติดต่อฐานข้อมูล พร้อมมี Graceful Fallback รันแบบทีละแถวเฉพาะใน chunk ที่เกิด Error เพื่อการรายงานความผิดพลาดที่ละเอียดแม่นยำ
+- **Found in:** `app/api/products/import/route.ts`
