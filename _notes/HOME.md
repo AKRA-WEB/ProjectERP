@@ -2,11 +2,13 @@
 
 ## Quick Nav
 - [[_notes/dashboard|📊 Project Dashboard]] — Dataview: status ทุก track
+- [[conductor/index|📋 Track Index]] — conductor tracks ทั้งหมด
+- [[_notes/02_Agent_Memory/current-state|🧠 Current State]] — **อ่านก่อนเริ่มงานทุกครั้ง** (active tracks, DB facts, traps)
+- [[_notes/02_Agent_Memory/pitfalls|⚠️ Pitfalls]] — traps ที่ agent เจอบ่อย
 - [[_notes/00_Project_Map/module-map|🗺️ Module Map]] — Canvas: dependency ระหว่าง modules
 - [[_notes/00_Project_Map/state-machines|⚙️ State Machines]] — Mermaid diagrams ทุก document flow
 - [[_notes/02_Agent_Memory/agents-index|📚 Agents & Skills Index]] — agents, triggers, skill files
 - [[_notes/skill-changelog|📝 Skill Changelog]] — auto-log ทุก trap/pattern ใหม่
-- [[conductor/index|📋 Track Index]] — conductor tracks ทั้งหมด
 - [[PROGRESS|📈 Progress Log]]
 - [[CLAUDE|⚙️ Architecture Rules]]
 
@@ -25,12 +27,14 @@
 ---
 
 ## Daily Log
-[[_notes/daily/]] ← สร้าง note ใหม่ทุกวัน (`Alt+D`)
+- [[_notes/daily/README|📅 Daily Log]] — ดูความคืบหน้ารายวัน
+- สร้าง note ใหม่ทุกวันด้วย `Alt+D` ผ่าน Hotkey
 
 > Template: `_notes/templates/daily-standup.md`
 
 ## Weekly Review
-[[_notes/weekly/]] ← สร้างทุกวันจันทร์
+- [[_notes/weekly/README|📅 Weekly Review]] — สรุปงานรายสัปดาห์
+- สร้างทุกวันจันทร์
 
 > Template: `_notes/templates/weekly-review.md`
 
@@ -68,7 +72,7 @@ LIMIT 5
 ## Module Notes
 - [[_notes/00_Project_Map/modules/WMS|WMS]] · [[_notes/00_Project_Map/modules/POS|POS]] · [[_notes/00_Project_Map/modules/Sales|Sales]]
 - [[_notes/00_Project_Map/modules/Accounting|Accounting]] · [[_notes/00_Project_Map/modules/HR|HR]] · [[_notes/00_Project_Map/modules/BOM|BOM]]
-- [[_notes/00_Project_Map/modules/Inventory|Inventory]] · [[_notes/00_Project_Map/modules/Vendors|Vendors]]
+- [[_notes/00_Project_Map/modules/Inventory|Inventory]] · [[_notes/00_Project_Map/modules/Vendors|Vendors]] · [[_notes/00_Project_Map/modules/Repack|Repack]]
 - [[_notes/00_Project_Map/modules/Security|Security]] · [[_notes/00_Project_Map/modules/Core|Core]]
 - [[_notes/02_Agent_Memory/pitfalls|AI Pitfalls & Traps]]
 

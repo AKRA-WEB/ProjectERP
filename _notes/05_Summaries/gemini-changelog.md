@@ -2,7 +2,6 @@
 
 | Date | Change |
 |------|--------|
-| 2026-05-20 | **Bugfix: GRN receive status transition** — Fixed a bug where completing a GRN did not update the Inbound Order status, leaving it as 'receiving' ('กำลังลงสินค้า') in the active queue. Now correctly updates to 'pending_verification' ('รอตรวจสอบ') and updates the UI status mappings. |
 | 2026-05-20 | **grn-role-segregation track completed** — Gated QC and Stock-In buttons under isManager in Detail page, secured POST /api/grn/[id]/stock on backend, and updated redirects to Receiving Queue with success toast |
 | 2026-05-20 | **grn-simplified-workflow track completed** — Refactored GRN receiving UX to single scrollable form with bonus items, lift fee payment, Thai labels, and 72-hour overdue badges |
 | 2026-05-20 | **repack-order track completed** — New module for multi-UoM repack system; integrated stock synchronization with stock_ledger; added print barcode stub |

@@ -12,6 +12,9 @@ type: module-summary
 - [[Accounting]] — สร้างรายการหนี้สิน (AP Invoices) จากการรับสินค้า (GRN)
 - [[BOM]] — รับใบสั่งผลิต (Production Orders) เพื่อเบิกจ่ายวัตถุดิบ
 - [[Core]] — ใช้ระบบรันเลขที่เอกสาร และ UI Framework
+- **Architectural Summary:** [[WMS_MODULE_SUMMARY]]
+- **WMS Decisions:** [[po-immediate-approval]], [[stock-ledger-immutability]]
+- **Related Debug Logs:** [[2026-05-18-io-grn-500]] (GRN 500 IO), [[2026-05-18-po-gr-audit]] (WMS System Audit)
 
 ## Flow
 ```

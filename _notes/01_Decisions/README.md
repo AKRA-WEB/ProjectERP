@@ -10,7 +10,14 @@
 - **Impact** — ผลกระทบต่อ codebase
 
 ## Decisions
+- [[auth-pattern]] — API Auth Pattern (Session Cast + `assertRole`)
+- [[doc-numbers-db-function]] — Document Numbers via PostgreSQL Function
+- [[patch-action-discriminant]] — PATCH Routes Use `action` Discriminant
+- [[po-immediate-approval]] — PO Immediate Approval Types & Textarea UI
 - [[product-import]] — Product schema expansion + initial stock seeding logic
+- [[stock-ledger-immutability]] — Stock Ledger Insert-Only Pattern
+- [[transaction-pattern]] — DB Transaction Pattern (`pool.connect` + BEGIN/COMMIT)
+- [[warehouse-scope-clause]] — Warehouse Scope on All List Endpoints (Data Isolation)
 
 ---
 

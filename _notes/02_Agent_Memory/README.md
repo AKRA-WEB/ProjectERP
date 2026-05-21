@@ -2,10 +2,11 @@
 
 โหลดไฟล์เหล่านี้ก่อน implement เพื่อป้องกัน bug ที่เคยเกิดแล้ว
 
-## ไฟล์หลัก
-- [[pitfalls]] — Critical bugs & anti-patterns ที่ Gemini เคยทำผิดแล้ว → ห้ามทำซ้ำ
-- [[output-guidelines]] — วิธีการตอบ / สื่อสารของ agent (terse, no filler)
-- [[agents-index]] — รายชื่อ agents, triggers, และ skill files
+## ไฟล์หลัก (อ่านตามลำดับนี้)
+1. [[current-state]] — **อ่านก่อนสุด** — Active tracks, DB column facts, API routes, import traps
+2. [[pitfalls]] — Critical bugs & anti-patterns ที่ Gemini เคยทำผิดแล้ว → ห้ามทำซ้ำ
+3. [[agents-index]] — รายชื่อ agents, triggers, และ skill files
+4. [[output-guidelines]] — วิธีการตอบ / สื่อสารของ agent (terse, no filler)
 
 ## Quick Rules (สรุปสำหรับ Gemini)
 - `import pool from '@/lib/db/client'` — default export เท่านั้น

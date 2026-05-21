@@ -11,6 +11,7 @@ type: module-summary
 - [[Inventory]] — ดึงข้อมูลวัตถุดิบและจัดการ Multi-UoM
 - [[WMS]] — ส่งใบสั่งผลิตเพื่อเบิกของและรับสินค้าสำเร็จรูปเข้าคลัง
 - [[Core]] — Infrastructure สำหรับการคำนวณและ UI
+- **Architectural Summary:** [[BOM_MODULE_SUMMARY]]
 
 ## Flow
 ```

@@ -1,46 +1,51 @@
-# HR Module Implementation Summary
+# HR Module Summary
 
-This document summarizes the full implementation of the HR Module within the ERP system.
+**Status:** ✅ Completed (Redesign Bundle v2)
+**Last Updated:** 2026-05-19
 
 ## Overview
-The HR Module provides a comprehensive suite of tools for managing employees, leave, attendance, and payroll, fully integrated with the system's Accounting and RBAC modules.
+The HR module manages the entire employee lifecycle, from onboarding to payroll. It features a comprehensive dashboard with real-time attendance feeds, automated tenure calculation, a team leave calendar, and a multi-step payroll approval workflow.
 
-## Key Features
+## Key Components
 
-### 1. Employee & Org Management
-- **Extended User Profiles**: Added department, position, salary grade, and employment status.
-- **Department Hierarchy**: Support for parent/child departments and assigned managers.
-- **Master Data**: Dedicated management for Positions and Salary Grades.
+### 1. HR Dashboard
+- **Location:** `/app/app/hr`
+- **Data Source:** `/api/hr/stats`
+- **Features:** 4-card KPI strip (Total, Attendance, Pending Leave, Payroll), Real-time attendance table, Urgent leave queue, Headcount by Department bar chart, and Upcoming work anniversaries (7-day window).
 
-### 2. Leave Management
-- **Request Workflow**: Digital submission, approval, and rejection of leave requests.
-- **Automated Balances**: Real-time tracking of entitled vs. used leave days per year.
-- **Thai Leave Types**: Pre-seeded with standard types (Sick, Vacation, Personal, Maternity, Ordination).
+### 2. Employee Management
+- **Location:** `/app/app/hr/employees`
+- **Data Source:** `/api/hr/employees`, `/api/hr/employees/stats`
+- **Features:** Advanced filtering (Branch, Dept, Type, Status), Tenure calculation (Y/M format), and Role-based salary gating (Admin/Manager only).
+- **Navigation:** Supports employee creation and detailed profiles (profile view redesign pending).
 
-### 3. Attendance Tracking
-- **Interactive Clock-In**: Employee-facing UI for daily time recording.
-- **Work Schedules**: Configurable shifts with automatic late detection (15-min grace).
-- **OT Calculation**: Automatic computation of overtime hours based on clock-out times.
+### 3. Leave Management
+- **Location:** `/app/app/hr/leave-requests`
+- **Data Source:** `/api/hr/leave-requests/calendar`, `/api/hr/leave-requests/stats`
+- **Features:** CSS Grid-based Team Calendar with monthly navigation and leave type color coding. Side-by-side pending list and interactive detail card for quick approval/rejection.
 
-### 4. Thai Payroll System
-- **Engine**: Handles base salary, OT multipliers (1.5x/3x), and absence deductions.
-- **Compliance**: Automated Thai Social Security (SSO) with caps and progressive income tax withholding.
-- **PDF Payslips**: Generated on-the-fly using `@react-pdf/renderer`.
-- **Accounting Link**: Automatic creation of balanced Journal Entries (Dr Expense / Cr Payable) in the General Ledger upon payroll approval.
+### 4. Payroll System
+- **Location:** `/app/app/hr/payroll/[id]`
+- **Workflow:** 4-step stepper (`draft` → `processing` → `approved` → `paid`).
+- **Features:** 5-card financial KPI strip (Gross, SSO, PVF, Tax, Net). Detail table with footer totals and searchable lines. Integrated with General Ledger for automated accounting entries upon payment.
 
-### 5. RBAC & Security
-- **Granular Permissions**: 13 new permissions (e.g., `hr:payroll:run`, `hr:leave:approve`).
-- **Role Integration**: Pre-configured access for System Admins, Managers, and Staff.
+## API Architecture
 
-## Technical Details
-- **Framework**: Next.js 15 (App Router)
-- **Database**: PostgreSQL (Raw `pg` queries)
-- **Validation**: Zod schema validation for all API inputs
-- **Design**: Consistent with the project's Tailwind-based UI system
+| Route | Method | Description |
+|-------|--------|-------------|
+| `/api/hr/stats` | GET | Aggregated data for Dashboard feeds and KPIs |
+| `/api/hr/employees` | GET | List with branch/tenure data and salary gating |
+| `/api/hr/employees/stats` | GET | Global employee KPIs (Turnover, Avg Tenure) |
+| `/api/hr/leave-requests/calendar` | GET | Monthly team leave grid data |
+| `/api/hr/leave-requests/stats` | GET | Pending and upcoming leave counts |
+| `/api/hr/payroll-runs/[id]` | GET/PATCH | Payroll detail and workflow actions |
 
-## Important Files
-- **Migration**: `migrations/019_hr_departments.sql` to `023_hr_permissions.sql`
-- **API**: `app/api/hr/`
-- **UI**: `app/app/hr/`
-- **Logic**: `lib/hr/payroll-calc.ts`
-- **Detailed Log**: `conductor/tracks/hr-module/execution-summary.md`
+## SQL Patterns Used
+- **Wraparound Anniversaries:** Finding events across year-end boundaries using `TO_CHAR(MM-DD)`.
+- **Timezone Formatting:** Using `AT TIME ZONE 'Asia/Bangkok'` for consistent clock-in/out display.
+- **Conditional Gating:** Server-side role checks to nullify sensitive fields (base_salary).
+
+## Engineering Standards
+- **Component Pattern:** Local `Avatar` and `StatusBadge` for high-density information display.
+- **Linting:** Strict type safety with specific interfaces for all SQL result sets (no `any`).
+- **Performance:** Paginated lists and optimized counts using PostgreSQL `FILTER` clause.

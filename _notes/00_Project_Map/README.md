@@ -9,4 +9,4 @@
 ## Modules
 - [[modules/Core]] · [[modules/WMS]] · [[modules/Inventory]]
 - [[modules/POS]] · [[modules/Sales]] · [[modules/Accounting]]
-- [[modules/HR]] · [[modules/BOM]] · [[modules/Vendors]] · [[modules/Security]]
+- [[modules/HR]] · [[modules/BOM]] · [[modules/Vendors]] · [[modules/Security]] · [[modules/Repack]]

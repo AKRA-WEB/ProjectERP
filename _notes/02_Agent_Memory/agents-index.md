@@ -2,13 +2,13 @@
 
 ## AI Agents
 
-| Agent | Trigger | หน้าที่ |
-|-------|---------|---------|
-| **Chen** | `Architect: <req>` | วิเคราะห์ requirement → plan.md |
-| **Puka** | assigned in plan | Frontend: React, Tailwind, UI |
-| **Paku** | assigned in plan | Backend: API routes, SQL, migrations |
-| **Billy** | `QA: <track>` | Audit + Draft QA Report |
-| **Meena** | `Meena: audit` | Security + Vercel performance |
+| Agent     | Trigger            | หน้าที่                              |
+| --------- | ------------------ | ------------------------------------ |
+| **Chen**  | `Architect: <req>` | วิเคราะห์ requirement → plan.md      |
+| **Puka**  | assigned in plan   | Frontend: React, Tailwind, UI        |
+| **Paku**  | assigned in plan   | Backend: API routes, SQL, migrations |
+| **Billy** | `QA: <track>`      | Audit + Draft QA Report              |
+| **Meena** | `Meena: audit`     | Security + Vercel performance        |
 
 ## Skill Files (load on-demand)
 

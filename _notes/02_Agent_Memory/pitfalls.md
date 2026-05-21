@@ -177,5 +177,41 @@ If stride ≠ param count per row → all rows after the first get wrong values 
 
 **Prevention:** Chen Phase 1 now requires confirming the exact file path AND the function name exist before writing any task that references them. If the file structure differs from expectation → HALT and investigate before writing tasks.
 
+## ❌ Trap — Multi-Replace Race Condition (Turn Collision)
+**Symptom:** Edits are missing or revert to previous state even after a "Successful" tool response.
+**Root cause:** Calling `replace` multiple times on the same file in a single conversational turn. The tool environment handles these in parallel, leading to a race condition where one edit may overwrite another if they start from the same base state.
+**Fix:** Perform only ONE `replace` call per file per turn. Wait for the turn to finish and verify the file content before making the next edit.
+**Found in:** task 1 of track hr-ui-redesign
+
 ---
-*Updated: 2026-05-18*
+*Updated: 2026-05-19*
+
+### 10. Absolute Dropdown Clipping in Tables
+- **Symptom:** รายการค้นหา (ProductSearch) หรือ Select ที่เป็น `absolute` ไม่แสดงผลเมื่ออยู่ในตาราง
+- **Root cause:** ตัวครอบตาราง (Table wrapper) มี class `overflow-hidden` (มักมากับ `rounded-lg`) ทำให้ส่วนที่เกินตารางถูกตัดทิ้ง
+- **Fix:** นำ `overflow-hidden` ออกจาก Container ที่มี component แบบ absolute อยู่ภายใน หรือใช้ React Portal
+- **Found in:** `app/app/inbound-orders/new/page.tsx`
+
+### 11. Explicit Enum Casting ใน Bulk Insert
+- **Symptom:** Error "invalid input value for enum" เมื่อใช้ template values สำหรับการ insert หลายแถวพร้อมกัน
+- **Root cause:** ฐานข้อมูล PostgreSQL ไม่สามารถเดา type ของ string ใน template values ได้ว่าเป็น enum ชนิดไหน
+- **Fix:** ต้องใส่ casting ชัดเจนใน template เช่น `($1, $2::grn_source_type)`
+- **Found in:** `app/api/grn/route.ts`
+
+### 12. Missing 'use client' Directive in Interactive Pages
+- **Symptom:** Vercel/Webpack Build Error: "You're importing a component that needs `useRouter`. This React hook only works in a client component..." หรือ Webpack Build Failed
+- **Root cause:** ลืมใส่ directive `'use client';` ไว้ที่บรรทัดบนสุดในหน้าเว็บ (เช่น `/app/app/.../page.tsx`) ที่มีการใช้งาน React Hooks เช่น `useState`, `useEffect`, `useCallback` หรือ `useRouter` / `usePathname`
+- **Fix:** ใส่ `'use client';` ไว้ที่บรรทัดแรกสุดของไฟล์ที่เป็น Client Component เสมอ
+- **Found in:** `app/app/hr/employees/[id]/page.tsx`
+
+### 13. Sequential Import Loop Timeout
+- **Symptom:** Vercel/Connection Timeout 504 หรือนำเข้าไฟล์ขนาดใหญ่ (เช่น >1000 แถว) ล้มเหลวกลางทาง
+- **Root cause:** การทำ INSERT/UPSERT และการ Query ใน loop ทีละแถวผ่านอินเทอร์เน็ตมี Roundtrip Time สูง ทำให้ฟังก์ชันรันเกินเวลาสูงสุดของ Vercel (Timeout)
+- **Fix:** ใช้ Batch Insert/Upsert สำหรับ Category, UOM และ Products เป็น chunk (เช่น 100 แถวต่อครั้ง) เพื่อลดจำนวนรอบการติดต่อฐานข้อมูล พร้อมมี Graceful Fallback รันแบบทีละแถวเฉพาะใน chunk ที่เกิด Error เพื่อการรายงานความผิดพลาดที่ละเอียดแม่นยำ
+- **Found in:** `app/api/products/import/route.ts`
+
+### 14. Invalid Enum Value Comparison (PostgreSQL)
+- **Symptom:** 500 Internal Server Error: `invalid input value for enum type_name: "invalid_value"`
+- **Root cause:** การทำ WHERE condition เทียบ string ที่ไม่มีอยู่ใน enum type (เช่น `status != 'cancelled'` โดยที่ `cancelled` ไม่มีใน `grn_status`) PostgreSQL จะถือเป็น error ระดับ syntax ทำให้ Query พังทันที (ต่างจาก MySQL ที่จะแค่ return false)
+- **Fix:** ห้ามเทียบ enum column กับ string เปล่าหรือสถานะที่ไม่มีใน schema ถ้าไม่แน่ใจต้อง check definition ของ enum ก่อน
+- **Found in:** `app/api/grn/route.ts` (io-grn-500 rework)
