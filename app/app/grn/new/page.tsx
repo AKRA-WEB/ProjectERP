@@ -20,7 +20,9 @@ import {
   Camera,
   Check,
   Loader2,
-  Sparkles
+  Sparkles,
+  XCircle,
+  PackageX
 } from 'lucide-react';
 import { parseBuddhistDate, todayBE } from '@/lib/date-utils';
 
@@ -39,6 +41,7 @@ interface GRNLine {
   storage_location: string;
   lot_no: string;            // added for mobile/UI lot tracking
   stock_on_hand: number;     // from API GET
+  skipped: boolean;          // true = สินค้ายังไม่เข้า (not arrived)
 }
 
 interface BonusItem {
@@ -231,7 +234,7 @@ function NewGRNPageInner() {
           sku: l.sku,
           product_name: l.name_th,
           qty_ordered: Number(l.qty_ordered),
-          qty_received: Math.max(0, Number(l.qty_ordered) - Number(l.qty_received ?? 0)),
+          qty_received: 0,
           unit: l.uom_code || 'ชิ้น',
           expiry_date_be: todayBE(),
           mfg_date_be: '',
@@ -239,6 +242,7 @@ function NewGRNPageInner() {
           storage_location: '',
           lot_no: '',
           stock_on_hand: Number(l.qty_on_hand ?? l.qty_available ?? 0),
+          skipped: false,
         }))
       );
     });
@@ -256,7 +260,7 @@ function NewGRNPageInner() {
           sku: l.sku,
           product_name: l.name_th,
           qty_ordered: Number(l.qty_ordered),
-          qty_received: Math.max(0, Number(l.qty_ordered) - Number(l.qty_received)),
+          qty_received: 0,
           unit: l.uom_code || 'ชิ้น',
           expiry_date_be: todayBE(),
           mfg_date_be: '',
@@ -264,6 +268,7 @@ function NewGRNPageInner() {
           storage_location: '',
           lot_no: '',
           stock_on_hand: Number(l.qty_available ?? 0),
+          skipped: false,
         }))
       );
     });
@@ -496,8 +501,9 @@ function NewGRNPageInner() {
   const vendorName = mode === 'io' ? ioDetail?.vendor_name : (poDetail?.vendor_name ?? '—');
 
   const itemsSuccessCount = lines.filter((l) => Number(l.qty_received) > 0).length;
-  const progressPercent = lines.length > 0 ? (itemsSuccessCount / lines.length) * 100 : 0;
-  const remainingCount = lines.filter((l) => Number(l.qty_received) === 0).length;
+  const itemsSkippedCount = lines.filter((l) => l.skipped).length;
+  const progressPercent = lines.length > 0 ? ((itemsSuccessCount + itemsSkippedCount) / lines.length) * 100 : 0;
+  const remainingCount = lines.filter((l) => Number(l.qty_received) === 0 && !l.skipped).length;
 
   const activeLine = lines[activeIndex] || null;
   const activeDaysLeft = activeLine && activeLine.date_type === 'expiry' ? expiryDaysLeft(activeLine.expiry_date_be) : null;
@@ -1039,7 +1045,10 @@ function NewGRNPageInner() {
                 <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
                 ความคืบหน้าการรับของ
               </span>
-              <span className="font-mono text-emerald-600">{itemsSuccessCount}/{lines.length} SKU สำเร็จ</span>
+              <span className="font-mono text-emerald-600">
+                {itemsSuccessCount}/{lines.length} SKU สำเร็จ
+                {itemsSkippedCount > 0 && <span className="text-amber-600 ml-1">({itemsSkippedCount} ยังไม่เข้า)</span>}
+              </span>
             </div>
             <div className="w-full h-3 bg-stone-200 rounded-full overflow-hidden p-0.5 border border-stone-200">
               <div
@@ -1267,16 +1276,29 @@ function NewGRNPageInner() {
               <div className="flex gap-2.5 pt-2">
                 <button
                   type="button"
-                  onClick={() => setActiveIndex((activeIndex + 1) % lines.length)}
-                  className="flex-1 h-11 rounded-xl border border-stone-300 bg-stone-100 hover:bg-stone-200 text-xs font-bold text-stone-700 transition-all active:scale-95"
+                  onClick={() => {
+                    // Mark current line as skipped (สินค้ายังไม่เข้า)
+                    setLines((prev) => prev.map((l, idx) => idx === activeIndex ? { ...l, skipped: true, qty_received: 0 } : l));
+                    // Move to next non-completed, non-skipped line
+                    const nextPending = lines.findIndex((l, idx) => idx > activeIndex && Number(l.qty_received) === 0 && !l.skipped);
+                    const fallbackPending = lines.findIndex((l, idx) => idx !== activeIndex && Number(l.qty_received) === 0 && !l.skipped);
+                    if (nextPending >= 0) {
+                      setActiveIndex(nextPending);
+                    } else if (fallbackPending >= 0) {
+                      setActiveIndex(fallbackPending);
+                    }
+                    toast('info', `${activeLine.product_name} — สินค้ายังไม่เข้า`);
+                  }}
+                  className="flex-1 h-11 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-xs font-bold text-amber-700 transition-all active:scale-95 flex items-center justify-center gap-1"
                 >
-                  ข้ามไปก่อน
+                  <PackageX className="w-4 h-4" />
+                  สินค้ายังไม่เข้า
                 </button>
                 <button
                   type="button"
                   onClick={() => {
-                    const nextIncomplete = lines.findIndex((l, idx) => idx > activeIndex && Number(l.qty_received) === 0);
-                    const fallbackIncomplete = lines.findIndex((l) => Number(l.qty_received) === 0);
+                    const nextIncomplete = lines.findIndex((l, idx) => idx > activeIndex && Number(l.qty_received) === 0 && !l.skipped);
+                    const fallbackIncomplete = lines.findIndex((l) => Number(l.qty_received) === 0 && !l.skipped);
                     if (nextIncomplete >= 0) {
                       setActiveIndex(nextIncomplete);
                     } else if (fallbackIncomplete >= 0) {
@@ -1306,11 +1328,15 @@ function NewGRNPageInner() {
               {lines.map((l, i) => {
                 const received = Number(l.qty_received);
                 const isCurrent = i === activeIndex;
+                const isSkipped = l.skipped;
 
                 let dotColor = 'bg-stone-800 border-stone-700';
                 let iconEl = null;
 
-                if (received >= Number(l.qty_ordered)) {
+                if (isSkipped) {
+                  dotColor = 'bg-amber-400 border-amber-300';
+                  iconEl = <XCircle className="w-3 h-3 text-amber-900" />;
+                } else if (received >= Number(l.qty_ordered)) {
                   dotColor = 'bg-emerald-500 border-emerald-400';
                   iconEl = <Check className="w-3 h-3 text-stone-950 font-bold" />;
                 } else if (received > 0) {
@@ -1321,10 +1347,18 @@ function NewGRNPageInner() {
                   <button
                     key={i}
                     type="button"
-                    onClick={() => setActiveIndex(i)}
+                    onClick={() => {
+                      // If clicking a skipped item, un-skip it so user can re-enter
+                      if (isSkipped) {
+                        setLines((prev) => prev.map((line, idx) => idx === i ? { ...line, skipped: false } : line));
+                      }
+                      setActiveIndex(i);
+                    }}
                     className={`w-full text-left p-3 rounded-xl border flex items-center justify-between gap-3 transition-all ${
                       isCurrent 
                         ? 'bg-stone-50 border-emerald-500 ring-2 ring-emerald-500/10' 
+                        : isSkipped
+                        ? 'bg-amber-50/50 border-amber-200 hover:bg-amber-50'
                         : 'bg-white border-stone-200 hover:bg-stone-50'
                     }`}
                   >
@@ -1335,14 +1369,18 @@ function NewGRNPageInner() {
                       </div>
                       <div className="min-w-0">
                         <p className="text-xs font-mono font-bold text-stone-500">SKU: {l.sku}</p>
-                        <p className="text-[13px] font-bold text-stone-900 truncate max-w-[190px] mt-0.5 leading-snug">{l.product_name}</p>
+                        <p className={`text-[13px] font-bold truncate max-w-[190px] mt-0.5 leading-snug ${isSkipped ? 'text-stone-400 line-through' : 'text-stone-900'}`}>{l.product_name}</p>
                       </div>
                     </div>
                     <div className="text-right flex-shrink-0 font-mono">
                       <p className="text-xs font-bold text-stone-500">สั่ง: {formatQty(l.qty_ordered)}</p>
-                      <p className={`text-[13px] font-extrabold mt-0.5 ${received > 0 ? 'text-emerald-600' : 'text-stone-400'}`}>
-                        รับ: {formatQty(l.qty_received)}
-                      </p>
+                      {isSkipped ? (
+                        <p className="text-[11px] font-bold mt-0.5 text-amber-600">สินค้ายังไม่เข้า</p>
+                      ) : (
+                        <p className={`text-[13px] font-extrabold mt-0.5 ${received > 0 ? 'text-emerald-600' : 'text-stone-400'}`}>
+                          รับ: {formatQty(l.qty_received)}
+                        </p>
+                      )}
                     </div>
                   </button>
                 );
@@ -1401,7 +1439,7 @@ function NewGRNPageInner() {
                 disabled={saving}
                 className="flex-[2] h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-sm active:scale-95 transition-all flex items-center justify-center gap-1.5"
               >
-                {saving ? 'กำลังบันทึก...' : '✅ รับลงคลังเรียบร้อย'}
+                {saving ? 'กำลังบันทึก...' : itemsSkippedCount > 0 ? `✅ รับลงคลังเรียบร้อย (${itemsSkippedCount} รายการยังไม่เข้า)` : '✅ รับลงคลังเรียบร้อย'}
               </button>
             )}
           </div>
