@@ -1,11 +1,14 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { get } from '@/lib/api-client';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { get, patch, post } from '@/lib/api-client';
 import { formatDate, formatQty } from '@/lib/format';
-import type { PaginatedResponse } from '@/types';
+import type { PaginatedResponse, Warehouse } from '@/types';
 import Link from 'next/link';
 import { DirectionalTransition } from '@/components/ui/directional-transition';
+import { useToast } from '@/components/ui';
+import { useSession } from 'next-auth/react';
+import { Loader2, Search, Warehouse as WarehouseIcon, Clock, User, Download, Plus, CornerDownRight } from 'lucide-react';
 
 interface GRN {
   id: string;
@@ -29,6 +32,7 @@ interface GRNDetail extends GRN {
   qc_notes: string | null;
   notes: string | null;
   lines: Array<{
+    id: string;
     sku: string;
     name_th: string;
     uom_code: string;
@@ -79,15 +83,49 @@ function Pill({ status }: { status: string }) {
 }
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-[0_1px_0_rgba(15,23,42,.03),0_1px_2px_rgba(15,23,42,.04)]';
-const BTN_SM = 'h-[26px] px-3 rounded-[6px] text-[12px] font-medium text-stone-600 bg-white border border-stone-200 hover:bg-stone-50 shadow-[0_1px_0_rgba(15,23,42,.03)] inline-flex items-center gap-1.5';
 
 // ---- GRN Detail Modal ----
-function GRNDetailModal({ grn, onClose }: { grn: GRNDetail; onClose: () => void }) {
+function GRNDetailModal({
+  grn,
+  onClose,
+  onActionComplete,
+  sessionUser
+}: {
+  grn: GRNDetail;
+  onClose: () => void;
+  onActionComplete: () => void;
+  sessionUser: { role: string } | undefined;
+}) {
+  const [qcNotes, setQcNotes] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
+  const toast = useToast();
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [onClose]);
+
+  const handleAction = async (action: 'send_qc' | 'qc_approve' | 'qc_reject' | 'stock') => {
+    setActionLoading(true);
+    try {
+      if (action === 'stock') {
+        await post(`/api/grn/${grn.id}/stock`, {});
+        toast('success', 'สินค้าถูกนำเข้าคลังเรียบร้อยแล้ว');
+      } else {
+        await patch(`/api/grn/${grn.id}`, { action, qc_notes: qcNotes });
+        toast('success', 'อัปเดตสถานะสำเร็จแล้ว');
+      }
+      onActionComplete();
+      onClose();
+    } catch (err: unknown) {
+      toast('error', err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการทำรายการ');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const isManagerOrAdmin = sessionUser?.role === 'admin' || sessionUser?.role === 'manager';
 
   return (
     <div
@@ -174,18 +212,74 @@ function GRNDetailModal({ grn, onClose }: { grn: GRNDetail; onClose: () => void 
               <p className="text-[13px] text-stone-600 bg-stone-50 rounded-[8px] px-3 py-2.5 border border-stone-200">{grn.qc_notes}</p>
             </div>
           )}
+
+          {/* QC action panel inside modal */}
+          {grn.status === 'qc_pending' && isManagerOrAdmin && (
+            <div className="flex flex-col gap-2 w-full mt-2 border-t border-stone-100 pt-4">
+              <div className="text-[12px] font-semibold text-stone-600">ระบุหมายเหตุ QC (ถ้ามี)</div>
+              <textarea
+                value={qcNotes}
+                onChange={(e) => setQcNotes(e.target.value)}
+                placeholder="ใส่เหตุผลในการ อนุมัติ / ปฏิเสธ หรือข้อมูลผลการทดสอบ QC..."
+                className="w-full text-xs p-2.5 border border-stone-200 rounded-[6px] focus:outline-none focus:border-stone-400 bg-stone-50 transition-colors"
+                rows={2}
+              />
+              <div className="flex justify-end gap-2 mt-2">
+                <button
+                  onClick={() => handleAction('qc_reject')}
+                  disabled={actionLoading}
+                  className="h-8 px-4 rounded-[7px] text-[13px] font-medium text-white bg-red-600 hover:bg-red-700 shadow-sm disabled:opacity-50 inline-flex items-center gap-1.5 transition-colors"
+                >
+                  {actionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+                  ปฏิเสธ QC
+                </button>
+                <button
+                  onClick={() => handleAction('qc_approve')}
+                  disabled={actionLoading}
+                  className="h-8 px-4 rounded-[7px] text-[13px] font-medium text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm disabled:opacity-50 inline-flex items-center gap-1.5 transition-colors"
+                >
+                  {actionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+                  อนุมัติ QC
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-2 px-[22px] py-[14px] border-t border-stone-100 bg-stone-50/60">
-          <button onClick={onClose}
-            className="h-8 px-3 rounded-[7px] text-[13px] font-medium text-stone-600 bg-white border border-stone-200 hover:bg-stone-50 shadow-[0_1px_0_rgba(15,23,42,.03)]">
-            ปิด
-          </button>
-          <Link href={`/app/grn/${grn.id}`} transitionTypes={['nav-forward']}
-            className="h-8 px-3 rounded-[7px] text-[13px] font-medium text-white bg-stone-950 hover:bg-stone-800 shadow-sm inline-flex items-center gap-1.5">
-            ดูรายละเอียดเต็ม →
-          </Link>
+        <div className="flex items-center justify-between gap-2 px-[22px] py-[14px] border-t border-stone-100 bg-stone-50/60">
+          <div className="flex gap-2">
+            {grn.status === 'received' && (
+              <button
+                onClick={() => handleAction('send_qc')}
+                disabled={actionLoading}
+                className="h-8 px-3 rounded-[7px] text-[13px] font-medium text-white bg-blue-600 hover:bg-blue-700 shadow-sm disabled:opacity-50 inline-flex items-center gap-1.5 transition-colors"
+              >
+                {actionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+                ส่ง QC
+              </button>
+            )}
+            {grn.status === 'qc_passed' && isManagerOrAdmin && (
+              <button
+                onClick={() => handleAction('stock')}
+                disabled={actionLoading}
+                className="h-8 px-3 rounded-[7px] text-[13px] font-medium text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm disabled:opacity-50 inline-flex items-center gap-1.5 transition-colors"
+              >
+                {actionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+                นำเข้าคลัง
+              </button>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <button onClick={onClose}
+              className="h-8 px-3 rounded-[7px] text-[13px] font-medium text-stone-600 bg-white border border-stone-200 hover:bg-stone-50 shadow-[0_1px_0_rgba(15,23,42,.03)]">
+              ปิด
+            </button>
+            <Link href={`/app/grn/${grn.id}`} transitionTypes={['nav-forward']}
+              className="h-8 px-3 rounded-[7px] text-[13px] font-medium text-white bg-stone-950 hover:bg-stone-800 shadow-sm inline-flex items-center gap-1.5">
+              ดูรายละเอียดเต็ม →
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -198,15 +292,24 @@ function GRNDetailModal({ grn, onClose }: { grn: GRNDetail; onClose: () => void 
 }
 
 // ---- Main Page ----
-
 export default function GRNPage() {
+  const { data: session } = useSession();
   const [data, setData] = useState<PaginatedResponse<GRN> | null>(null);
+  const [allGRNs, setAllGRNs] = useState<GRN[]>([]);
   const [page, setPage] = useState(1);
   const [tab, setTab] = useState('');
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<GRNDetail | null>(null);
   const [modalLoading, setModalLoading] = useState(false);
   const [queueCounts, setQueueCounts] = useState<{ io: number; po: number }>({ io: 0, po: 0 });
+  const [selectedRowIndex, setSelectedRowIndex] = useState<number>(-1);
+
+  // Filter States
+  const [search, setSearch] = useState('');
+  const [warehouseFilter, setWarehouseFilter] = useState('');
+  const [timeFilter, setTimeFilter] = useState('');
+  const [receiverFilter, setReceiverFilter] = useState('');
+  const [warehousesList, setWarehousesList] = useState<Warehouse[]>([]);
 
   useEffect(() => {
     get<{ inbound_orders: unknown[]; pending_pos: unknown[] }>('/api/grn/receiving-queue')
@@ -219,11 +322,27 @@ export default function GRNPage() {
     try {
       const params = new URLSearchParams({ page: String(page), limit: '25' });
       if (tab) params.set('status', tab);
+      if (warehouseFilter) params.set('warehouse_id', warehouseFilter);
       setData(await get<PaginatedResponse<GRN>>(`/api/grn?${params}`));
+      setSelectedRowIndex(-1); // Reset selected row on page change
     } finally { setLoading(false); }
-  }, [page, tab]);
+  }, [page, tab, warehouseFilter]);
+
+  const fetchAllGRNsForStats = useCallback(async () => {
+    try {
+      const res = await get<PaginatedResponse<GRN>>('/api/grn?limit=1000');
+      setAllGRNs(res.data);
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    get<Warehouse[]>('/api/admin/warehouses')
+      .then(setWarehousesList)
+      .catch(() => {});
+  }, []);
 
   useEffect(() => { fetchGRNs(); }, [fetchGRNs]);
+  useEffect(() => { fetchAllGRNsForStats(); }, [fetchAllGRNsForStats, tab]);
 
   async function openModal(g: GRN) {
     setModalLoading(true);
@@ -233,26 +352,112 @@ export default function GRNPage() {
     } finally { setModalLoading(false); }
   }
 
+  // Locally filtered rows for rich client-side search/time/receiver features
+  const displayedGRNs = useMemo(() => {
+    return data?.data.filter((g) => {
+      // Search filter
+      if (search) {
+        const term = search.toLowerCase();
+        const matchGrn = g.grn_number.toLowerCase().includes(term);
+        const matchPo = g.po_number?.toLowerCase().includes(term) ?? false;
+        const matchIo = g.io_number?.toLowerCase().includes(term) ?? false;
+        if (!matchGrn && !matchPo && !matchIo) return false;
+      }
+      // Receiver filter
+      if (receiverFilter && g.received_by_name !== receiverFilter) {
+        return false;
+      }
+      // Time filter
+      if (timeFilter) {
+        const date = new Date(g.received_date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (timeFilter === 'today') {
+          const checkDate = new Date(g.received_date);
+          if (checkDate.toDateString() !== new Date().toDateString()) return false;
+        } else if (timeFilter === '7days') {
+          const diffTime = Math.abs(today.getTime() - date.getTime());
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          if (diffDays > 7) return false;
+        } else if (timeFilter === '30days') {
+          const diffTime = Math.abs(today.getTime() - date.getTime());
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          if (diffDays > 30) return false;
+        }
+      }
+      return true;
+    }) ?? [];
+  }, [data, search, receiverFilter, timeFilter]);
+
+  // Generate dynamic stats counter based on allGRNs list
+  const tabCounts = {
+    all: allGRNs.length,
+    draft: allGRNs.filter(g => g.status === 'draft').length,
+    received: allGRNs.filter(g => g.status === 'received').length,
+    qc_pending: allGRNs.filter(g => g.status === 'qc_pending').length,
+    qc_passed: allGRNs.filter(g => g.status === 'qc_passed').length,
+    qc_failed: allGRNs.filter(g => g.status === 'qc_failed').length,
+    verified: allGRNs.filter(g => g.status === 'verified').length,
+    stocked: allGRNs.filter(g => g.status === 'stocked').length,
+  };
+
+  // Get dynamic unique receivers for filter dropdown
+  const uniqueReceivers = Array.from(new Set(allGRNs.map((g) => g.received_by_name))).filter(Boolean);
+
+  // Keyboard navigation logic
+  useEffect(() => {
+    if (!displayedGRNs || displayedGRNs.length === 0 || modal) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedRowIndex((prev) => (prev < displayedGRNs.length - 1 ? prev + 1 : prev));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedRowIndex((prev) => (prev > 0 ? prev - 1 : prev));
+      } else if (e.key === 'Enter') {
+        if (selectedRowIndex >= 0 && selectedRowIndex < displayedGRNs.length) {
+          e.preventDefault();
+          openModal(displayedGRNs[selectedRowIndex]);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [displayedGRNs, selectedRowIndex, modal]);
+
   return (
     <DirectionalTransition>
-      <div className="max-w-[1440px] mx-auto pb-12 space-y-5">
+      <div className="max-w-[1440px] mx-auto pb-12 space-y-5 font-sans">
 
         {/* Header */}
-        <div className="flex items-end justify-between gap-6 flex-wrap">
+        <div className="flex items-center justify-between gap-6 flex-wrap">
           <div>
             <h1 className="text-[26px] font-semibold tracking-tight text-stone-950 leading-tight mb-1">
-              ใบรับสินค้า
+              ใบรับสินค้า (GRN)
             </h1>
             <p className="text-[13.5px] text-stone-500">
               Goods Receipt Notes · {loading ? '—' : (data?.total ?? 0).toLocaleString('th-TH')} รายการ
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Link href="/app/grn/receiving-queue" transitionTypes={['nav-forward']} className={BTN_SM}>
+            <button className="h-8 px-3 rounded-[7px] text-[13px] font-medium text-stone-600 bg-white border border-stone-200 hover:bg-stone-50 shadow-[0_1px_0_rgba(15,23,42,.03)] inline-flex items-center gap-1.5 transition-colors">
+              <Download className="w-3.5 h-3.5" />
+              Export CSV
+            </button>
+            <Link
+              href="/app/grn/receiving-queue"
+              transitionTypes={['nav-forward']}
+              className="h-8 px-3 rounded-[7px] text-[13px] font-medium text-stone-600 bg-white border border-stone-200 hover:bg-stone-50 shadow-[0_1px_0_rgba(15,23,42,.03)] inline-flex items-center gap-1.5 transition-colors"
+            >
               รายการรอรับ
               {(queueCounts.io + queueCounts.po) > 0 && (
-                <span className="ml-1.5 text-[10px] font-bold text-amber-700 border border-amber-300 bg-amber-50 rounded-full px-1.5 py-0.5">
-                  {queueCounts.io > 0 ? `${queueCounts.io} IO` : ''}{queueCounts.io > 0 && queueCounts.po > 0 ? ' · ' : ''}{queueCounts.po > 0 ? `${queueCounts.po} PO` : ''}
+                <span className="ml-1 text-[10px] font-bold text-amber-700 bg-amber-100 rounded-full px-1.5 py-0.5 animate-pulse">
+                  {queueCounts.io > 0 ? `${queueCounts.io} IO` : ''}
+                  {queueCounts.io > 0 && queueCounts.po > 0 ? ' · ' : ''}
+                  {queueCounts.po > 0 ? `${queueCounts.po} PO` : ''}
                 </span>
               )}
             </Link>
@@ -261,26 +466,98 @@ export default function GRNPage() {
               transitionTypes={['nav-forward']}
               className="inline-flex items-center gap-1.5 h-8 px-3 rounded-[7px] bg-stone-950 text-white text-[13px] font-medium shadow-sm hover:bg-stone-800 transition-colors"
             >
-              + สร้าง GRN
+              <Plus className="w-3.5 h-3.5" />
+              สร้าง GRN
             </Link>
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-0 border-b border-stone-200">
-          {TABS.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => { setTab(t.id); setPage(1); }}
-              className={`px-3.5 py-2.5 text-[13.5px] font-medium border-b-2 -mb-px transition-colors ${
-                tab === t.id
-                  ? 'text-stone-950 border-stone-950'
-                  : 'text-stone-600 border-transparent hover:text-stone-700'
-              }`}
+        {/* 8 Status Tabs */}
+        <div className="flex gap-0 border-b border-stone-200 overflow-x-auto scrollbar-none whitespace-nowrap">
+          {TABS.map((t) => {
+            const count = tabCounts[t.id === '' ? 'all' : (t.id as keyof typeof tabCounts)] ?? 0;
+            const isQCPending = t.id === 'qc_pending';
+            return (
+              <button
+                key={t.id}
+                onClick={() => { setTab(t.id); setPage(1); }}
+                className={`px-4 py-3 text-[13.5px] font-medium border-b-2 -mb-px transition-all inline-flex items-center gap-1.5 ${
+                  tab === t.id
+                    ? 'text-stone-950 border-stone-950 font-semibold'
+                    : 'text-stone-600 border-transparent hover:text-stone-700'
+                }`}
+              >
+                <span>{t.label}</span>
+                <span className={`text-[10.5px] font-semibold px-1.5 py-0.5 rounded-full ${
+                  tab === t.id
+                    ? isQCPending ? 'bg-amber-100 text-amber-800' : 'bg-stone-200 text-stone-800'
+                    : isQCPending ? 'bg-amber-50 text-amber-700/80' : 'bg-stone-100 text-stone-600/80'
+                }`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* 4-column filter bar in single row */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-stone-50 p-4 border border-stone-200 rounded-[10px]">
+          {/* Search Box */}
+          <div className="relative">
+            <Search className="absolute left-3 top-2.5 w-4 h-4 text-stone-400" />
+            <input
+              type="text"
+              placeholder="ค้นหาเลขที่ GRN / PO / IO..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full text-[13px] pl-9 pr-3 py-2 bg-white border border-stone-200 rounded-[7px] focus:outline-none focus:border-stone-400 transition-colors"
+            />
+          </div>
+
+          {/* Warehouse Selector */}
+          <div className="relative">
+            <WarehouseIcon className="absolute left-3 top-2.5 w-4 h-4 text-stone-400" />
+            <select
+              value={warehouseFilter}
+              onChange={(e) => { setWarehouseFilter(e.target.value); setPage(1); }}
+              className="w-full text-[13px] pl-9 pr-3 py-2 bg-white border border-stone-200 rounded-[7px] focus:outline-none focus:border-stone-400 appearance-none transition-colors"
             >
-              {t.label}
-            </button>
-          ))}
+              <option value="">เลือกคลังสินค้าทั้งหมด</option>
+              {warehousesList.map((wh) => (
+                <option key={wh.id} value={wh.id}>{wh.code} - {wh.name_th}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Period Selector */}
+          <div className="relative">
+            <Clock className="absolute left-3 top-2.5 w-4 h-4 text-stone-400" />
+            <select
+              value={timeFilter}
+              onChange={(e) => setTimeFilter(e.target.value)}
+              className="w-full text-[13px] pl-9 pr-3 py-2 bg-white border border-stone-200 rounded-[7px] focus:outline-none focus:border-stone-400 appearance-none transition-colors"
+            >
+              <option value="">เลือกช่วงเวลาทั้งหมด</option>
+              <option value="today">วันนี้</option>
+              <option value="7days">7 วันล่าสุด</option>
+              <option value="30days">30 วันล่าสุด</option>
+            </select>
+          </div>
+
+          {/* Receiver Selector */}
+          <div className="relative">
+            <User className="absolute left-3 top-2.5 w-4 h-4 text-stone-400" />
+            <select
+              value={receiverFilter}
+              onChange={(e) => setReceiverFilter(e.target.value)}
+              className="w-full text-[13px] pl-9 pr-3 py-2 bg-white border border-stone-200 rounded-[7px] focus:outline-none focus:border-stone-400 appearance-none transition-colors"
+            >
+              <option value="">เลือกผู้รับทั้งหมด</option>
+              {uniqueReceivers.map((rec) => (
+                <option key={rec} value={rec}>{rec}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* Table card */}
@@ -289,7 +566,7 @@ export default function GRNPage() {
             <thead>
               <tr>
                 {['เลข GRN', 'เอกสารอ้างอิง / Ref.', 'คลังสินค้า', 'ผู้รับ', 'วันที่รับ', 'รายการ', 'สถานะ', ''].map((h, i) => (
-                  <th key={i} className={`text-left py-2.5 px-3.5 text-[11.5px] font-medium tracking-[.04em] uppercase text-stone-600 bg-stone-50 border-b border-y border-stone-200 first:pl-5 last:pr-5 ${i === 5 ? 'text-center' : ''} ${[2,3,4,5].includes(i) ? 'hidden lg:table-cell' : ''}`}>
+                  <th key={i} className={`text-left py-3 px-3.5 text-[11.5px] font-medium tracking-[.04em] uppercase text-stone-600 bg-stone-50 border-b border-stone-200 first:pl-5 last:pr-5 ${i === 5 ? 'text-center' : ''} ${[2,3,4,5].includes(i) ? 'hidden lg:table-cell' : ''}`}>
                     {h}
                   </th>
                 ))}
@@ -298,40 +575,50 @@ export default function GRNPage() {
             <tbody>
               {loading ? (
                 <tr><td colSpan={8} className="py-12 text-center text-[13px] text-stone-600">กำลังโหลด...</td></tr>
-              ) : data?.data.length === 0 ? (
+              ) : displayedGRNs.length === 0 ? (
                 <tr><td colSpan={8} className="py-12 text-center text-[13px] text-stone-600">ไม่พบรายการ</td></tr>
-              ) : data?.data.map((g) => (
-                <tr
-                  key={g.id}
-                  onClick={() => openModal(g)}
-                  className="border-b border-stone-50 last:border-0 hover:bg-stone-50/60 cursor-default transition-colors"
-                >
-                  <td className="py-0 h-11 px-3.5 pl-5 font-mono text-[12.5px] text-stone-700 font-medium">{g.grn_number}</td>
-                  <td className="py-0 h-11 px-3.5 font-mono text-[12.5px] hidden lg:table-cell">
-                    <span onClick={(e) => e.stopPropagation()} className="flex items-center gap-1.5">
-                      {g.po_id ? (
-                        <>
-                          <span className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
-                          <Link href={`/app/purchase-orders/${g.po_id}`} transitionTypes={['nav-forward']} className="text-blue-600 hover:underline">{g.po_number}</Link>
-                        </>
-                      ) : g.io_number ? (
-                        <>
-                          <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
-                          <Link href={`/app/inbound-orders/${g.inbound_order_id}`} transitionTypes={['nav-forward']} className="text-emerald-700 hover:underline">{g.io_number}</Link>
-                        </>
-                      ) : <span className="text-stone-300">—</span>}
-                    </span>
-                  </td>
-                  <td className="py-0 h-11 px-3.5 text-stone-500 hidden lg:table-cell">{g.warehouse_code}</td>
-                  <td className="py-0 h-11 px-3.5 text-stone-500 hidden lg:table-cell">{g.received_by_name}</td>
-                  <td className="py-0 h-11 px-3.5 text-stone-500 font-mono text-[12.5px] hidden lg:table-cell">{formatDate(g.received_date)}</td>
-                  <td className="py-0 h-11 px-3.5 text-center tabular-nums text-stone-500 hidden lg:table-cell">{g.line_count}</td>
-                  <td className="py-0 h-11 px-3.5"><Pill status={g.status} /></td>
-                  <td className="py-0 h-11 px-3.5 pr-5 text-stone-300">
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  </td>
-                </tr>
-              ))}
+              ) : displayedGRNs.map((g, index) => {
+                const isSelected = selectedRowIndex === index;
+                return (
+                  <tr
+                    key={g.id}
+                    onClick={() => openModal(g)}
+                    className={`border-b border-stone-50 last:border-0 hover:bg-stone-50/60 cursor-default transition-all duration-150 ${
+                      isSelected ? 'bg-stone-100 ring-1 ring-inset ring-stone-200/50 scale-[0.995]' : ''
+                    }`}
+                  >
+                    <td className="py-0 h-11 px-3.5 pl-5 font-mono text-[12.5px] text-stone-700 font-medium">
+                      <div className="flex items-center gap-2">
+                        {isSelected && <CornerDownRight className="w-3.5 h-3.5 text-stone-400 animate-pulse" />}
+                        <span>{g.grn_number}</span>
+                      </div>
+                    </td>
+                    <td className="py-0 h-11 px-3.5 font-mono text-[12.5px] hidden lg:table-cell">
+                      <span onClick={(e) => e.stopPropagation()} className="flex items-center gap-1.5">
+                        {g.po_id ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11.5px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                            <Link href={`/app/purchase-orders/${g.po_id}`} transitionTypes={['nav-forward']} className="hover:underline">{g.po_number}</Link>
+                          </span>
+                        ) : g.io_number ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11.5px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                            <Link href={`/app/inbound-orders/${g.inbound_order_id}`} transitionTypes={['nav-forward']} className="hover:underline">{g.io_number}</Link>
+                          </span>
+                        ) : <span className="text-stone-300">—</span>}
+                      </span>
+                    </td>
+                    <td className="py-0 h-11 px-3.5 text-stone-500 hidden lg:table-cell">{g.warehouse_code}</td>
+                    <td className="py-0 h-11 px-3.5 text-stone-500 hidden lg:table-cell">{g.received_by_name}</td>
+                    <td className="py-0 h-11 px-3.5 text-stone-500 font-mono text-[12.5px] hidden lg:table-cell">{formatDate(g.received_date)}</td>
+                    <td className="py-0 h-11 px-3.5 text-center tabular-nums text-stone-500 hidden lg:table-cell">{g.line_count}</td>
+                    <td className="py-0 h-11 px-3.5"><Pill status={g.status} /></td>
+                    <td className="py-0 h-11 px-3.5 pr-5 text-stone-300">
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -356,12 +643,22 @@ export default function GRNPage() {
         {/* Loading overlay for modal fetch */}
         {modalLoading && (
           <div className="fixed inset-0 z-40 grid place-items-center bg-[rgba(15,23,42,.2)]">
-            <div className="text-stone-500 text-[13px]">กำลังโหลด...</div>
+            <div className="bg-white rounded-lg p-4 shadow-md flex items-center gap-2 border border-stone-100">
+              <Loader2 className="w-5 h-5 text-stone-800 animate-spin" />
+              <span className="text-stone-700 text-[13px]">กำลังเรียกข้อมูลรายละเอียด...</span>
+            </div>
           </div>
         )}
 
         {/* GRN Detail Modal */}
-        {modal && <GRNDetailModal grn={modal} onClose={() => setModal(null)} />}
+        {modal && (
+          <GRNDetailModal
+            grn={modal}
+            onClose={() => setModal(null)}
+            onActionComplete={fetchGRNs}
+            sessionUser={session?.user as unknown as { role: string } | undefined}
+          />
+        )}
       </div>
     </DirectionalTransition>
   );

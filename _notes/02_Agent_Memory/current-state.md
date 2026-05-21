@@ -6,15 +6,14 @@ updated_by: Gemini
 # Project Current State — Anti-Context-Loss Briefing
 
 ## Last 5 Completed Tracks
+- **grn-ui-redesign**: UI overhaul for GRN module. (2026-05-21)
+- **admin-hub**: Centralized administrative dashboard. (2026-05-21)
 - **main-menu-ui-polish**: Premium Main Menu Hub UI with Sales/Purchasing stubs. (2026-05-21)
 - **maintenance-standardization**: Redundancy cleanup, type splitting, bilingual schema alignment. (2026-05-21)
 - **grn-simplified-workflow**: Simplified GRN creation logic. (2026-05-20)
-- **grn-receiving-fix**: Fixed mobile date and over-receiving. (2026-05-20)
-- **io-gr-po-workflow**: Enhanced Inbound Order to PO flow. (2026-05-20)
 
 ## Active Work
-- **admin-hub**: Centralized administrative dashboard.
-- **grn-ui-redesign**: UI overhaul for GRN module.
+- None. All tracks completed!
 
 ---
 

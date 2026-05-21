@@ -1,6 +1,9 @@
 import { auth } from '@/auth';
 import { apiSuccess, apiError } from '@/lib/api-response';
-import { query, queryOne } from '@/lib/db/client';
+import pool, { query, queryOne } from '@/lib/db/client';
+import { assertRole } from '@/lib/authz';
+import { z } from 'zod';
+import type { SessionUser } from '@/lib/authz';
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -46,4 +49,77 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   if (!grn) return apiError('GRN not found', 404);
 
   return apiSuccess({ ...grn, lines, bonus_items: bonusItems });
+}
+
+const PatchSchema = z.discriminatedUnion('action', [
+  z.object({ action: z.literal('send_qc') }),
+  z.object({ action: z.literal('qc_approve'), qc_notes: z.string().optional() }),
+  z.object({ action: z.literal('qc_reject'), qc_notes: z.string().optional() }),
+]);
+
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const session = await auth();
+  if (!session?.user) return apiError('Unauthorized', 401);
+  const u = session.user as unknown as SessionUser;
+
+  const { id } = await params;
+  const grn = await queryOne<{ status: string }>('SELECT status FROM goods_receipt_notes WHERE id = $1', [id]);
+  if (!grn) return apiError('GRN not found', 404);
+
+  const body = await req.json().catch(() => null);
+  if (!body) return apiError('Invalid JSON', 400);
+
+  const parsed = PatchSchema.safeParse(body);
+  if (!parsed.success) return apiError('Invalid request data', 400);
+
+  const data = parsed.data;
+
+  if (data.action === 'send_qc') {
+    if (grn.status !== 'received') return apiError('GRN status must be received to send to QC', 409);
+    await query("UPDATE goods_receipt_notes SET status = 'qc_pending' WHERE id = $1", [id]);
+    return apiSuccess({ status: 'qc_pending' });
+  }
+
+  if (data.action === 'qc_approve' || data.action === 'qc_reject') {
+    try { assertRole(u, ['manager', 'admin']); } catch { return apiError('Forbidden', 403); }
+    if (grn.status !== 'qc_pending') return apiError('GRN status must be qc_pending for QC review', 409);
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const isApprove = data.action === 'qc_approve';
+      const newStatus = isApprove ? 'qc_passed' : 'qc_failed';
+
+      // Update line items
+      await client.query(
+        isApprove
+          ? `UPDATE grn_line_items 
+             SET qty_accepted = qty_received, qty_rejected = 0, qc_status = 'pass' 
+             WHERE grn_id = $1`
+          : `UPDATE grn_line_items 
+             SET qty_accepted = 0, qty_rejected = qty_received, qc_status = 'fail' 
+             WHERE grn_id = $1`,
+        [id]
+      );
+
+      // Update GRN header
+      await client.query(
+        `UPDATE goods_receipt_notes 
+         SET status = $1, qc_reviewed_by = $2, qc_notes = $3, qc_reviewed_at = NOW() 
+         WHERE id = $4`,
+        [newStatus, u.id, data.qc_notes ?? null, id]
+      );
+
+      await client.query('COMMIT');
+      return apiSuccess({ status: newStatus });
+    } catch (err) {
+      await client.query('ROLLBACK');
+      console.error('QC update failed:', err);
+      return apiError('QC update failed', 500);
+    } finally {
+      client.release();
+    }
+  }
+
+  return apiError('Invalid action', 400);
 }

@@ -137,64 +137,102 @@ export default function ReceivingQueuePage() {
     <DirectionalTransition>
       <>
         {/* ═══ MOBILE (< md) ═════════════════════════════════════════ */}
-        <div className="flex flex-col min-h-screen bg-stone-50 pb-20 md:hidden">
+        <div className="flex flex-col min-h-screen bg-stone-50 pb-24 md:hidden">
 
           {/* Header */}
-          <div className="flex items-center px-4 pt-4 pb-3 bg-white border-b border-stone-100">
-            <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-stone-100 -ml-1">
+          <div className="flex items-center px-4 pt-5 pb-4 bg-white border-b border-stone-100/80 sticky top-0 z-30 shadow-sm">
+            <button onClick={() => router.back()} className="w-10 h-10 flex items-center justify-center rounded-full bg-stone-50 border border-stone-100 hover:bg-stone-100 -ml-1 active:scale-95 transition-all">
               <ArrowLeft className="w-5 h-5 text-stone-700" />
             </button>
             <div className="flex-1 text-center">
-              <p className="text-[15px] font-semibold text-stone-900">รายการรอรับ</p>
-              <p className="text-[12px] text-stone-600 mt-0.5">Receiving Queue · {selectedWarehouseCode}</p>
+              <p className="text-[16px] font-extrabold text-stone-900 tracking-tight">คิวรับสินค้า</p>
+              <p className="text-[11px] font-bold text-emerald-600 uppercase mt-0.5 tracking-wider">{selectedWarehouseCode}</p>
             </div>
-            <button className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-stone-100">
+            <button className="w-10 h-10 flex items-center justify-center rounded-full bg-stone-50 border border-stone-100 hover:bg-stone-100 active:scale-95 transition-all">
               <Filter className="w-4 h-4 text-stone-600" />
             </button>
           </div>
 
-          <div className="px-4 py-3 space-y-3">
+          <div className="px-4 py-4 space-y-4">
 
             {/* Summary strip */}
             <div className="grid grid-cols-3 gap-2">
-              <div className={`bg-white rounded-xl p-3 border ${urgentCount > 0 ? 'border-amber-300' : 'border-stone-200'}`}>
-                <p className="text-[10px] text-stone-600">ด่วน</p>
-                <p className={`text-xl font-mono font-bold tabular-nums ${urgentCount > 0 ? 'text-amber-700' : 'text-stone-300'}`}>{urgentCount}</p>
-                <p className="text-[9px] text-stone-600">เกิน 4 ชม.</p>
+              {/* Urgent Block */}
+              <div className={`bg-gradient-to-br from-white to-stone-50/30 rounded-2xl p-3 border transition-all shadow-sm ${
+                urgentCount > 0 
+                  ? 'border-amber-300 ring-2 ring-amber-100/50 shadow-md shadow-amber-50/40' 
+                  : 'border-stone-200'
+              }`}>
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] font-bold text-stone-500 uppercase tracking-wider">ด่วนที่สุด</p>
+                  {urgentCount > 0 && <span className="animate-pulse w-2 h-2 rounded-full bg-amber-500" />}
+                </div>
+                <div className="flex items-baseline gap-1.5 mt-1.5">
+                  <p className={`text-2xl font-mono font-extrabold tabular-nums leading-none ${urgentCount > 0 ? 'text-amber-600' : 'text-stone-300'}`}>
+                    {urgentCount}
+                  </p>
+                  <p className="text-[10px] font-bold text-stone-400">บิล</p>
+                </div>
+                <p className="text-[9px] font-semibold text-stone-500 mt-1">ค้างเกิน 4 ชม.</p>
               </div>
-              <div className="bg-white rounded-xl p-3 border border-stone-200">
-                <p className="text-[10px] text-stone-600">IO (LINE)</p>
-                <p className="text-xl font-mono font-bold tabular-nums text-stone-900">{data.inbound_orders.length}</p>
-                <p className="text-[9px] text-stone-600">{ioQtyTotal.toLocaleString()} ชิ้น</p>
+
+              {/* Inbound Orders Block */}
+              <div className="bg-gradient-to-br from-white to-stone-50/30 rounded-2xl p-3 border border-stone-200 shadow-sm">
+                <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">IO (LINE)</p>
+                <div className="flex items-baseline gap-1 mt-1.5">
+                  <p className="text-2xl font-mono font-extrabold tabular-nums text-stone-900 leading-none">
+                    {data.inbound_orders.length}
+                  </p>
+                  <p className="text-[10px] font-bold text-stone-400">บิล</p>
+                </div>
+                <p className="text-[9px] font-semibold text-stone-500 mt-1">{ioQtyTotal.toLocaleString()} ชิ้น</p>
               </div>
-              <div className="bg-white rounded-xl p-3 border border-stone-200">
-                <p className="text-[10px] text-stone-600">PO</p>
-                <p className="text-xl font-mono font-bold tabular-nums text-stone-900">{data.pending_pos.length}</p>
-                <p className="text-[9px] text-stone-600">{poQtyTotal.toLocaleString()} ชิ้น</p>
+
+              {/* Purchase Orders Block */}
+              <div className="bg-gradient-to-br from-white to-stone-50/30 rounded-2xl p-3 border border-stone-200 shadow-sm">
+                <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">PO (ปกติ)</p>
+                <div className="flex items-baseline gap-1 mt-1.5">
+                  <p className="text-2xl font-mono font-extrabold tabular-nums text-stone-900 leading-none">
+                    {data.pending_pos.length}
+                  </p>
+                  <p className="text-[10px] font-bold text-stone-400">บิล</p>
+                </div>
+                <p className="text-[9px] font-semibold text-stone-500 mt-1">{poQtyTotal.toLocaleString()} ชิ้น</p>
               </div>
             </div>
 
-            {/* Segmented control */}
-            <div className="bg-stone-100 rounded-full p-1 flex">
+            {/* Segmented control with slide transition */}
+            <div className="bg-stone-100 rounded-2xl p-1 flex relative select-none">
+              <div
+                className="absolute top-1 bottom-1 left-1 bg-white rounded-xl shadow-sm border border-stone-200/40 transition-all duration-300 ease-out"
+                style={{
+                  width: 'calc(50% - 4px)',
+                  transform: segment === 'io' ? 'translateX(0)' : 'translateX(100%)',
+                }}
+              />
               <button
                 onClick={() => setSegment('io')}
-                className={`flex-1 h-9 rounded-full text-[13px] font-semibold flex items-center justify-center gap-1.5 transition-all ${
-                  segment === 'io' ? 'bg-white shadow text-stone-900' : 'text-stone-500'
+                className={`flex-1 h-9 rounded-xl text-[13px] font-bold flex items-center justify-center gap-1.5 transition-all relative z-10 ${
+                  segment === 'io' ? 'text-emerald-700' : 'text-stone-500 hover:text-stone-700'
                 }`}
               >
                 Inbound Orders
-                <span className="bg-stone-200 text-stone-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full font-mono">
+                <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full font-mono transition-all ${
+                  segment === 'io' ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-200 text-stone-600'
+                }`}>
                   {data.inbound_orders.length}
                 </span>
               </button>
               <button
                 onClick={() => setSegment('po')}
-                className={`flex-1 h-9 rounded-full text-[13px] font-semibold flex items-center justify-center gap-1.5 transition-all ${
-                  segment === 'po' ? 'bg-white shadow text-stone-900' : 'text-stone-500'
+                className={`flex-1 h-9 rounded-xl text-[13px] font-bold flex items-center justify-center gap-1.5 transition-all relative z-10 ${
+                  segment === 'po' ? 'text-blue-700' : 'text-stone-500 hover:text-stone-700'
                 }`}
               >
                 Purchase Orders
-                <span className="bg-stone-200 text-stone-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full font-mono">
+                <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full font-mono transition-all ${
+                  segment === 'po' ? 'bg-blue-100 text-blue-700' : 'bg-stone-200 text-stone-600'
+                }`}>
                   {data.pending_pos.length}
                 </span>
               </button>
@@ -202,47 +240,67 @@ export default function ReceivingQueuePage() {
 
             {/* Queue cards */}
             {loading ? (
-              <div className="text-center py-12 text-stone-600 text-sm">กำลังโหลด...</div>
+              <div className="flex flex-col items-center justify-center py-16 text-stone-400 space-y-2">
+                <span className="animate-spin w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full" />
+                <p className="text-xs font-semibold">กำลังโหลดคิวรับสินค้า...</p>
+              </div>
             ) : segment === 'io' ? (
               data.inbound_orders.length === 0 ? (
-                <div className="text-center py-12 text-stone-600 text-sm">ไม่มี IO ค้างรับ</div>
+                <div className="text-center py-16 bg-white rounded-2xl border border-stone-200/60 p-6 shadow-sm">
+                  <div className="w-12 h-12 bg-stone-50 border border-stone-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Package className="w-5 h-5 text-stone-300" />
+                  </div>
+                  <p className="text-sm font-bold text-stone-800">ไม่มี IO ค้างรับ</p>
+                  <p className="text-xs text-stone-500 mt-1">คิวรับสินค้าจากไลน์เสร็จสิ้นครบถ้วนแล้ว</p>
+                </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-3.5">
                   {data.inbound_orders.map((io) => {
                     const urgent = isUrgent(io.created_at);
                     const overdue = isOverdue(io.created_at, io.status);
                     return (
-                      <div key={io.id} className={`bg-white rounded-2xl border p-4 space-y-2.5 ${
-                        overdue ? 'border-red-300 ring-1 ring-red-200/50' : urgent ? 'border-amber-300 ring-1 ring-amber-200/50' : 'border-stone-200'
+                      <div key={io.id} className={`bg-white rounded-2xl border p-4.5 space-y-3 transition-all duration-200 hover:shadow-md ${
+                        overdue 
+                          ? 'border-red-300 ring-2 ring-red-100/50 shadow-md shadow-rose-50/40' 
+                          : urgent 
+                          ? 'border-amber-200 ring-2 ring-amber-300/40 shadow-md shadow-amber-50/30' 
+                          : 'border-stone-200/80 shadow-sm'
                       }`}>
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex flex-col gap-1.5">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-mono text-[13px] font-bold text-emerald-700">{io.io_number}</span>
+                        <div className="flex items-start justify-between gap-2 border-b border-stone-100/80 pb-3">
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-mono text-[14px] font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-lg px-2.5 py-0.5 leading-none">
+                                {io.io_number}
+                              </span>
                               {urgent && (
-                                <span className="text-[10px] font-bold text-amber-700 border border-amber-300 bg-amber-50 rounded-full px-1.5 py-0.5">ด่วน</span>
+                                <span className="text-[9px] font-extrabold text-amber-700 bg-amber-50 border border-amber-300 rounded-full px-2 py-0.5 tracking-wider uppercase leading-none animate-pulse">ด่วน</span>
                               )}
                               {overdue && (
-                                <span className="text-[10px] font-bold text-red-700 border border-red-300 bg-red-50 rounded-full px-1.5 py-0.5">นานผิดปกติ</span>
+                                <span className="text-[9px] font-extrabold text-red-700 bg-red-50 border border-red-300 rounded-full px-2 py-0.5 tracking-wider uppercase leading-none">นานผิดปกติ</span>
                               )}
                             </div>
-                            <div>
+                            <div className="mt-1">
                               <StatusBadge status={io.status} labelOverride={IO_STATUS_LABEL[io.status]} />
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-xl font-mono font-bold tabular-nums text-stone-900">{formatQty(io.total_qty_remaining)}</p>
-                            <p className="text-[10px] text-stone-600">{io.total_lines} รายการ</p>
+                            <p className="text-2xl font-mono font-extrabold tabular-nums text-stone-900 leading-none">{formatQty(io.total_qty_remaining)}</p>
+                            <p className="text-[10px] font-bold text-stone-400 mt-1">{io.total_lines} SKU ค้างรับ</p>
                           </div>
                         </div>
-                        <p className="text-[13.5px] font-medium text-stone-800">{io.vendor_name}</p>
-                        <p className="text-[12px] text-stone-600">{timeSince(io.created_at)}</p>
+                        <div className="space-y-1.5 pt-1">
+                          <p className="text-[14px] font-bold text-stone-800 leading-snug">{io.vendor_name}</p>
+                          <div className="flex items-center justify-between text-[11px] font-semibold text-stone-500">
+                            <span>คลังปลายทาง: <span className="text-stone-700 font-bold">{io.warehouse_code}</span></span>
+                            <span>{timeSince(io.created_at)}</span>
+                          </div>
+                        </div>
                         <button
                           onClick={() => router.push(`/app/grn/new?io_id=${io.id}`)}
-                          className="w-full h-10 bg-emerald-600 text-white rounded-xl text-[13px] font-semibold hover:bg-emerald-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                          className="w-full h-11 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-xl text-[13.5px] font-extrabold hover:from-emerald-700 hover:to-emerald-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-sm shadow-emerald-600/10 mt-2"
                         >
-                          <ScanLine className="w-4 h-4" />
-                          เริ่มรับสินค้า
+                          <ScanLine className="w-4.5 h-4.5" />
+                          เริ่มรับสินค้า (Scan)
                         </button>
                       </div>
                     );
@@ -251,37 +309,55 @@ export default function ReceivingQueuePage() {
               )
             ) : (
               data.pending_pos.length === 0 ? (
-                <div className="text-center py-12 text-stone-600 text-sm">ไม่มี PO ค้างรับ</div>
+                <div className="text-center py-16 bg-white rounded-2xl border border-stone-200/60 p-6 shadow-sm">
+                  <div className="w-12 h-12 bg-stone-50 border border-stone-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Package className="w-5 h-5 text-stone-300" />
+                  </div>
+                  <p className="text-sm font-bold text-stone-800">ไม่มี PO ค้างรับ</p>
+                  <p className="text-xs text-stone-500 mt-1">คิวรับสินค้าปกติเสร็จสิ้นครบถ้วนแล้ว</p>
+                </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-3.5">
                   {data.pending_pos.map((po) => {
                     const urgent = isUrgent(po.created_at ?? '');
                     return (
-                      <div key={po.id} className={`bg-white rounded-2xl border p-4 space-y-2.5 ${
-                        urgent ? 'border-amber-300 ring-1 ring-amber-200/50' : 'border-stone-200'
+                      <div key={po.id} className={`bg-white rounded-2xl border p-4.5 space-y-3 transition-all duration-200 hover:shadow-md ${
+                        urgent 
+                          ? 'border-amber-200 ring-2 ring-amber-300/40 shadow-md shadow-amber-50/30' 
+                          : 'border-stone-200/80 shadow-sm'
                       }`}>
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono text-[13px] font-bold text-blue-700">{po.po_number}</span>
-                            {urgent && (
-                              <span className="text-[10px] font-bold text-amber-700 border border-amber-300 bg-amber-50 rounded-full px-1.5 py-0.5">ด่วน</span>
-                            )}
+                        <div className="flex items-start justify-between gap-2 border-b border-stone-100/80 pb-3">
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-mono text-[14px] font-extrabold text-blue-800 bg-blue-50 border border-blue-100 rounded-lg px-2.5 py-0.5 leading-none">
+                                {po.po_number}
+                              </span>
+                              {urgent && (
+                                <span className="text-[9px] font-extrabold text-amber-700 bg-amber-50 border border-amber-300 rounded-full px-2 py-0.5 tracking-wider uppercase leading-none animate-pulse">ด่วน</span>
+                              )}
+                            </div>
+                            <div className="mt-1">
+                              <StatusBadge status={po.status} />
+                            </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-xl font-mono font-bold tabular-nums text-stone-900">{formatQty(po.total_qty_remaining)}</p>
-                            <p className="text-[10px] text-stone-600">{po.total_lines} รายการ</p>
+                            <p className="text-2xl font-mono font-extrabold tabular-nums text-stone-900 leading-none">{formatQty(po.total_qty_remaining)}</p>
+                            <p className="text-[10px] font-bold text-stone-400 mt-1">{po.total_lines} SKU ค้างรับ</p>
                           </div>
                         </div>
-                        <p className="text-[13.5px] font-medium text-stone-800">{po.vendor_name}</p>
-                        <p className="text-[12px] text-stone-600">
-                          {po.expected_date ? `คาดรับ ${formatDate(po.expected_date)}` : timeSince(po.created_at ?? '')}
-                        </p>
+                        <div className="space-y-1.5 pt-1">
+                          <p className="text-[14px] font-bold text-stone-800 leading-snug">{po.vendor_name}</p>
+                          <div className="flex items-center justify-between text-[11px] font-semibold text-stone-500">
+                            <span>คลังปลายทาง: <span className="text-stone-700 font-bold">{po.warehouse_code}</span></span>
+                            <span>{po.expected_date ? `คาดรับ ${formatDate(po.expected_date)}` : timeSince(po.created_at ?? '')}</span>
+                          </div>
+                        </div>
                         <button
                           onClick={() => router.push(`/app/grn/new?po_id=${po.id}`)}
-                          className="w-full h-10 bg-emerald-600 text-white rounded-xl text-[13px] font-semibold hover:bg-emerald-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                          className="w-full h-11 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-xl text-[13.5px] font-extrabold hover:from-emerald-700 hover:to-emerald-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-sm shadow-emerald-600/10 mt-2"
                         >
-                          <ScanLine className="w-4 h-4" />
-                          เริ่มรับสินค้า
+                          <ScanLine className="w-4.5 h-4.5" />
+                          เริ่มรับสินค้า (Scan)
                         </button>
                       </div>
                     );

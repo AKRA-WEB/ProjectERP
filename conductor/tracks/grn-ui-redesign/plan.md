@@ -5,7 +5,7 @@
 ---
 
 ## Status
-- **Status:** Active
+- **Status:** Completed
 - **Created:** 2026-05-21
 - **Updated:** 2026-05-21
 
@@ -65,20 +65,20 @@
 
 ## Tasks
 
-- [ ] อ่านโค้ดไฟล์ `app/app/grn/page.tsx` และศึกษาโครงสร้างการแสดงผลหน้าตารางและ Detail ปัจจุบัน
-- [ ] อัปเดตส่วนหัว ฟิลเตอร์ และแท็บ 8 แท็บในหน้าหลัก Desktop พร้อมใส่ Badges ตัวเลข
-- [ ] ติดตั้งระบบ Row Click และการเลือกแถวข้อมูลด้วยคีย์บอร์ด (`↑↓` + `Enter`) ในหน้าตารางหลัก
-- [ ] พัฒนา Modal แสดงข้อมูลใบรับสินค้าฉบับเต็ม (Full Detail Modal) พร้อมระบุปุ่ม Action ตามสถานะจริง
-- [ ] พัฒนา PATCH Action API integration ใน Modal เพื่ออนุมัติ QC หรือส่งของเข้าคลังสินค้า
-- [ ] เข้าไปปรับโครงสร้าง `app/app/grn/receiving-queue/page.tsx`
-- [ ] เพิ่ม Summary Strip การ์ดด่วน Inbound และ Purchase orders ในส่วนหัว
-- [ ] พัฒนา Segmented Control และสลับข้อมูล IO / PO รวมถึงดีไซน์เส้นขอบเตือนความด่วนบนการ์ด
-- [ ] ปรับปรุงหน้าจอรับของ `app/app/grn/new/page.tsx` หรือสร้างขึ้นหากยังเป็นไฟล์เดิม
-- [ ] พัฒนา UI บาร์ประเมินความคืบหน้า และ Scan Banner สีดำสนิท
-- [ ] พัฒนา Active Line Card (Qty Stepper, Quick chips, Lot/Location, Expiry)
-- [ ] ออกแบบ Status Dots รายการตรวจสอบด้านล่าง และปุ่ม Sticky Submit ด้านล่างสุดของจอ
-- [ ] ตรวจเช็คความเข้ากันได้ของระบบด้วย `npx tsc --noEmit`
-- [ ] ตรวจเช็ค Lint และ Responsive ทั้งหมด
+- [x] อ่านโค้ดไฟล์ `app/app/grn/page.tsx` และศึกษาโครงสร้างการแสดงผลหน้าตารางและ Detail ปัจจุบัน
+- [x] อัปเดตส่วนหัว ฟิลเตอร์ และแท็บ 8 แท็บในหน้าหลัก Desktop พร้อมใส่ Badges ตัวเลข
+- [x] ติดตั้งระบบ Row Click และการเลือกแถวข้อมูลด้วยคีย์บอร์ด (`↑↓` + `Enter`) ในหน้าตารางหลัก
+- [x] พัฒนา Modal แสดงข้อมูลใบรับสินค้าฉบับเต็ม (Full Detail Modal) พร้อมระบุปุ่ม Action ตามสถานะจริง
+- [x] พัฒนา PATCH Action API integration ใน Modal เพื่ออนุมัติ QC หรือส่งของเข้าคลังสินค้า
+- [x] เข้าไปปรับโครงสร้าง `app/app/grn/receiving-queue/page.tsx`
+- [x] เพิ่ม Summary Strip การ์ดด่วน Inbound และ Purchase orders ในส่วนหัว
+- [x] พัฒนา Segmented Control และสลับข้อมูล IO / PO รวมถึงดีไซน์เส้นขอบเตือนความด่วนบนการ์ด
+- [x] ปรับปรุงหน้าจอรับของ `app/app/grn/new/page.tsx` หรือสร้างขึ้นหากยังเป็นไฟล์เดิม
+- [x] พัฒนา UI บาร์ประเมินความคืบหน้า และ Scan Banner สีดำสนิท
+- [x] พัฒนา Active Line Card (Qty Stepper, Quick chips, Lot/Location, Expiry)
+- [x] ออกแบบ Status Dots รายการตรวจสอบด้านล่าง และปุ่ม Sticky Submit ด้านล่างสุดของจอ
+- [x] ตรวจเช็คความเข้ากันได้ของระบบด้วย `npx tsc --noEmit`
+- [x] ตรวจเช็ค Lint และ Responsive ทั้งหมด
 
 ---
 

@@ -15,7 +15,12 @@ import {
   Landmark,
   FileText,
   BadgeAlert,
-  Inbox
+  Inbox,
+  Barcode,
+  Camera,
+  Check,
+  Loader2,
+  Sparkles
 } from 'lucide-react';
 import { parseBuddhistDate, todayBE } from '@/lib/date-utils';
 
@@ -32,6 +37,7 @@ interface GRNLine {
   mfg_date_be: string;
   date_type: 'expiry' | 'mfg';
   storage_location: string;
+  lot_no: string;            // added for mobile/UI lot tracking
   stock_on_hand: number;     // from API GET
 }
 
@@ -147,6 +153,35 @@ function NewGRNPageInner() {
   const [isW2Warehouse, setIsW2Warehouse] = useState(false);
   const [warehouseList, setWarehouseList] = useState<{ id: string; code: string; name_th: string }[]>([]);
 
+  // Mobile scan specific states
+  const [activeIndex, setActiveIndex] = useState<number>(0);
+  const [simulatedBarcode, setSimulatedBarcode] = useState('');
+  const [showSimulatedScanner, setShowSimulatedScanner] = useState(false);
+
+  const handleSimulatedScanSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!simulatedBarcode.trim()) return;
+    const targetSku = simulatedBarcode.trim().toLowerCase();
+    const idx = lines.findIndex((l) => l.sku.toLowerCase() === targetSku);
+    if (idx >= 0) {
+      setActiveIndex(idx);
+      setSimulatedBarcode('');
+      setShowSimulatedScanner(false);
+      toast('success', `พบสินค้า SKU: ${lines[idx].sku} แล้ว`);
+    } else {
+      toast('error', `ไม่พบสินค้า SKU: ${simulatedBarcode} ในบิลนี้`);
+    }
+  };
+
+  // Auto-select first incomplete line when lines load
+  useEffect(() => {
+    if (lines.length > 0) {
+      const idx = lines.findIndex((l) => Number(l.qty_received) === 0);
+      setActiveIndex(idx >= 0 ? idx : 0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lines.length]);
+
   // Autocomplete search queries/results states for bonus items
   const [searchQueries, setSearchQueries] = useState<string[]>([]);
   const [searchResults, setSearchResults] = useState<ProductSearchResult[][]>([]);
@@ -197,6 +232,7 @@ function NewGRNPageInner() {
           mfg_date_be: '',
           date_type: 'expiry',
           storage_location: '',
+          lot_no: '',
           stock_on_hand: Number(l.qty_on_hand ?? l.qty_available ?? 0),
         }))
       );
@@ -221,6 +257,7 @@ function NewGRNPageInner() {
           mfg_date_be: '',
           date_type: 'expiry',
           storage_location: '',
+          lot_no: '',
           stock_on_hand: Number(l.qty_available ?? 0),
         }))
       );
@@ -431,479 +468,910 @@ function NewGRNPageInner() {
   const docNumber = mode === 'io' ? ioDetail?.io_number : (poDetail?.po_number ?? '—');
   const vendorName = mode === 'io' ? ioDetail?.vendor_name : (poDetail?.vendor_name ?? '—');
 
+  const itemsSuccessCount = lines.filter((l) => Number(l.qty_received) > 0).length;
+  const progressPercent = lines.length > 0 ? (itemsSuccessCount / lines.length) * 100 : 0;
+  const remainingCount = lines.filter((l) => Number(l.qty_received) === 0).length;
+
+  const activeLine = lines[activeIndex] || null;
+  const activeDaysLeft = activeLine && activeLine.date_type === 'expiry' ? expiryDaysLeft(activeLine.expiry_date_be) : null;
+
   return (
-    <div className="flex flex-col min-h-screen bg-stone-50/50 pb-32">
-      {/* Header bar */}
-      <div className="sticky top-0 bg-white/90 backdrop-blur-md border-b border-stone-200/80 px-4 py-3 flex items-center justify-between z-30 shadow-sm">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => router.back()}
-            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-stone-100 transition-all text-stone-700 active:scale-95"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[12px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-md px-2 py-0.5 uppercase tracking-wider">
-                {mode.toUpperCase()} RECEIVING
-              </span>
-              {isW2Warehouse && (
-                <span className="text-[12px] font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2 py-0.5 uppercase">
-                  W2 Warehouse
+    <>
+      {/* ═══ DESKTOP VIEW (≥ md) ═══ */}
+      <div className="hidden md:flex flex-col min-h-screen bg-stone-50/50 pb-32">
+        {/* Header bar */}
+        <div className="sticky top-0 bg-white/90 backdrop-blur-md border-b border-stone-200/80 px-4 py-3 flex items-center justify-between z-30 shadow-sm">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.back()}
+              className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-stone-100 transition-all text-stone-700 active:scale-95"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[12px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-md px-2 py-0.5 uppercase tracking-wider">
+                  {mode.toUpperCase()} RECEIVING
                 </span>
-              )}
+                {isW2Warehouse && (
+                  <span className="text-[12px] font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2 py-0.5 uppercase">
+                    W2 Warehouse
+                  </span>
+                )}
+              </div>
+              <h1 className="text-[16px] font-bold text-stone-900 leading-tight mt-1 flex items-center gap-1.5 font-mono">
+                <FileText className="w-4 h-4 text-stone-400" /> {docNumber}
+              </h1>
             </div>
-            <h1 className="text-[16px] font-bold text-stone-900 leading-tight mt-1 flex items-center gap-1.5 font-mono">
-              <FileText className="w-4 h-4 text-stone-400" /> {docNumber}
-            </h1>
+          </div>
+          <div className="text-right hidden sm:block">
+            <p className="text-[12px] text-stone-500 font-medium">ผู้จำหน่าย / Vendor</p>
+            <p className="text-[14px] font-bold text-stone-800">{vendorName}</p>
           </div>
         </div>
-        <div className="text-right hidden sm:block">
-          <p className="text-[12px] text-stone-500 font-medium">ผู้จำหน่าย / Vendor</p>
-          <p className="text-[14px] font-bold text-stone-800">{vendorName}</p>
-        </div>
-      </div>
 
-      <div className="max-w-4xl w-full mx-auto px-4 py-6 space-y-6">
-        {/* Info card */}
-        <div className="rounded-2xl bg-white border border-stone-200/80 shadow-sm p-5 space-y-4">
-          <div className="border-b border-stone-100 pb-3 flex items-center justify-between">
-            <h2 className="text-[15px] font-bold text-stone-800 flex items-center gap-2">
-              <User className="w-4 h-4 text-emerald-500" /> ข้อมูลการรับลงสินค้า / ATA Header Info
-            </h2>
-            <span className="text-xs text-rose-500 font-medium font-mono">* จำเป็น / Required</span>
-          </div>
+        <div className="max-w-4xl w-full mx-auto px-4 py-6 space-y-6">
+          {/* Info card */}
+          <div className="rounded-2xl bg-white border border-stone-200/80 shadow-sm p-5 space-y-4">
+            <div className="border-b border-stone-100 pb-3 flex items-center justify-between">
+              <h2 className="text-[15px] font-bold text-stone-800 flex items-center gap-2">
+                <User className="w-4 h-4 text-emerald-500" /> ข้อมูลการรับลงสินค้า / ATA Header Info
+              </h2>
+              <span className="text-xs text-rose-500 font-medium font-mono">* จำเป็น / Required</span>
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {mode === 'po' && (
-              <div className="md:col-span-1">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {mode === 'po' && (
+                <div className="md:col-span-1">
+                  <Select
+                    label="ใบสั่งซื้อ / Purchase Order *"
+                    value={selectedPoId}
+                    onChange={(e) => setSelectedPoId(e.target.value)}
+                    options={poOptions}
+                    placeholder="เลือกใบสั่งซื้อ (sent)"
+                    className="w-full"
+                  />
+                </div>
+              )}
+
+              <div className={mode === 'po' ? 'md:col-span-1' : 'md:col-span-1'}>
                 <Select
-                  label="ใบสั่งซื้อ / Purchase Order *"
-                  value={selectedPoId}
-                  onChange={(e) => setSelectedPoId(e.target.value)}
-                  options={poOptions}
-                  placeholder="เลือกใบสั่งซื้อ (sent)"
+                  label="คลังรับสินค้า / Warehouse *"
+                  value={warehouseId}
+                  onChange={(e) => setWarehouseId(e.target.value)}
+                  options={warehouses}
+                  placeholder="เลือกคลังสินค้า"
+                  disabled={mode === 'io'}
                   className="w-full"
                 />
               </div>
-            )}
 
-            <div className={mode === 'po' ? 'md:col-span-1' : 'md:col-span-1'}>
-              <Select
-                label="คลังรับสินค้า / Warehouse *"
-                value={warehouseId}
-                onChange={(e) => setWarehouseId(e.target.value)}
-                options={warehouses}
-                placeholder="เลือกคลังสินค้า"
-                disabled={mode === 'io'}
-                className="w-full"
-              />
-            </div>
-
-            <div>
-              <Input
-                label="วันที่มาส่ง (ATA) *"
-                placeholder="วว/ดด/ปปปป"
-                maxLength={10}
-                value={receivedDate}
-                onChange={(e) => setReceivedDate(e.target.value)}
-                className="font-mono text-[14px]"
-                helperText="ระบุเป็นปี พ.ศ. เช่น 20/05/2569"
-              />
-            </div>
-
-            <div className={mode === 'po' ? 'md:col-span-3' : 'md:col-span-2'}>
-              <Input
-                label="ผู้รับลงสินค้า / Staff Names *"
-                placeholder="ชื่อทีมผู้รับลงสินค้า คั่นด้วยจุลภาค เช่น สมชาย, วิภา"
-                value={receivedByNames}
-                onChange={(e) => setReceivedByNames(e.target.value)}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Product Lines List */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between px-1">
-            <h2 className="text-[15px] font-bold text-stone-700 flex items-center gap-2">
-              <Landmark className="w-4.5 h-4.5 text-stone-400" /> รายการสินค้าในบิล / Document Line Items
-            </h2>
-            <span className="text-[12px] font-mono text-stone-500 font-bold bg-stone-100 rounded-md px-2.5 py-0.5">
-              {lines.length} SKU
-            </span>
-          </div>
-
-          {lines.length === 0 ? (
-            <div className="rounded-2xl border-2 border-dashed border-stone-200 bg-white p-12 text-center text-stone-400">
-              <Inbox className="w-10 h-10 mx-auto text-stone-300 mb-2" />
-              <p className="text-sm font-semibold">ไม่มีรายการสินค้าในบิล</p>
-              {mode === 'po' && !selectedPoId && (
-                <p className="text-xs text-stone-500 mt-1">กรุณาเลือกใบสั่งซื้อเพื่อแสดงรายการสินค้า</p>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {/* Responsive Layout: Cards on mobile, elegant table-like structures on desktop */}
-              {lines.map((l, i) => {
-                const daysLeft = l.date_type === 'expiry' ? expiryDaysLeft(l.expiry_date_be) : null;
-                return (
-                  <div
-                    key={i}
-                    className="rounded-2xl bg-white border border-stone-200/80 shadow-sm p-4 hover:border-emerald-200 transition-all duration-200 group"
-                  >
-                    {/* Title block */}
-                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 border-b border-stone-100 pb-3">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-mono font-bold text-stone-400 bg-stone-100 px-2 py-0.5 rounded">
-                            SKU: {l.sku}
-                          </span>
-                          <span className="text-xs font-mono font-bold text-slate-500">
-                            สั่งมา: {formatQty(l.qty_ordered)} {l.unit}
-                          </span>
-                          <span className="text-xs font-semibold text-stone-500 bg-stone-50 px-2 py-0.5 border border-stone-100 rounded-md">
-                            สต็อกเดิม: {formatQty(l.stock_on_hand)} {l.unit}
-                          </span>
-                        </div>
-                        <h3 className="text-[14.5px] font-bold text-stone-800 leading-snug mt-1.5">
-                          {l.product_name}
-                        </h3>
-                      </div>
-                    </div>
-
-                    {/* Inputs Block */}
-                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-3.5 pt-3">
-                      <div>
-                        <label className="text-[12px] font-semibold text-stone-600 block mb-1">จำนวนที่รับ ({l.unit})</label>
-                        <input
-                          type="number"
-                          min="0"
-                          step="any"
-                          value={l.qty_received || ''}
-                          onChange={(e) => updateLine(i, 'qty_received', parseFloat(e.target.value) || 0)}
-                          className="w-full h-9 px-3 text-[14px] font-mono rounded-[8px] border border-stone-200 focus:outline-none focus:border-accent focus:shadow-[0_0_0_3px_rgba(16,185,129,0.14)]"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="text-[12px] font-semibold text-stone-600 block mb-1">ตำแหน่งเก็บ / Storage</label>
-                        <input
-                          type="text"
-                          placeholder="เช่น A-01-01"
-                          value={l.storage_location}
-                          onChange={(e) => updateLine(i, 'storage_location', e.target.value)}
-                          className="w-full h-9 px-3 text-[13.5px] rounded-[8px] border border-stone-200 focus:outline-none focus:border-accent focus:shadow-[0_0_0_3px_rgba(16,185,129,0.14)]"
-                        />
-                      </div>
-
-                      <div className="sm:col-span-2 space-y-1">
-                        <div className="flex items-center justify-between">
-                          <label className="text-[12px] font-semibold text-stone-600 block">
-                            {l.date_type === 'expiry' ? '📅 วันหมดอายุ (EXP)' : '🏭 วันที่ผลิต (MFG)'}
-                          </label>
-                          <button
-                            type="button"
-                            onClick={() => updateLine(i, 'date_type', l.date_type === 'expiry' ? 'mfg' : 'expiry')}
-                            className="text-[11px] text-blue-600 hover:text-blue-700 font-semibold underline underline-offset-2"
-                          >
-                            สลับเป็น {l.date_type === 'expiry' ? 'MFG' : 'EXP'}
-                          </button>
-                        </div>
-
-                        <div className="flex gap-2 items-center">
-                          <div className="flex-1">
-                            <input
-                              type="text"
-                              placeholder="วว/ดด/ปปปป"
-                              maxLength={10}
-                              value={l.date_type === 'expiry' ? l.expiry_date_be : l.mfg_date_be}
-                              onChange={(e) => updateLine(i, l.date_type === 'expiry' ? 'expiry_date_be' : 'mfg_date_be', e.target.value)}
-                              className="w-full h-9 px-3 text-[14px] font-mono rounded-[8px] border border-stone-200 focus:outline-none focus:border-accent focus:shadow-[0_0_0_3px_rgba(16,185,129,0.14)]"
-                            />
-                          </div>
-                          {l.date_type === 'expiry' && daysLeft !== null && (
-                            <div className="flex-shrink-0">
-                              <ExpiryChip days={daysLeft} />
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* ของแถม / สินค้านอกบิล (Bonus Items) */}
-        <div className="rounded-2xl bg-white border border-stone-200/80 shadow-sm p-5 space-y-4">
-          <div className="border-b border-stone-100 pb-3 flex items-center justify-between">
-            <h2 className="text-[15px] font-bold text-stone-800 flex items-center gap-2">
-              <Landmark className="w-4 h-4 text-emerald-500" /> ของแถม / สินค้านอกบิล (Bonus / Extra Items)
-            </h2>
-            <button
-              type="button"
-              onClick={handleAddBonusItem}
-              className="text-[12.5px] font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl px-3 py-1.5 flex items-center gap-1.5 transition-all duration-150 active:scale-95"
-            >
-              <Plus className="w-4 h-4" /> เพิ่มของแถม
-            </button>
-          </div>
-
-          {bonusItems.length === 0 ? (
-            <p className="text-center text-stone-400 text-xs py-4">ไม่มีของแถม หรือ สินค้านอกบิลเพิ่มเติม</p>
-          ) : (
-            <div className="space-y-4">
-              {bonusItems.map((b, i) => {
-                const daysLeft = expiryDaysLeft(b.expiry_date_be);
-                return (
-                  <div
-                    key={i}
-                    className="p-4 rounded-xl border border-stone-200/80 bg-stone-50/50 flex flex-col gap-4 relative"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveBonusItem(i)}
-                      className="absolute top-3 right-3 text-stone-400 hover:text-rose-500 transition-colors p-1"
-                    >
-                      <Trash2 className="w-4.5 h-4.5" />
-                    </button>
-
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-3.5 pt-2">
-                      {/* Product search box (autocomplete) */}
-                      <div className="md:col-span-5 relative">
-                        <label className="text-[12px] font-semibold text-stone-600 block mb-1">
-                          ค้นหาสินค้าหรือคีย์ชื่อเอง / Product Name *
-                        </label>
-                        <div className="relative">
-                          <input
-                            type="text"
-                            placeholder="พิมพ์ค้น SKU/ชื่อ หรือ ระบุชื่อสินค้าใหม่..."
-                            value={searchQueries[i] ?? b.product_name}
-                            onChange={(e) => handleSearchChange(i, e.target.value)}
-                            onFocus={() => setDropdownOpen(i)}
-                            className="w-full h-9 pl-8 pr-3 text-[13.5px] rounded-[8px] border border-stone-200 bg-white focus:outline-none focus:border-accent focus:shadow-[0_0_0_3px_rgba(16,185,129,0.14)]"
-                          />
-                          <Search className="absolute left-2.5 top-2.5 w-4 h-4 text-stone-400" />
-                        </div>
-
-                        {b.sku && (
-                          <div className="mt-1 flex items-center gap-1.5">
-                            <span className="text-[10px] font-mono font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 rounded px-1.5 py-0.5">
-                              Catalog Product (SKU: {b.sku})
-                            </span>
-                          </div>
-                        )}
-
-                        {/* Search Result Dropdown */}
-                        {dropdownOpen === i && searchResults[i] && searchResults[i].length > 0 && (
-                          <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-stone-200/90 rounded-[8px] shadow-lg max-h-48 overflow-y-auto z-40 text-[13px]">
-                            {searchResults[i].map((p) => (
-                              <button
-                                key={p.id}
-                                type="button"
-                                onClick={() => handleSelectProduct(i, p)}
-                                className="w-full text-left px-3 py-2 hover:bg-emerald-50 flex items-center gap-2 border-b border-stone-50 last:border-0"
-                              >
-                                <span className="font-mono text-[10.5px] text-stone-400 bg-stone-100 rounded px-1">{p.sku}</span>
-                                <span className="font-semibold text-stone-700 truncate">{p.name_th}</span>
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                        {/* Overlay to close the dropdown */}
-                        {dropdownOpen === i && (
-                          <div
-                            className="fixed inset-0 z-30"
-                            onClick={() => setDropdownOpen(null)}
-                          />
-                        )}
-                      </div>
-
-                      {/* Qty */}
-                      <div className="md:col-span-2">
-                        <label className="text-[12px] font-semibold text-stone-600 block mb-1">จำนวนรับ / Qty</label>
-                        <input
-                          type="number"
-                          min="0.001"
-                          step="any"
-                          value={b.qty || ''}
-                          onChange={(e) => {
-                            const newItems = [...bonusItems];
-                            newItems[i].qty = parseFloat(e.target.value) || 0;
-                            setBonusItems(newItems);
-                          }}
-                          className="w-full h-9 px-3 text-[14px] font-mono rounded-[8px] border border-stone-200 bg-white focus:outline-none focus:border-accent focus:shadow-[0_0_0_3px_rgba(16,185,129,0.14)]"
-                        />
-                      </div>
-
-                      {/* Unit */}
-                      <div className="md:col-span-1.5">
-                        <label className="text-[12px] font-semibold text-stone-600 block mb-1">หน่วย / Unit</label>
-                        <input
-                          type="text"
-                          placeholder="ชิ้น"
-                          value={b.unit}
-                          onChange={(e) => {
-                            const newItems = [...bonusItems];
-                            newItems[i].unit = e.target.value;
-                            setBonusItems(newItems);
-                          }}
-                          className="w-full h-9 px-3 text-[13.5px] rounded-[8px] border border-stone-200 bg-white focus:outline-none focus:border-accent"
-                        />
-                      </div>
-
-                      {/* Expiry BE */}
-                      <div className="md:col-span-3.5 space-y-1">
-                        <label className="text-[12px] font-semibold text-stone-600 block">วันหมดอายุ / EXP (วว/ดด/ปปปป)</label>
-                        <div className="flex gap-2 items-center">
-                          <div className="flex-1">
-                            <input
-                              type="text"
-                              placeholder="วว/ดด/ปปปป"
-                              maxLength={10}
-                              value={b.expiry_date_be}
-                              onChange={(e) => {
-                                const newItems = [...bonusItems];
-                                newItems[i].expiry_date_be = e.target.value;
-                                setBonusItems(newItems);
-                              }}
-                              className="w-full h-9 px-3 text-[14px] font-mono rounded-[8px] border border-stone-200 bg-white focus:outline-none focus:border-accent"
-                            />
-                          </div>
-                          {daysLeft !== null && (
-                            <div className="flex-shrink-0">
-                              <ExpiryChip days={daysLeft} />
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-[12px] font-semibold text-stone-600 block mb-1">หมายเหตุของแถม / Line Notes</label>
-                      <input
-                        type="text"
-                        placeholder="ระบุหมายเหตุ (ถ้ามี)..."
-                        value={b.notes}
-                        onChange={(e) => {
-                          const newItems = [...bonusItems];
-                          newItems[i].notes = e.target.value;
-                          setBonusItems(newItems);
-                        }}
-                        className="w-full h-9 px-3 text-[13px] rounded-[8px] border border-stone-200 bg-white focus:outline-none focus:border-accent"
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* ค่าลิฟท์ (W2 only) */}
-        {isW2Warehouse && (
-          <div className="rounded-2xl bg-amber-50/50 border border-amber-200 shadow-sm p-5 space-y-4">
-            <h2 className="text-[15px] font-bold text-amber-900 flex items-center gap-2">
-              <Landmark className="w-[18px] h-[18px] text-amber-600" /> ค่าบริการยกสินค้าขึ้นอาคารชั้นบน (Lift Fee rounds)
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
               <div>
-                <label className="text-[12px] font-semibold text-amber-800 block mb-1">จำนวนรอบขึ้นลิฟท์ / Rounds</label>
-                <input
-                  type="number"
-                  min="0"
-                  value={liftFeeRounds || ''}
-                  onChange={(e) => setLiftFeeRounds(Math.max(0, parseInt(e.target.value) || 0))}
-                  className="w-full h-9 px-3 text-[14px] font-mono rounded-[8px] border border-amber-300 bg-white focus:outline-none focus:ring-1 focus:ring-amber-400 focus:border-amber-400"
+                <Input
+                  label="วันที่มาส่ง (ATA) *"
+                  placeholder="วว/ดด/ปปปป"
+                  maxLength={10}
+                  value={receivedDate}
+                  onChange={(e) => setReceivedDate(e.target.value)}
+                  className="font-mono text-[14px]"
+                  helperText="ระบุเป็นปี พ.ศ. เช่น 20/05/2569"
                 />
               </div>
 
-              <div>
-                <p className="text-[12px] font-semibold text-amber-800 mb-1">คำนวณเงินค่าลิฟท์ / Total Amount</p>
-                <p className="text-[18px] font-extrabold text-amber-700 font-mono">
-                  ฿{(liftFeeRounds * 50).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                </p>
+              <div className={mode === 'po' ? 'md:col-span-3' : 'md:col-span-2'}>
+                <Input
+                  label="ผู้รับลงสินค้า / Staff Names *"
+                  placeholder="ชื่อทีมผู้รับลงสินค้า คั่นด้วยจุลภาค เช่น สมชาย, วิภา"
+                  value={receivedByNames}
+                  onChange={(e) => setReceivedByNames(e.target.value)}
+                />
               </div>
+            </div>
+          </div>
 
-              <div>
-                <span className="text-[12px] font-semibold text-amber-800 block mb-1">วิธีการจ่ายเงิน / Payment Method</span>
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-1.5 cursor-pointer text-[13.5px] font-medium text-stone-700">
-                    <input
-                      type="radio"
-                      name="lift_fee_payment"
-                      value="cash"
-                      checked={liftFeePayment === 'cash'}
-                      onChange={() => setLiftFeePayment('cash')}
-                      className="w-4 h-4 text-emerald-600"
-                    />
-                    <span>จ่ายสด (Cash)</span>
-                  </label>
-                  <label className="flex items-center gap-1.5 cursor-pointer text-[13.5px] font-medium text-stone-700">
-                    <input
-                      type="radio"
-                      name="lift_fee_payment"
-                      value="credit"
-                      checked={liftFeePayment === 'credit'}
-                      onChange={() => setLiftFeePayment('credit')}
-                      className="w-4 h-4 text-emerald-600"
-                    />
-                    <span>เงินเชื่อ (Credit)</span>
-                  </label>
+          {/* Product Lines List */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between px-1">
+              <h2 className="text-[15px] font-bold text-stone-700 flex items-center gap-2">
+                <Landmark className="w-4.5 h-4.5 text-stone-400" /> รายการสินค้าในบิล / Document Line Items
+              </h2>
+              <span className="text-[12px] font-mono text-stone-500 font-bold bg-stone-100 rounded-md px-2.5 py-0.5">
+                {lines.length} SKU
+              </span>
+            </div>
+
+            {lines.length === 0 ? (
+              <div className="rounded-2xl border-2 border-dashed border-stone-200 bg-white p-12 text-center text-stone-400">
+                <Inbox className="w-10 h-10 mx-auto text-stone-300 mb-2" />
+                <p className="text-sm font-semibold">ไม่มีรายการสินค้าในบิล</p>
+                {mode === 'po' && !selectedPoId && (
+                  <p className="text-xs text-stone-500 mt-1">กรุณาเลือกใบสั่งซื้อเพื่อแสดงรายการสินค้า</p>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {lines.map((l, i) => {
+                  const daysLeft = l.date_type === 'expiry' ? expiryDaysLeft(l.expiry_date_be) : null;
+                  return (
+                    <div
+                      key={i}
+                      className="rounded-2xl bg-white border border-stone-200/80 shadow-sm p-4 hover:border-emerald-200 transition-all duration-200 group"
+                    >
+                      {/* Title block */}
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 border-b border-stone-100 pb-3">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-mono font-bold text-stone-400 bg-stone-100 px-2 py-0.5 rounded">
+                              SKU: {l.sku}
+                            </span>
+                            <span className="text-xs font-mono font-bold text-slate-500">
+                              สั่งมา: {formatQty(l.qty_ordered)} {l.unit}
+                            </span>
+                            <span className="text-xs font-semibold text-stone-500 bg-stone-50 px-2 py-0.5 border border-stone-100 rounded-md">
+                              สต็อกเดิม: {formatQty(l.stock_on_hand)} {l.unit}
+                            </span>
+                          </div>
+                          <h3 className="text-[14.5px] font-bold text-stone-800 leading-snug mt-1.5">
+                            {l.product_name}
+                          </h3>
+                        </div>
+                      </div>
+
+                      {/* Inputs Block */}
+                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3.5 pt-3">
+                        <div>
+                          <label className="text-[12px] font-semibold text-stone-600 block mb-1">จำนวนที่รับ ({l.unit})</label>
+                          <input
+                            type="number"
+                            min="0"
+                            step="any"
+                            value={l.qty_received || ''}
+                            onChange={(e) => updateLine(i, 'qty_received', parseFloat(e.target.value) || 0)}
+                            className="w-full h-9 px-3 text-[14px] font-mono rounded-[8px] border border-stone-200 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-[12px] font-semibold text-stone-600 block mb-1">ตำแหน่งเก็บ / Storage</label>
+                          <input
+                            type="text"
+                            placeholder="เช่น A-01-01"
+                            value={l.storage_location}
+                            onChange={(e) => updateLine(i, 'storage_location', e.target.value)}
+                            className="w-full h-9 px-3 text-[13.5px] rounded-[8px] border border-stone-200 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-2 space-y-1">
+                          <div className="flex items-center justify-between">
+                            <label className="text-[12px] font-semibold text-stone-600 block">
+                              {l.date_type === 'expiry' ? '📅 วันหมดอายุ (EXP)' : '🏭 วันที่ผลิต (MFG)'}
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => updateLine(i, 'date_type', l.date_type === 'expiry' ? 'mfg' : 'expiry')}
+                              className="text-[11px] text-blue-600 hover:text-blue-700 font-semibold underline underline-offset-2"
+                            >
+                              สลับเป็น {l.date_type === 'expiry' ? 'MFG' : 'EXP'}
+                            </button>
+                          </div>
+
+                          <div className="flex gap-2 items-center">
+                            <div className="flex-1">
+                              <input
+                                type="text"
+                                placeholder="วว/ดด/ปปปป"
+                                maxLength={10}
+                                value={l.date_type === 'expiry' ? l.expiry_date_be : l.mfg_date_be}
+                                onChange={(e) => updateLine(i, l.date_type === 'expiry' ? 'expiry_date_be' : 'mfg_date_be', e.target.value)}
+                                className="w-full h-9 px-3 text-[14px] font-mono rounded-[8px] border border-stone-200 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                              />
+                            </div>
+                            {l.date_type === 'expiry' && daysLeft !== null && (
+                              <div className="flex-shrink-0">
+                                <ExpiryChip days={daysLeft} />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* ของแถม / สินค้านอกบิล (Bonus Items) */}
+          <div className="rounded-2xl bg-white border border-stone-200/80 shadow-sm p-5 space-y-4">
+            <div className="border-b border-stone-100 pb-3 flex items-center justify-between">
+              <h2 className="text-[15px] font-bold text-stone-800 flex items-center gap-2">
+                <Landmark className="w-4 h-4 text-emerald-500" /> ของแถม / สินค้านอกบิล (Bonus / Extra Items)
+              </h2>
+              <button
+                type="button"
+                onClick={handleAddBonusItem}
+                className="text-[12.5px] font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl px-3 py-1.5 flex items-center gap-1.5 transition-all duration-150 active:scale-95"
+              >
+                <Plus className="w-4 h-4" /> เพิ่มของแถม
+              </button>
+            </div>
+
+            {bonusItems.length === 0 ? (
+              <p className="text-center text-stone-400 text-xs py-4">ไม่มีของแถม หรือ สินค้านอกบิลเพิ่มเติม</p>
+            ) : (
+              <div className="space-y-4">
+                {bonusItems.map((b, i) => {
+                  const daysLeft = expiryDaysLeft(b.expiry_date_be);
+                  return (
+                    <div
+                      key={i}
+                      className="p-4 rounded-xl border border-stone-200/80 bg-stone-50/50 flex flex-col gap-4 relative"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveBonusItem(i)}
+                        className="absolute top-3 right-3 text-stone-400 hover:text-rose-500 transition-colors p-1"
+                      >
+                        <Trash2 className="w-4.5 h-4.5" />
+                      </button>
+
+                      <div className="grid grid-cols-1 md:grid-cols-12 gap-3.5 pt-2">
+                        {/* Product search box (autocomplete) */}
+                        <div className="md:col-span-5 relative">
+                          <label className="text-[12px] font-semibold text-stone-600 block mb-1">
+                            ค้นหาสินค้าหรือคีย์ชื่อเอง / Product Name *
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="text"
+                              placeholder="พิมพ์ค้น SKU/ชื่อ หรือ ระบุชื่อสินค้าใหม่..."
+                              value={searchQueries[i] ?? b.product_name}
+                              onChange={(e) => handleSearchChange(i, e.target.value)}
+                              onFocus={() => setDropdownOpen(i)}
+                              className="w-full h-9 pl-8 pr-3 text-[13.5px] rounded-[8px] border border-stone-200 bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                            />
+                            <Search className="absolute left-2.5 top-2.5 w-4 h-4 text-stone-400" />
+                          </div>
+
+                          {b.sku && (
+                            <div className="mt-1 flex items-center gap-1.5">
+                              <span className="text-[10px] font-mono font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 rounded px-1.5 py-0.5">
+                                Catalog Product (SKU: {b.sku})
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Search Result Dropdown */}
+                          {dropdownOpen === i && searchResults[i] && searchResults[i].length > 0 && (
+                            <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-stone-200/90 rounded-[8px] shadow-lg max-h-48 overflow-y-auto z-40 text-[13px]">
+                              {searchResults[i].map((p) => (
+                                <button
+                                  key={p.id}
+                                  type="button"
+                                  onClick={() => handleSelectProduct(i, p)}
+                                  className="w-full text-left px-3 py-2 hover:bg-emerald-50 flex items-center gap-2 border-b border-stone-50 last:border-0"
+                                >
+                                  <span className="font-mono text-[10.5px] text-stone-400 bg-stone-100 rounded px-1">{p.sku}</span>
+                                  <span className="font-semibold text-stone-700 truncate">{p.name_th}</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                          {dropdownOpen === i && (
+                            <div
+                              className="fixed inset-0 z-30"
+                              onClick={() => setDropdownOpen(null)}
+                            />
+                          )}
+                        </div>
+
+                        {/* Qty */}
+                        <div className="md:col-span-2">
+                          <label className="text-[12px] font-semibold text-stone-600 block mb-1">จำนวนรับ / Qty</label>
+                          <input
+                            type="number"
+                            min="0.001"
+                            step="any"
+                            value={b.qty || ''}
+                            onChange={(e) => {
+                              const newItems = [...bonusItems];
+                              newItems[i].qty = parseFloat(e.target.value) || 0;
+                              setBonusItems(newItems);
+                            }}
+                            className="w-full h-9 px-3 text-[14px] font-mono rounded-[8px] border border-stone-200 bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                          />
+                        </div>
+
+                        {/* Unit */}
+                        <div className="md:col-span-1.5">
+                          <label className="text-[12px] font-semibold text-stone-600 block mb-1">หน่วย / Unit</label>
+                          <input
+                            type="text"
+                            placeholder="ชิ้น"
+                            value={b.unit}
+                            onChange={(e) => {
+                              const newItems = [...bonusItems];
+                              newItems[i].unit = e.target.value;
+                              setBonusItems(newItems);
+                            }}
+                            className="w-full h-9 px-3 text-[13.5px] rounded-[8px] border border-stone-200 bg-white focus:outline-none focus:border-emerald-500"
+                          />
+                        </div>
+
+                        {/* Expiry BE */}
+                        <div className="md:col-span-3.5 space-y-1">
+                          <label className="text-[12px] font-semibold text-stone-600 block">วันหมดอายุ / EXP (วว/ดด/ปปปป)</label>
+                          <div className="flex gap-2 items-center">
+                            <div className="flex-1">
+                              <input
+                                type="text"
+                                placeholder="วว/ดด/ปปปป"
+                                maxLength={10}
+                                value={b.expiry_date_be}
+                                onChange={(e) => {
+                                  const newItems = [...bonusItems];
+                                  newItems[i].expiry_date_be = e.target.value;
+                                  setBonusItems(newItems);
+                                }}
+                                className="w-full h-9 px-3 text-[14px] font-mono rounded-[8px] border border-stone-200 bg-white focus:outline-none focus:border-emerald-500"
+                              />
+                            </div>
+                            {daysLeft !== null && (
+                              <div className="flex-shrink-0">
+                                <ExpiryChip days={daysLeft} />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-[12px] font-semibold text-stone-600 block mb-1">หมายเหตุของแถม / Line Notes</label>
+                        <input
+                          type="text"
+                          placeholder="ระบุหมายเหตุ (ถ้ามี)..."
+                          value={b.notes}
+                          onChange={(e) => {
+                            const newItems = [...bonusItems];
+                            newItems[i].notes = e.target.value;
+                            setBonusItems(newItems);
+                          }}
+                          className="w-full h-9 px-3 text-[13px] rounded-[8px] border border-stone-200 bg-white focus:outline-none focus:border-emerald-500"
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* ค่าลิฟท์ (W2 only) */}
+          {isW2Warehouse && (
+            <div className="rounded-2xl bg-amber-50/50 border border-amber-200 shadow-sm p-5 space-y-4">
+              <h2 className="text-[15px] font-bold text-amber-900 flex items-center gap-2">
+                <Landmark className="w-[18px] h-[18px] text-amber-600" /> ค่าบริการยกสินค้าขึ้นอาคารชั้นบน (Lift Fee rounds)
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
+                <div>
+                  <label className="text-[12px] font-semibold text-amber-800 block mb-1">จำนวนรอบขึ้นลิฟท์ / Rounds</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={liftFeeRounds || ''}
+                    onChange={(e) => setLiftFeeRounds(Math.max(0, parseInt(e.target.value) || 0))}
+                    className="w-full h-9 px-3 text-[14px] font-mono rounded-[8px] border border-amber-300 bg-white focus:outline-none focus:ring-1 focus:ring-amber-400 focus:border-amber-400"
+                  />
+                </div>
+
+                <div>
+                  <p className="text-[12px] font-semibold text-amber-800 mb-1">คำนวณเงินค่าลิฟท์ / Total Amount</p>
+                  <p className="text-[18px] font-extrabold text-amber-700 font-mono">
+                    ฿{(liftFeeRounds * 50).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+
+                <div>
+                  <span className="text-[12px] font-semibold text-amber-800 block mb-1">วิธีการจ่ายเงิน / Payment Method</span>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-1.5 cursor-pointer text-[13.5px] font-medium text-stone-700">
+                      <input
+                        type="radio"
+                        name="lift_fee_payment"
+                        value="cash"
+                        checked={liftFeePayment === 'cash'}
+                        onChange={() => setLiftFeePayment('cash')}
+                        className="w-4 h-4 text-emerald-600"
+                      />
+                      <span>จ่ายสด (Cash)</span>
+                    </label>
+                    <label className="flex items-center gap-1.5 cursor-pointer text-[13.5px] font-medium text-stone-700">
+                      <input
+                        type="radio"
+                        name="lift_fee_payment"
+                        value="credit"
+                        checked={liftFeePayment === 'credit'}
+                        onChange={() => setLiftFeePayment('credit')}
+                        className="w-4 h-4 text-emerald-600"
+                      />
+                      <span>เงินเชื่อ (Credit)</span>
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* หมายเหตุ */}
-        <div className="rounded-2xl bg-white border border-stone-200/80 shadow-sm p-5 space-y-3">
-          <label className="text-[14px] font-bold text-stone-700 block">หมายเหตุทั่วไป / Notes</label>
-          <textarea
-            rows={3}
-            placeholder="เขียนข้อความหมายเหตุทั่วไปประกอบการรับลงสินค้า เช่น สภาพภายนอกกล่องชำรุด ฯลฯ"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            className="w-full p-3 text-[13.5px] rounded-[8px] border border-stone-200 focus:outline-none focus:border-accent focus:shadow-[0_0_0_3px_rgba(16,185,129,0.14)]"
-          />
+          {/* หมายเหตุ */}
+          <div className="rounded-2xl bg-white border border-stone-200/80 shadow-sm p-5 space-y-3">
+            <label className="text-[14px] font-bold text-stone-700 block">หมายเหตุทั่วไป / Notes</label>
+            <textarea
+              rows={3}
+              placeholder="เขียนข้อความหมายเหตุทั่วไปประกอบการรับลงสินค้า เช่น สภาพภายนอกกล่องชำรุด ฯลฯ"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="w-full p-3 text-[13.5px] rounded-[8px] border border-stone-200 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+            />
+          </div>
+
+          {error && (
+            <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 flex items-start gap-2.5">
+              <BadgeAlert className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-rose-800">เกิดข้อผิดพลาดในการตรวจสอบข้อมูล</p>
+                <p className="text-xs text-rose-700 mt-0.5">{error}</p>
+              </div>
+            </div>
+          )}
         </div>
 
-        {error && (
-          <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 flex items-start gap-2.5">
-            <BadgeAlert className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
+        {/* Sticky bottom submit buttons */}
+        <div className="fixed bottom-0 inset-x-0 p-4 bg-white/95 backdrop-blur-md border-t border-stone-200/80 z-20 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
+          <div className="max-w-4xl mx-auto flex gap-3">
+            <button
+              type="button"
+              onClick={() => handleSubmit('draft')}
+              disabled={saving || lines.length === 0}
+              className="flex-1 h-11 rounded-xl border border-stone-300 hover:border-stone-400 bg-white hover:bg-stone-50 text-[13.5px] font-bold text-stone-700 transition-all active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
+            >
+              ⏸ พักบิล (Save Draft)
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSubmit('submit')}
+              disabled={saving || lines.length === 0}
+              className="flex-[3] h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[13.5px] font-extrabold shadow-sm shadow-emerald-600/10 transition-all active:scale-95 disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center gap-1.5"
+            >
+              {saving ? 'กำลังบันทึกข้อมูล...' : '✅ รับสินค้าเสร็จแล้ว (Complete Receive)'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ═══ MOBILE VIEW (< md) ═══ */}
+      <div className="block md:hidden flex flex-col min-h-screen bg-stone-950 text-stone-100 pb-28">
+        {/* Mobile Header */}
+        <div className="sticky top-0 bg-stone-900 border-b border-stone-800/80 px-4 py-3.5 flex items-center justify-between z-30 shadow-md">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.back()}
+              className="w-9 h-9 flex items-center justify-center rounded-full bg-stone-800 border border-stone-700 text-stone-200 active:scale-90 transition-all"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
             <div>
-              <p className="text-sm font-semibold text-rose-800">เกิดข้อผิดพลาดในการตรวจสอบข้อมูล</p>
-              <p className="text-xs text-rose-700 mt-0.5">{error}</p>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-extrabold text-emerald-400 bg-emerald-950/60 border border-emerald-900 rounded-md px-1.5 py-0.5 uppercase tracking-wider font-mono">
+                  {mode.toUpperCase()} RECEIVE
+                </span>
+                {isW2Warehouse && (
+                  <span className="text-[10px] font-extrabold text-amber-400 bg-amber-950/60 border border-amber-900 rounded-md px-1.5 py-0.5 uppercase">W2</span>
+                )}
+              </div>
+              <h1 className="text-[15px] font-extrabold text-white mt-1 leading-tight font-mono flex items-center gap-1">
+                <Barcode className="w-4 h-4 text-emerald-400" /> {docNumber}
+              </h1>
             </div>
           </div>
-        )}
-      </div>
+          <div className="text-right">
+            <span className="text-[10px] font-bold text-stone-500 block uppercase">Vendor</span>
+            <span className="text-[12px] font-bold text-white block truncate max-w-[120px]">{vendorName}</span>
+          </div>
+        </div>
 
-      {/* Sticky bottom submit buttons */}
-      <div className="fixed bottom-0 inset-x-0 p-4 bg-white/95 backdrop-blur-md border-t border-stone-200/80 z-20 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
-        <div className="max-w-4xl mx-auto flex gap-3">
-          <button
-            type="button"
-            onClick={() => handleSubmit('draft')}
-            disabled={saving || lines.length === 0}
-            className="flex-1 h-11 rounded-xl border border-stone-300 hover:border-stone-400 bg-white hover:bg-stone-50 text-[13.5px] font-bold text-stone-700 transition-all active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
-          >
-            ⏸ พักบิล (Save Draft)
-          </button>
-          <button
-            type="button"
-            onClick={() => handleSubmit('submit')}
-            disabled={saving || lines.length === 0}
-            className="flex-[3] h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[13.5px] font-extrabold shadow-sm shadow-emerald-600/10 transition-all active:scale-95 disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center gap-1.5"
-          >
-            {saving ? 'กำลังบันทึกข้อมูล...' : '✅ รับสินค้าเสร็จแล้ว (Complete Receive)'}
-          </button>
+        {/* Info & Header Inputs inside expanding Drawer/Card */}
+        <div className="px-4 pt-4 space-y-4">
+          {/* Progress bar */}
+          <div className="bg-stone-900/60 border border-stone-800 rounded-2xl p-3.5 shadow-sm space-y-2">
+            <div className="flex items-center justify-between text-xs font-bold text-stone-400">
+              <span className="flex items-center gap-1">
+                <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                ความคืบหน้าการรับของ
+              </span>
+              <span className="font-mono text-emerald-400">{itemsSuccessCount}/{lines.length} SKU สำเร็จ</span>
+            </div>
+            <div className="w-full h-3 bg-stone-800 rounded-full overflow-hidden p-0.5 border border-stone-700/60">
+              <div
+                className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.4)] transition-all duration-300 ease-out"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Scan Zone */}
+          <div className="bg-stone-900 border border-stone-800/80 rounded-2xl p-4.5 text-center relative overflow-hidden flex flex-col items-center justify-center select-none shadow-inner group">
+            {/* Visual scan laser animation */}
+            <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-0.5 bg-emerald-500/80 shadow-[0_0_6px_#10b981] animate-pulse z-10" />
+            <div className="absolute inset-0 bg-stone-950/20 opacity-40 mix-blend-overlay bg-[linear-gradient(rgba(18,16,16,0)_50%,_rgba(0,0,0,0.25)_50%),_linear-gradient(90deg,_rgba(255,0,0,0.06),_rgba(0,255,0,0.02),_rgba(0,0,255,0.06))] bg-[size:100%_4px,_6px_100%]" />
+
+            <div className="w-12 h-12 bg-stone-950 rounded-2xl border border-stone-800 flex items-center justify-center mb-2 z-10 group-hover:scale-105 transition-transform">
+              <Barcode className="w-6 h-6 text-emerald-400" />
+            </div>
+            <p className="text-xs font-bold text-white z-10">จำลองการยิงสแกนรับสินค้า</p>
+            <p className="text-[10px] text-stone-400 mt-0.5 z-10">สแกน SKU สินค้าเพื่อสลับเป็นตัวทำงานทันที</p>
+
+            {showSimulatedScanner ? (
+              <form onSubmit={handleSimulatedScanSubmit} className="w-full mt-3 flex gap-2 z-10 relative">
+                <input
+                  type="text"
+                  placeholder="พิมพ์บาร์โค้ด / SKU..."
+                  value={simulatedBarcode}
+                  onChange={(e) => setSimulatedBarcode(e.target.value)}
+                  className="flex-1 h-9 px-3 rounded-xl bg-stone-950 border border-emerald-800 focus:outline-none focus:border-emerald-500 text-xs font-mono text-white text-center"
+                  autoFocus
+                />
+                <button
+                  type="submit"
+                  className="h-9 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl active:scale-95 transition-all"
+                >
+                  สแกน
+                </button>
+              </form>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowSimulatedScanner(true)}
+                className="mt-3 px-4 h-8 bg-stone-950 border border-stone-800 rounded-xl text-[11px] font-bold text-emerald-400 hover:text-emerald-300 transition-all flex items-center gap-1.5 active:scale-95 z-10"
+              >
+                <Camera className="w-3.5 h-3.5" />
+                จำลองยิงบาร์โค้ด (Camera/Sim)
+              </button>
+            )}
+          </div>
+
+          {/* ATA Header Fields Card for Mobile */}
+          <div className="bg-stone-900 border border-stone-800 rounded-2xl p-4 space-y-3.5">
+            <p className="text-[11.5px] font-extrabold text-stone-400 uppercase tracking-wider border-b border-stone-800 pb-2">
+              📋 ข้อมูลรับเอกสาร / ATA Header
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[10px] font-bold text-stone-400 block mb-1">วันที่มาส่ง (ATA)</label>
+                <input
+                  type="text"
+                  maxLength={10}
+                  placeholder="วว/ดด/ปปปป"
+                  value={receivedDate}
+                  onChange={(e) => setReceivedDate(e.target.value)}
+                  className="w-full h-9 px-2.5 text-xs font-mono rounded-lg bg-stone-950 border border-stone-800 text-white focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600/30"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-stone-400 block mb-1">คลังที่รับเข้า</label>
+                <select
+                  disabled={mode === 'io'}
+                  value={warehouseId}
+                  onChange={(e) => setWarehouseId(e.target.value)}
+                  className="w-full h-9 px-2 text-xs rounded-lg bg-stone-950 border border-stone-800 text-white focus:outline-none focus:border-emerald-600 disabled:opacity-50"
+                >
+                  <option value="">เลือกคลังสินค้า</option>
+                  {warehouseList.map((wh) => (
+                    <option key={wh.id} value={wh.id}>{wh.code}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="col-span-2">
+                <label className="text-[10px] font-bold text-stone-400 block mb-1">ชื่อผู้รับทีมลงสินค้า *</label>
+                <input
+                  type="text"
+                  placeholder="ชื่อผู้รับลงสินค้า..."
+                  value={receivedByNames}
+                  onChange={(e) => setReceivedByNames(e.target.value)}
+                  className="w-full h-9 px-3 text-xs rounded-lg bg-stone-950 border border-stone-800 text-white focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600/30"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Active Line Card */}
+          {activeLine ? (
+            <div className="bg-stone-950 border-2 border-emerald-500 rounded-3xl p-5 space-y-4 shadow-[0_0_20px_rgba(16,185,129,0.15)] ring-4 ring-emerald-500/10">
+              <div className="flex items-start justify-between border-b border-stone-900 pb-3 gap-2">
+                <div>
+                  <span className="text-[9.5px] font-mono font-extrabold text-emerald-400 bg-emerald-950/60 border border-emerald-900 px-2 py-0.5 rounded uppercase leading-none">
+                    ACTIVE SKU: {activeLine.sku}
+                  </span>
+                  <h3 className="text-[15px] font-extrabold text-white leading-tight mt-2">{activeLine.product_name}</h3>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <span className="text-[10px] font-bold text-stone-500 block uppercase">สั่งมา</span>
+                  <span className="text-[14.5px] font-mono font-extrabold text-white">
+                    {formatQty(activeLine.qty_ordered)} {activeLine.unit}
+                  </span>
+                  <span className="text-[9.5px] text-stone-500 block font-semibold">เดิม: {formatQty(activeLine.stock_on_hand)}</span>
+                </div>
+              </div>
+
+              {/* Qty Stepper */}
+              <div className="space-y-2">
+                <label className="text-[11.5px] font-bold text-stone-400 block text-center">
+                  ระบุจำนวนชิ้นสินค้าที่รับลงของ ({activeLine.unit})
+                </label>
+                <div className="flex items-center justify-between gap-4 max-w-xs mx-auto">
+                  <button
+                    type="button"
+                    onClick={() => updateLine(activeIndex, 'qty_received', Math.max(0, Number(activeLine.qty_received) - 1))}
+                    className="w-12 h-12 flex items-center justify-center rounded-2xl bg-stone-900 border border-stone-800 text-2xl font-bold text-stone-300 hover:text-white active:scale-90 transition-all active:bg-stone-850"
+                  >
+                    −
+                  </button>
+                  <input
+                    type="number"
+                    min="0"
+                    step="any"
+                    value={activeLine.qty_received || ''}
+                    onChange={(e) => updateLine(activeIndex, 'qty_received', parseFloat(e.target.value) || 0)}
+                    className="flex-1 h-12 bg-stone-900/60 border border-stone-800 rounded-2xl text-center font-mono text-2xl font-extrabold text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => updateLine(activeIndex, 'qty_received', Number(activeLine.qty_received) + 1)}
+                    className="w-12 h-12 flex items-center justify-center rounded-2xl bg-stone-900 border border-stone-800 text-2xl font-bold text-stone-300 hover:text-white active:scale-90 transition-all active:bg-stone-850"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              {/* Quick-add Chips */}
+              <div className="flex flex-wrap gap-1.5 justify-center py-1">
+                <button
+                  type="button"
+                  onClick={() => updateLine(activeIndex, 'qty_received', Number(activeLine.qty_received) + 1)}
+                  className="px-3 py-1.5 bg-stone-900 hover:bg-stone-850 text-stone-300 rounded-xl text-xs font-extrabold border border-stone-800 active:scale-95 transition-all"
+                >
+                  +1
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateLine(activeIndex, 'qty_received', Number(activeLine.qty_received) + 5)}
+                  className="px-3 py-1.5 bg-stone-900 hover:bg-stone-850 text-stone-300 rounded-xl text-xs font-extrabold border border-stone-800 active:scale-95 transition-all"
+                >
+                  +5
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateLine(activeIndex, 'qty_received', Number(activeLine.qty_received) + 10)}
+                  className="px-3 py-1.5 bg-stone-900 hover:bg-stone-850 text-stone-300 rounded-xl text-xs font-extrabold border border-stone-800 active:scale-95 transition-all"
+                >
+                  +10
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateLine(activeIndex, 'qty_received', Number(activeLine.qty_ordered))}
+                  className="px-3 py-1.5 bg-emerald-950/40 hover:bg-emerald-950/60 text-emerald-400 rounded-xl text-xs font-extrabold border border-emerald-900/60 active:scale-95 transition-all"
+                >
+                  รับครบ ({formatQty(activeLine.qty_ordered)})
+                </button>
+                {Number(activeLine.qty_received) > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => updateLine(activeIndex, 'qty_received', 0)}
+                    className="px-3 py-1.5 bg-stone-900 hover:bg-rose-950/40 text-stone-400 hover:text-rose-400 rounded-xl text-xs font-extrabold border border-stone-800 active:scale-95 transition-all"
+                  >
+                    ล้างค่า
+                  </button>
+                )}
+              </div>
+
+              {/* Exp/Mfg Date & Lot/Location Inputs for Active item */}
+              <div className="grid grid-cols-2 gap-3 border-t border-stone-900 pt-3.5">
+                <div>
+                  <label className="text-[10px] font-bold text-stone-400 block mb-1">ตำแหน่งเก็บ / Location</label>
+                  <input
+                    type="text"
+                    placeholder="เช่น A-01-01"
+                    value={activeLine.storage_location}
+                    onChange={(e) => updateLine(activeIndex, 'storage_location', e.target.value)}
+                    className="w-full h-9 px-2.5 text-xs rounded-lg bg-stone-900 border border-stone-850 text-white focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-stone-400 block mb-1">Lot No. ควบคุม</label>
+                  <input
+                    type="text"
+                    placeholder="เช่น LOT69-01"
+                    value={activeLine.lot_no}
+                    onChange={(e) => updateLine(activeIndex, 'lot_no', e.target.value)}
+                    className="w-full h-9 px-2.5 text-xs rounded-lg bg-stone-900 border border-stone-850 text-white focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                <div className="col-span-2 space-y-1.5">
+                  <div className="flex items-center justify-between text-[11px] font-bold text-stone-400">
+                    <span>{activeLine.date_type === 'expiry' ? '📅 วันหมดอายุ (EXP)' : '🏭 วันผลิต (MFG)'}</span>
+                    <button
+                      type="button"
+                      onClick={() => updateLine(activeIndex, 'date_type', activeLine.date_type === 'expiry' ? 'mfg' : 'expiry')}
+                      className="text-emerald-400 hover:text-emerald-300 underline"
+                    >
+                      สลับเป็น {activeLine.date_type === 'expiry' ? 'MFG' : 'EXP'}
+                    </button>
+                  </div>
+                  <div className="flex gap-2 items-center">
+                    <input
+                      type="text"
+                      maxLength={10}
+                      placeholder="วว/ดด/ปปปป"
+                      value={activeLine.date_type === 'expiry' ? activeLine.expiry_date_be : activeLine.mfg_date_be}
+                      onChange={(e) => updateLine(activeIndex, activeLine.date_type === 'expiry' ? 'expiry_date_be' : 'mfg_date_be', e.target.value)}
+                      className="flex-1 h-9 px-2.5 text-xs font-mono rounded-lg bg-stone-900 border border-stone-850 text-white focus:outline-none focus:border-emerald-500"
+                    />
+                    {activeLine.date_type === 'expiry' && activeDaysLeft !== null && (
+                      <div className="flex-shrink-0">
+                        <ExpiryChip days={activeDaysLeft} />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons inside Active Card */}
+              <div className="flex gap-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveIndex((activeIndex + 1) % lines.length)}
+                  className="flex-1 h-10 rounded-xl border border-stone-800 bg-stone-900 hover:bg-stone-850 text-[12.5px] font-bold text-stone-300 transition-all active:scale-95"
+                >
+                  ข้ามไปก่อน
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const nextIncomplete = lines.findIndex((l, idx) => idx > activeIndex && Number(l.qty_received) === 0);
+                    const fallbackIncomplete = lines.findIndex((l) => Number(l.qty_received) === 0);
+                    if (nextIncomplete >= 0) {
+                      setActiveIndex(nextIncomplete);
+                    } else if (fallbackIncomplete >= 0) {
+                      setActiveIndex(fallbackIncomplete);
+                    }
+                    toast('success', `บันทึก ${activeLine.product_name} แล้ว`);
+                  }}
+                  className="flex-[2] h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[12.5px] font-extrabold flex items-center justify-center gap-1 shadow-sm active:scale-95 transition-all"
+                >
+                  <Check className="w-4 h-4" />
+                  บันทึกรายการนี้
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-stone-400 text-xs italic">
+              ไม่มีสินค้าในบิลให้ทำการตรวจรับ
+            </div>
+          )}
+
+          {/* Line Checklist below */}
+          <div className="bg-stone-900 border border-stone-800 rounded-2xl p-4.5 space-y-3">
+            <p className="text-[11.5px] font-extrabold text-stone-400 uppercase tracking-wider border-b border-stone-800 pb-2">
+              📝 รายการตรวจสอบสินค้า / Item Checklist ({lines.length} SKU)
+            </p>
+            <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
+              {lines.map((l, i) => {
+                const received = Number(l.qty_received);
+                const isCurrent = i === activeIndex;
+
+                let dotColor = 'bg-stone-800 border-stone-700';
+                let iconEl = null;
+
+                if (received >= Number(l.qty_ordered)) {
+                  dotColor = 'bg-emerald-500 border-emerald-400';
+                  iconEl = <Check className="w-3 h-3 text-stone-950 font-bold" />;
+                } else if (received > 0) {
+                  dotColor = 'bg-amber-500 border-amber-400';
+                }
+
+                return (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setActiveIndex(i)}
+                    className={`w-full text-left p-3 rounded-xl border flex items-center justify-between gap-3 transition-all ${
+                      isCurrent 
+                        ? 'bg-stone-950 border-emerald-600/80 ring-2 ring-emerald-500/10' 
+                        : 'bg-stone-900/40 border-stone-800/80 hover:bg-stone-900'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      {/* Check dot */}
+                      <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 ${dotColor}`}>
+                        {iconEl}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-mono font-bold text-stone-400">SKU: {l.sku}</p>
+                        <p className="text-[13px] font-bold text-white truncate max-w-[190px] mt-0.5 leading-snug">{l.product_name}</p>
+                      </div>
+                    </div>
+                    <div className="text-right flex-shrink-0 font-mono">
+                      <p className="text-xs font-bold text-stone-400">สั่ง: {formatQty(l.qty_ordered)}</p>
+                      <p className={`text-[13px] font-extrabold mt-0.5 ${received > 0 ? 'text-emerald-400' : 'text-stone-500'}`}>
+                        รับ: {formatQty(l.qty_received)}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Notes field for Mobile */}
+          <div className="bg-stone-900 border border-stone-800 rounded-2xl p-4 space-y-2">
+            <label className="text-[11.5px] font-bold text-stone-400 block">หมายเหตุทั่วไป / Notes</label>
+            <textarea
+              rows={2}
+              placeholder="หมายเหตุเพิ่มเติมประกอบการรับลงของ..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="w-full p-2.5 text-xs rounded-lg bg-stone-950 border border-stone-850 text-white focus:outline-none focus:border-emerald-500"
+            />
+          </div>
+
+          {error && (
+            <div className="rounded-xl border border-rose-950 bg-rose-950/30 p-3.5 flex items-start gap-2.5 border-rose-900/60">
+              <BadgeAlert className="w-4.5 h-4.5 text-rose-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-xs font-bold text-rose-300">เกิดข้อผิดพลาดในการตรวจสอบ</p>
+                <p className="text-[11px] text-rose-400 mt-0.5">{error}</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Mobile Sticky bottom submit area */}
+        <div className="fixed bottom-0 inset-x-0 p-4 bg-stone-900 border-t border-stone-800 z-30 shadow-[0_-4px_16px_rgba(0,0,0,0.2)]">
+          <div className="flex gap-2.5">
+            <button
+              type="button"
+              onClick={() => handleSubmit('draft')}
+              disabled={saving || lines.length === 0}
+              className="flex-1 h-11 rounded-xl bg-stone-950 border border-stone-800 hover:bg-stone-850 text-xs font-bold text-stone-300 transition-all active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
+            >
+              พักบิล (Draft)
+            </button>
+
+            {remainingCount > 0 ? (
+              <button
+                type="button"
+                disabled
+                className="flex-[2] h-11 rounded-xl bg-stone-800 border border-stone-700/60 text-stone-500 text-xs font-bold transition-all flex items-center justify-center gap-1.5"
+              >
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ค้างอยู่อีก {remainingCount} รายการ
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => handleSubmit('submit')}
+                disabled={saving}
+                className="flex-[2] h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-sm active:scale-95 transition-all flex items-center justify-center gap-1.5"
+              >
+                {saving ? 'กำลังบันทึก...' : '✅ รับลงคลังเรียบร้อย'}
+              </button>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
