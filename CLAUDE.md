@@ -31,6 +31,16 @@ NEXTAUTH_URL=http://localhost:3000
 **Trigger: `Architect: <requirement>`** → spawn Chen agent to plan. Do NOT plan inline.
 Refer to `conductor/PROTOCOLS.md` for full protocol.
 
+## Session Start (MANDATORY)
+
+**Before writing a single line of code or plan — always run:**
+
+```bash
+git pull origin master
+```
+
+ถ้าไม่ pull ก่อน → local อาจล้าหลัง remote → push conflict กับ Gemini/Chen commits อื่น
+
 ## Architecture
 
 **Stack:** Next.js 15 App Router · React 19 · TypeScript strict · PostgreSQL (raw `pg`) · NextAuth v5 · Zod · Tailwind CSS
