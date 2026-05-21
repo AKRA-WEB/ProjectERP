@@ -135,6 +135,7 @@ function NewGRNPageInner() {
 
   const [warehouses, setWarehouses] = useState<{ value: string; label: string }[]>([]);
   const [poOptions, setPoOptions] = useState<{ value: string; label: string }[]>([]);
+  const [loadingPo, setLoadingPo] = useState(false);
   const [selectedPoId, setSelectedPoId] = useState(poIdParam ?? '');
   const [ioDetail, setIoDetail] = useState<IODetail | null>(null);
   const [poDetail, setPoDetail] = useState<PODetail | null>(null);
@@ -193,9 +194,13 @@ function NewGRNPageInner() {
       setWarehouses(data.map((w) => ({ value: w.id, label: `${w.code} — ${w.name_th}` })));
     });
     if (mode === 'po') {
-      get<PaginatedResponse<POItem>>('/api/purchase-orders?status=sent&limit=100').then((r) =>
-        setPoOptions(r.data.map((po) => ({ value: po.id, label: `${po.po_number} — ${po.vendor_name}` })))
-      );
+      setLoadingPo(true);
+      get<PaginatedResponse<POItem>>('/api/purchase-orders?status=sent&limit=100')
+        .then((r) =>
+          setPoOptions(r.data.map((po) => ({ value: po.id, label: `${po.po_number} — ${po.vendor_name}` })))
+        )
+        .catch(() => {})
+        .finally(() => setLoadingPo(false));
     }
   }, [mode]);
 
@@ -357,6 +362,20 @@ function NewGRNPageInner() {
     if (lines.length === 0) {
       setError('ไม่มีรายการสินค้า / No items found');
       return;
+    }
+
+    // F-004: Validate that no received quantities or bonus quantities are negative
+    for (const l of lines) {
+      if (l.qty_received < 0) {
+        setError(`จำนวนที่รับของสินค้า SKU: ${l.sku} ต้องไม่เป็นค่าติดลบ / Received quantity cannot be negative`);
+        return;
+      }
+    }
+    for (const b of bonusItems) {
+      if (b.qty < 0) {
+        setError(`จำนวนของแถม ${b.product_name} ต้องไม่เป็นค่าติดลบ / Bonus quantity cannot be negative`);
+        return;
+      }
     }
 
     // Date validation
@@ -528,8 +547,9 @@ function NewGRNPageInner() {
                     value={selectedPoId}
                     onChange={(e) => setSelectedPoId(e.target.value)}
                     options={poOptions}
-                    placeholder="เลือกใบสั่งซื้อ (sent)"
+                    placeholder={loadingPo ? "กำลังโหลดใบสั่งซื้อ..." : "เลือกใบสั่งซื้อ (sent)"}
                     className="w-full"
+                    disabled={loadingPo}
                   />
                 </div>
               )}
@@ -951,32 +971,54 @@ function NewGRNPageInner() {
 
       {/* ═══ MOBILE VIEW (< md) ═══ */}
       <div className="block md:hidden flex flex-col min-h-screen bg-stone-950 text-stone-100 pb-28">
-        {/* Mobile Header */}
-        <div className="sticky top-0 bg-stone-900 border-b border-stone-800/80 px-4 py-3.5 flex items-center justify-between z-30 shadow-md">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => router.back()}
-              className="w-9 h-9 flex items-center justify-center rounded-full bg-stone-800 border border-stone-700 text-stone-200 active:scale-90 transition-all"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-extrabold text-emerald-400 bg-emerald-950/60 border border-emerald-900 rounded-md px-1.5 py-0.5 uppercase tracking-wider font-mono">
-                  {mode.toUpperCase()} RECEIVE
-                </span>
-                {isW2Warehouse && (
-                  <span className="text-[10px] font-extrabold text-amber-400 bg-amber-950/60 border border-amber-900 rounded-md px-1.5 py-0.5 uppercase">W2</span>
-                )}
+        {/* Sticky Mobile Header + Warehouse Container */}
+        <div className="sticky top-0 z-30 bg-stone-900 border-b border-stone-800/80 shadow-md">
+          {/* Mobile Header */}
+          <div className="px-4 py-3.5 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => router.back()}
+                className="w-11 h-11 flex items-center justify-center rounded-full bg-stone-800 border border-stone-700 text-stone-200 active:scale-90 transition-all"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-extrabold text-emerald-400 bg-emerald-950/60 border border-emerald-900 rounded-md px-1.5 py-0.5 uppercase tracking-wider font-mono">
+                    {mode.toUpperCase()} RECEIVE
+                  </span>
+                  {isW2Warehouse && (
+                    <span className="text-[10px] font-extrabold text-amber-400 bg-amber-950/60 border border-amber-900 rounded-md px-1.5 py-0.5 uppercase">W2</span>
+                  )}
+                </div>
+                <h1 className="text-[15px] font-extrabold text-white mt-1 leading-tight font-mono flex items-center gap-1">
+                  <Barcode className="w-4 h-4 text-emerald-400" /> {docNumber}
+                </h1>
               </div>
-              <h1 className="text-[15px] font-extrabold text-white mt-1 leading-tight font-mono flex items-center gap-1">
-                <Barcode className="w-4 h-4 text-emerald-400" /> {docNumber}
-              </h1>
+            </div>
+            <div className="text-right">
+              <span className="text-[10px] font-bold text-stone-500 block uppercase">Vendor</span>
+              <span className="text-[12px] font-bold text-white block truncate max-w-[120px]">{vendorName}</span>
             </div>
           </div>
-          <div className="text-right">
-            <span className="text-[10px] font-bold text-stone-500 block uppercase">Vendor</span>
-            <span className="text-[12px] font-bold text-white block truncate max-w-[120px]">{vendorName}</span>
+
+          {/* Sticky Mobile Warehouse Selector */}
+          <div className="px-4 pb-3.5 pt-1 border-t border-stone-850 flex items-center justify-between gap-3 bg-stone-900">
+            <label className="text-[11px] font-bold text-stone-400 uppercase tracking-wider whitespace-nowrap">
+              คลังสินค้า / Warehouse
+            </label>
+            <select
+              disabled={mode === 'io'}
+              value={warehouseId}
+              onChange={(e) => setWarehouseId(e.target.value)}
+              className="flex-1 h-11 px-3 text-base rounded-xl bg-stone-950 border border-stone-800 text-white focus:outline-none focus:border-emerald-600 disabled:opacity-50"
+            >
+              <option value="">เลือกคลังสินค้า...</option>
+              {warehouseList.map((wh) => (
+                <option key={wh.id} value={wh.id}>{wh.code} — {wh.name_th}</option>
+              ))}
+            </select>
           </div>
         </div>
 
@@ -1018,12 +1060,12 @@ function NewGRNPageInner() {
                   placeholder="พิมพ์บาร์โค้ด / SKU..."
                   value={simulatedBarcode}
                   onChange={(e) => setSimulatedBarcode(e.target.value)}
-                  className="flex-1 h-9 px-3 rounded-xl bg-stone-950 border border-emerald-800 focus:outline-none focus:border-emerald-500 text-xs font-mono text-white text-center"
+                  className="flex-1 h-11 px-3 rounded-xl bg-stone-950 border border-emerald-800 focus:outline-none focus:border-emerald-500 text-base font-mono text-white text-center"
                   autoFocus
                 />
                 <button
                   type="submit"
-                  className="h-9 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl active:scale-95 transition-all"
+                  className="h-11 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl active:scale-95 transition-all"
                 >
                   สแกน
                 </button>
@@ -1032,7 +1074,7 @@ function NewGRNPageInner() {
               <button
                 type="button"
                 onClick={() => setShowSimulatedScanner(true)}
-                className="mt-3 px-4 h-8 bg-stone-950 border border-stone-800 rounded-xl text-[11px] font-bold text-emerald-400 hover:text-emerald-300 transition-all flex items-center gap-1.5 active:scale-95 z-10"
+                className="mt-3 px-4 h-11 bg-stone-950 border border-stone-800 rounded-xl text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-all flex items-center gap-1.5 active:scale-95 z-10"
               >
                 <Camera className="w-3.5 h-3.5" />
                 จำลองยิงบาร์โค้ด (Camera/Sim)
@@ -1045,7 +1087,7 @@ function NewGRNPageInner() {
             <p className="text-[11.5px] font-extrabold text-stone-400 uppercase tracking-wider border-b border-stone-800 pb-2">
               📋 ข้อมูลรับเอกสาร / ATA Header
             </p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-3.5">
               <div>
                 <label className="text-[10px] font-bold text-stone-400 block mb-1">วันที่มาส่ง (ATA)</label>
                 <input
@@ -1054,31 +1096,17 @@ function NewGRNPageInner() {
                   placeholder="วว/ดด/ปปปป"
                   value={receivedDate}
                   onChange={(e) => setReceivedDate(e.target.value)}
-                  className="w-full h-9 px-2.5 text-xs font-mono rounded-lg bg-stone-950 border border-stone-800 text-white focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600/30"
+                  className="w-full h-11 px-3 text-base font-mono rounded-lg bg-stone-950 border border-stone-800 text-white focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600/30"
                 />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-stone-400 block mb-1">คลังที่รับเข้า</label>
-                <select
-                  disabled={mode === 'io'}
-                  value={warehouseId}
-                  onChange={(e) => setWarehouseId(e.target.value)}
-                  className="w-full h-9 px-2 text-xs rounded-lg bg-stone-950 border border-stone-800 text-white focus:outline-none focus:border-emerald-600 disabled:opacity-50"
-                >
-                  <option value="">เลือกคลังสินค้า</option>
-                  {warehouseList.map((wh) => (
-                    <option key={wh.id} value={wh.id}>{wh.code}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="col-span-2">
                 <label className="text-[10px] font-bold text-stone-400 block mb-1">ชื่อผู้รับทีมลงสินค้า *</label>
                 <input
                   type="text"
                   placeholder="ชื่อผู้รับลงสินค้า..."
                   value={receivedByNames}
                   onChange={(e) => setReceivedByNames(e.target.value)}
-                  className="w-full h-9 px-3 text-xs rounded-lg bg-stone-950 border border-stone-800 text-white focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600/30"
+                  className="w-full h-11 px-3 text-base rounded-lg bg-stone-950 border border-stone-800 text-white focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600/30"
                 />
               </div>
             </div>
@@ -1135,32 +1163,32 @@ function NewGRNPageInner() {
               </div>
 
               {/* Quick-add Chips */}
-              <div className="flex flex-wrap gap-1.5 justify-center py-1">
+              <div className="flex flex-wrap gap-2 justify-center py-1">
                 <button
                   type="button"
                   onClick={() => updateLine(activeIndex, 'qty_received', Number(activeLine.qty_received) + 1)}
-                  className="px-3 py-1.5 bg-stone-900 hover:bg-stone-850 text-stone-300 rounded-xl text-xs font-extrabold border border-stone-800 active:scale-95 transition-all"
+                  className="h-11 px-4 bg-stone-900 hover:bg-stone-850 text-stone-300 rounded-xl text-xs font-extrabold border border-stone-800 active:scale-95 transition-all flex items-center justify-center"
                 >
                   +1
                 </button>
                 <button
                   type="button"
                   onClick={() => updateLine(activeIndex, 'qty_received', Number(activeLine.qty_received) + 5)}
-                  className="px-3 py-1.5 bg-stone-900 hover:bg-stone-850 text-stone-300 rounded-xl text-xs font-extrabold border border-stone-800 active:scale-95 transition-all"
+                  className="h-11 px-4 bg-stone-900 hover:bg-stone-850 text-stone-300 rounded-xl text-xs font-extrabold border border-stone-800 active:scale-95 transition-all flex items-center justify-center"
                 >
                   +5
                 </button>
                 <button
                   type="button"
                   onClick={() => updateLine(activeIndex, 'qty_received', Number(activeLine.qty_received) + 10)}
-                  className="px-3 py-1.5 bg-stone-900 hover:bg-stone-850 text-stone-300 rounded-xl text-xs font-extrabold border border-stone-800 active:scale-95 transition-all"
+                  className="h-11 px-4 bg-stone-900 hover:bg-stone-850 text-stone-300 rounded-xl text-xs font-extrabold border border-stone-800 active:scale-95 transition-all flex items-center justify-center"
                 >
                   +10
                 </button>
                 <button
                   type="button"
                   onClick={() => updateLine(activeIndex, 'qty_received', Number(activeLine.qty_ordered))}
-                  className="px-3 py-1.5 bg-emerald-950/40 hover:bg-emerald-950/60 text-emerald-400 rounded-xl text-xs font-extrabold border border-emerald-900/60 active:scale-95 transition-all"
+                  className="h-11 px-4 bg-emerald-950/40 hover:bg-emerald-950/60 text-emerald-400 rounded-xl text-xs font-extrabold border border-emerald-900/60 active:scale-95 transition-all flex items-center justify-center"
                 >
                   รับครบ ({formatQty(activeLine.qty_ordered)})
                 </button>
@@ -1168,7 +1196,7 @@ function NewGRNPageInner() {
                   <button
                     type="button"
                     onClick={() => updateLine(activeIndex, 'qty_received', 0)}
-                    className="px-3 py-1.5 bg-stone-900 hover:bg-rose-950/40 text-stone-400 hover:text-rose-400 rounded-xl text-xs font-extrabold border border-stone-800 active:scale-95 transition-all"
+                    className="h-11 px-4 bg-stone-900 hover:bg-rose-950/40 text-stone-400 hover:text-rose-400 rounded-xl text-xs font-extrabold border border-stone-800 active:scale-95 transition-all flex items-center justify-center"
                   >
                     ล้างค่า
                   </button>
@@ -1184,7 +1212,7 @@ function NewGRNPageInner() {
                     placeholder="เช่น A-01-01"
                     value={activeLine.storage_location}
                     onChange={(e) => updateLine(activeIndex, 'storage_location', e.target.value)}
-                    className="w-full h-9 px-2.5 text-xs rounded-lg bg-stone-900 border border-stone-850 text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full h-11 px-2.5 text-base rounded-lg bg-stone-900 border border-stone-850 text-white focus:outline-none focus:border-emerald-500"
                   />
                 </div>
                 <div>
@@ -1194,7 +1222,7 @@ function NewGRNPageInner() {
                     placeholder="เช่น LOT69-01"
                     value={activeLine.lot_no}
                     onChange={(e) => updateLine(activeIndex, 'lot_no', e.target.value)}
-                    className="w-full h-9 px-2.5 text-xs rounded-lg bg-stone-900 border border-stone-850 text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full h-11 px-2.5 text-base rounded-lg bg-stone-900 border border-stone-850 text-white focus:outline-none focus:border-emerald-500"
                   />
                 </div>
 
@@ -1204,7 +1232,7 @@ function NewGRNPageInner() {
                     <button
                       type="button"
                       onClick={() => updateLine(activeIndex, 'date_type', activeLine.date_type === 'expiry' ? 'mfg' : 'expiry')}
-                      className="text-emerald-400 hover:text-emerald-300 underline"
+                      className="text-emerald-400 hover:text-emerald-300 underline min-h-[44px] flex items-center"
                     >
                       สลับเป็น {activeLine.date_type === 'expiry' ? 'MFG' : 'EXP'}
                     </button>
@@ -1216,7 +1244,7 @@ function NewGRNPageInner() {
                       placeholder="วว/ดด/ปปปป"
                       value={activeLine.date_type === 'expiry' ? activeLine.expiry_date_be : activeLine.mfg_date_be}
                       onChange={(e) => updateLine(activeIndex, activeLine.date_type === 'expiry' ? 'expiry_date_be' : 'mfg_date_be', e.target.value)}
-                      className="flex-1 h-9 px-2.5 text-xs font-mono rounded-lg bg-stone-900 border border-stone-850 text-white focus:outline-none focus:border-emerald-500"
+                      className="flex-1 h-11 px-2.5 text-base font-mono rounded-lg bg-stone-900 border border-stone-850 text-white focus:outline-none focus:border-emerald-500"
                     />
                     {activeLine.date_type === 'expiry' && activeDaysLeft !== null && (
                       <div className="flex-shrink-0">
@@ -1232,7 +1260,7 @@ function NewGRNPageInner() {
                 <button
                   type="button"
                   onClick={() => setActiveIndex((activeIndex + 1) % lines.length)}
-                  className="flex-1 h-10 rounded-xl border border-stone-800 bg-stone-900 hover:bg-stone-850 text-[12.5px] font-bold text-stone-300 transition-all active:scale-95"
+                  className="flex-1 h-11 rounded-xl border border-stone-800 bg-stone-900 hover:bg-stone-850 text-xs font-bold text-stone-300 transition-all active:scale-95"
                 >
                   ข้ามไปก่อน
                 </button>
@@ -1248,7 +1276,7 @@ function NewGRNPageInner() {
                     }
                     toast('success', `บันทึก ${activeLine.product_name} แล้ว`);
                   }}
-                  className="flex-[2] h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[12.5px] font-extrabold flex items-center justify-center gap-1 shadow-sm active:scale-95 transition-all"
+                  className="flex-[2] h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold flex items-center justify-center gap-1 shadow-sm active:scale-95 transition-all"
                 >
                   <Check className="w-4 h-4" />
                   บันทึกรายการนี้
@@ -1322,7 +1350,7 @@ function NewGRNPageInner() {
               placeholder="หมายเหตุเพิ่มเติมประกอบการรับลงของ..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full p-2.5 text-xs rounded-lg bg-stone-950 border border-stone-850 text-white focus:outline-none focus:border-emerald-500"
+              className="w-full p-2.5 text-base rounded-lg bg-stone-950 border border-stone-850 text-white focus:outline-none focus:border-emerald-500"
             />
           </div>
 

@@ -561,7 +561,7 @@ export default function GRNPage() {
         </div>
 
         {/* Table card */}
-        <div className={CARD}>
+        <div className={`hidden md:block ${CARD}`}>
           <table className="w-full border-collapse text-[13px]">
             <thead>
               <tr>
@@ -621,6 +621,38 @@ export default function GRNPage() {
               })}
             </tbody>
           </table>
+        </div>
+
+        {/* Card stack for mobile */}
+        <div className="md:hidden space-y-3">
+          {loading ? (
+            <div className="text-center py-8 text-[13px] text-stone-600 bg-white border border-stone-200 rounded-xl">กำลังโหลด...</div>
+          ) : displayedGRNs.length === 0 ? (
+            <div className="text-center py-8 text-[13px] text-stone-600 bg-white border border-stone-200 rounded-xl">ไม่พบรายการ</div>
+          ) : (
+            displayedGRNs.map((g) => (
+              <div
+                key={g.id}
+                onClick={() => openModal(g)}
+                className="bg-white border border-stone-200 rounded-xl p-4 active:bg-stone-50 cursor-pointer shadow-[0_1px_2px_rgba(0,0,0,0.05)] transition-all"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-semibold text-stone-900 font-mono text-[14px]">{g.grn_number}</span>
+                  <Pill status={g.status} />
+                </div>
+                <div className="text-[13px] text-stone-600 mb-1">
+                  คลัง: {g.warehouse_name} ({g.warehouse_code})
+                </div>
+                <div className="text-[13px] text-stone-600 mb-2">
+                  อ้างอิง: {g.po_number ? `PO: ${g.po_number}` : g.io_number ? `IO: ${g.io_number}` : '—'}
+                </div>
+                <div className="flex justify-between items-center text-[11px] text-stone-500 border-t border-stone-100 pt-2">
+                  <span>ผู้รับ: {g.received_by_name}</span>
+                  <span className="font-mono">{formatDate(g.received_date)}</span>
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
         {/* Pagination */}

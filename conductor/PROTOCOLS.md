@@ -51,6 +51,36 @@ This project uses **Obsidian** opened directly on this folder as a vault. All `.
 - `_notes/` — Gemini writes `current-state.md`. Chen writes `01_Decisions/`. All agents read. Never write `daily/` or `.obsidian/`.
 - `.obsidian/` — Never touched by any AI agent.
 
+## Billy QA Protocol (`QA: <track-name>`)
+
+**Trigger:** Claude spawns Billy subagent after implementation is done.
+
+### File Writing Rules (Billy) — MANDATORY
+
+**Billy runs in a sandboxed Bash context that cannot write to Windows filesystem. Neither `write_file` nor Bash HEREDOC reaches the Windows FS.**
+
+**Correct pattern:**
+1. Billy reads files silently — **DO NOT echo file contents** — and outputs only findings as structured text in its response
+2. Main thread (Claude) receives Billy's response and writes `conductor/qa-reports/<track>.md` using the native Write tool
+
+This means Billy's response must stay concise (< 30KB). If truncated, the report cannot be written.
+
+### Billy Output Rules
+- **Never echo file contents** — read silently, output only findings
+- Label report `[DRAFT — Pending Chen Validation]`
+- Do NOT write `rework-plan.md` or update `index.md` — that is Chen's job
+- Classify: **Must Fix** | **Should Fix** | **Suggestion**
+- Each finding: `file:line — Issue — Fix`
+- Output the full report text so the main thread can write it
+
+### Spawning Billy (Claude's Responsibility)
+After Billy responds, Claude writes the report:
+```
+Write tool → C:\Users\AKRA-Panich-Front\OneDrive\02-2 - AKRA\projectERP\conductor\qa-reports\<track>.md
+```
+
+---
+
 ## Chen Planning Protocol (`Architect: <requirement>`)
 
 **Trigger:** User types `Architect: <requirement>` in Claude → Claude spawns Chen subagent.
@@ -81,6 +111,18 @@ Each task in plan.md is incomplete unless it specifies:
 5. **Response shape** — exact fields returned in `apiSuccess()`
 
 A plan task missing any of these ≠ ready for Gemini.
+
+### File Writing Rules (Chen) — MANDATORY
+
+**This machine runs Windows + OneDrive. Path has spaces. Use Bash `mkdir -p`, NEVER `New-Item`.**
+
+Before writing any new file (plan.md, decision.md, etc.):
+```bash
+mkdir -p "/c/Users/AKRA-Panich-Front/OneDrive/02-2 - AKRA/projectERP/<relative-path>"
+```
+Then use the Write tool with the Windows absolute path `C:\Users\AKRA-Panich-Front\OneDrive\02-2 - AKRA\projectERP\<relative-path>`.
+
+`New-Item` → Bash says `command not found` → directory not created → Write tool fails silently. Always `mkdir -p`.
 
 ### Obsidian Writes (Chen)
 

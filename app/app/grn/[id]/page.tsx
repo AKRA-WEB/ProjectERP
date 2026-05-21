@@ -8,7 +8,7 @@ import { formatDate, formatQty, formatCurrency } from '@/lib/format';
 import { useSession } from 'next-auth/react';
 import type { GrnStatus, Vendor, PaginatedResponse } from '@/types';
 import Link from 'next/link';
-import { Search, ScanLine, Plus, Trash2, ShoppingCart } from 'lucide-react';
+import { Search, ScanLine, Plus, Trash2, ShoppingCart, ChevronDown, Printer } from 'lucide-react';
 
 const LABEL_CLS = "block text-[13px] font-medium text-stone-500 mb-1";
 const FIELD_CLS = "w-full bg-white border border-stone-200 rounded-[7px] px-3 py-2 text-[14px] outline-none focus:border-emerald-500 transition-colors";
@@ -91,6 +91,7 @@ export default function GRNDetailPage() {
   const [showVerify, setShowVerify] = useState(false);
   const [qcNotes, setQcNotes] = useState('');
   const [verifyNotes, setVerifyNotes] = useState('');
+  const [headerExpanded, setHeaderExpanded] = useState(false);
 
   // Retrospective PO States
   const [showCreatePO, setShowCreatePO] = useState(false);
@@ -253,45 +254,92 @@ export default function GRNDetailPage() {
 
   return (
     <div className="max-w-5xl">
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <button className="text-sm text-gray-500 hover:underline mb-1" onClick={() => router.back()}>← ย้อนกลับ</button>
-          <h1 className="text-2xl font-bold text-gray-900 font-mono">{grn.grn_number}</h1>
+      {/* Mobile Header (md:hidden) */}
+      <div className="md:hidden mb-4">
+        <button className="text-sm text-gray-500 hover:underline mb-2 flex items-center min-h-[44px]" onClick={() => router.back()}>← ย้อนกลับ</button>
+        <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="font-mono text-lg font-bold text-gray-900">{grn.grn_number}</span>
+              <span className="ml-2 inline-block"><StatusBadge status={grn.status} /></span>
+            </div>
+            <button
+              onClick={() => setHeaderExpanded(v => !v)}
+              className="p-2 text-gray-500 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-gray-50"
+              aria-label="ขยายรายละเอียด"
+            >
+              <ChevronDown className={`w-5 h-5 transition-transform duration-200 ${headerExpanded ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
+          <div className="text-sm text-gray-600 mt-1">คลัง: {grn.warehouse_code} · {formatDate(grn.received_date)}</div>
+
+          {headerExpanded && (
+            <div className="mt-3 space-y-2 text-sm text-gray-600 border-t border-gray-100 pt-3">
+              <div>
+                <span className="text-gray-400">แหล่งที่มา: </span>
+                <span className="font-medium text-gray-800 uppercase">{grn.source_type}</span>
+              </div>
+              <div>
+                <span className="text-gray-400">{grn.inbound_order_id ? 'ใบส่งสินค้า (IO): ' : 'ใบสั่งซื้อ (PO): '}</span>
+                {grn.inbound_order_id ? (
+                  <Link href={`/app/inbound-orders/${grn.inbound_order_id}`} className="font-mono font-medium text-blue-600 hover:underline">{grn.io_number ?? '—'}</Link>
+                ) : grn.po_id ? (
+                  <Link href={`/app/purchase-orders/${grn.po_id}`} className="font-mono font-medium text-blue-600 hover:underline">{grn.po_number ?? '—'}</Link>
+                ) : (
+                  <span className="font-medium text-gray-800">—</span>
+                )}
+              </div>
+              <div>
+                <span className="text-gray-400">ผู้รับ: </span>
+                <span className="font-medium text-gray-800">{grn.received_by_name ?? '—'}</span>
+              </div>
+            </div>
+          )}
         </div>
-        <StatusBadge status={grn.status} />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {[
-          { label: grn.inbound_order_id ? 'เลข IO' : 'เลข PO', value: grn.io_number ?? grn.po_number, href: grn.inbound_order_id ? `/app/inbound-orders/${grn.inbound_order_id}` : (grn.po_id ? `/app/purchase-orders/${grn.po_id}` : undefined) },
-          { label: 'คลังสินค้า', value: `${grn.warehouse_code} — ${grn.warehouse_name}` },
-          { label: 'ผู้รับ', value: grn.received_by_name },
-          { label: 'วันที่รับ', value: formatDate(grn.received_date) },
-        ].map((f) => (
-          <div key={f.label} className="rounded-lg bg-white border border-gray-100 p-4">
-            <p className="text-xs text-gray-400 mb-1">{f.label}</p>
-            {f.href ? (
-              <Link href={f.href} className="text-sm font-medium text-blue-600 hover:underline font-mono">{f.value}</Link>
-            ) : (
-              <p className="text-sm font-medium">{f.value || '—'}</p>
-            )}
+      {/* Desktop Header (hidden md:block) */}
+      <div className="hidden md:block">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <button className="text-sm text-gray-500 hover:underline mb-1" onClick={() => router.back()}>← ย้อนกลับ</button>
+            <h1 className="text-2xl font-bold text-gray-900 font-mono">{grn.grn_number}</h1>
           </div>
-        ))}
+          <StatusBadge status={grn.status} />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {[
+            { label: grn.inbound_order_id ? 'เลข IO' : 'เลข PO', value: grn.io_number ?? grn.po_number, href: grn.inbound_order_id ? `/app/inbound-orders/${grn.inbound_order_id}` : (grn.po_id ? `/app/purchase-orders/${grn.po_id}` : undefined) },
+            { label: 'คลังสินค้า', value: `${grn.warehouse_code} — ${grn.warehouse_name}` },
+            { label: 'ผู้รับ', value: grn.received_by_name },
+            { label: 'วันที่รับ', value: formatDate(grn.received_date) },
+          ].map((f) => (
+            <div key={f.label} className="rounded-lg bg-white border border-gray-100 p-4">
+              <p className="text-xs text-gray-400 mb-1">{f.label}</p>
+              {f.href ? (
+                <Link href={f.href} className="text-sm font-medium text-blue-600 hover:underline font-mono">{f.value}</Link>
+              ) : (
+                <p className="text-sm font-medium">{f.value || '—'}</p>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Forms and Tables */}
       {grn.status === 'draft' ? (
-        <div className="rounded-xl bg-white shadow-sm border border-emerald-100 p-6 mb-6">
-          <div className="flex justify-between items-center mb-6">
+        <div className="rounded-xl bg-white shadow-sm border border-emerald-100 p-4 md:p-6 mb-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <h2 className="text-lg font-semibold text-emerald-800 flex items-center gap-2">
               <ScanLine className="w-5 h-5" /> บันทึกรับสินค้า (Work Card)
             </h2>
-            <div className="w-1/3">
+            <div className="w-full md:w-1/3">
               <label className={LABEL_CLS}>คลังรับสินค้า / Receiving Warehouse</label>
               <select
                 value={workCard.warehouse_id}
                 onChange={(e) => setWorkCard((wc) => ({ ...wc, warehouse_id: e.target.value }))}
-                className={FIELD_CLS}
+                className={`${FIELD_CLS} text-base md:text-[14px]`}
               >
                 {warehouses.map((w) => (
                   <option key={w.id} value={w.id}>{w.code} — {w.name_th}</option>
@@ -300,27 +348,74 @@ export default function GRNDetailPage() {
             </div>
           </div>
 
-          <table className="w-full text-sm mb-4 border-t border-stone-200">
-            <thead className="bg-stone-50">
-              <tr>
-                <th className="text-left p-3 font-medium text-stone-600">SKU</th>
-                <th className="text-left p-3 font-medium text-stone-600">สินค้า</th>
-                <th className="text-right p-3 font-medium text-stone-600 w-32">ที่สั่ง / คาดว่าจะรับ</th>
-                <th className="text-right p-3 font-medium text-stone-600 w-32">จำนวนที่รับ</th>
-                <th className="text-left p-3 font-medium text-stone-600 w-40">โลเคชั่น</th>
-              </tr>
-            </thead>
-            <tbody>
-              {grn.lines?.map((line) => {
-                const wl = workCard.lines.find(l => l.id === line.id) || { qty_received: 0, storage_location: '' };
-                return (
-                  <tr key={line.id} className="border-b border-stone-100">
-                    <td className="p-3 font-mono text-xs text-stone-500">{line.sku}</td>
-                    <td className="p-3 font-medium text-stone-800">{line.name_th}</td>
-                    <td className="p-3 text-right font-mono text-stone-500">
-                      {line.qty_expected != null ? formatQty(line.qty_expected) : '—'} <span className="text-[11px] text-stone-400">{line.uom_code}</span>
-                    </td>
-                    <td className="p-3 text-right">
+          {/* Desktop Work Card Table */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-sm mb-4 border-t border-stone-200">
+              <thead className="bg-stone-50">
+                <tr>
+                  <th className="text-left p-3 font-medium text-stone-600">SKU</th>
+                  <th className="text-left p-3 font-medium text-stone-600">สินค้า</th>
+                  <th className="text-right p-3 font-medium text-stone-600 w-32">ที่สั่ง / คาดว่าจะรับ</th>
+                  <th className="text-right p-3 font-medium text-stone-600 w-32">จำนวนที่รับ</th>
+                  <th className="text-left p-3 font-medium text-stone-600 w-40">โลเคชั่น</th>
+                </tr>
+              </thead>
+              <tbody>
+                {grn.lines?.map((line) => {
+                  const wl = workCard.lines.find(l => l.id === line.id) || { qty_received: 0, storage_location: '' };
+                  return (
+                    <tr key={line.id} className="border-b border-stone-100">
+                      <td className="p-3 font-mono text-xs text-stone-500">{line.sku}</td>
+                      <td className="p-3 font-medium text-stone-800">{line.name_th}</td>
+                      <td className="p-3 text-right font-mono text-stone-500">
+                        {line.qty_expected != null ? formatQty(line.qty_expected) : '—'} <span className="text-[11px] text-stone-400">{line.uom_code}</span>
+                      </td>
+                      <td className="p-3 text-right">
+                        <input
+                          type="number" min="0" step="any"
+                          value={wl.qty_received || ''}
+                          onChange={(e) => setWorkCard(wc => ({
+                            ...wc,
+                            lines: wc.lines.map(l => l.id === line.id ? { ...l, qty_received: parseFloat(e.target.value) || 0 } : l)
+                          }))}
+                          className="w-full text-right rounded-[6px] border border-stone-200 px-2 py-1.5 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400"
+                        />
+                        {wl.qty_received > 0 && line.qty_expected != null && wl.qty_received > line.qty_expected && (
+                          <p className="text-[11px] text-amber-600 text-right mt-0.5 tabular-nums">
+                            เกินที่สั่ง +{(wl.qty_received - Number(line.qty_expected)).toFixed(0)} {line.uom_code}
+                          </p>
+                        )}
+                      </td>
+                      <td className="p-3">
+                        <input
+                          type="text" placeholder="A-01"
+                          value={wl.storage_location}
+                          onChange={(e) => setWorkCard(wc => ({
+                            ...wc,
+                            lines: wc.lines.map(l => l.id === line.id ? { ...l, storage_location: e.target.value } : l)
+                          }))}
+                          className="w-full rounded-[6px] border border-stone-200 px-2 py-1.5 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400"
+                        />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Work Card Cards */}
+          <div className="md:hidden space-y-3 mb-4">
+            {grn.lines?.map((line) => {
+              const wl = workCard.lines.find(l => l.id === line.id) || { qty_received: 0, storage_location: '' };
+              return (
+                <div key={line.id} className="border border-stone-200 rounded-xl p-4 bg-stone-50/50">
+                  <div className="font-semibold text-stone-900 text-sm mb-1">{line.name_th}</div>
+                  <div className="text-xs text-stone-500 font-mono mb-3">SKU: {line.sku} · สั่ง {line.qty_expected != null ? formatQty(line.qty_expected) : '—'} {line.uom_code}</div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-gray-500 block mb-1">จำนวนที่รับ *</label>
                       <input
                         type="number" min="0" step="any"
                         value={wl.qty_received || ''}
@@ -328,30 +423,31 @@ export default function GRNDetailPage() {
                           ...wc,
                           lines: wc.lines.map(l => l.id === line.id ? { ...l, qty_received: parseFloat(e.target.value) || 0 } : l)
                         }))}
-                        className="w-full text-right rounded-[6px] border border-stone-200 px-2 py-1.5 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400"
+                        className="w-full text-right rounded-lg border border-stone-300 px-3 py-2 text-base bg-white"
                       />
                       {wl.qty_received > 0 && line.qty_expected != null && wl.qty_received > line.qty_expected && (
                         <p className="text-[11px] text-amber-600 text-right mt-0.5 tabular-nums">
-                          เกินที่สั่ง +{(wl.qty_received - Number(line.qty_expected)).toFixed(0)} {line.uom_code}
+                          เกินที่สั่ง +{(wl.qty_received - Number(line.qty_expected)).toFixed(0)}
                         </p>
                       )}
-                    </td>
-                    <td className="p-3">
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 block mb-1">ตำแหน่งเก็บ / โลเคชั่น</label>
                       <input
-                        type="text" placeholder="A-01"
+                        type="text" placeholder="เช่น A-01"
                         value={wl.storage_location}
                         onChange={(e) => setWorkCard(wc => ({
                           ...wc,
                           lines: wc.lines.map(l => l.id === line.id ? { ...l, storage_location: e.target.value } : l)
                         }))}
-                        className="w-full rounded-[6px] border border-stone-200 px-2 py-1.5 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400"
+                        className="w-full rounded-lg border border-stone-300 px-3 py-2 text-base bg-white"
                       />
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
 
           {/* Extra / bonus items search */}
           <div className="mt-6 mb-2">
@@ -362,7 +458,7 @@ export default function GRNDetailPage() {
                 placeholder="ค้นหาสินค้าด้วยชื่อหรือ SKU..."
                 value={productSearch}
                 onChange={(e) => setProductSearch(e.target.value)}
-                className={FIELD_CLS}
+                className={`${FIELD_CLS} text-base md:text-[14px]`}
               />
               <Search className="absolute right-3 top-2.5 w-4 h-4 text-stone-400" />
               {searchResults.length > 0 && (
@@ -387,183 +483,326 @@ export default function GRNDetailPage() {
           </div>
 
           {extraLines.length > 0 && (
-            <table className="w-full text-[13px] mb-4 border-t border-dashed border-amber-200 mt-4">
-              <thead className="bg-amber-50">
-                <tr>
-                  <th className="px-3 py-2 text-left font-medium text-amber-800">สินค้าเพิ่มเติม (ไม่ได้สั่ง)</th>
-                  <th className="px-3 py-2 text-right font-medium text-stone-600 w-32">จำนวนที่รับ</th>
-                  <th className="px-3 py-2 text-left font-medium text-stone-600 w-40">โลเคชั่น</th>
-                  <th className="w-10"></th>
-                </tr>
-              </thead>
-              <tbody>
+            <>
+              {/* Desktop view */}
+              <div className="hidden md:block">
+                <table className="w-full text-[13px] mb-4 border-t border-dashed border-amber-200 mt-4">
+                  <thead className="bg-amber-50">
+                    <tr>
+                      <th className="px-3 py-2 text-left font-medium text-amber-800">สินค้าเพิ่มเติม (ไม่ได้สั่ง)</th>
+                      <th className="px-3 py-2 text-right font-medium text-stone-600 w-32">จำนวนที่รับ</th>
+                      <th className="px-3 py-2 text-left font-medium text-stone-600 w-40">โลเคชั่น</th>
+                      <th className="w-10"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {extraLines.map((el, i) => (
+                      <tr key={i} className="border-b border-stone-100">
+                        <td className="px-3 py-2">
+                          <span className="font-mono text-[11px] text-stone-500 block">{el.sku}</span>
+                          <span className="font-medium text-stone-800">{el.name_th}</span>
+                        </td>
+                        <td className="px-3 py-2">
+                          <input
+                            type="number" min="0.01" step="any"
+                            value={el.qty_received || ''}
+                            onChange={(e) => setExtraLines((prev) =>
+                              prev.map((l, idx) => idx === i ? { ...l, qty_received: parseFloat(e.target.value) || 0 } : l)
+                            )}
+                            className="w-full bg-white border border-stone-200 rounded-[6px] px-2 py-1.5 text-[13px] text-right outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+                          />
+                        </td>
+                        <td className="px-3 py-2">
+                          <input
+                            type="text" placeholder="A-01-02"
+                            value={el.storage_location}
+                            onChange={(e) => setExtraLines((prev) =>
+                              prev.map((l, idx) => idx === i ? { ...l, storage_location: e.target.value } : l)
+                            )}
+                            className="w-full bg-white border border-stone-200 rounded-[6px] px-2 py-1.5 text-[13px] outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+                          />
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          <button
+                            onClick={() => setExtraLines((prev) => prev.filter((_, idx) => idx !== i))}
+                            className="text-red-400 hover:text-red-600 p-1"
+                          ><Trash2 className="w-4 h-4" /></button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile view */}
+              <div className="md:hidden space-y-3 mb-4">
+                <p className="text-sm font-semibold text-amber-800 border-b border-amber-100 pb-2">สินค้าเพิ่มเติม (ไม่ได้สั่ง)</p>
                 {extraLines.map((el, i) => (
-                  <tr key={i} className="border-b border-stone-100">
-                    <td className="px-3 py-2">
-                      <span className="font-mono text-[11px] text-stone-500 block">{el.sku}</span>
-                      <span className="font-medium text-stone-800">{el.name_th}</span>
-                    </td>
-                    <td className="px-3 py-2">
-                      <input
-                        type="number" min="0.01" step="any"
-                        value={el.qty_received || ''}
-                        onChange={(e) => setExtraLines((prev) =>
-                          prev.map((l, idx) => idx === i ? { ...l, qty_received: parseFloat(e.target.value) || 0 } : l)
-                        )}
-                        className="w-full bg-white border border-stone-200 rounded-[6px] px-2 py-1.5 text-[13px] text-right outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
-                      />
-                    </td>
-                    <td className="px-3 py-2">
-                      <input
-                        type="text" placeholder="A-01-02"
-                        value={el.storage_location}
-                        onChange={(e) => setExtraLines((prev) =>
-                          prev.map((l, idx) => idx === i ? { ...l, storage_location: e.target.value } : l)
-                        )}
-                        className="w-full bg-white border border-stone-200 rounded-[6px] px-2 py-1.5 text-[13px] outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
-                      />
-                    </td>
-                    <td className="px-3 py-2 text-center">
-                      <button
-                        onClick={() => setExtraLines((prev) => prev.filter((_, idx) => idx !== i))}
-                        className="text-red-400 hover:text-red-600 p-1"
-                      ><Trash2 className="w-4 h-4" /></button>
-                    </td>
-                  </tr>
+                  <div key={i} className="border border-amber-200 rounded-xl p-4 bg-amber-50/20 relative">
+                    <button
+                      onClick={() => setExtraLines((prev) => prev.filter((_, idx) => idx !== i))}
+                      className="absolute top-2 right-2 text-red-500 hover:text-red-700 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg bg-stone-100/50"
+                      aria-label="ลบสินค้า"
+                    >
+                      <Trash2 className="w-4.5 h-4.5" />
+                    </button>
+                    <div className="font-semibold text-stone-900 text-sm mb-1">{el.name_th}</div>
+                    <div className="text-xs text-stone-500 font-mono mb-3">SKU: {el.sku}</div>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs text-gray-500 block mb-1">จำนวนที่รับ *</label>
+                        <input
+                          type="number" min="0.01" step="any"
+                          value={el.qty_received || ''}
+                          onChange={(e) => setExtraLines((prev) =>
+                            prev.map((l, idx) => idx === i ? { ...l, qty_received: parseFloat(e.target.value) || 0 } : l)
+                          )}
+                          className="w-full text-right rounded-lg border border-stone-300 px-3 py-2 text-base bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-500 block mb-1">ตำแหน่งเก็บ / โลเคชั่น</label>
+                        <input
+                          type="text" placeholder="เช่น A-01-02"
+                          value={el.storage_location}
+                          onChange={(e) => setExtraLines((prev) =>
+                            prev.map((l, idx) => idx === i ? { ...l, storage_location: e.target.value } : l)
+                          )}
+                          className="w-full rounded-lg border border-stone-300 px-3 py-2 text-base bg-white"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 ))}
-              </tbody>
-            </table>
+              </div>
+            </>
           )}
 
           <div className="flex justify-end mt-6">
-            <Button onClick={handleReceive} loading={acting} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+            <Button onClick={handleReceive} loading={acting} className="w-full md:w-auto bg-emerald-600 hover:bg-emerald-700 text-white min-h-[44px]">
               รับลงสินค้า
             </Button>
           </div>
         </div>
       ) : showQC ? (
-        <div className="rounded-xl bg-white shadow-sm border border-gray-100 p-6 mb-6">
+        <div className="rounded-xl bg-white shadow-sm border border-gray-100 p-4 md:p-6 mb-6">
           <h2 className="text-sm font-semibold text-gray-700 mb-4">QC Review</h2>
-          <table className="w-full text-sm mb-4">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="text-left p-2 font-medium">SKU / สินค้า</th>
-                <th className="text-right p-2 font-medium w-24">รับมา</th>
-                <th className="text-right p-2 font-medium w-24">ยอมรับ</th>
-                <th className="text-right p-2 font-medium w-24">ปฏิเสธ</th>
-                <th className="p-2 font-medium w-28">ผล QC</th>
-              </tr>
-            </thead>
-            <tbody>
-              {grn.lines?.map((l, i) => (
-                <tr key={l.id} className="border-t">
-                  <td className="p-2">
-                    <div className="font-mono text-xs">{l.sku}</div>
-                    <div>{l.name_th}</div>
-                  </td>
-                  <td className="p-2 text-right">{l.qty_received}</td>
-                  <td className="p-2">
+          
+          {/* Desktop QC Table */}
+          <div className="hidden md:block overflow-x-auto mb-4">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="text-left p-2 font-medium">SKU / สินค้า</th>
+                  <th className="text-right p-2 font-medium w-24">รับมา</th>
+                  <th className="text-right p-2 font-medium w-24">ยอมรับ</th>
+                  <th className="text-right p-2 font-medium w-24">ปฏิเสธ</th>
+                  <th className="p-2 font-medium w-28">ผล QC</th>
+                </tr>
+              </thead>
+              <tbody>
+                {grn.lines?.map((l, i) => (
+                  <tr key={l.id} className="border-t">
+                    <td className="p-2">
+                      <div className="font-mono text-xs">{l.sku}</div>
+                      <div>{l.name_th}</div>
+                    </td>
+                    <td className="p-2 text-right">{l.qty_received}</td>
+                    <td className="p-2">
+                      <input type="number" min="0" step="any" value={qcLines[i]?.qty_accepted ?? 0}
+                        onChange={(e) => updateQcLine(i, 'qty_accepted', parseFloat(e.target.value) || 0)}
+                        className="w-full text-right rounded border px-2 py-1" />
+                    </td>
+                    <td className="p-2">
+                      <input type="number" min="0" step="any" value={qcLines[i]?.qty_rejected ?? 0}
+                        onChange={(e) => updateQcLine(i, 'qty_rejected', parseFloat(e.target.value) || 0)}
+                        className="w-full text-right rounded border px-2 py-1" />
+                    </td>
+                    <td className="p-2">
+                      <select value={qcLines[i]?.qc_status ?? 'pass'}
+                        onChange={(e) => updateQcLine(i, 'qc_status', e.target.value)}
+                        className="w-full rounded border px-2 py-1 text-sm">
+                        <option value="pass">ผ่าน</option>
+                        <option value="partial">บางส่วน</option>
+                        <option value="fail">ไม่ผ่าน</option>
+                      </select>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile QC Cards */}
+          <div className="md:hidden space-y-4 mb-4">
+            {grn.lines?.map((l, i) => (
+              <div key={l.id} className="border border-stone-200 rounded-xl p-4 bg-stone-50/50">
+                <div className="font-semibold text-stone-900 text-sm mb-1">{l.name_th}</div>
+                <div className="text-xs text-stone-500 font-mono mb-3">SKU: {l.sku} · รับมา {l.qty_received} {l.uom_code}</div>
+                
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <div>
+                    <label className="text-xs text-gray-500 block mb-1">ยอมรับ (Accept) *</label>
                     <input type="number" min="0" step="any" value={qcLines[i]?.qty_accepted ?? 0}
                       onChange={(e) => updateQcLine(i, 'qty_accepted', parseFloat(e.target.value) || 0)}
-                      className="w-full text-right rounded border px-2 py-1" />
-                  </td>
-                  <td className="p-2">
+                      className="w-full text-right rounded-lg border border-stone-300 px-3 py-2 text-base bg-white" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500 block mb-1">ปฏิเสธ (Reject)</label>
                     <input type="number" min="0" step="any" value={qcLines[i]?.qty_rejected ?? 0}
                       onChange={(e) => updateQcLine(i, 'qty_rejected', parseFloat(e.target.value) || 0)}
-                      className="w-full text-right rounded border px-2 py-1" />
-                  </td>
-                  <td className="p-2">
-                    <select value={qcLines[i]?.qc_status ?? 'pass'}
-                      onChange={(e) => updateQcLine(i, 'qc_status', e.target.value)}
-                      className="w-full rounded border px-2 py-1 text-sm">
-                      <option value="pass">ผ่าน</option>
-                      <option value="partial">บางส่วน</option>
-                      <option value="fail">ไม่ผ่าน</option>
-                    </select>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <Input label="หมายเหตุ QC" value={qcNotes} onChange={(e) => setQcNotes(e.target.value)} />
+                      className="w-full text-right rounded-lg border border-stone-300 px-3 py-2 text-base bg-white" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs text-gray-500 block mb-1">ผลการตรวจสอบ (QC Status)</label>
+                  <select value={qcLines[i]?.qc_status ?? 'pass'}
+                    onChange={(e) => updateQcLine(i, 'qc_status', e.target.value)}
+                    className="w-full rounded-lg border border-stone-300 px-3 py-2 text-base bg-white">
+                    <option value="pass">ผ่าน (Pass)</option>
+                    <option value="partial">บางส่วน (Partial)</option>
+                    <option value="fail">ไม่ผ่าน (Fail)</option>
+                  </select>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <Input label="หมายเหตุ QC" value={qcNotes} onChange={(e) => setQcNotes(e.target.value)} className="text-base" />
           <div className="flex gap-3 justify-end mt-4">
-            <Button variant="ghost" onClick={() => setShowQC(false)}>ยกเลิก</Button>
-            <Button onClick={() => action('qc', { qc_notes: qcNotes, lines: qcLines })} loading={acting}>บันทึก QC</Button>
+            <Button variant="ghost" onClick={() => setShowQC(false)} className="flex-1 md:flex-initial min-h-[44px]">ยกเลิก</Button>
+            <Button onClick={() => action('qc', { qc_notes: qcNotes, lines: qcLines })} loading={acting} className="flex-1 md:flex-initial bg-emerald-600 hover:bg-emerald-700 text-white min-h-[44px]">บันทึก QC</Button>
           </div>
         </div>
       ) : (
-        <div className="rounded-xl bg-white shadow-sm border border-gray-100 mb-6 overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="text-left p-3 font-medium">#</th>
-                <th className="text-left p-3 font-medium">SKU</th>
-                <th className="text-left p-3 font-medium min-w-[200px]">สินค้า</th>
-                <th className="text-right p-3 font-medium">คาดหวัง</th>
-                <th className="text-right p-3 font-medium">รับมา</th>
-                <th className="text-right p-3 font-medium">ยอมรับ</th>
-                <th className="text-right p-3 font-medium">ปฏิเสธ</th>
-                <th className="text-right p-3 font-medium">ต้นทุน</th>
-                <th className="text-right p-3 font-medium">รวม</th>
-                <th className="p-3 font-medium">Lot</th>
-                <th className="p-3 font-medium text-center">QC</th>
-              </tr>
-            </thead>
-            <tbody>
-              {grn.lines?.map((l) => (
-                <tr key={l.id} className="border-t hover:bg-gray-50/50">
-                  <td className="p-3 text-gray-400">{l.line_number}</td>
-                  <td className="p-3 font-mono text-xs">{l.sku}</td>
-                  <td className="p-3">{l.name_th}</td>
-                  <td className="p-3 text-right text-stone-500">{l.qty_expected != null ? formatQty(l.qty_expected) : '—'}</td>
-                  <td className="p-3 text-right">{formatQty(l.qty_received)} {l.uom_code}</td>
-                  <td className="p-3 text-right text-green-600">{l.qty_accepted != null ? formatQty(l.qty_accepted) : '—'}</td>
-                  <td className="p-3 text-right text-red-500">{l.qty_rejected != null ? formatQty(l.qty_rejected) : '—'}</td>
-                  <td className="p-3 text-right font-mono text-stone-600">{formatCurrency(l.unit_cost)}</td>
-                  <td className="p-3 text-right font-mono font-medium text-stone-900">{formatCurrency(l.line_total)}</td>
-                  <td className="p-3 text-xs text-gray-500 font-mono">{l.lot_number ?? '—'}</td>
-                  <td className="p-3 text-center">
-                    {l.qc_status ? (
-                      <Badge variant={l.qc_status === 'pass' ? 'green' : l.qc_status === 'partial' ? 'yellow' : 'red'}>
-                        {l.qc_status}
-                      </Badge>
-                    ) : '—'}
-                  </td>
+        <>
+          {/* Desktop Table */}
+          <div className="hidden md:block rounded-xl bg-white shadow-sm border border-gray-100 mb-6 overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="text-left p-3 font-medium">#</th>
+                  <th className="text-left p-3 font-medium">SKU</th>
+                  <th className="text-left p-3 font-medium min-w-[200px]">สินค้า</th>
+                  <th className="text-right p-3 font-medium">คาดหวัง</th>
+                  <th className="text-right p-3 font-medium">รับมา</th>
+                  <th className="text-right p-3 font-medium">ยอมรับ</th>
+                  <th className="text-right p-3 font-medium">ปฏิเสธ</th>
+                  <th className="text-right p-3 font-medium">ต้นทุน</th>
+                  <th className="text-right p-3 font-medium">รวม</th>
+                  <th className="p-3 font-medium">Lot</th>
+                  <th className="p-3 font-medium text-center">QC</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {grn.lines?.map((l) => (
+                  <tr key={l.id} className="border-t hover:bg-gray-50/50">
+                    <td className="p-3 text-gray-400">{l.line_number}</td>
+                    <td className="p-3 font-mono text-xs">{l.sku}</td>
+                    <td className="p-3">{l.name_th}</td>
+                    <td className="p-3 text-right text-stone-500">{l.qty_expected != null ? formatQty(l.qty_expected) : '—'}</td>
+                    <td className="p-3 text-right">{formatQty(l.qty_received)} {l.uom_code}</td>
+                    <td className="p-3 text-right text-green-600">{l.qty_accepted != null ? formatQty(l.qty_accepted) : '—'}</td>
+                    <td className="p-3 text-right text-red-500">{l.qty_rejected != null ? formatQty(l.qty_rejected) : '—'}</td>
+                    <td className="p-3 text-right font-mono text-stone-600">{formatCurrency(l.unit_cost)}</td>
+                    <td className="p-3 text-right font-mono font-medium text-stone-900">{formatCurrency(l.line_total)}</td>
+                    <td className="p-3 text-xs text-gray-500 font-mono">{l.lot_number ?? '—'}</td>
+                    <td className="p-3 text-center">
+                      {l.qc_status ? (
+                        <Badge variant={l.qc_status === 'pass' ? 'green' : l.qc_status === 'partial' ? 'yellow' : 'red'}>
+                          {l.qc_status}
+                        </Badge>
+                      ) : '—'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile line cards */}
+          <div className="md:hidden space-y-3 mb-6">
+            {grn.lines?.map((l) => (
+              <div key={l.id} className="border border-stone-200 rounded-xl p-4 bg-white shadow-sm">
+                <div className="font-semibold text-stone-900 text-sm mb-1">{l.name_th}</div>
+                <div className="text-xs text-stone-500 font-mono mb-3">SKU: {l.sku}</div>
+                <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-[13px] border-t border-stone-100 pt-3">
+                  <div>
+                    <span className="text-stone-400">สั่ง/รับจริง: </span>
+                    <span className="font-medium text-stone-800">{l.qty_expected != null ? formatQty(l.qty_expected) : '—'} / {formatQty(l.qty_received)} {l.uom_code}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-stone-400">ต้นทุน: </span>
+                    <span className="font-mono text-stone-800">{formatCurrency(l.unit_cost)}</span>
+                  </div>
+                  <div>
+                    <span className="text-stone-400">QC ผ่าน/เสีย: </span>
+                    <span className="font-medium text-emerald-600">{l.qty_accepted != null ? formatQty(l.qty_accepted) : '—'}</span> / <span className="font-medium text-red-500">{l.qty_rejected != null ? formatQty(l.qty_rejected) : '—'}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-stone-400">รวมเงิน: </span>
+                    <span className="font-mono font-semibold text-stone-900">{formatCurrency(l.line_total)}</span>
+                  </div>
+                </div>
+                {(l.lot_number || l.qc_status) && (
+                  <div className="flex items-center gap-2 mt-3 pt-2 border-t border-stone-50">
+                    {l.lot_number && (
+                      <span className="text-[11px] font-mono text-stone-600 bg-stone-50 border border-stone-100 rounded px-1.5 py-0.5">
+                        Lot: {l.lot_number}
+                      </span>
+                    )}
+                    {l.qc_status && (
+                      <Badge variant={l.qc_status === 'pass' ? 'green' : l.qc_status === 'partial' ? 'yellow' : 'red'}>
+                        QC: {l.qc_status}
+                      </Badge>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
 
-      <div className="flex gap-3 justify-end flex-wrap">
+      {/* Action buttons with sticky bottom on mobile */}
+      <div className="sticky bottom-0 bg-white border-t border-stone-200 p-3 -mx-4 mt-4 md:static md:mx-0 md:mt-0 md:border-none md:p-0 flex gap-3 justify-end flex-wrap z-10">
+        <Button
+          variant="outline"
+          onClick={() => window.print()}
+          className="flex items-center gap-2 flex-1 md:flex-initial min-h-[44px]"
+        >
+          <Printer className="w-4 h-4" /> พิมพ์ / Print
+        </Button>
+
         {canCreatePO && (
           <Button
             onClick={() => setShowCreatePO(true)}
-            className="bg-stone-900 hover:bg-stone-800 text-white flex items-center gap-2"
+            className="bg-stone-900 hover:bg-stone-800 text-white flex items-center gap-2 flex-1 md:flex-initial min-h-[44px]"
           >
             <ShoppingCart className="w-4 h-4" /> สร้าง PO จาก GR นี้
           </Button>
         )}
 
-        {grn.status === 'received' && (
+        {grn.status === 'received' && isManager && (
           <>
             {grn.inbound_order_id ? (
-              <Button onClick={() => setShowVerify(true)} disabled={!isManager} title={!isManager ? 'Manager/Admin access required' : ''}>
+              <Button onClick={() => setShowVerify(true)} className="flex-1 md:flex-initial min-h-[44px]">
                 ✓ ตรวจสอบความถูกต้อง / Verify
               </Button>
             ) : (
-              <Button onClick={() => setShowQC(true)} disabled={!isManager} title={!isManager ? 'Manager/Admin access required' : ''}>
+              <Button onClick={() => setShowQC(true)} className="flex-1 md:flex-initial min-h-[44px]">
                 เริ่ม QC / Quality Control
               </Button>
             )}
           </>
         )}
 
-        {['qc_passed', 'verified'].includes(grn.status) && (
-          <Button onClick={() => action('stock')} loading={acting} disabled={!isManager} title={!isManager ? 'Manager/Admin access required' : ''}>
+        {['qc_passed', 'verified'].includes(grn.status) && isManager && (
+          <Button onClick={() => action('stock')} loading={acting} className="flex-1 md:flex-initial min-h-[44px]">
             นำเข้าคลัง / Stock In
           </Button>
         )}
@@ -575,12 +814,12 @@ export default function GRNDetailPage() {
           <ModalBody>
             <div className="space-y-4">
               <p className="text-sm text-gray-600">กรุณายืนยันว่ารายการสินค้าและจำนวนที่รับเข้ามา ถูกต้องตามใบส่งของ (Delivery Bill) ของผู้จำหน่าย</p>
-              <Input label="หมายเหตุการตรวจสอบ (ไม่บังคับ)" value={verifyNotes} onChange={(e) => setVerifyNotes(e.target.value)} placeholder="เช่น ตรวจสอบแล้วตรงตามบิล..." />
+              <Input label="หมายเหตุการตรวจสอบ (ไม่บังคับ)" value={verifyNotes} onChange={(e) => setVerifyNotes(e.target.value)} placeholder="เช่น ตรวจสอบแล้วตรงตามบิล..." className="text-base" />
             </div>
           </ModalBody>
           <ModalFooter>
-            <Button variant="ghost" onClick={() => setShowVerify(false)}>ยกเลิก</Button>
-            <Button onClick={() => action('verify', { verification_notes: verifyNotes })} loading={acting}>ยืนยันความถูกต้อง</Button>
+            <Button variant="ghost" onClick={() => setShowVerify(false)} className="min-h-[44px]">ยกเลิก</Button>
+            <Button onClick={() => action('verify', { verification_notes: verifyNotes })} loading={acting} className="min-h-[44px]">ยืนยันความถูกต้อง</Button>
           </ModalFooter>
         </Modal>
       )}
@@ -597,24 +836,27 @@ export default function GRNDetailPage() {
                 onChange={(e) => setPoData(prev => ({ ...prev, vendor_id: e.target.value }))}
                 options={vendors.map(v => ({ value: v.id, label: `${v.code} — ${v.name_th}` }))}
                 disabled={!!grn.vendor_id}
+                className="text-base"
               />
               <Input
                 label="เครดิต (จำนวนวัน)"
                 type="number"
                 value={poData.payment_terms_days}
                 onChange={(e) => setPoData(prev => ({ ...prev, payment_terms_days: parseInt(e.target.value) || 0 }))}
+                className="text-base"
               />
               <Input
                 label="หมายเหตุ PO"
                 value={poData.notes}
                 onChange={(e) => setPoData(prev => ({ ...prev, notes: e.target.value }))}
-                placeholder="ระบุเหตุผลหรือเลขอ้างอิงบิล..."
+                placeholder="ระบุเหตุผลหรือเลอ่ะอ้างอิงบิล..."
+                className="text-base"
               />
             </div>
           </ModalBody>
           <ModalFooter>
-            <Button variant="ghost" onClick={() => setShowCreatePO(false)}>ยกเลิก</Button>
-            <Button onClick={handleCreatePO} loading={acting} className="bg-stone-900 text-white">ยืนยันสร้าง PO</Button>
+            <Button variant="ghost" onClick={() => setShowCreatePO(false)} className="min-h-[44px]">ยกเลิก</Button>
+            <Button onClick={handleCreatePO} loading={acting} className="bg-stone-900 text-white min-h-[44px]">ยืนยันสร้าง PO</Button>
           </ModalFooter>
         </Modal>
       )}
