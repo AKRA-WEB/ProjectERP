@@ -970,49 +970,49 @@ function NewGRNPageInner() {
       </div>
 
       {/* ═══ MOBILE VIEW (< md) ═══ */}
-      <div className="block md:hidden flex flex-col min-h-screen bg-stone-950 text-stone-100 pb-28">
+      <div className="flex flex-col md:hidden min-h-screen bg-stone-50 text-stone-900 pb-28">
         {/* Sticky Mobile Header + Warehouse Container */}
-        <div className="sticky top-0 z-30 bg-stone-900 border-b border-stone-800/80 shadow-md">
+        <div className="sticky top-0 z-30 bg-white border-b border-stone-200 shadow-sm">
           {/* Mobile Header */}
           <div className="px-4 py-3.5 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={() => router.back()}
-                className="w-11 h-11 flex items-center justify-center rounded-full bg-stone-800 border border-stone-700 text-stone-200 active:scale-90 transition-all"
+                className="w-11 h-11 flex items-center justify-center rounded-full bg-stone-100 border border-stone-200 text-stone-700 active:scale-90 transition-all"
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-extrabold text-emerald-400 bg-emerald-950/60 border border-emerald-900 rounded-md px-1.5 py-0.5 uppercase tracking-wider font-mono">
+                  <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-1.5 py-0.5 uppercase tracking-wider font-mono">
                     IO RECEIVING
                   </span>
                   {isW2Warehouse && (
-                    <span className="text-[10px] font-extrabold text-amber-400 bg-amber-950/60 border border-amber-900 rounded-md px-1.5 py-0.5 uppercase">W2</span>
+                    <span className="text-[10px] font-extrabold text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-1.5 py-0.5 uppercase">W2</span>
                   )}
                 </div>
-                <h1 className="text-[15px] font-extrabold text-white mt-1 leading-tight font-mono flex items-center gap-1">
+                <h1 className="text-[15px] font-extrabold text-stone-900 mt-1 leading-tight font-mono flex items-center gap-1">
                   <Barcode className="w-4 h-4 text-emerald-400" /> {docNumber}
                 </h1>
               </div>
             </div>
             <div className="text-right">
               <span className="text-[10px] font-bold text-stone-500 block uppercase">Vendor</span>
-              <span className="text-[12px] font-bold text-white block truncate max-w-[120px]">{vendorName}</span>
+              <span className="text-[12px] font-bold text-stone-800 block truncate max-w-[120px]">{vendorName}</span>
             </div>
           </div>
 
           {/* Sticky Mobile Warehouse Selector */}
-          <div className="px-4 pb-3.5 pt-1 border-t border-stone-850 flex items-center justify-between gap-3 bg-stone-900">
-            <label className="text-[11px] font-bold text-stone-400 uppercase tracking-wider whitespace-nowrap">
+          <div className="px-4 pb-3.5 pt-1 border-t border-stone-100 flex items-center justify-between gap-3 bg-white">
+            <label className="text-[11px] font-bold text-stone-500 uppercase tracking-wider whitespace-nowrap">
               คลังสินค้า / Warehouse
             </label>
             <select
               disabled={mode === 'io'}
               value={warehouseId}
               onChange={(e) => setWarehouseId(e.target.value)}
-              className="flex-1 h-11 px-3 text-base rounded-xl bg-stone-950 border border-stone-800 text-white focus:outline-none focus:border-emerald-600 disabled:opacity-50"
+              className="flex-1 h-11 px-3 text-base rounded-xl bg-white border border-stone-300 text-stone-800 focus:outline-none focus:border-emerald-600 disabled:opacity-50"
             >
               <option value="">เลือกคลังสินค้า...</option>
               {warehouseList.map((wh) => (
@@ -1025,15 +1025,15 @@ function NewGRNPageInner() {
         {/* Info & Header Inputs inside expanding Drawer/Card */}
         <div className="px-4 pt-4 space-y-4">
           {/* Progress bar */}
-          <div className="bg-stone-900/60 border border-stone-800 rounded-2xl p-3.5 shadow-sm space-y-2">
-            <div className="flex items-center justify-between text-xs font-bold text-stone-400">
+          <div className="bg-white border border-stone-200 rounded-2xl p-3.5 shadow-sm space-y-2">
+            <div className="flex items-center justify-between text-xs font-bold text-stone-500">
               <span className="flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
                 ความคืบหน้าการรับของ
               </span>
-              <span className="font-mono text-emerald-400">{itemsSuccessCount}/{lines.length} SKU สำเร็จ</span>
+              <span className="font-mono text-emerald-600">{itemsSuccessCount}/{lines.length} SKU สำเร็จ</span>
             </div>
-            <div className="w-full h-3 bg-stone-800 rounded-full overflow-hidden p-0.5 border border-stone-700/60">
+            <div className="w-full h-3 bg-stone-200 rounded-full overflow-hidden p-0.5 border border-stone-200">
               <div
                 className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.4)] transition-all duration-300 ease-out"
                 style={{ width: `${progressPercent}%` }}
@@ -1042,16 +1042,16 @@ function NewGRNPageInner() {
           </div>
 
           {/* Scan Zone */}
-          <div className="bg-stone-900 border border-stone-800/80 rounded-2xl p-4.5 text-center relative overflow-hidden flex flex-col items-center justify-center select-none shadow-inner group">
+          <div className="bg-stone-100 border border-stone-200 rounded-2xl p-4.5 text-center relative overflow-hidden flex flex-col items-center justify-center select-none shadow-inner group">
             {/* Visual scan laser animation */}
             <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-0.5 bg-emerald-500/80 shadow-[0_0_6px_#10b981] animate-pulse z-10" />
-            <div className="absolute inset-0 bg-stone-950/20 opacity-40 mix-blend-overlay bg-[linear-gradient(rgba(18,16,16,0)_50%,_rgba(0,0,0,0.25)_50%),_linear-gradient(90deg,_rgba(255,0,0,0.06),_rgba(0,255,0,0.02),_rgba(0,0,255,0.06))] bg-[size:100%_4px,_6px_100%]" />
+            <div className="absolute inset-0 opacity-20 bg-[linear-gradient(rgba(18,16,16,0)_50%,_rgba(0,0,0,0.05)_50%)] bg-[size:100%_4px]" />
 
-            <div className="w-12 h-12 bg-stone-950 rounded-2xl border border-stone-800 flex items-center justify-center mb-2 z-10 group-hover:scale-105 transition-transform">
-              <Barcode className="w-6 h-6 text-emerald-400" />
+            <div className="w-12 h-12 bg-white rounded-2xl border border-stone-300 flex items-center justify-center mb-2 z-10 group-hover:scale-105 transition-transform">
+              <Barcode className="w-6 h-6 text-emerald-600" />
             </div>
-            <p className="text-xs font-bold text-white z-10">จำลองการยิงสแกนรับสินค้า</p>
-            <p className="text-[10px] text-stone-400 mt-0.5 z-10">สแกน SKU สินค้าเพื่อสลับเป็นตัวทำงานทันที</p>
+            <p className="text-xs font-bold text-stone-700 z-10">จำลองการยิงสแกนรับสินค้า</p>
+            <p className="text-[10px] text-stone-500 mt-0.5 z-10">สแกน SKU สินค้าเพื่อสลับเป็นตัวทำงานทันที</p>
 
             {showSimulatedScanner ? (
               <form onSubmit={handleSimulatedScanSubmit} className="w-full mt-3 flex gap-2 z-10 relative">
@@ -1060,7 +1060,7 @@ function NewGRNPageInner() {
                   placeholder="พิมพ์บาร์โค้ด / SKU..."
                   value={simulatedBarcode}
                   onChange={(e) => setSimulatedBarcode(e.target.value)}
-                  className="flex-1 h-11 px-3 rounded-xl bg-stone-950 border border-emerald-800 focus:outline-none focus:border-emerald-500 text-base font-mono text-white text-center"
+                  className="flex-1 h-11 px-3 rounded-xl bg-white border border-stone-300 focus:outline-none focus:border-emerald-500 text-base font-mono text-stone-900 text-center"
                   autoFocus
                 />
                 <button
@@ -1074,7 +1074,7 @@ function NewGRNPageInner() {
               <button
                 type="button"
                 onClick={() => setShowSimulatedScanner(true)}
-                className="mt-3 px-4 h-11 bg-stone-950 border border-stone-800 rounded-xl text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-all flex items-center gap-1.5 active:scale-95 z-10"
+                className="mt-3 px-4 h-11 bg-white border border-stone-300 rounded-xl text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-all flex items-center gap-1.5 active:scale-95 z-10"
               >
                 <Camera className="w-3.5 h-3.5" />
                 จำลองยิงบาร์โค้ด (Camera/Sim)
@@ -1083,8 +1083,8 @@ function NewGRNPageInner() {
           </div>
 
           {/* ATA Header Fields Card for Mobile */}
-          <div className="bg-stone-900 border border-stone-800 rounded-2xl p-4 space-y-3.5">
-            <p className="text-[11.5px] font-extrabold text-stone-400 uppercase tracking-wider border-b border-stone-800 pb-2">
+          <div className="bg-white border border-stone-200 rounded-2xl p-4 space-y-3.5 shadow-sm">
+            <p className="text-[11.5px] font-extrabold text-stone-500 uppercase tracking-wider border-b border-stone-200 pb-2">
               📋 ข้อมูลรับเอกสาร / ATA Header
             </p>
             <div className="space-y-3.5">
@@ -1096,7 +1096,7 @@ function NewGRNPageInner() {
                   placeholder="วว/ดด/ปปปป"
                   value={receivedDate}
                   onChange={(e) => setReceivedDate(e.target.value)}
-                  className="w-full h-11 px-3 text-base font-mono rounded-lg bg-stone-950 border border-stone-800 text-white focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600/30"
+                  className="w-full h-11 px-3 text-base font-mono rounded-lg bg-white border border-stone-300 text-stone-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600/30"
                 />
               </div>
               <div>
@@ -1106,7 +1106,7 @@ function NewGRNPageInner() {
                   placeholder="ชื่อผู้รับลงสินค้า..."
                   value={receivedByNames}
                   onChange={(e) => setReceivedByNames(e.target.value)}
-                  className="w-full h-11 px-3 text-base rounded-lg bg-stone-950 border border-stone-800 text-white focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600/30"
+                  className="w-full h-11 px-3 text-base rounded-lg bg-white border border-stone-300 text-stone-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600/30"
                 />
               </div>
             </div>
@@ -1114,17 +1114,17 @@ function NewGRNPageInner() {
 
           {/* Active Line Card */}
           {activeLine ? (
-            <div className="bg-stone-950 border-2 border-emerald-500 rounded-3xl p-5 space-y-4 shadow-[0_0_20px_rgba(16,185,129,0.15)] ring-4 ring-emerald-500/10">
-              <div className="flex items-start justify-between border-b border-stone-900 pb-3 gap-2">
+            <div className="bg-white border-2 border-emerald-500 rounded-3xl p-5 space-y-4 shadow-sm ring-4 ring-emerald-500/10">
+              <div className="flex items-start justify-between border-b border-stone-200 pb-3 gap-2">
                 <div>
-                  <span className="text-[9.5px] font-mono font-extrabold text-emerald-400 bg-emerald-950/60 border border-emerald-900 px-2 py-0.5 rounded uppercase leading-none">
+                  <span className="text-[9.5px] font-mono font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded uppercase leading-none">
                     ACTIVE SKU: {activeLine.sku}
                   </span>
-                  <h3 className="text-[15px] font-extrabold text-white leading-tight mt-2">{activeLine.product_name}</h3>
+                  <h3 className="text-[15px] font-extrabold text-stone-900 leading-tight mt-2">{activeLine.product_name}</h3>
                 </div>
                 <div className="text-right flex-shrink-0">
                   <span className="text-[10px] font-bold text-stone-500 block uppercase">สั่งมา</span>
-                  <span className="text-[14.5px] font-mono font-extrabold text-white">
+                  <span className="text-[14.5px] font-mono font-extrabold text-stone-900">
                     {formatQty(activeLine.qty_ordered)} {activeLine.unit}
                   </span>
                   <span className="text-[9.5px] text-stone-500 block font-semibold">เดิม: {formatQty(activeLine.stock_on_hand)}</span>
@@ -1133,14 +1133,14 @@ function NewGRNPageInner() {
 
               {/* Qty Stepper */}
               <div className="space-y-2">
-                <label className="text-[11.5px] font-bold text-stone-400 block text-center">
+                <label className="text-[11.5px] font-bold text-stone-500 block text-center">
                   ระบุจำนวนชิ้นสินค้าที่รับลงของ ({activeLine.unit})
                 </label>
                 <div className="flex items-center justify-between gap-4 max-w-xs mx-auto">
                   <button
                     type="button"
                     onClick={() => updateLine(activeIndex, 'qty_received', Math.max(0, Number(activeLine.qty_received) - 1))}
-                    className="w-12 h-12 flex items-center justify-center rounded-2xl bg-stone-900 border border-stone-800 text-2xl font-bold text-stone-300 hover:text-white active:scale-90 transition-all active:bg-stone-850"
+                    className="w-12 h-12 flex items-center justify-center rounded-2xl bg-stone-100 border border-stone-300 text-2xl font-bold text-stone-700 hover:text-stone-900 active:scale-90 transition-all"
                   >
                     −
                   </button>
@@ -1150,12 +1150,12 @@ function NewGRNPageInner() {
                     step="any"
                     value={activeLine.qty_received || ''}
                     onChange={(e) => updateLine(activeIndex, 'qty_received', parseFloat(e.target.value) || 0)}
-                    className="flex-1 h-12 bg-stone-900/60 border border-stone-800 rounded-2xl text-center font-mono text-2xl font-extrabold text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                    className="flex-1 h-12 bg-stone-100 border border-stone-300 rounded-2xl text-center font-mono text-2xl font-extrabold text-stone-900 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                   />
                   <button
                     type="button"
                     onClick={() => updateLine(activeIndex, 'qty_received', Number(activeLine.qty_received) + 1)}
-                    className="w-12 h-12 flex items-center justify-center rounded-2xl bg-stone-900 border border-stone-800 text-2xl font-bold text-stone-300 hover:text-white active:scale-90 transition-all active:bg-stone-850"
+                    className="w-12 h-12 flex items-center justify-center rounded-2xl bg-stone-100 border border-stone-300 text-2xl font-bold text-stone-700 hover:text-stone-900 active:scale-90 transition-all"
                   >
                     +
                   </button>
@@ -1167,21 +1167,21 @@ function NewGRNPageInner() {
                 <button
                   type="button"
                   onClick={() => updateLine(activeIndex, 'qty_received', Number(activeLine.qty_received) + 1)}
-                  className="h-11 px-4 bg-stone-900 hover:bg-stone-850 text-stone-300 rounded-xl text-xs font-extrabold border border-stone-800 active:scale-95 transition-all flex items-center justify-center"
+                  className="h-11 px-4 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-extrabold border border-stone-300 active:scale-95 transition-all flex items-center justify-center"
                 >
                   +1
                 </button>
                 <button
                   type="button"
                   onClick={() => updateLine(activeIndex, 'qty_received', Number(activeLine.qty_received) + 5)}
-                  className="h-11 px-4 bg-stone-900 hover:bg-stone-850 text-stone-300 rounded-xl text-xs font-extrabold border border-stone-800 active:scale-95 transition-all flex items-center justify-center"
+                  className="h-11 px-4 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-extrabold border border-stone-300 active:scale-95 transition-all flex items-center justify-center"
                 >
                   +5
                 </button>
                 <button
                   type="button"
                   onClick={() => updateLine(activeIndex, 'qty_received', Number(activeLine.qty_received) + 10)}
-                  className="h-11 px-4 bg-stone-900 hover:bg-stone-850 text-stone-300 rounded-xl text-xs font-extrabold border border-stone-800 active:scale-95 transition-all flex items-center justify-center"
+                  className="h-11 px-4 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-extrabold border border-stone-300 active:scale-95 transition-all flex items-center justify-center"
                 >
                   +10
                 </button>
@@ -1196,7 +1196,7 @@ function NewGRNPageInner() {
                   <button
                     type="button"
                     onClick={() => updateLine(activeIndex, 'qty_received', 0)}
-                    className="h-11 px-4 bg-stone-900 hover:bg-rose-950/40 text-stone-400 hover:text-rose-400 rounded-xl text-xs font-extrabold border border-stone-800 active:scale-95 transition-all flex items-center justify-center"
+                    className="h-11 px-4 bg-stone-100 hover:bg-rose-50 text-stone-500 hover:text-rose-600 rounded-xl text-xs font-extrabold border border-stone-300 active:scale-95 transition-all flex items-center justify-center"
                   >
                     ล้างค่า
                   </button>
@@ -1204,25 +1204,25 @@ function NewGRNPageInner() {
               </div>
 
               {/* Exp/Mfg Date & Lot/Location Inputs for Active item */}
-              <div className="grid grid-cols-2 gap-3 border-t border-stone-900 pt-3.5">
+              <div className="grid grid-cols-2 gap-3 border-t border-stone-200 pt-3.5">
                 <div>
-                  <label className="text-[10px] font-bold text-stone-400 block mb-1">ตำแหน่งเก็บ / Location</label>
+                  <label className="text-[10px] font-bold text-stone-500 block mb-1">ตำแหน่งเก็บ / Location</label>
                   <input
                     type="text"
                     placeholder="เช่น A-01-01"
                     value={activeLine.storage_location}
                     onChange={(e) => updateLine(activeIndex, 'storage_location', e.target.value)}
-                    className="w-full h-11 px-2.5 text-base rounded-lg bg-stone-900 border border-stone-850 text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full h-11 px-2.5 text-base rounded-lg bg-stone-100 border border-stone-300 text-stone-900 focus:outline-none focus:border-emerald-500"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-stone-400 block mb-1">Lot No. ควบคุม</label>
+                  <label className="text-[10px] font-bold text-stone-500 block mb-1">Lot No. ควบคุม</label>
                   <input
                     type="text"
                     placeholder="เช่น LOT69-01"
                     value={activeLine.lot_no}
                     onChange={(e) => updateLine(activeIndex, 'lot_no', e.target.value)}
-                    className="w-full h-11 px-2.5 text-base rounded-lg bg-stone-900 border border-stone-850 text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full h-11 px-2.5 text-base rounded-lg bg-stone-100 border border-stone-300 text-stone-900 focus:outline-none focus:border-emerald-500"
                   />
                 </div>
 
@@ -1232,7 +1232,7 @@ function NewGRNPageInner() {
                     <button
                       type="button"
                       onClick={() => updateLine(activeIndex, 'date_type', activeLine.date_type === 'expiry' ? 'mfg' : 'expiry')}
-                      className="text-emerald-400 hover:text-emerald-300 underline min-h-[44px] flex items-center"
+                      className="text-emerald-600 hover:text-emerald-700 underline min-h-[44px] flex items-center"
                     >
                       สลับเป็น {activeLine.date_type === 'expiry' ? 'MFG' : 'EXP'}
                     </button>
@@ -1244,7 +1244,7 @@ function NewGRNPageInner() {
                       placeholder="วว/ดด/ปปปป"
                       value={activeLine.date_type === 'expiry' ? activeLine.expiry_date_be : activeLine.mfg_date_be}
                       onChange={(e) => updateLine(activeIndex, activeLine.date_type === 'expiry' ? 'expiry_date_be' : 'mfg_date_be', e.target.value)}
-                      className="flex-1 h-11 px-2.5 text-base font-mono rounded-lg bg-stone-900 border border-stone-850 text-white focus:outline-none focus:border-emerald-500"
+                      className="flex-1 h-11 px-2.5 text-base font-mono rounded-lg bg-stone-100 border border-stone-300 text-stone-900 focus:outline-none focus:border-emerald-500"
                     />
                     {activeLine.date_type === 'expiry' && activeDaysLeft !== null && (
                       <div className="flex-shrink-0">
@@ -1260,7 +1260,7 @@ function NewGRNPageInner() {
                 <button
                   type="button"
                   onClick={() => setActiveIndex((activeIndex + 1) % lines.length)}
-                  className="flex-1 h-11 rounded-xl border border-stone-800 bg-stone-900 hover:bg-stone-850 text-xs font-bold text-stone-300 transition-all active:scale-95"
+                  className="flex-1 h-11 rounded-xl border border-stone-300 bg-stone-100 hover:bg-stone-200 text-xs font-bold text-stone-700 transition-all active:scale-95"
                 >
                   ข้ามไปก่อน
                 </button>
@@ -1290,8 +1290,8 @@ function NewGRNPageInner() {
           )}
 
           {/* Line Checklist below */}
-          <div className="bg-stone-900 border border-stone-800 rounded-2xl p-4.5 space-y-3">
-            <p className="text-[11.5px] font-extrabold text-stone-400 uppercase tracking-wider border-b border-stone-800 pb-2">
+          <div className="bg-white border border-stone-200 rounded-2xl p-4.5 space-y-3 shadow-sm">
+            <p className="text-[11.5px] font-extrabold text-stone-500 uppercase tracking-wider border-b border-stone-200 pb-2">
               📝 รายการตรวจสอบสินค้า / Item Checklist ({lines.length} SKU)
             </p>
             <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
@@ -1316,8 +1316,8 @@ function NewGRNPageInner() {
                     onClick={() => setActiveIndex(i)}
                     className={`w-full text-left p-3 rounded-xl border flex items-center justify-between gap-3 transition-all ${
                       isCurrent 
-                        ? 'bg-stone-950 border-emerald-600/80 ring-2 ring-emerald-500/10' 
-                        : 'bg-stone-900/40 border-stone-800/80 hover:bg-stone-900'
+                        ? 'bg-stone-50 border-emerald-500 ring-2 ring-emerald-500/10' 
+                        : 'bg-white border-stone-200 hover:bg-stone-50'
                     }`}
                   >
                     <div className="flex items-center gap-3 min-w-0">
@@ -1326,13 +1326,13 @@ function NewGRNPageInner() {
                         {iconEl}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs font-mono font-bold text-stone-400">SKU: {l.sku}</p>
-                        <p className="text-[13px] font-bold text-white truncate max-w-[190px] mt-0.5 leading-snug">{l.product_name}</p>
+                        <p className="text-xs font-mono font-bold text-stone-500">SKU: {l.sku}</p>
+                        <p className="text-[13px] font-bold text-stone-900 truncate max-w-[190px] mt-0.5 leading-snug">{l.product_name}</p>
                       </div>
                     </div>
                     <div className="text-right flex-shrink-0 font-mono">
-                      <p className="text-xs font-bold text-stone-400">สั่ง: {formatQty(l.qty_ordered)}</p>
-                      <p className={`text-[13px] font-extrabold mt-0.5 ${received > 0 ? 'text-emerald-400' : 'text-stone-500'}`}>
+                      <p className="text-xs font-bold text-stone-500">สั่ง: {formatQty(l.qty_ordered)}</p>
+                      <p className={`text-[13px] font-extrabold mt-0.5 ${received > 0 ? 'text-emerald-600' : 'text-stone-400'}`}>
                         รับ: {formatQty(l.qty_received)}
                       </p>
                     </div>
@@ -1343,36 +1343,36 @@ function NewGRNPageInner() {
           </div>
 
           {/* Notes field for Mobile */}
-          <div className="bg-stone-900 border border-stone-800 rounded-2xl p-4 space-y-2">
-            <label className="text-[11.5px] font-bold text-stone-400 block">หมายเหตุทั่วไป / Notes</label>
+          <div className="bg-white border border-stone-200 rounded-2xl p-4 space-y-2 shadow-sm">
+            <label className="text-[11.5px] font-bold text-stone-500 block">หมายเหตุทั่วไป / Notes</label>
             <textarea
               rows={2}
               placeholder="หมายเหตุเพิ่มเติมประกอบการรับลงของ..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full p-2.5 text-base rounded-lg bg-stone-950 border border-stone-850 text-white focus:outline-none focus:border-emerald-500"
+              className="w-full p-2.5 text-base rounded-lg bg-stone-50 border border-stone-300 text-stone-900 focus:outline-none focus:border-emerald-500"
             />
           </div>
 
           {error && (
-            <div className="rounded-xl border border-rose-950 bg-rose-950/30 p-3.5 flex items-start gap-2.5 border-rose-900/60">
+            <div className="rounded-xl border border-rose-200 bg-rose-50 p-3.5 flex items-start gap-2.5">
               <BadgeAlert className="w-4.5 h-4.5 text-rose-500 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-xs font-bold text-rose-300">เกิดข้อผิดพลาดในการตรวจสอบ</p>
-                <p className="text-[11px] text-rose-400 mt-0.5">{error}</p>
+                <p className="text-xs font-bold text-rose-700">เกิดข้อผิดพลาดในการตรวจสอบ</p>
+                <p className="text-[11px] text-rose-600 mt-0.5">{error}</p>
               </div>
             </div>
           )}
         </div>
 
         {/* Mobile Sticky bottom submit area */}
-        <div className="fixed bottom-0 inset-x-0 p-4 bg-stone-900 border-t border-stone-800 z-30 shadow-[0_-4px_16px_rgba(0,0,0,0.2)]">
+        <div className="fixed bottom-0 inset-x-0 p-4 bg-white border-t border-stone-200 z-30 shadow-[0_-4px_16px_rgba(0,0,0,0.08)]">
           <div className="flex gap-2.5">
             <button
               type="button"
               onClick={() => handleSubmit('draft')}
               disabled={saving || lines.length === 0}
-              className="flex-1 h-11 rounded-xl bg-stone-950 border border-stone-800 hover:bg-stone-850 text-xs font-bold text-stone-300 transition-all active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
+              className="flex-1 h-11 rounded-xl bg-white border border-stone-300 hover:bg-stone-50 text-xs font-bold text-stone-700 transition-all active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
             >
               พักบิล (Draft)
             </button>

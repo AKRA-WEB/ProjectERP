@@ -253,7 +253,7 @@ export default function GRNDetailPage() {
   const canCreatePO = (grn.source_type === 'standalone' || grn.source_type === 'pr_direct') && grn.status === 'stocked' && !grn.po_id;
 
   return (
-    <div className="max-w-5xl">
+    <div className="max-w-5xl pb-24 md:pb-0">
       {/* Mobile Header (md:hidden) */}
       <div className="md:hidden mb-4">
         <button className="text-sm text-gray-500 hover:underline mb-2 flex items-center min-h-[44px]" onClick={() => router.back()}>← ย้อนกลับ</button>
@@ -769,7 +769,7 @@ export default function GRNDetailPage() {
       {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
 
       {/* Action buttons with sticky bottom on mobile */}
-      <div className="sticky bottom-0 bg-white border-t border-stone-200 p-3 -mx-4 mt-4 md:static md:mx-0 md:mt-0 md:border-none md:p-0 flex gap-3 justify-end flex-wrap z-10">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 p-3 px-4 flex gap-3 justify-end flex-wrap z-10 md:static md:bg-transparent md:border-none md:p-0 md:mt-4">
         <Button
           variant="outline"
           onClick={() => window.print()}

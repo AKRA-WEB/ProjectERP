@@ -88,7 +88,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           userRole={userRole}
           onSignOut={handleSignOut}
         />
-        <main className="flex-1 overflow-auto p-4 md:p-6 bg-surface-sunken/40">{children}</main>
+        <main className="flex-1 overflow-auto p-4 md:p-6 bg-white">{children}</main>
       </div>
     </div>
   );
