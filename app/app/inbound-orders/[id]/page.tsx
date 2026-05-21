@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback, forwardRef, TextareaHTMLAttributes } from 'react';
+import { useState, useEffect, useCallback, forwardRef, useRef, TextareaHTMLAttributes } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button, StatusBadge, Input, Select } from '@/components/ui';
 import { get, post, patch } from '@/lib/api-client';
 import { formatDate, formatQty, formatCurrency } from '@/lib/format';
-import type { InboundOrder, SessionUser } from '@/types';
+import type { InboundOrder, SessionUser, Product } from '@/types';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useTransition } from '@/lib/react-vts';
@@ -66,8 +66,105 @@ function AlertDescription({ children }: { children: React.ReactNode }) {
   return <p className="text-sm font-medium">{children}</p>;
 }
 
+interface ProductSearchProps {
+  value: string;
+  onSelect: (product: Product) => void;
+  onClear: () => void;
+  disabled?: boolean;
+}
+
+function ProductSearch({ value, onSelect, onClear, disabled }: ProductSearchProps) {
+  const [query, setQuery] = useState(value);
+  const [results, setResults] = useState<Product[]>([]);
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => { setQuery(value); }, [value]);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  useEffect(() => {
+    if (query.length < 2) { setResults([]); setOpen(false); return; }
+    const t = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const res = await get<{ data: Product[] }>(
+          `/api/products?search=${encodeURIComponent(query)}&limit=20`
+        );
+        const products = Array.isArray(res) 
+          ? res 
+          : (res && typeof res === 'object' && 'data' in res ? (res as { data: Product[] }).data : []);
+        setResults(products);
+        setOpen(products.length > 0);
+      } finally {
+        setLoading(false);
+      }
+    }, 300);
+    return () => clearTimeout(t);
+  }, [query]);
+
+  return (
+    <div ref={containerRef} className="relative w-full">
+      <div className="flex items-center gap-1">
+        <input
+          type="text"
+          className="w-full rounded border px-2 py-1 text-sm bg-white min-h-[36px]"
+          placeholder="พิมพ์ชื่อหรือ SKU..."
+          value={query}
+          onChange={(e) => { setQuery(e.target.value); }}
+          onFocus={() => { if (results.length > 0) setOpen(true); }}
+          disabled={disabled}
+        />
+        {value && !disabled && (
+          <button
+            type="button"
+            onClick={() => { setQuery(''); setResults([]); setOpen(false); onClear(); }}
+            className="text-gray-400 hover:text-gray-600 text-xs px-1"
+            aria-label="ล้าง"
+          >
+            ✕
+          </button>
+        )}
+      </div>
+      {open && !disabled && (
+        <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-52 overflow-y-auto">
+          {loading && (
+            <p className="px-3 py-2 text-xs text-gray-400">กำลังค้นหา...</p>
+          )}
+          {!loading && results.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              className="w-full text-left px-3 py-2 hover:bg-gray-50 text-sm border-b last:border-0"
+              onClick={() => {
+                const label = `${p.sku} — ${p.name_th}`;
+                setQuery(label);
+                setOpen(false);
+                onSelect(p);
+              }}
+            >
+              <span className="font-mono text-xs text-gray-500 mr-2">{p.sku}</span>
+              {p.name_th}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface IOLine {
   id: string;
+  product_id: string;
   sku: string;
   name_th: string;
   qty_ordered: number;
@@ -129,11 +226,18 @@ export default function InboundOrderDetailPage() {
   const [editError, setEditError] = useState<string | null>(null);
   const [editDate, setEditDate] = useState('');
   const [editNotes, setEditNotes] = useState('');
-  const [editQtys, setEditQtys] = useState<Record<string, string>>({});
-  const [editCosts, setEditCosts] = useState<Record<string, string>>({});
   const [editWarehouseId, setEditWarehouseId] = useState<string>('');
   const [warehouses, setWarehouses] = useState<Array<{ id: string; name_th: string; code: string }>>([]);
   const [warehousesLoaded, setWarehousesLoaded] = useState(false);
+  const [editLines, setEditLines] = useState<Array<{
+    id?: string;
+    product_id: string;
+    sku: string;
+    name_th: string;
+    qty_ordered: string;
+    uom_code: string;
+    unit_cost: string;
+  }>>([]);
 
   // Permission Logic
   const userRole = (session.data?.user as unknown as SessionUser | undefined)?.role;
@@ -175,14 +279,16 @@ export default function InboundOrderDetailPage() {
     setEditDate(io.order_date.slice(0, 10));
     setEditNotes(io.notes ?? '');
     setEditWarehouseId(String(io.warehouse_id));
-    const qtys: Record<string, string> = {};
-    const costs: Record<string, string> = {};
-    io.lines.forEach((l) => {
-      qtys[l.id] = String(l.qty_ordered);
-      costs[l.id] = String(l.unit_cost);
-    });
-    setEditQtys(qtys);
-    setEditCosts(costs);
+    const linesList = io.lines.map((l) => ({
+      id: l.id,
+      product_id: l.product_id,
+      sku: l.sku,
+      name_th: l.name_th,
+      qty_ordered: String(l.qty_ordered),
+      uom_code: l.uom_code,
+      unit_cost: String(l.unit_cost),
+    }));
+    setEditLines(linesList);
     setEditError(null);
   }, [io]);
 
@@ -190,6 +296,70 @@ export default function InboundOrderDetailPage() {
     initEditState();
     setEditMode(true);
   }, [initEditState]);
+
+  const addEditLine = useCallback(() => {
+    setEditLines((prev) => [
+      ...prev,
+      {
+        product_id: '',
+        sku: '',
+        name_th: '',
+        qty_ordered: '1',
+        uom_code: '',
+        unit_cost: '0',
+      },
+    ]);
+  }, []);
+
+  const removeEditLine = useCallback((index: number) => {
+    setEditLines((prev) => prev.filter((_, idx) => idx !== index));
+  }, []);
+
+  const selectEditLineProduct = useCallback((index: number, product: Product) => {
+    setEditLines((prev) => {
+      const newLines = [...prev];
+      newLines[index] = {
+        ...newLines[index],
+        product_id: product.id,
+        sku: product.sku,
+        name_th: product.name_th,
+        uom_code: product.uom_code || '',
+        unit_cost: String(product.unit_cost || 0),
+      };
+      return newLines;
+    });
+  }, []);
+
+  const clearEditLineProduct = useCallback((index: number) => {
+    setEditLines((prev) => {
+      const newLines = [...prev];
+      newLines[index] = {
+        ...newLines[index],
+        product_id: '',
+        sku: '',
+        name_th: '',
+        uom_code: '',
+        unit_cost: '0',
+      };
+      return newLines;
+    });
+  }, []);
+
+  const updateEditLineQty = useCallback((index: number, val: string) => {
+    setEditLines((prev) => {
+      const newLines = [...prev];
+      newLines[index] = { ...newLines[index], qty_ordered: val };
+      return newLines;
+    });
+  }, []);
+
+  const updateEditLineCost = useCallback((index: number, val: string) => {
+    setEditLines((prev) => {
+      const newLines = [...prev];
+      newLines[index] = { ...newLines[index], unit_cost: val };
+      return newLines;
+    });
+  }, []);
 
   async function handleConfirmGRN(grnId: string) {
     setActionLoading(true); setActionError('');
@@ -258,17 +428,25 @@ export default function InboundOrderDetailPage() {
     setSaving(true);
     setEditError(null);
     try {
-      const linesData = io.lines.map((l) => {
-        const val = editQtys[l.id];
+      if (editLines.length === 0) {
+        throw new Error('ต้องมีรายการสินค้าอย่างน้อย 1 รายการ');
+      }
+
+      const linesData = editLines.map((l, index) => {
+        if (!l.product_id) {
+          throw new Error(`รายการที่ ${index + 1}: กรุณาเลือกสินค้า`);
+        }
+        const val = l.qty_ordered;
         const num = val === '' ? undefined : Number(val);
         
         const parsed = lineQtySchema.safeParse({ qty_ordered: num });
         if (!parsed.success) {
-          throw new Error(`${l.sku}: ${parsed.error.issues[0].message}`);
+          throw new Error(`${l.sku || `รายการที่ ${index + 1}`}: ${parsed.error.issues[0].message}`);
         }
         
         return {
           id: l.id,
+          product_id: l.product_id,
           qty_ordered: num as number,
         };
       });
@@ -322,13 +500,16 @@ export default function InboundOrderDetailPage() {
     setSaving(true);
     setEditError(null);
     try {
-      const costsData = io.lines.map((l) => {
-        const val = editCosts[l.id];
+      const costsData = editLines.map((l, index) => {
+        if (!l.id) {
+          throw new Error('กรุณาบันทึกรายการสินค้าก่อนแก้ไขต้นทุน');
+        }
+        const val = l.unit_cost;
         const num = val === '' ? undefined : Number(val);
         
         const parsed = lineCostSchema.safeParse({ unit_cost: num });
         if (!parsed.success) {
-          throw new Error(`${l.sku}: ${parsed.error.issues[0].message}`);
+          throw new Error(`${l.sku || `รายการที่ ${index + 1}`}: ${parsed.error.issues[0].message}`);
         }
         
         return {
@@ -476,7 +657,7 @@ export default function InboundOrderDetailPage() {
       )}
 
       {/* Items Table */}
-      <div className="rounded-xl bg-white shadow-sm border border-gray-100 overflow-hidden mb-6">
+      <div className="rounded-xl bg-white shadow-sm border border-gray-100 mb-6">
         <div className="p-4 border-b">
           <h2 className="text-sm font-semibold text-gray-700">รายการสินค้า / Items</h2>
         </div>
@@ -488,64 +669,134 @@ export default function InboundOrderDetailPage() {
               <th className="text-right p-3 font-medium w-24">รับแล้ว</th>
               <th className="text-right p-3 font-medium w-24">สต็อก WH</th>
               <th className="text-right p-3 font-medium w-32">ทุนต่อหน่วย</th>
+              {editMode && canEditHeader && <th className="w-12"></th>}
             </tr>
           </thead>
           <tbody className="divide-y">
-            {io.lines.map((l) => (
-              <tr key={l.id}>
-                <td className="p-3">
-                  <div className="font-mono text-xs text-gray-400">{l.sku}</div>
-                  <div className="font-medium">{l.name_th}</div>
-                </td>
-                <td className="p-3 text-right font-mono">
-                  {editMode && canEditHeader ? (
-                    <input
-                      type="number"
-                      min={1}
-                      value={editQtys[l.id] ?? ''}
-                      onChange={(e) => setEditQtys((prev) => ({ ...prev, [l.id]: e.target.value }))}
-                      className="min-h-[44px] w-24 text-right border border-gray-300 rounded px-2 py-1"
-                      disabled={saving}
-                    />
-                  ) : (
-                    <>{formatQty(l.qty_ordered)}</>
-                  )}
-                </td>
-                <td className={`p-3 text-right font-mono ${Number(l.qty_received) >= Number(l.qty_ordered) ? 'text-green-600 font-bold' : 'text-gray-900'}`}>
-                  {formatQty(l.qty_received)}
-                </td>
-                <td className="p-3 text-right font-mono text-gray-400">{formatQty(l.qty_available)}</td>
-                <td className="p-3 text-right font-mono">
-                  {editMode && canEditCosts ? (
-                    <input
-                      type="number"
-                      min={0}
-                      step="0.01"
-                      value={editCosts[l.id] ?? ''}
-                      onChange={(e) => setEditCosts((prev) => ({ ...prev, [l.id]: e.target.value }))}
-                      className="min-h-[44px] w-28 text-right border border-gray-300 rounded px-2 py-1"
-                      disabled={saving}
-                    />
-                  ) : (
-                    <>{formatCurrency(l.unit_cost)}</>
-                  )}
-                </td>
-              </tr>
-            ))}
+            {editMode ? (
+              editLines.map((l, idx) => {
+                const matched = io.lines.find((ol) => ol.id === l.id);
+                const qtyReceived = matched ? matched.qty_received : 0;
+                const qtyAvailable = matched ? matched.qty_available : 0;
+
+                return (
+                  <tr key={l.id ?? `new-line-${idx}`}>
+                    <td className="p-3">
+                      {canEditHeader ? (
+                        <ProductSearch
+                          value={l.sku ? `${l.sku} — ${l.name_th}` : ''}
+                          onSelect={(product) => selectEditLineProduct(idx, product)}
+                          onClear={() => clearEditLineProduct(idx)}
+                          disabled={saving}
+                        />
+                      ) : (
+                        <>
+                          <div className="font-mono text-xs text-gray-400">{l.sku}</div>
+                          <div className="font-medium">{l.name_th}</div>
+                        </>
+                      )}
+                    </td>
+                    <td className="p-3 text-right font-mono">
+                      {canEditHeader ? (
+                        <input
+                          type="number"
+                          min={1}
+                          value={l.qty_ordered}
+                          onChange={(e) => updateEditLineQty(idx, e.target.value)}
+                          className="min-h-[44px] w-24 text-right border border-gray-300 rounded px-2 py-1"
+                          disabled={saving}
+                        />
+                      ) : (
+                        <>{formatQty(Number(l.qty_ordered))}</>
+                      )}
+                    </td>
+                    <td className={`p-3 text-right font-mono ${qtyReceived >= Number(l.qty_ordered) ? 'text-green-600 font-bold' : 'text-gray-900'}`}>
+                      {formatQty(qtyReceived)}
+                    </td>
+                    <td className="p-3 text-right font-mono text-gray-400">
+                      {formatQty(qtyAvailable)}
+                    </td>
+                    <td className="p-3 text-right font-mono">
+                      {canEditCosts ? (
+                        <input
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          value={l.unit_cost}
+                          onChange={(e) => updateEditLineCost(idx, e.target.value)}
+                          className="min-h-[44px] w-28 text-right border border-gray-300 rounded px-2 py-1"
+                          disabled={saving}
+                        />
+                      ) : (
+                        <>{formatCurrency(Number(l.unit_cost))}</>
+                      )}
+                    </td>
+                    {canEditHeader && (
+                      <td className="p-3 text-center">
+                        <button
+                          type="button"
+                          onClick={() => removeEditLine(idx)}
+                          className="text-red-500 hover:text-red-700 font-bold px-2 py-1"
+                          disabled={saving}
+                          aria-label="ลบรายการ"
+                        >
+                          ✕
+                        </button>
+                      </td>
+                    )}
+                  </tr>
+                );
+              })
+            ) : (
+              io.lines.map((l) => (
+                <tr key={l.id}>
+                  <td className="p-3">
+                    <div className="font-mono text-xs text-gray-400">{l.sku}</div>
+                    <div className="font-medium">{l.name_th}</div>
+                  </td>
+                  <td className="p-3 text-right font-mono">
+                    {formatQty(l.qty_ordered)}
+                  </td>
+                  <td className={`p-3 text-right font-mono ${Number(l.qty_received) >= Number(l.qty_ordered) ? 'text-green-600 font-bold' : 'text-gray-900'}`}>
+                    {formatQty(l.qty_received)}
+                  </td>
+                  <td className="p-3 text-right font-mono text-gray-400">{formatQty(l.qty_available)}</td>
+                  <td className="p-3 text-right font-mono">
+                    {formatCurrency(l.unit_cost)}
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
         {editMode && (canEditHeader || canEditCosts) && (
-          <div className="p-4 bg-gray-50 border-t flex justify-end gap-2">
-            {canEditHeader && (
-              <Button onClick={saveLines} disabled={saving} className="min-h-[44px]">
-                {saving ? 'กำลังบันทึก...' : 'บันทึกจำนวน'}
-              </Button>
-            )}
-            {canEditCosts && (
-              <Button onClick={saveCosts} disabled={saving} variant="outline" className="min-h-[44px]">
-                {saving ? 'กำลังบันทึก...' : 'บันทึกต้นทุน'}
-              </Button>
-            )}
+          <div className="p-4 bg-gray-50 border-t flex justify-between items-center">
+            <div>
+              {canEditHeader && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={addEditLine}
+                  disabled={saving}
+                  className="min-h-[44px]"
+                >
+                  + เพิ่มรายการ
+                </Button>
+              )}
+            </div>
+            <div className="flex gap-2">
+              {canEditHeader && (
+                <Button onClick={saveLines} disabled={saving} className="min-h-[44px]">
+                  {saving ? 'กำลังบันทึก...' : 'บันทึกจำนวน'}
+                </Button>
+              )}
+              {canEditCosts && (
+                <Button onClick={saveCosts} disabled={saving} variant="outline" className="min-h-[44px]">
+                  {saving ? 'กำลังบันทึก...' : 'บันทึกต้นทุน'}
+                </Button>
+              )}
+            </div>
           </div>
         )}
       </div>

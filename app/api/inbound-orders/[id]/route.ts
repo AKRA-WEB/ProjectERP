@@ -74,7 +74,8 @@ const patchSchema = z.discriminatedUnion('action', [
   z.object({
     action: z.literal('update_lines'),
     lines: z.array(z.object({
-      id: z.string().uuid(),
+      id: z.string().uuid().optional(),
+      product_id: z.string().uuid(),
       qty_ordered: z.number().positive(),
       notes: z.string().optional(),
     })).min(1),
@@ -180,13 +181,67 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const io = await queryOne<{ status: string }>('SELECT status FROM inbound_orders WHERE id = $1', [id]);
     if (!io) return apiError('IO not found', 404);
     if (io.status !== 'open') return apiError('Only open IOs can be edited', 409);
-    for (const line of parsed.data.lines) {
-      await query(
-        'UPDATE inbound_order_lines SET qty_ordered = $1, notes = $2 WHERE id = $3 AND io_id = $4',
-        [line.qty_ordered, line.notes ?? null, line.id, id]
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      // 1. Fetch existing lines to preserve their attributes (unit_cost, qty_received)
+      const existingRes = await client.query<{ id: string; unit_cost: number; qty_received: number }>(
+        'SELECT id, unit_cost, qty_received FROM inbound_order_lines WHERE io_id = $1',
+        [id]
       );
+      const existingMap = new Map(existingRes.rows.map((row) => [row.id, row]));
+
+      // 2. Delete all lines for this Inbound Order
+      await client.query('DELETE FROM inbound_order_lines WHERE io_id = $1', [id]);
+
+      // 3. Re-insert/Insert lines with sequential line numbers
+      let lineNumber = 1;
+      for (const line of parsed.data.lines) {
+        let lineId = line.id;
+        let unitCost = 0;
+        let qtyReceived = 0;
+
+        const existing = lineId ? existingMap.get(lineId) : null;
+        if (existing) {
+          unitCost = Number(existing.unit_cost ?? 0);
+          qtyReceived = Number(existing.qty_received ?? 0);
+        } else {
+          // If it's a new line, pull default cost from product master
+          const prodRes = await client.query<{ unit_cost: number }>(
+            'SELECT unit_cost FROM products WHERE id = $1',
+            [line.product_id]
+          );
+          unitCost = Number(prodRes.rows[0]?.unit_cost ?? 0);
+          // Generate a new UUID if not provided
+          lineId = lineId || undefined;
+        }
+
+        if (lineId) {
+          await client.query(
+            `INSERT INTO inbound_order_lines (id, io_id, product_id, qty_ordered, qty_received, unit_cost, notes, line_number)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+            [lineId, id, line.product_id, line.qty_ordered, qtyReceived, unitCost, line.notes ?? null, lineNumber++]
+          );
+        } else {
+          await client.query(
+            `INSERT INTO inbound_order_lines (io_id, product_id, qty_ordered, qty_received, unit_cost, notes, line_number)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            [id, line.product_id, line.qty_ordered, qtyReceived, unitCost, line.notes ?? null, lineNumber++]
+          );
+        }
+      }
+
+      await client.query('COMMIT');
+      return apiSuccess({ id });
+    } catch (err) {
+      await client.query('ROLLBACK');
+      console.error(err);
+      return apiError(err instanceof Error ? err.message : 'Failed to update lines', 500);
+    } finally {
+      client.release();
     }
-    return apiSuccess({ id });
   }
 
   return apiError('Unknown action', 400);
