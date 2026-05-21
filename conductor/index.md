@@ -21,6 +21,7 @@
 | admin-hub | Completed | [plan.md](tracks/admin-hub/plan.md) | — |
 | grn-ui-redesign | Completed | [plan.md](tracks/grn-ui-redesign/plan.md) | — |
 | grn-mobile-ui | Verified | [plan.md](tracks/grn-mobile-ui/plan.md) | — |
+| io-edit-ui | Completed | [plan.md](tracks/io-edit-ui/plan.md) | — |
 | product-stock-summary | Completed | [plan.md](tracks/product-stock-summary/plan.md) | — |
 | po-gr-audit | Completed | [plan.md](tracks/po-gr-audit/plan.md) | [rework-plan.md](tracks/po-gr-audit/rework-plan.md) |
 | chen-plan-enforcement | Completed | [plan.md](tracks/chen-plan-enforcement/plan.md) | — |
@@ -86,3 +87,4 @@
 | [Admin Hub Page — center dashboard with parallel counts](./tracks/admin-hub/plan.md) | Completed | 2026-05-21 | 2026-05-21 |
 | [GRN UI Redesign — full desktop & mobile redesign](./tracks/grn-ui-redesign/plan.md) | Completed | 2026-05-21 | 2026-05-21 |
 | [GRN Mobile UI — queue cards, detail compact header, edit mobile form](./tracks/grn-mobile-ui/plan.md) | Verified | 2026-05-21 | 2026-05-21 |
+| [IO Edit UI — expose 4 PATCH actions on Inbound Order detail page](./tracks/io-edit-ui/plan.md) | Completed | 2026-05-21 | 2026-05-21 |

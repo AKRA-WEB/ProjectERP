@@ -46,7 +46,9 @@
       "Bash(Select-Object Name)",
       "Bash(C:/Users/AKRA-Panich-Front/.claude/plugins/cache/claude-plugins-official/superpowers/5.1.0/skills/brainstorming/scripts/start-server.sh *)",
       "Bash(powershell -Command ' *)",
-      "Bash(Get-ChildItem -Path \"conductor\\\\tracks\" -Directory)"
+      "Bash(Get-ChildItem -Path \"conductor\\\\tracks\" -Directory)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\AKRA-Panich-Front\\\\OneDrive\\\\02-2 - AKRA\\\\projectERP\" -Exclude \"node_modules\" -Depth 2)",
+      "Bash(Select-Object FullName)"
     ]
   },
   "hooks": {

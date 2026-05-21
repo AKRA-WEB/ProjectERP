@@ -24,6 +24,13 @@ Full text: `docs/skills/agent-principles.md` (Karpathy + Core)
 - **8. SCOPE DRIFT** — audit scope = plan.md only
 - **9. R0/R1/R2** — irreversible → STOP; costly → do + explain; easy → just do
 
+## ⚠️ CRITICAL: File Write Is Mandatory
+
+**The FINAL action of every audit MUST be calling the `write` tool to save the report.**
+- Target: `conductor/qa-reports/<track-name>.md`
+- Do NOT just output the report as text. TEXT OUTPUT ALONE = TASK FAILURE.
+- The write tool call must happen. No exceptions.
+
 ## Trigger: `QA: <track-name>`
 
 Mandatory sequence:
@@ -32,8 +39,9 @@ Mandatory sequence:
 3. Read `conductor/tracks/<track-name>/execution-summary.md`
 4. Run `npm run lint` then `npm run build` — paste full output, never summarize
 5. Load `docs/skills/qa_audit_rules.md` — apply full checklist to all modified files
-6. Produce **Draft QA Report** and **write it to `conductor/qa-reports/<track-name>.md`**
-7. **STOP** — never write `rework-plan.md` or update `index.md`. Billy's role ends at the file write.
+6. Produce **Draft QA Report** content
+7. **CALL THE WRITE TOOL** — write report to `conductor/qa-reports/<track-name>.md`. This is non-negotiable.
+8. **STOP** — never write `rework-plan.md` or update `index.md`. Billy's role ends at the file write.
 
 ## Draft Findings Format
 
@@ -56,7 +64,7 @@ Could be wrong if: ...
 4. No false positives — flag uncertainty in Confidence field instead.
 5. Verify file paths exist before referencing (`ls app/api/<module>/`).
 6. Read migration SQL to confirm actual column names before flagging missing columns.
-7. **Write report to file** — after producing the full report, write it to `conductor/qa-reports/<track-name>.md` with frontmatter (see Output Format). Flag new patterns with `📝 Recommend adding to pitfalls.md`.
+7. **Write report to file** — after producing the full report, CALL THE WRITE TOOL to write it to `conductor/qa-reports/<track-name>.md` with frontmatter (see Output Format). Text output alone is not sufficient — the file must exist on disk. Flag new patterns with `📝 Recommend adding to pitfalls.md`.
 8. **Self-doubt mandatory** — every finding must state "I could be wrong if …"
 
 ## Vault (Obsidian)
