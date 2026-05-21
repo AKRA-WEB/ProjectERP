@@ -55,6 +55,7 @@ Next action needed: [QA: trackname / rework / new plan]
 
 Run through this before writing a single line of code:
 
+- [ ] **`git pull origin master`** — sync local with remote before any work begins
 - [ ] Read `docs/skills/agent-principles.md` — Karpathy & Shared operating principles
 - [ ] Read `_notes/02_Agent_Memory/current-state.md` — active work, DB facts, API routes, import traps
 - [ ] Read `_notes/02_Agent_Memory/pitfalls.md` fully
