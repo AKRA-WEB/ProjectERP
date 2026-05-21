@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
     FROM repack_templates rt
     JOIN products p ON p.id = rt.source_product_id
     ${where}
-    ORDER BY rt.name ASC
+    ORDER BY rt.name_th ASC
   `, params);
 
   return apiSuccess(rows);
@@ -64,10 +64,10 @@ export async function POST(req: NextRequest) {
 
       const { rows: [template] } = await client.query(`
         INSERT INTO repack_templates (
-          name, source_product_id, source_qty, notes
-        ) VALUES ($1, $2, $3, $4)
+          name_th, name_en, source_product_id, source_qty, notes
+        ) VALUES ($1, $2, $3, $4, $5)
         RETURNING id
-      `, [d.name, d.source_product_id, d.source_qty, d.notes]);
+      `, [d.name_th, d.name_en ?? d.name_th, d.source_product_id, d.source_qty, d.notes]);
 
       for (const item of d.items) {
         await client.query(`

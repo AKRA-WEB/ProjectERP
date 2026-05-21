@@ -6,11 +6,13 @@ import { Button } from '@/components/ui/Button';
 import { Table } from '@/components/ui/Table';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import Link from 'next/link';
+import { useLanguage } from '@/lib/i18n';
 import type { FiscalPeriod } from '@/types';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden';
 
 export default function FiscalPeriodsPage() {
+  const { lang } = useLanguage();
   const [periods, setPeriods] = useState<FiscalPeriod[]>([]);
   const [loading, setLoading] = useState(true);
   const [actioning, setActioning] = useState<string | null>(null);
@@ -73,7 +75,9 @@ export default function FiscalPeriodsPage() {
             <tr key={p.id} className="hover:bg-stone-50 transition-colors text-[13px]">
               <td className="px-5 py-4 font-bold text-stone-900">{p.year}</td>
               <td className="px-5 py-4 text-stone-600">{p.month}</td>
-              <td className="px-5 py-4 font-medium text-stone-700">{p.name}</td>
+              <td className="px-5 py-4 font-medium text-stone-700">
+                {lang === 'th' ? p.name_th : (p.name_en || p.name_th)}
+              </td>
               <td className="px-5 py-4 text-stone-500">
                 {new Date(p.start_date).toLocaleDateString('th-TH')} - {new Date(p.end_date).toLocaleDateString('th-TH')}
               </td>

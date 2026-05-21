@@ -1,6 +1,6 @@
 import { auth } from '@/auth';
-import pool, { queryOne } from '@/lib/db/client';
 import { apiSuccess, apiError } from '@/lib/api-response';
+import { query, queryOne } from '@/lib/db/client';
 import type { SessionUser } from '@/lib/authz';
 
 export async function POST() {
@@ -19,7 +19,7 @@ export async function POST() {
   // Compute OT hours
   const schedule = await queryOne<{ shift_end: string }>(
     `SELECT ws.shift_end FROM work_schedules ws
-     JOIN users usr ON usr.work_schedule_id = ws.id
+     JOIN users usr ON usr.work_schedule_id = usr.work_schedule_id
      WHERE usr.id = $1
      UNION ALL
      SELECT shift_end FROM work_schedules WHERE is_default = TRUE LIMIT 1`,
@@ -37,7 +37,7 @@ export async function POST() {
     }
   }
 
-  await pool.query(
+  await query(
     `UPDATE attendance_records SET clock_out = NOW(), ot_hours = $1 WHERE id = $2`,
     [otHours, rec.id]
   );

@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import React, { useState, useEffect } from 'react';
 import { ViewTransition } from '@/lib/react-vts';
+import { useToast } from '@/components/ui';
 
 // SVG components for modules
 const PosIcon = () => (
@@ -19,6 +20,23 @@ const PosIcon = () => (
     <path d="M56 22 V28 a4 4 0 0 1 -8 0"/>
     <rect x="26" y="36" width="12" height="16"/>
     <circle cx="36" cy="44" r=".8" fill="currentColor"/>
+  </svg>
+);
+
+const SalesIcon = () => (
+  <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M34 6 H54 V26 L28 52 a4 4 0 0 1 -5.6 0 L12 41.6 a4 4 0 0 1 0 -5.6 Z"/>
+    <circle cx="45" cy="19" r="3.2"/>
+    <path d="M22 36 L36 50" opacity=".55"/>
+  </svg>
+);
+
+const PurchasingIcon = () => (
+  <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 22 H50 L48 58 H16 Z"/>
+    <path d="M14 22 L18 14 H46 L50 22"/>
+    <path d="M24 22 V30 a8 8 0 0 0 16 0 V22"/>
+    <path d="M14 22 H50"/>
   </svg>
 );
 
@@ -79,14 +97,18 @@ interface ModuleCard {
   href: string;
   permission?: string;
   adminOnly?: boolean;
+  isStub?: boolean;
+  accent: string;
 }
 
 const MODULE_CONFIG: ModuleCard[] = [
-  { id: 'pos', nameTh: 'POS', nameEn: 'หน้าร้าน', icon: PosIcon, href: '/app/pos', permission: 'pos:cashier' },
-  { id: 'wms', nameTh: 'คลังสินค้า', nameEn: 'Warehouse', icon: WmsIcon, href: '/app/dashboard', permission: 'dashboard:view' },
-  { id: 'accounting', nameTh: 'บัญชี', nameEn: 'Accounting', icon: AccIcon, href: '/app/accounting/chart-of-accounts', permission: 'accounts:view' },
-  { id: 'hr', nameTh: 'บุคคล', nameEn: 'HR', icon: HrIcon, href: '/app/hr/employees', permission: 'hr:employees:view' },
-  { id: 'admin', nameTh: 'ผู้ดูแลระบบ', nameEn: 'Admin', icon: AdminIcon, href: '/app/admin/users', adminOnly: true },
+  { id: 'pos', nameTh: 'POS', nameEn: 'หน้าร้าน', icon: PosIcon, href: '/app/pos', permission: 'pos:cashier', accent: '#b85c3c' },
+  { id: 'sales', nameTh: 'ขาย', nameEn: 'Sales', icon: SalesIcon, href: '#', isStub: true, permission: 'sales:view', accent: '#3a7a7a' },
+  { id: 'purchasing', nameTh: 'จัดซื้อ', nameEn: 'Purchasing', icon: PurchasingIcon, href: '#', isStub: true, permission: 'purchasing:view', accent: '#4f5d8a' },
+  { id: 'wms', nameTh: 'คลังสินค้า', nameEn: 'Warehouse', icon: WmsIcon, href: '/app/dashboard', permission: 'dashboard:view', accent: '#5b7a99' },
+  { id: 'accounting', nameTh: 'บัญชี', nameEn: 'Accounting', icon: AccIcon, href: '/app/accounting/chart-of-accounts', permission: 'accounts:view', accent: '#a98038' },
+  { id: 'hr', nameTh: 'บุคคล', nameEn: 'HR', icon: HrIcon, href: '/app/hr/employees', permission: 'hr:employees:view', accent: '#6b8e6f' },
+  { id: 'admin', nameTh: 'ผู้ดูแลระบบ', nameEn: 'Admin', icon: AdminIcon, href: '/app/admin', adminOnly: true, accent: '#7a5a7e' },
 ];
 
 function initials(name: string) {
@@ -100,6 +122,7 @@ function initials(name: string) {
 
 export default function MainMenuPage() {
   const { data: session, status } = useSession();
+  const toast = useToast();
   const loading = status === 'loading';
   const [isMounted, setIsMounted] = useState(false);
   const [currentThaiMonth, setCurrentThaiMonth] = useState('');
@@ -121,11 +144,19 @@ export default function MainMenuPage() {
   function isModuleVisible(mod: ModuleCard) {
     if (role === 'admin') return true;
     if (mod.adminOnly) return false;
+    if (mod.isStub) return true; // Show Sales and Purchasing stubs to everyone for the Toast preview
     if (!mod.permission) return true;
     return permissions.includes(mod.permission);
   }
 
   const visibleModules = MODULE_CONFIG.filter(isModuleVisible);
+
+  const handleCardClick = (e: React.MouseEvent, mod: ModuleCard) => {
+    if (mod.isStub) {
+      e.preventDefault();
+      toast('info', `🚧 โมดูล ${mod.nameTh} อยู่ในระหว่างการพัฒนา`);
+    }
+  };
 
   if (loading || !isMounted) {
     return <div className="min-h-screen bg-[#f6f4ef] flex items-center justify-center text-[#78716c]">กำลังโหลด...</div>;
@@ -133,30 +164,125 @@ export default function MainMenuPage() {
 
   return (
     <ViewTransition default="none" enter="fade-in" exit="fade-out">
-      <div className="flex flex-col items-center justify-center w-full max-w-[1000px] mx-auto min-h-[calc(100vh-120px)] font-sans">
+      <div className="flex flex-col items-center justify-center w-full max-w-[1000px] mx-auto min-h-[calc(100vh-120px)] font-sans px-4 py-8">
+        <style dangerouslySetInnerHTML={{ __html: `
+          .mm-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 14px;
+            max-width: 760px;
+            width: 100%;
+          }
+          .mm-card {
+            flex: 0 0 172px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 36px 18px 28px;
+            text-decoration: none;
+            color: inherit;
+            background: #fdfcf9;
+            border: 1px solid var(--hair, #e4e0d6);
+            border-radius: 4px;
+            box-shadow: 0 1px 0 rgba(28,25,23,.02);
+            overflow: hidden;
+            transition: background .18s ease, border-color .18s ease, transform .18s ease, box-shadow .25s ease;
+          }
+          .mm-card::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            height: 2px;
+            background: var(--accent, #1c1917);
+            opacity: .65;
+            transition: opacity .18s ease, height .18s ease;
+          }
+          .mm-card:hover {
+            background: #ffffff;
+            border-color: #d3cdbd;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px -16px rgba(28,25,23,.18), 0 2px 0 rgba(28,25,23,.02);
+          }
+          .mm-card:hover::before {
+            opacity: 1;
+            height: 3px;
+          }
+          .mm-card:hover .mm-ico {
+            color: var(--accent, #1c1917);
+            transform: translateY(-2px);
+          }
+          .mm-card:hover .mm-arrow {
+            opacity: 1;
+            transform: translateX(2px);
+          }
+          .mm-ico {
+            width: 96px;
+            height: 96px;
+            display: grid;
+            place-items: center;
+            color: #44403c;
+            transition: color .18s ease, transform .25s ease;
+            margin-bottom: 24px;
+          }
+          .mm-ico svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+          }
+          .mm-arrow {
+            position: absolute;
+            bottom: 14px;
+            right: 14px;
+            width: 16px;
+            height: 16px;
+            color: #78716c;
+            opacity: 0;
+            transition: opacity .2s ease, transform .25s ease;
+          }
+          @media (max-width: 1000px) {
+            .mm-grid { max-width: 580px; }
+          }
+          @media (max-width: 640px) {
+            .mm-grid { max-width: 380px; gap: 12px; }
+            .mm-card { flex-basis: calc(50% - 6px); }
+          }
+        ` }} />
+
         <div className="text-center mb-14">
           <div className="inline-flex items-center gap-3 px-3 pr-4 py-1.5 border border-[#e4e0d6] bg-white/55 rounded-full mb-6">
-            <div className="w-7 h-7 rounded-full bg-[#1c1917] text-[#f6f4ef] grid place-items-center text-[13px] font-semibold">B</div>
-            <span className="text-[11.5px] uppercase tracking-[0.18em] text-[#44403c] font-medium">BUYMORETH ERP</span>
+            <div className="w-7 h-7 rounded-full bg-[#1c1917] text-[#f6f4ef] grid place-items-center text-[13px] font-semibold">อ</div>
+            <span className="text-[11.5px] uppercase tracking-[0.18em] text-[#44403c] font-medium">Arun · ERP</span>
           </div>
           <h1 className="font-display text-[34px] font-medium tracking-[-0.025em] text-[#1c1917] m-0">เลือกระบบงาน</h1>
-          <div className="text-[13px] color-[#78716c] mt-2.5 tracking-[0.02em] text-[#78716c]">Choose a workspace to continue</div>
+          <div className="text-[13px] text-[#78716c] mt-2.5 tracking-[0.02em]">Choose a workspace to continue</div>
         </div>
 
-        <nav className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 border-t border-b border-[#e4e0d6] w-full max-w-[900px]" aria-label="ระบบงาน">
+        <nav className="mm-grid" aria-label="ระบบงาน">
           {visibleModules.length === 0 ? (
-            <div className="col-span-full py-20 text-center text-[#78716c]">
+            <div className="w-full py-20 text-center text-[#78716c]">
               <p>ขออภัย คุณยังไม่มีสิทธิ์เข้าถึงระบบใดๆ</p>
             </div>
           ) : (
-            visibleModules.map((mod, i) => (
-              <Link key={mod.id} href={mod.href} className={`relative flex flex-col items-center px-5 pt-[44px] pb-[32px] no-underline text-inherit border-r border-[#e4e0d6] transition-colors duration-150 hover:bg-white/55 group ${i === visibleModules.length - 1 ? 'border-r-0' : ''} lg:border-r`}>
-                <div className="w-24 h-24 grid place-items-center text-[#44403c] transition-all duration-250 ease-out mb-6 group-hover:text-[#1c1917] group-hover:-translate-y-0.5">
+            visibleModules.map((mod) => (
+              <Link
+                key={mod.id}
+                href={mod.href}
+                onClick={(e) => handleCardClick(e, mod)}
+                className="mm-card"
+                style={{ '--accent': mod.accent } as React.CSSProperties}
+              >
+                <div className="mm-ico" aria-hidden="true">
                   <mod.icon />
                 </div>
                 <div className="font-display text-[17px] font-medium tracking-[-0.005em] text-[#1c1917] text-center">{mod.nameTh}</div>
                 <div className="font-mono text-[10.5px] tracking-[0.14em] uppercase text-[#78716c] mt-2">{mod.nameEn}</div>
-                <svg className="absolute bottom-[14px] right-[14px] w-4 h-4 text-[#78716c] opacity-0 transition-all duration-250 ease-out group-hover:opacity-100 group-hover:translate-x-0.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+                <svg className="mm-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 8h10M9 4l4 4-4 4"/>
+                </svg>
               </Link>
             ))
           )}
@@ -172,7 +298,7 @@ export default function MainMenuPage() {
         </div>
 
         <div className="flex items-center gap-3.5 mt-14 text-[10.5px] font-mono uppercase tracking-[0.22em] text-[#78716c] w-full max-w-[400px] before:content-[''] before:flex-1 before:h-px before:bg-[#e4e0d6] before:min-w-[48px] after:content-[''] after:flex-1 after:h-px after:bg-[#e4e0d6] after:min-w-[48px]">
-          v 2.0 · {currentThaiMonth}
+          v 2.4 · {currentThaiMonth}
         </div>
       </div>
     </ViewTransition>

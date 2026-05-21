@@ -1,6 +1,6 @@
 import { auth } from '@/auth';
-import pool, { queryOne } from '@/lib/db/client';
 import { apiSuccess, apiError } from '@/lib/api-response';
+import { query, queryOne } from '@/lib/db/client';
 import type { SessionUser } from '@/lib/authz';
 
 export async function POST() {
@@ -35,7 +35,7 @@ export async function POST() {
     if (now > shiftStart) status = 'late';
   }
 
-  await pool.query(`
+  await query(`
     INSERT INTO attendance_records (employee_id, work_date, clock_in, status)
     VALUES ($1, $2, NOW(), $3)
     ON CONFLICT (employee_id, work_date)

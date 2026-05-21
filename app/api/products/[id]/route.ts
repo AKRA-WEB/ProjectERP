@@ -5,20 +5,26 @@ import { queryOne } from '@/lib/db/client';
 import { z } from 'zod';
 import type { SessionUser } from '@/lib/authz';
 
-const updateSchema = z.object({
-  name_th: z.string().min(1).max(500).optional(),
-  name_en: z.string().min(1).max(500).optional(),
-  description_th: z.string().nullable().optional(),
-  description_en: z.string().nullable().optional(),
-  barcode: z.string().max(100).nullable().optional(),
-  category_id: z.string().uuid().nullable().optional(),
-  uom_id: z.string().uuid().optional(),
-  unit_cost: z.number().nonnegative().optional(),
-  reorder_point: z.number().int().nonnegative().optional(),
-  is_lot_tracked: z.boolean().optional(),
-  is_serial_tracked: z.boolean().optional(),
-  is_active: z.boolean().optional(),
-});
+const PatchSchema = z.discriminatedUnion('action', [
+  z.object({
+    action: z.literal('update_info'),
+    name_th: z.string().min(1).max(500).optional(),
+    name_en: z.string().min(1).max(500).optional(),
+    description_th: z.string().nullable().optional(),
+    description_en: z.string().nullable().optional(),
+    barcode: z.string().max(100).nullable().optional(),
+    category_id: z.string().uuid().nullable().optional(),
+    uom_id: z.string().uuid().optional(),
+    unit_cost: z.number().nonnegative().optional(),
+    reorder_point: z.number().int().nonnegative().optional(),
+    is_lot_tracked: z.boolean().optional(),
+    is_serial_tracked: z.boolean().optional(),
+  }),
+  z.object({
+    action: z.literal('toggle_active'),
+    is_active: z.boolean(),
+  }),
+]);
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -57,32 +63,37 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const { id } = await params;
   const body = await req.json().catch(() => null);
   if (!body) return apiError('Invalid JSON', 400);
-  const parsed = updateSchema.safeParse(body);
+  const parsed = PatchSchema.safeParse(body);
   if (!parsed.success) return apiValidationError(parsed.error);
-
-  if (parsed.data.barcode) {
-    const barcodeExists = await queryOne(
-      'SELECT id FROM products WHERE barcode = $1 AND id != $2',
-      [parsed.data.barcode, id]
-    );
-    if (barcodeExists) return apiError('Barcode already in use', 409);
-  }
 
   const updates: string[] = [];
   const vals: unknown[] = [];
   let idx = 1;
 
-  const fields = [
-    'name_th', 'name_en', 'description_th', 'description_en', 'barcode',
-    'category_id', 'uom_id', 'unit_cost', 'reorder_point',
-    'is_lot_tracked', 'is_serial_tracked', 'is_active',
-  ] as const;
-
-  for (const f of fields) {
-    if (parsed.data[f] !== undefined) {
-      updates.push(`${f} = $${idx++}`);
-      vals.push(parsed.data[f]);
+  if (parsed.data.action === 'update_info') {
+    if (parsed.data.barcode) {
+      const barcodeExists = await queryOne(
+        'SELECT id FROM products WHERE barcode = $1 AND id != $2',
+        [parsed.data.barcode, id]
+      );
+      if (barcodeExists) return apiError('Barcode already in use', 409);
     }
+
+    const fields = [
+      'name_th', 'name_en', 'description_th', 'description_en', 'barcode',
+      'category_id', 'uom_id', 'unit_cost', 'reorder_point',
+      'is_lot_tracked', 'is_serial_tracked',
+    ] as const;
+
+    for (const f of fields) {
+      if (parsed.data[f] !== undefined) {
+        updates.push(`${f} = $${idx++}`);
+        vals.push(parsed.data[f]);
+      }
+    }
+  } else if (parsed.data.action === 'toggle_active') {
+    updates.push(`is_active = $${idx++}`);
+    vals.push(parsed.data.is_active);
   }
 
   if (!updates.length) return apiError('No fields to update', 400);

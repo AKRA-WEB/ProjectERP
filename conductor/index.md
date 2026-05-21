@@ -16,6 +16,10 @@
 
 | Track | Status | Plan | Rework Plan |
 |-------|--------|------|-------------|
+| maintenance-standardization | Completed | [plan.md](tracks/maintenance-standardization/plan.md) | — |
+| main-menu-ui-polish | Completed | [plan.md](tracks/main-menu-ui-polish/plan.md) | — |
+| admin-hub | Active | [plan.md](tracks/admin-hub/plan.md) | — |
+| grn-ui-redesign | Active | [plan.md](tracks/grn-ui-redesign/plan.md) | — |
 | product-stock-summary | Completed | [plan.md](tracks/product-stock-summary/plan.md) | — |
 | po-gr-audit | Completed | [plan.md](tracks/po-gr-audit/plan.md) | [rework-plan.md](tracks/po-gr-audit/rework-plan.md) |
 | chen-plan-enforcement | Completed | [plan.md](tracks/chen-plan-enforcement/plan.md) | — |
@@ -37,6 +41,7 @@
 
 | Track | Status | Created | Last Updated |
 |-------|--------|---------|--------------|
+| [Maintenance & Standardization](./tracks/maintenance-standardization/plan.md) | Completed | 2026-05-21 | 2026-05-21 |
 | [Product Detail Stock Overview](./tracks/product-stock-summary/plan.md) | Completed | 2026-05-19 | 2026-05-20 |
 | [PO & GRN Transaction Integrity](./tracks/po-gr-audit/plan.md) | Completed | 2026-05-18 | 2026-05-20 |
 | [Chen Plan Enforcement](./tracks/chen-plan-enforcement/plan.md) | Completed | 2026-05-18 | 2026-05-20 |
@@ -76,3 +81,6 @@
 | [IO → GR → PO Workflow — IO card + GRN receive + Supervisor confirm + PO from IO](./tracks/io-gr-po-workflow/plan.md) | Completed | 2026-05-20 | 2026-05-20 |
 | [GRN Receiving Fix — Mobile Date + IO Over-Receiving](./tracks/grn-receiving-fix/plan.md) | Completed | 2026-05-20 | 2026-05-20 |
 | [GRN Simplified Workflow](./tracks/grn-simplified-workflow/plan.md) | Completed | 2026-05-20 | 2026-05-20 |
+| [Main Menu UI Polish — color coding, hover anims, module stubs](./tracks/main-menu-ui-polish/plan.md) | Active | 2026-05-21 | 2026-05-21 |
+| [Admin Hub Page — center dashboard with parallel counts](./tracks/admin-hub/plan.md) | Active | 2026-05-21 | 2026-05-21 |
+| [GRN UI Redesign — full desktop & mobile redesign](./tracks/grn-ui-redesign/plan.md) | Active | 2026-05-21 | 2026-05-21 |

@@ -6,11 +6,13 @@ import { Button } from '@/components/ui/Button';
 import { Table } from '@/components/ui/Table';
 import { Select } from '@/components/ui/Select';
 import { formatCurrency } from '@/lib/format';
+import { useLanguage } from '@/lib/i18n';
 import type { TrialBalanceRow, FiscalPeriod } from '@/types';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden';
 
 export default function TrialBalancePage() {
+  const { lang } = useLanguage();
   const [periods, setPeriods] = useState<FiscalPeriod[]>([]);
   const [periodId, setPeriodId] = useState('');
   const [data, setData] = useState<TrialBalanceRow[]>([]);
@@ -65,7 +67,7 @@ export default function TrialBalancePage() {
             onChange={(e) => setPeriodId(e.target.value)}
           >
             {periods.map(p => (
-              <option key={p.id} value={p.id}>{p.name}</option>
+              <option key={p.id} value={p.id}>{lang === 'th' ? p.name_th : (p.name_en || p.name_th)}</option>
             ))}
           </Select>
         </div>

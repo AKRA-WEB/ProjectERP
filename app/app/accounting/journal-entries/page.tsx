@@ -9,11 +9,13 @@ import { Select } from '@/components/ui/Select';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { formatCurrency } from '@/lib/format';
 import Link from 'next/link';
+import { useLanguage } from '@/lib/i18n';
 import type { JournalEntry, PaginatedResponse, FiscalPeriod } from '@/types';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden';
 
 export default function JournalEntriesPage() {
+  const { lang } = useLanguage();
   const [data, setData] = useState<PaginatedResponse<JournalEntry> | null>(null);
   const [periods, setPeriods] = useState<FiscalPeriod[]>([]);
   const [loading, setLoading] = useState(true);
@@ -82,7 +84,7 @@ export default function JournalEntriesPage() {
           >
             <option value="">ทั้งหมด / All</option>
             {periods.map(p => (
-              <option key={p.id} value={p.id}>{p.name}</option>
+              <option key={p.id} value={p.id}>{lang === 'th' ? p.name_th : (p.name_en || p.name_th)}</option>
             ))}
           </Select>
         </div>

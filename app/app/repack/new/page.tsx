@@ -244,7 +244,7 @@ export default function NewRepackOrderPage() {
                 >
                   <option value="">-- เลือกสูตร --</option>
                   {templates.map(t => (
-                    <option key={t.id} value={t.id}>{t.name}</option>
+                    <option key={t.id} value={t.id}>{lang === 'th' ? t.name_th : (t.name_en || t.name_th)}</option>
                   ))}
                 </select>
                 {selectedSource && templates.length === 0 && (

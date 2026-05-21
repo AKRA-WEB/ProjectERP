@@ -9,12 +9,14 @@ import { Select } from '@/components/ui/Select';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { formatCurrency } from '@/lib/format';
 import Link from 'next/link';
+import { useLanguage } from '@/lib/i18n';
 import type { Account, FiscalPeriod, JournalEntry } from '@/types';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden';
 
 export default function NewJournalEntryPage() {
   const router = useRouter();
+  const { lang } = useLanguage();
   const [submitting, setSubmitting] = useState(false);
   
   // Data
@@ -122,7 +124,7 @@ export default function NewJournalEntryPage() {
         <div className={`${CARD} p-6 space-y-6`}>
            <div className="grid grid-cols-3 gap-6">
               <Select label="รอบบัญชี / Period" value={fiscalPeriodId} onChange={e => setFiscalPeriodId(e.target.value)} required>
-                {periods.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                {periods.map(p => <option key={p.id} value={p.id}>{lang === 'th' ? p.name_th : (p.name_en || p.name_th)}</option>)}
               </Select>
               <Input label="วันที่ / Date" type="date" value={entryDate} onChange={e => setEntryDate(e.target.value)} required />
               <Select label="ประเภท / Type" value={entryType} onChange={e => setEntryType(e.target.value)} required>

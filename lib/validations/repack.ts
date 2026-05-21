@@ -7,7 +7,8 @@ export const RepackTemplateItemSchema = z.object({
 });
 
 export const CreateRepackTemplateSchema = z.object({
-  name: z.string().min(1, 'Template name is required'),
+  name_th: z.string().min(1, 'Template name (TH) is required'),
+  name_en: z.string().nullable().optional(),
   source_product_id: z.string().uuid(),
   source_qty: z.number().positive(),
   notes: z.string().nullable().optional(),

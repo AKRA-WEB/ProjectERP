@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
 
       const result = calcPayroll({
         baseSalary,
-        allowancesTotal: 0, // TODO: allowances per employee when implemented
+        allowancesTotal: 0, // Placeholder: requires dedicated employee_allowances table for per-employee logic
         otPay,
         absenceDeduction,
       });

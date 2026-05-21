@@ -17,7 +17,8 @@ export default function NewFiscalPeriodPage() {
   const [formData, setFormData] = useState({
     year: new Date().getFullYear(),
     month: new Date().getMonth() + 1,
-    name: '',
+    name_th: '',
+    name_en: '',
     start_date: '',
     end_date: '',
   });
@@ -74,12 +75,20 @@ export default function NewFiscalPeriodPage() {
           </Select>
         </div>
 
-        <Input
-          label="ชื่อรอบ / Display Name (Optional)"
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder="เว้นว่างเพื่อใช้ชื่อมาตรฐาน เช่น มกราคม 2026"
-        />
+        <div className="space-y-4">
+          <Input
+            label="ชื่อรอบ (TH) / Display Name (TH) (Optional)"
+            value={formData.name_th}
+            onChange={(e) => setFormData({ ...formData, name_th: e.target.value })}
+            placeholder="มกราคม 2569"
+          />
+          <Input
+            label="ชื่อรอบ (EN) / Display Name (EN) (Optional)"
+            value={formData.name_en}
+            onChange={(e) => setFormData({ ...formData, name_en: e.target.value })}
+            placeholder="January 2026"
+          />
+        </div>
 
         <div className="grid grid-cols-2 gap-4">
           <Input

@@ -141,7 +141,12 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
 
   try { assertRole(user, ['admin']); } catch { return apiError('Forbidden', 403); }
 
-  // TODO: Block if referenced in manufacturing orders
+  const bom = await queryOne<{ is_active: boolean }>('SELECT is_active FROM bom_headers WHERE id = $1', [id]);
+  if (!bom) return apiError('BOM not found', 404);
+  if (bom.is_active) {
+    return apiError('Cannot delete an active BOM. Please deactivate it first or activate another BOM for this product.', 409);
+  }
+
   await query('DELETE FROM bom_headers WHERE id = $1', [id]);
   return apiSuccess({ ok: true });
 }
