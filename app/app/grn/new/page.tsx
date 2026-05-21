@@ -510,7 +510,7 @@ function NewGRNPageInner() {
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-[12px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-md px-2 py-0.5 uppercase tracking-wider">
-                  {mode.toUpperCase()} RECEIVING
+                  IO RECEIVING
                 </span>
                 {isW2Warehouse && (
                   <span className="text-[12px] font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2 py-0.5 uppercase">
@@ -986,7 +986,7 @@ function NewGRNPageInner() {
               <div>
                 <div className="flex items-center gap-1.5">
                   <span className="text-[10px] font-extrabold text-emerald-400 bg-emerald-950/60 border border-emerald-900 rounded-md px-1.5 py-0.5 uppercase tracking-wider font-mono">
-                    {mode.toUpperCase()} RECEIVE
+                    IO RECEIVING
                   </span>
                   {isW2Warehouse && (
                     <span className="text-[10px] font-extrabold text-amber-400 bg-amber-950/60 border border-amber-900 rounded-md px-1.5 py-0.5 uppercase">W2</span>
