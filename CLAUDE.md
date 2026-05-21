@@ -41,6 +41,11 @@ git pull origin master
 
 ถ้าไม่ pull ก่อน → local อาจล้าหลัง remote → push conflict กับ Gemini/Chen commits อื่น
 
+## Output Silence Mode (MANDATORY)
+**To save tokens and focus on execution efficiency:**
+1. **Silence During Execution:** Do not write conversational text, progress updates, explanations, or thoughts in the chat output while running the conductor loop. Just call tools.
+2. **Ultra-Concise Completion:** Once the entire track/loop is done, write a 1-paragraph summary with exact files changed and validation results. Do not repeat instructions.
+
 ## Architecture
 
 **Stack:** Next.js 15 App Router · React 19 · TypeScript strict · PostgreSQL (raw `pg`) · NextAuth v5 · Zod · Tailwind CSS

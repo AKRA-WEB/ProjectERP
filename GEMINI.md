@@ -14,6 +14,14 @@ You are the **Implementer** in this project's hybrid AI workflow. Claude (Chen) 
 
 ---
 
+## Output Silence Mode (MANDATORY)
+**To save tokens and focus on execution efficiency:**
+1. **Silence During Execution:** Do not write any conversational text, progress updates, explanations, or thoughts in the chat output while running `Go` loop. Just call tools.
+2. **Terminal Output Only:** If you must speak between tool blocks, output 1-line of progress indicator (e.g. `[main-menu] Editing page.tsx...`).
+3. **Ultra-Concise Completion:** Once the entire track/loop is done, write a 1-paragraph summary with exact files changed and validation results. Do not repeat instructions.
+
+---
+
 ## Execution Loop (Auto-Continue)
 
 After completing one track, do NOT stop. Follow this loop:
@@ -51,20 +59,34 @@ Next action needed: [QA: trackname / rework / new plan]
 
 ---
 
+## Concurrency & Parallel Work Rules
+
+1. **One Agent per Track:** Only one agent (Claude or Gemini) may modify a specific track folder at a time.
+2. **The "Active" Lock:** When a track status is set to `Active` in `conductor/index.md`, it is locked for Gemini (Implementer). Claude (Planner) must not modify the `plan.md` of an `Active` track.
+3. **Communication via Index:** `conductor/index.md` is the central source of truth for "Who is doing what". 
+    - Gemini updates status to `Completed` when done.
+    - Claude reads `Completed` status + `execution-summary.md` to understand what was built before planning the next track.
+4. **Contract-First Specs:** Plans MUST include explicit Zod schemas or TypeScript interfaces for new API routes/components to prevent implementation drift.
+5. **Non-Blocking Halt:** If Gemini hits a blocker in Track A, log it in `rework-plan.md`, change status to `HALTED` or `Rework Required`, and move to the next `Active` track.
+6. **Migration Sequence Integrity:** Gemini MUST update the `Migration Numbers (latest: XXX)` in `_notes/02_Agent_Memory/current-state.md` immediately after a successful migration to prevent Claude from assigning duplicate numbers in future plans.
+
+---
+
 ## Pre-Flight Checklist (MANDATORY before first task of every track)
 
 Run through this before writing a single line of code:
 
-- [ ] **`git pull origin master`** — sync local with remote before any work begins
-- [ ] Read `docs/skills/agent-principles.md` — Karpathy & Shared operating principles
-- [ ] Read `_notes/02_Agent_Memory/current-state.md` — active work, DB facts, API routes, import traps
-- [ ] Read `_notes/02_Agent_Memory/pitfalls.md` fully
-- [ ] Read `conductor/tracks/<track>/plan.md` fully
-- [ ] Identify all files being modified — read each one before touching it
-- [ ] For each SQL query in the plan: verify every column name against `migrations/*.sql`
-- [ ] For each TypeScript type referenced: check `types/index.ts` exists and matches
-- [ ] For each API endpoint: check the route file exists at the expected path
-- [ ] Load skill files relevant to this track (see Skill Modules section)
+- [ ] **`git pull origin master`** — sync local with remote before any work begins.
+- [ ] **Worktree Isolation:** If working in parallel sessions, use `activate_skill('using-git-worktrees')` to create a dedicated branch and worktree for this track.
+- [ ] Read `docs/skills/agent-principles.md` — Karpathy & Shared operating principles.
+- [ ] Read `_notes/02_Agent_Memory/current-state.md` — active work, DB facts, API routes, import traps.
+- [ ] Read `_notes/02_Agent_Memory/pitfalls.md` fully.
+- [ ] Read `conductor/tracks/<track>/plan.md` fully.
+- [ ] Identify all files being modified — read each one before touching it.
+- [ ] For each SQL query in the plan: verify every column name against `migrations/*.sql`.
+- [ ] For each TypeScript type referenced: check `types/index.ts` exists and matches.
+- [ ] For each API endpoint: check the route file exists at the expected path.
+- [ ] Load skill files relevant to this track (see Skill Modules section).
 
 If any verification fails → HALT. Report exact mismatch to the user. Never guess.
 
@@ -130,7 +152,12 @@ updated: YYYY-MM-DD
 ```
 And update the track row in `conductor/index.md`.
 
-**6. Post-Task Knowledge Capture** — After every task, answer 3 questions: (1) Did you discover any new DB columns/tables? (2) Did you find any new API routes or import traps? (3) Should any new pattern be added to pitfalls.md? Skip only if all are NO.
+6. **Post-Task Knowledge Capture (High-Signal, Low-Noise):** After every task, update `_notes/` ONLY with critical facts that aren't obvious from the code.
+  - **Focus:** Rationale for decisions, new DB columns/API routes, and systemic traps.
+  - **Format:** Use concise bullet points or short table entries. Avoid narratives.
+  - **Prune:** Remove outdated notes or fixed pitfalls immediately to save context.
+  - **Migration:** If a migration was added, update the `latest` number in `current-state.md` immediately.
+
 
 **7. Execution Summary Evidence** — Each entry must include quoted evidence:
 ```
