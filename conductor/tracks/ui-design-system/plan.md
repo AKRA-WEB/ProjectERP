@@ -200,3 +200,8 @@ updated: 2026-05-13
 | `--bg-sunken` / `bg-surface-sunken` | `#f5f5f4` | Input backgrounds, hover states |
 | `--shadow-1` / `shadow-1` | subtle | Cards, buttons |
 | Font numbers | `font-mono tabular-nums` | All numeric values in tables |
+
+---
+## Execution Logs
+- [[execution-summary]]
+

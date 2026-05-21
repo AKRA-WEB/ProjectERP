@@ -10,6 +10,8 @@ Design system, navigation, i18n, performance, view transitions.
 ## Dependencies
 - **Foundational for:** All modules ([[WMS]], [[Inventory]], [[POS]], [[Sales]], [[Accounting]], [[HR]], [[BOM]], [[Vendors]], [[Security]])
 - **Infrastructure:** Provides document numbering, API clients, and shared UI components.
+- **Architectural Summary:** [[CORE_MODULE_SUMMARY]]
+- **Core Decisions:** [[auth-pattern]], [[doc-numbers-db-function]], [[patch-action-discriminant]], [[transaction-pattern]], [[warehouse-scope-clause]]
 
 ## Stack
 Next.js 15 App Router · React 19 · TypeScript strict · Tailwind CSS · NextAuth v5

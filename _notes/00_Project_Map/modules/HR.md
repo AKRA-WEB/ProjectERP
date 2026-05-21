@@ -11,6 +11,7 @@ type: module-summary
 - [[Accounting]] — ส่งรายการจ่ายเงินเดือน (Payroll Entries) และภาษีหัก ณ ที่จ่าย
 - [[Security]] — จัดการสิทธิ์การเข้าถึง (RBAC) ของพนักงานในระบบ
 - [[Core]] — UI Components สำหรับจัดการข้อมูลพนักงาน
+- **Architectural Summary:** [[HR_MODULE_SUMMARY]]
 
 ## Flow
 ```

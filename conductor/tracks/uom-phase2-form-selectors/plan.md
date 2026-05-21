@@ -369,3 +369,8 @@ lines: lines.map((l) => ({
 - [x] Run `npm run lint` → no errors
 - [ ] Test: create transfer, add product with UoMs → dropdown appears → select → preview → submit
 - [x] Commit: `feat(uom): Transfer create form — UoM selector with conversion preview`
+
+---
+## Execution Logs
+- [[execution-summary]]
+

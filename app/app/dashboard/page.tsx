@@ -147,11 +147,17 @@ const CARD_H = 'flex items-center justify-between px-5 py-[14px] border-b border
 const BTN_SM = 'h-[26px] px-3 rounded-[6px] text-[12px] font-medium text-stone-600 bg-white border border-stone-200 hover:bg-stone-50 shadow-[0_1px_0_rgba(15,23,42,.03)] inline-flex items-center';
 
 function Greeting() {
-  const h = new Date().getHours();
+  const [greeting, setGreeting] = useState('');
   const t = useT();
-  if (h < 12) return t('greeting.morning');
-  if (h < 17) return t('greeting.afternoon');
-  return t('greeting.evening');
+
+  useEffect(() => {
+    const h = new Date().getHours();
+    if (h < 12) setGreeting(t('greeting.morning'));
+    else if (h < 17) setGreeting(t('greeting.afternoon'));
+    else setGreeting(t('greeting.evening'));
+  }, [t]);
+
+  return greeting;
 }
 
 export default function DashboardPage() {
@@ -160,10 +166,12 @@ export default function DashboardPage() {
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [warehouseId, setWarehouseId] = useState('');
   const [loading, setLoading] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
   const t = useT();
   const { lang } = useLanguage();
 
   useEffect(() => {
+    setIsMounted(true);
     get<Warehouse[]>('/api/admin/warehouses').then(setWarehouses).catch(() => {});
   }, []);
 
@@ -181,6 +189,8 @@ export default function DashboardPage() {
   const maxQtyStocked = kpi?.warehouse_perf?.length
     ? Math.max(...kpi.warehouse_perf.map((w) => Number(w.qty_stocked) || 0), 1)
     : 1;
+
+  if (!isMounted) return null;
 
   return (
     <ViewTransition default="none" enter="fade-in" exit="fade-out">

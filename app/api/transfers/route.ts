@@ -85,8 +85,9 @@ export async function POST(req: Request) {
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) return apiValidationError(parsed.error);
 
-  const client = await pool.connect();
+  let client;
   try {
+    client = await pool.connect();
     await client.query('BEGIN');
 
     const trf = await client.query<{ id: string; transfer_number: string }>(
@@ -152,10 +153,10 @@ export async function POST(req: Request) {
     await client.query('COMMIT');
     return apiSuccess(trf.rows[0], 201);
   } catch (err) {
-    await client.query('ROLLBACK');
+    if (client) await client.query('ROLLBACK');
     console.error('Transfer error:', err);
     return apiError('Transfer failed', 500);
   } finally {
-    client.release();
+    if (client) client.release();
   }
 }

@@ -1,53 +1,118 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { get } from '@/lib/api-client';
-import type { HrEmployee, Department, EmployeeStatus } from '@/types';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { Pagination } from '@/components/ui/Pagination';
-import { formatNumber } from '@/lib/format';
-import { DirectionalTransition } from '@/components/ui/directional-transition';
-import { useSession } from 'next-auth/react';
-import EmployeeFormModal from './EmployeeFormModal';
-import { type SessionUser } from '@/types';
+import { get } from '@/lib/api-client';
+import { formatCurrency } from '@/lib/utils';
 import { useT, useLanguage, localeName } from '@/lib/i18n';
+import { useSession } from 'next-auth/react';
+import { Pagination } from '@/components/ui/Pagination';
+import { DirectionalTransition } from '@/components/ui/directional-transition';
+import type { HrEmployee, Department, EmployeeStatus, SessionUser, Warehouse, EmploymentType } from '@/types';
+import EmployeeFormModal from './EmployeeFormModal';
 
-const AVATAR_COLORS = [
-  '#a78bfa', '#fb923c', '#22c55e', '#0ea5e9', '#f43f5e',
-  '#f59e0b', '#6366f1', '#14b8a6', '#8b5cf6', '#ec4899',
-];
+// --- Local Types & Components ---
 
-function avatarColor(name: string): string {
-  let h = 0;
-  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) & 0xffff;
-  return AVATAR_COLORS[h % AVATAR_COLORS.length];
+interface ExtendedHrEmployee extends HrEmployee {
+  branch_name: string | null;
+  hire_date: string | null;
 }
 
-const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-[0_1px_0_rgba(15,23,42,.03),0_1px_2px_rgba(15,23,42,.04)]';
+interface EmployeeStats {
+  total: number;
+  new_this_month: number;
+  turnover_3m_pct: string;
+  avg_tenure_years: string;
+  oldest_tenure_years: string;
+}
+
+const AVATAR_PALETTE = [
+  { bg: '#fde68a', txt: '#92400e' }, { bg: '#bbf7d0', txt: '#14532d' },
+  { bg: '#bfdbfe', txt: '#1e3a8a' }, { bg: '#fecaca', txt: '#7f1d1d' },
+  { bg: '#e9d5ff', txt: '#581c87' }, { bg: '#fed7aa', txt: '#7c2d12' },
+  { bg: '#cffafe', txt: '#164e63' }, { bg: '#fce7f3', txt: '#831843' },
+];
+
+const DEPT_COLORS = ['#6366f1', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#06b6d4', '#f97316', '#ec4899'];
+
+function nameToColor(name: string) {
+  if (!name) return AVATAR_PALETTE[0];
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  return AVATAR_PALETTE[h % AVATAR_PALETTE.length];
+}
+
+function nameToInitials(name: string) {
+  if (!name) return '??';
+  const parts = name.trim().split(/\s+/);
+  return parts.length >= 2 ? (parts[0][0] + parts[1][0]).toUpperCase() : name.slice(0, 2).toUpperCase();
+}
+
+function Avatar({ name, size = 32 }: { name: string; size?: number }) {
+  const { bg, txt } = nameToColor(name);
+  return (
+    <div
+      className="rounded-full flex items-center justify-center font-bold text-[11px] shrink-0"
+      style={{ backgroundColor: bg, color: txt, width: size, height: size }}
+    >
+      {nameToInitials(name)}
+    </div>
+  );
+}
+
+function getTenure(dateStr: string | null) {
+  if (!dateStr) return '—';
+  const start = new Date(dateStr);
+  const end = new Date();
+  let years = end.getFullYear() - start.getFullYear();
+  let months = end.getMonth() - start.getMonth();
+  if (months < 0) { years--; months += 12; }
+  if (years > 0) return `${years} ปี ${months} ด.`;
+  return `${months} เดือน`;
+}
+
+function KpiCard({ label, value, sub, accent = 'text-stone-900', loading = false }: { label: string; value: string | number; sub: string; accent?: string; loading?: boolean }) {
+  return (
+    <div className="flex-1 px-5 py-4 border-r border-stone-100 last:border-r-0">
+      <div className="text-[11px] font-semibold text-stone-500 uppercase tracking-wider">{label}</div>
+      <div className={`text-[20px] font-bold mt-0.5 ${accent}`}>
+        {loading ? <span className="animate-pulse bg-stone-100 rounded w-12 h-6 inline-block" /> : value}
+      </div>
+      <div className="text-[11px] text-stone-400 mt-0.5">{sub}</div>
+    </div>
+  );
+}
 
 interface PaginatedEmployees {
-  data: HrEmployee[];
+  data: ExtendedHrEmployee[];
   total: number;
   page: number;
   limit: number;
 }
 
+const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden';
+
 export default function EmployeesPage() {
   const { data: session } = useSession();
   const [data, setData] = useState<PaginatedEmployees | null>(null);
+  const [stats, setStats] = useState<EmployeeStats | null>(null);
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [search, setSearch] = useState('');
   const [deptFilter, setDeptFilter] = useState('');
+  const [branchFilter, setBranchFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState<EmploymentType | ''>('');
   const [statusFilter, setStatusFilter] = useState<EmployeeStatus | ''>('');
   const [loading, setLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  
   const t = useT();
   const { lang } = useLanguage();
-
-  const user = session?.user as SessionUser | undefined;
-  const canCreate = user && ['admin', 'manager'].includes(user.role);
+  const user = session?.user as unknown as SessionUser;
+  const canSeeSalary = user?.role === 'admin' || user?.role === 'manager';
 
   const fetchEmployees = useCallback(async () => {
     setLoading(true);
@@ -58,170 +123,231 @@ export default function EmployeesPage() {
       });
       if (search) params.set('search', search);
       if (deptFilter) params.set('department_id', deptFilter);
+      if (branchFilter) params.set('branch_id', branchFilter);
+      if (typeFilter) params.set('employment_type', typeFilter);
       if (statusFilter) params.set('employee_status', statusFilter);
       
       const res = await get<PaginatedEmployees>(`/api/hr/employees?${params}`);
       setData(res);
     } finally { setLoading(false); }
-  }, [page, pageSize, search, deptFilter, statusFilter]);
-
-  const fetchDepts = async () => {
-    const res = await get<Department[]>('/api/hr/departments');
-    setDepartments(res);
-  };
+  }, [page, pageSize, search, deptFilter, branchFilter, typeFilter, statusFilter]);
 
   useEffect(() => { fetchEmployees(); }, [fetchEmployees]);
-  useEffect(() => { fetchDepts(); }, []);
+  
+  useEffect(() => {
+    setStatsLoading(true);
+    get<EmployeeStats>('/api/hr/employees/stats').then(setStats).finally(() => setStatsLoading(false));
+    get<Department[]>('/api/hr/departments').then(setDepartments);
+    get<Warehouse[]>('/api/warehouses').then(setWarehouses);
+  }, []);
 
   const totalPages = data ? Math.ceil(data.total / data.limit) : 0;
 
   return (
     <DirectionalTransition>
-      <div className="max-w-[1440px] mx-auto pb-12 space-y-5">
-
+      <div className="max-w-[1440px] mx-auto pb-12 space-y-6">
         {/* Header */}
-        <div className="flex items-end justify-between gap-6 flex-wrap">
+        <div className="flex items-end justify-between gap-4">
           <div>
-            <h1 className="text-[26px] font-semibold tracking-tight text-stone-950 leading-tight mb-1">
+            <h1 className="font-display text-[26px] font-semibold tracking-tight text-stone-900">
               {t('page.employees')}
             </h1>
-            <p className="text-[13.5px] text-stone-500">
-              {loading ? '—' : formatNumber(data?.total ?? 0, lang)} {t('label.employee')}
+            <p className="text-[13.5px] text-stone-500 mt-1">
+              จัดการข้อมูลพนักงาน สัญญาจ้าง และการสังกัดแผนก
             </p>
           </div>
-          {canCreate && (
+          <div className="flex gap-2">
+            {user?.role === 'admin' && (
+              <button className="h-9 px-3.5 rounded-md text-[13px] font-medium text-stone-700 bg-white border border-stone-200 hover:bg-stone-50 transition-colors">
+                นำเข้าจาก Excel
+              </button>
+            )}
             <button
               onClick={() => setShowForm(true)}
-              className="h-9 px-4 rounded-[8px] bg-emerald-600 hover:bg-emerald-700 text-white text-[13.5px] font-medium transition-colors flex items-center gap-2"
+              className="h-9 px-3.5 rounded-md text-[13px] font-medium text-white bg-stone-900 hover:bg-stone-800 inline-flex items-center gap-1.5 transition-colors"
             >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M7 3v8M3 7h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-              {t('action.create')}
+              + {t('action.create')}
             </button>
-          )}
+          </div>
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Search */}
-          <div className="flex items-center gap-2 w-full max-w-[240px] bg-stone-50 border border-stone-200 rounded-[8px] px-3 py-[6px] text-stone-400 text-[13px] focus-within:border-stone-300 focus-within:bg-white transition-colors">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="shrink-0">
-              <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.4"/>
-              <path d="M10 10l2.5 2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+        {/* KPI Strip */}
+        <div className="flex bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden">
+          <KpiCard
+            label="พนักงานทั้งหมด"
+            value={stats?.total ?? 0}
+            sub="พนักงานที่มีสถานะปกติ"
+            loading={statsLoading}
+          />
+          <KpiCard
+            label="พนักงานใหม่เดือนนี้"
+            value={stats?.new_this_month ?? 0}
+            sub="เริ่มงานในเดือนปัจจุบัน"
+            accent="text-indigo-600"
+            loading={statsLoading}
+          />
+          <KpiCard
+            label="อัตราการลาออก (3ด.)"
+            value={stats ? `${stats.turnover_3m_pct}%` : '0%'}
+            sub="เทียบกับจำนวนพนักงานทั้งหมด"
+            accent="text-amber-600"
+            loading={statsLoading}
+          />
+          <KpiCard
+            label="อายุงานเฉลี่ย"
+            value={stats ? `${stats.avg_tenure_years} ปี` : '0 ปี'}
+            sub={`พนักงานที่เก่าแก่ที่สุด: ${stats?.oldest_tenure_years ?? 0} ปี`}
+            loading={statsLoading}
+          />
+        </div>
+
+        {/* Filters Bar */}
+        <div className="flex flex-wrap items-center gap-3 bg-stone-50/50 p-1.5 rounded-xl border border-stone-100">
+          <div className="flex items-center gap-2 w-full max-w-[240px] bg-white border border-stone-200 rounded-lg px-3 py-1.5 text-stone-400 focus-within:border-stone-400 transition-colors">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" className="shrink-0">
+              <path d="M14.5 14.5L10.5 10.5M12 6.5C12 9.53757 9.53757 12 6.5 12C3.46243 12 1 9.53757 1 6.5C1 3.46243 3.46243 1 6.5 1C9.53757 1 12 3.46243 12 6.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
             <input
               placeholder={t('label.search_placeholder')}
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              className="flex-1 bg-transparent border-0 outline-none text-stone-700 placeholder:text-stone-400 text-[13px]"
+              className="flex-1 bg-transparent border-0 outline-none text-stone-700 placeholder:text-stone-400 text-[13.5px]"
             />
           </div>
 
-          {/* Dept Filter */}
           <select
             value={deptFilter}
             onChange={(e) => { setDeptFilter(e.target.value); setPage(1); }}
-            className="h-8 px-3 rounded-[8px] border border-stone-200 bg-stone-50 text-[13px] text-stone-700 outline-none focus:bg-white transition-colors"
+            className="h-9 px-3 rounded-lg border border-stone-200 bg-white text-[13px] text-stone-700 outline-none hover:border-stone-300"
           >
-            <option value="">{t('label.department')}</option>
-            {departments.map(d_item => (
-              <option key={d_item.id} value={d_item.id}>{localeName(d_item.name_th, d_item.name_en, lang)}</option>
+            <option value="">ทุกแผนก</option>
+            {departments.map(d => (
+              <option key={d.id} value={d.id}>{localeName(d.name_th, d.name_en, lang)}</option>
             ))}
           </select>
 
-          {/* Status Filter */}
+          <select
+            value={branchFilter}
+            onChange={(e) => { setBranchFilter(e.target.value); setPage(1); }}
+            className="h-9 px-3 rounded-lg border border-stone-200 bg-white text-[13px] text-stone-700 outline-none hover:border-stone-300"
+          >
+            <option value="">ทุกสาขา / คลัง</option>
+            {warehouses.map(w => (
+              <option key={w.id} value={w.id}>{localeName(w.name_th, w.name_en, lang)}</option>
+            ))}
+          </select>
+
+          <select
+            value={typeFilter}
+            onChange={(e) => { setTypeFilter(e.target.value as EmploymentType | ''); setPage(1); }}
+            className="h-9 px-3 rounded-lg border border-stone-200 bg-white text-[13px] text-stone-700 outline-none hover:border-stone-300"
+          >
+            <option value="">ทุกประเภทสัญญา</option>
+            <option value="full_time">พนักงานประจำ</option>
+            <option value="part_time">พาร์ทไทม์</option>
+            <option value="contract">สัญญาจ้าง</option>
+          </select>
+
           <select
             value={statusFilter}
             onChange={(e) => { setStatusFilter(e.target.value as EmployeeStatus | ''); setPage(1); }}
-            className="h-8 px-3 rounded-[8px] border border-stone-200 bg-stone-50 text-[13px] text-stone-700 outline-none focus:bg-white transition-colors"
+            className="h-9 px-3 rounded-lg border border-stone-200 bg-white text-[13px] text-stone-700 outline-none hover:border-stone-300"
           >
-            <option value="">{t('label.status')}</option>
+            <option value="">ทุกสถานะ</option>
             <option value="active">{t('status.active')}</option>
             <option value="inactive">{t('status.inactive')}</option>
-            <option value="resigned">{t('status.rejected')}</option>
+            <option value="resigned">พ้นสภาพ</option>
           </select>
-        </div>
 
-        {/* Table card */}
-        <div className={CARD}>
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-[13px]">
-              <thead>
-                <tr>
-                  {[
-                    { h: t('label.employee'),    sm: false },
-                    { h: t('label.code'), sm: false },
-                    { h: t('label.department'),       sm: true },
-                    { h: t('label.position'),    sm: true },
-                    { h: t('label.description'), sm: true },
-                    { h: t('label.status'),      sm: false },
-                    { h: '',           sm: false },
-                  ].map(({ h, sm }, i) => (
-                    <th key={i} className={`text-left py-2.5 px-3.5 text-[11.5px] font-medium tracking-[.04em] uppercase text-stone-400 bg-stone-50 border-y border-stone-200 first:pl-5 last:pr-5 ${sm ? 'hidden lg:table-cell' : ''}`}>
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr><td colSpan={7} className="py-12 text-center text-[13px] text-stone-400">{t('label.loading')}</td></tr>
-                ) : data?.data.length === 0 ? (
-                  <tr><td colSpan={7} className="py-12 text-center text-[13px] text-stone-400">{t('label.no_data')}</td></tr>
-                ) : data?.data.map((v: HrEmployee) => {
-                  const color = avatarColor(v.name_en || v.name_th);
-                  return (
-                    <tr key={v.id} className="border-b border-stone-50 last:border-0 hover:bg-stone-50/60 cursor-default transition-colors">
-                      <td className="py-0 h-12 px-3.5 pl-5">
-                        <div className="flex items-center gap-2.5">
-                          <div
-                            className="w-6 h-6 rounded-[6px] shrink-0 grid place-items-center text-[11px] font-semibold uppercase"
-                            style={{ background: color + '22', color }}
-                          >
-                            {v.name_en ? v.name_en.slice(0, 2) : v.name_th.slice(0, 2)}
-                          </div>
-                          <div>
-                            <div className="font-medium text-stone-900">{localeName(v.name_th, v.name_en, lang)}</div>
-                            {lang === 'th' && v.name_en && <div className="text-[11.5px] text-stone-400">{v.name_en}</div>}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-0 h-12 px-3.5 font-mono text-[12.5px] text-stone-600">{v.employee_id || '—'}</td>
-                      <td className="py-0 h-12 px-3.5 text-stone-500 hidden lg:table-cell">{v.department_name_th || '—'}</td>
-                      <td className="py-0 h-12 px-3.5 text-stone-500 hidden lg:table-cell">{v.position_name_th || '—'}</td>
-                      <td className="py-0 h-12 px-3.5 text-stone-500 hidden lg:table-cell uppercase text-[11px]">{v.employment_type.replace('_', ' ')}</td>
-                      <td className="py-0 h-12 px-3.5">
-                        <span className={`inline-flex items-center gap-[5px] px-2 py-[2px] text-[11.5px] font-medium rounded-full border leading-[1.5] before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:bg-current 
-                          ${v.employee_status === 'active' ? 'text-emerald-700 border-emerald-200 bg-emerald-50' : 
-                            v.employee_status === 'inactive' ? 'text-amber-700 border-amber-200 bg-amber-50' : 
-                            'text-stone-500 border-stone-200 bg-stone-50'}`}>
-                          {v.employee_status === 'active' ? t('status.active') : v.employee_status === 'inactive' ? t('status.inactive') : t('status.rejected')}
-                        </span>
-                      </td>
-                      <td className="py-0 h-12 px-3.5 pr-5">
-                        <Link href={`/app/hr/employees/${v.id}`} transitionTypes={['nav-forward']} className="text-stone-300 hover:text-emerald-600 transition-colors inline-flex h-8 w-8 items-center justify-center">
-                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                        </Link>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          <div className="ml-auto text-[12px] text-stone-400 font-medium px-2">
+            {loading ? '...' : `หน้า ${page} จาก ${totalPages || 1}`}
           </div>
         </div>
 
-        {/* Pagination */}
-        {data && (
-          <Pagination
-            currentPage={page}
-            totalPages={totalPages}
-            onPageChange={setPage}
-            limit={pageSize}
-            onLimitChange={setPageSize}
-          />
-        )}
+        {/* Employees Table */}
+        <div className={CARD}>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead className="bg-stone-50 border-b border-stone-100">
+                <tr className="text-[10.5px] font-semibold text-stone-500 uppercase tracking-wider">
+                  <th className="px-5 py-3">พนักงาน</th>
+                  <th className="px-5 py-3">แผนก / สาขา</th>
+                  <th className="px-5 py-3">อายุงาน</th>
+                  {canSeeSalary && <th className="px-5 py-3 text-right">เงินเดือน</th>}
+                  <th className="px-5 py-3">สถานะ</th>
+                  <th className="px-5 py-3 w-10"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stone-50">
+                {loading ? (
+                  <tr><td colSpan={canSeeSalary ? 6 : 5} className="py-24 text-center text-[13.5px] text-stone-400">กำลังโหลดรายการพนักงาน...</td></tr>
+                ) : data?.data.length === 0 ? (
+                  <tr><td colSpan={canSeeSalary ? 6 : 5} className="py-24 text-center text-[13.5px] text-stone-400">ไม่พบข้อมูลพนักงานตามเงื่อนไขที่ระบุ</td></tr>
+                ) : data?.data.map((emp) => (
+                  <tr key={emp.id} className="hover:bg-stone-50/60 transition-colors group">
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-3">
+                        <Avatar name={emp.name_th} size={32} />
+                        <div>
+                          <div className="text-[13.5px] font-medium text-stone-900">{emp.name_th}</div>
+                          <div className="text-[11px] text-stone-400 uppercase font-mono tracking-tighter">
+                            {emp.employee_id} · {emp.position_name_th || emp.role}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full shrink-0" style={{ background: DEPT_COLORS[Math.max(0, departments.findIndex(d => d.id === emp.department_id)) % DEPT_COLORS.length] || '#e5e7eb' }} />
+                        <span className="text-[13px] text-stone-700 font-medium truncate">{emp.department_name_th || '—'}</span>
+                      </div>
+                      <div className="text-[11px] text-stone-500 mt-0.5 ml-3.5">{emp.branch_name || '—'}</div>
+                    </td>
+                    <td className="px-5 py-3 text-[13px] text-stone-600">
+                      {getTenure(emp.hire_date)}
+                    </td>
+                    {canSeeSalary && (
+                      <td className="px-5 py-3 font-mono text-[13px] text-stone-900 font-medium text-right">
+                        {formatCurrency(emp.base_salary, lang)}
+                      </td>
+                    )}
+                    <td className="px-5 py-3">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-medium border
+                        ${emp.employee_status === 'active' ? 'bg-green-50 text-green-700 border-green-100' : 
+                          emp.employee_status === 'inactive' ? 'bg-amber-50 text-amber-700 border-amber-100' : 
+                          'bg-stone-50 text-stone-500 border-stone-200'}`}>
+                        {emp.employee_status === 'active' ? 'กำลังทำงาน' : emp.employee_status === 'inactive' ? 'ระงับงาน' : 'พ้นสภาพ'}
+                      </span>
+                      <div className="text-[9px] text-stone-400 uppercase mt-0.5 font-bold tracking-wider">
+                        {emp.employment_type === 'full_time' ? 'Full-Time' : emp.employment_type === 'part_time' ? 'Part-Time' : 'Contract'}
+                      </div>
+                    </td>
+                    <td className="px-5 py-3">
+                      <Link
+                        href={`/app/hr/employees/${emp.id}`}
+                        className="w-8 h-8 rounded-full border border-transparent hover:border-stone-200 hover:bg-white flex items-center justify-center text-stone-300 hover:text-stone-900 transition-all"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {data && data.total > data.limit && (
+            <div className="px-5 py-4 border-t border-stone-100">
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+                limit={pageSize}
+                onLimitChange={setPageSize}
+              />
+            </div>
+          )}
+        </div>
 
         {showForm && (
           <EmployeeFormModal

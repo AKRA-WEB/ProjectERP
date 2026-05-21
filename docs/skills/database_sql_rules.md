@@ -125,6 +125,30 @@ BEGIN;
 ## ✅ Pattern — [name]   or   ## ❌ Trap — [name]
 -->
 
+## ✅ Pattern — Timezone-Aware Time Formatting in SQL
+**Context:** Converting TIMESTAMPTZ to a formatted string in a specific timezone.
+**Correct way:**
+```sql
+SELECT TO_CHAR(clock_in AT TIME ZONE 'Asia/Bangkok', 'HH24:MI') as clock_in_time
+FROM attendance_records;
+```
+**Found in:** task 3 of track hr-ui-redesign
+
+## ✅ Pattern — Year-End Wraparound Anniversary Logic
+**Context:** Finding events (like work anniversaries) that fall within a date range even if the range crosses the calendar year boundary (e.g., Dec 28 to Jan 4).
+**Correct way:**
+```sql
+SELECT * FROM users
+WHERE (
+    TO_CHAR(hired_date, 'MM-DD') BETWEEN TO_CHAR(CURRENT_DATE, 'MM-DD') AND TO_CHAR(CURRENT_DATE + 7, 'MM-DD')
+    OR (
+      TO_CHAR(CURRENT_DATE, 'MM-DD') > TO_CHAR(CURRENT_DATE + 7, 'MM-DD') -- Wraparound case
+      AND (TO_CHAR(hired_date, 'MM-DD') >= TO_CHAR(CURRENT_DATE, 'MM-DD') OR TO_CHAR(hired_date, 'MM-DD') <= TO_CHAR(CURRENT_DATE + 7, 'MM-DD'))
+    )
+  )
+```
+**Found in:** task 3 of track hr-ui-redesign
+
 ## ❌ Trap — Strict null violations in new module UI crash build
 **Symptom:** `Property 'bucket' does not exist on type 'ApAgingRow'` / `Object is possibly 'undefined'` — build fails on new modules.
 **Root cause:** New modules implemented without accounting for `strict: true`. Accessing nested API response properties without null checks blocks the build.

@@ -195,7 +195,9 @@ export default function PRDetailPage() {
         {['submitted', 'manager_approved'].includes(pr.status) && (
           <>
             <Button variant="danger" onClick={() => setShowReject(true)}>ปฏิเสธ</Button>
-            <Button onClick={() => action('approve')} loading={acting}>อนุมัติ</Button>
+            <Button onClick={() => action('approve')} loading={acting}>
+              {pr.status === 'manager_approved' ? 'อนุมัติ (Admin)' : 'อนุมัติ'}
+            </Button>
           </>
         )}
         {pr.status === 'admin_approved' && (

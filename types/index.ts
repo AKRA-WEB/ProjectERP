@@ -12,12 +12,12 @@ export type RmaStatus = 'open' | 'in_review' | 'resolved' | 'closed';
 export type ClaimStatus = 'open' | 'in_review' | 'resolved' | 'closed';
 export type ClaimResolutionType = 'credit_note' | 'replacement_shipment' | 'both';
 export type TransferStatus = 'pending' | 'completed' | 'cancelled';
-export type InboundOrderStatus = 'open' | 'receiving' | 'pending_verification' | 'verified' | 'closed';
-export type GrnStatus = 'draft' | 'received' | 'verified' | 'qc_pending' | 'qc_passed' | 'qc_failed' | 'stocked';
+export type InboundOrderStatus = 'open' | 'receiving' | 'pending_verification' | 'verified' | 'closed' | 'rejected' | 'converted_to_po';
+export type GrnStatus = 'draft' | 'received' | 'verified' | 'qc_pending' | 'qc_passed' | 'qc_failed' | 'stocked' | 'rejected';
 export type PrStatus = 'draft' | 'submitted' | 'manager_approved' | 'admin_approved' | 'rejected' | 'converted_to_po' | 'received';
 export type PoStatus = 'draft' | 'sent' | 'partially_received' | 'fully_received' | 'invoiced' | 'paid' | 'closed' | 'cancelled';
 export type CycleCountStatus = 'open' | 'counting' | 'pending_approval' | 'approved' | 'closed';
-export type LedgerEntryType = 'grn_receipt' | 'grn_qc_reject' | 'rma_return' | 'rma_vendor_return' | 'transfer_out' | 'transfer_in' | 'cycle_count_adjustment' | 'po_reversal' | 'manual_adjustment' | 'pos_sale' | 'pos_void' | 'pick_dispatch';
+export type LedgerEntryType = 'grn_receipt' | 'grn_qc_reject' | 'rma_return' | 'rma_vendor_return' | 'transfer_out' | 'transfer_in' | 'cycle_count_adjustment' | 'po_reversal' | 'manual_adjustment' | 'pos_sale' | 'pos_void' | 'pick_dispatch' | 'repack_out' | 'repack_in';
 
 export type GrnSourceType = 'po' | 'inbound_order' | 'standalone' | 'pr_direct';
 
@@ -480,6 +480,7 @@ export interface InboundOrder {
   warehouse_code: string;
   warehouse_name: string;
   status: InboundOrderStatus;
+  order_date: string;
   notes: string | null;
   vendor_ref: string | null;
   verified_by: string | null;
@@ -1047,5 +1048,62 @@ export interface PurchaseOrder {
   lines?: POLineItem[];
   grns?: any[];
   invoices?: any[];
+}
+
+export type RepackStatus = 'draft' | 'completed' | 'void';
+
+export interface RepackTemplateItem {
+  id: string;
+  template_id: string;
+  product_id: string;
+  product_sku?: string;
+  product_name_th?: string;
+  qty_ratio: number;
+  notes: string | null;
+}
+
+export interface RepackTemplate {
+  id: string;
+  name: string;
+  source_product_id: string;
+  source_product_sku?: string;
+  source_product_name_th?: string;
+  source_qty: number;
+  notes: string | null;
+  is_active: boolean;
+  items?: RepackTemplateItem[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RepackOrderItem {
+  id: string;
+  repack_order_id: string;
+  product_id: string;
+  product_sku?: string;
+  product_name_th?: string;
+  qty: number;
+  unit_cost: number;
+  notes: string | null;
+}
+
+export interface RepackOrder {
+  id: string;
+  order_number: string;
+  source_product_id: string;
+  source_product_sku?: string;
+  source_product_name_th?: string;
+  source_qty: number;
+  source_unit_cost: number | null;
+  warehouse_id: string;
+  warehouse_name_th?: string;
+  status: RepackStatus;
+  notes: string | null;
+  created_by: string;
+  created_by_name?: string;
+  completed_at: string | null;
+  items?: RepackOrderItem[];
+  created_at: string;
+  updated_at: string;
 }
 

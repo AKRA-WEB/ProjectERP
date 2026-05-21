@@ -186,3 +186,8 @@ Build must still pass cleanly (only warnings allowed, no type errors).
 - [ ] File sizes reduced (garbled text was ~3x bloated)  
 - [ ] Browser renders Thai text correctly (ใบขอซื้อ, not เธเธณเธเธญ...)
 - [ ] `npm run build` passes cleanly after fix
+
+---
+## Execution Logs
+- [[execution-summary]]
+

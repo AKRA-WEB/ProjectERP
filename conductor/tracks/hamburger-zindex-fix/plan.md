@@ -4,7 +4,7 @@ status: Completed
 aliases: ["Plan — Hamburger Sidebar Z-Index Fix"]
 owner: puka
 module: Core
-updated: 2026-05-16
+updated: 2026-05-20
 ---
 
 # Plan — Hamburger Sidebar Z-Index Fix
@@ -58,3 +58,8 @@ Confirm backdrop div retains `z-40` and `onClick={() => setSidebarOpen(false)}`.
 - Backdrop click-to-close still works
 - `npx tsc --noEmit` — clean
 - `npm run lint` — no new errors
+
+---
+## Execution Logs
+- [[execution-summary]]
+

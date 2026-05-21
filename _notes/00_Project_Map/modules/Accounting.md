@@ -11,6 +11,7 @@ Chart of Accounts, Journal Entries, Reports, Accounts Payable.
 - **Receives data from:** [[POS]], [[Sales]], [[WMS]], [[HR]]
 - [[Inventory]] — รับข้อมูลมูลค่าสต็อกเพื่อปรับปรุงบัญชีสินค้าคงเหลือ
 - [[Core]] — Infrastructure สำหรับการออกรายงานและส่งออกข้อมูล
+- **Architectural Summary:** [[ACCOUNTING_MODULE_SUMMARY]]
 
 ## Flow
 ```

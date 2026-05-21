@@ -8,7 +8,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
   const { id } = await params;
 
-  const [grn, lines] = await Promise.all([
+  const [grn, lines, bonusItems] = await Promise.all([
     queryOne(
       `SELECT g.*, po.po_number, io.io_number, w.code AS warehouse_code, w.name_th AS warehouse_name,
               u1.name_en AS received_by_name, u2.name_en AS qc_reviewed_by_name, u3.name_en AS stocked_by_name
@@ -23,17 +23,27 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       [id]
     ),
     query(
-      `SELECT li.*, p.sku, p.name_th, p.name_en, p.is_lot_tracked, p.is_serial_tracked, u.code AS uom_code
+      `SELECT li.*, p.sku, p.name_th, p.name_en, p.is_lot_tracked, p.is_serial_tracked, u.code AS uom_code,
+              COALESCE(sb.qty_on_hand, 0) AS stock_on_hand
        FROM grn_line_items li
        JOIN products p ON p.id = li.product_id
        JOIN units_of_measure u ON u.id = p.uom_id
+       JOIN goods_receipt_notes g ON g.id = li.grn_id
+       LEFT JOIN stock_balances sb ON sb.product_id = li.product_id AND sb.warehouse_id = g.warehouse_id
        WHERE li.grn_id = $1
        ORDER BY li.line_number`,
+      [id]
+    ),
+    query(
+      `SELECT id, product_id, product_name, qty, unit, expiry_date, notes, line_number
+       FROM grn_bonus_items
+       WHERE grn_id = $1
+       ORDER BY line_number`,
       [id]
     )
   ]);
 
   if (!grn) return apiError('GRN not found', 404);
 
-  return apiSuccess({ ...grn, lines });
+  return apiSuccess({ ...grn, lines, bonus_items: bonusItems });
 }

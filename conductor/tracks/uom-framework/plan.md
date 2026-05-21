@@ -126,3 +126,8 @@ Migration 026 drops `product_uom.conversion_factor`. Three files reference it an
 ## Phase 2 (separate plan — not in scope here)
 
 Transaction form UoM selectors — PR/PO create form, SO/DO create form, Transfer form. DB columns already exist; these are UI-only follow-ons.
+
+---
+## Execution Logs
+- [[execution-summary]]
+

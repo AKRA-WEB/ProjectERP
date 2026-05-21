@@ -1,0 +1,88 @@
+<h2>ค่าลิฟท์ — แสดง/ซ่อนตามคลัง</h2>
+<p class="subtitle">Section ค่าลิฟท์ปรากฏเฉพาะเมื่อเลือกคลัง W2 เท่านั้น</p>
+
+<div class="split">
+
+  <div class="mockup">
+    <div class="mockup-header" style="background:#f59e0b22;border-color:#f59e0b44;color:#f59e0b">คลัง W2 — แสดงค่าลิฟท์</div>
+    <div class="mockup-body" style="font-size:10px;color:#94a3b8">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
+        <div>
+          <div style="color:#475569;font-size:8px;margin-bottom:2px">วันที่มาส่ง</div>
+          <div style="background:#0f172a;border:1px solid #334155;border-radius:4px;padding:5px 8px;color:#f1f5f9;font-size:10px">20/05/2569</div>
+        </div>
+        <div>
+          <div style="color:#475569;font-size:8px;margin-bottom:2px">คลังที่รับลง</div>
+          <div style="background:#0f172a;border:1px solid #f59e0b55;border-radius:4px;padding:5px 8px;color:#f59e0b;font-size:10px;font-weight:700">W2 — สาขา 2 ▼</div>
+        </div>
+      </div>
+      <div style="margin-bottom:8px">
+        <div style="color:#475569;font-size:8px;margin-bottom:2px">ผู้รับลงสินค้า</div>
+        <div style="background:#0f172a;border:1px solid #334155;border-radius:4px;padding:5px 8px;color:#f1f5f9;font-size:10px">สมชาย ใจดี</div>
+      </div>
+
+      <!-- Lift fee VISIBLE -->
+      <div style="background:#0f172a;border:1px solid #f59e0b44;border-radius:5px;padding:8px;margin-bottom:4px">
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="width:13px;height:13px;background:#f59e0b;border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center">
+            <span style="color:#0f172a;font-size:8px;font-weight:700">✓</span>
+          </div>
+          <span style="color:#f59e0b;font-weight:700;font-size:10px">มีค่าลิฟท์</span>
+          <div style="margin-left:auto;display:flex;align-items:center;gap:4px">
+            <span style="color:#64748b;font-size:8px">รอบ</span>
+            <div style="background:#1e293b;border:1px solid #334155;border-radius:3px;padding:2px 8px;color:#f1f5f9;font-size:11px;font-weight:700">7</div>
+            <span style="color:#334155">·</span>
+            <span style="color:#22c55e;font-weight:700;font-size:10px">= ฿350</span>
+          </div>
+        </div>
+      </div>
+      <div style="color:#475569;font-size:8px;text-align:right">อัตรา ฿50 / รอบ</div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">คลัง W1 — ไม่แสดงค่าลิฟท์</div>
+    <div class="mockup-body" style="font-size:10px;color:#94a3b8">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
+        <div>
+          <div style="color:#475569;font-size:8px;margin-bottom:2px">วันที่มาส่ง</div>
+          <div style="background:#0f172a;border:1px solid #334155;border-radius:4px;padding:5px 8px;color:#f1f5f9;font-size:10px">20/05/2569</div>
+        </div>
+        <div>
+          <div style="color:#475569;font-size:8px;margin-bottom:2px">คลังที่รับลง</div>
+          <div style="background:#0f172a;border:1px solid #334155;border-radius:4px;padding:5px 8px;color:#f1f5f9;font-size:10px">W1 — สำนักงาน ▼</div>
+        </div>
+      </div>
+      <div style="margin-bottom:8px">
+        <div style="color:#475569;font-size:8px;margin-bottom:2px">ผู้รับลงสินค้า</div>
+        <div style="background:#0f172a;border:1px solid #334155;border-radius:4px;padding:5px 8px;color:#f1f5f9;font-size:10px">สมชาย ใจดี</div>
+      </div>
+
+      <!-- Lift fee HIDDEN — nothing here -->
+      <div style="border:2px dashed #1e293b;border-radius:5px;padding:10px;text-align:center">
+        <div style="color:#374151;font-size:9px;font-style:italic">ไม่มีส่วนค่าลิฟท์</div>
+        <div style="color:#1e293b;font-size:8px">(W2 เท่านั้น)</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div style="margin-top:16px">
+<div class="options">
+  <div class="option" data-choice="approve" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content">
+      <h3>ถูกต้อง ไปต่อ</h3>
+      <p>เข้าใจแล้ว เริ่มเขียน spec</p>
+    </div>
+  </div>
+  <div class="option" data-choice="revise" onclick="toggleSelect(this)">
+    <div class="letter">✎</div>
+    <div class="content">
+      <h3>แก้ไข</h3>
+      <p>บอกใน terminal</p>
+    </div>
+  </div>
+</div>
+</div>

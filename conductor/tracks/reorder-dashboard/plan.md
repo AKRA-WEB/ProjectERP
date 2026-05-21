@@ -349,3 +349,8 @@ Note: `AlertTriangle` is already imported in the file (used in Claims nav item).
 
 - [x] Start `npm run dev`, verify sidebar shows new link under Inventory group
 - [x] Commit: `feat(inventory): add Reorder Dashboard to sidebar`
+
+---
+## Execution Logs
+- [[execution-summary]]
+

@@ -5,18 +5,21 @@ import { apiSuccess, apiError } from '@/lib/api-response';
 import { z } from 'zod';
 import { assertRole, SessionUser } from '@/lib/authz';
 
-const UpdateSchema = z.object({
-  employee_id: z.string().max(50).optional(),
-  department_id: z.string().uuid().nullable().optional(),
-  position_id: z.string().uuid().nullable().optional(),
-  salary_grade_id: z.string().uuid().nullable().optional(),
-  base_salary: z.number().min(0).nullable().optional(),
-  employment_type: z.enum(['full_time', 'part_time', 'contract']).optional(),
-  employee_status: z.enum(['active', 'inactive', 'resigned']).optional(),
-  hired_date: z.string().nullable().optional(),
-  resignation_date: z.string().nullable().optional(),
-  phone: z.string().nullable().optional(),
-});
+const PatchSchema = z.discriminatedUnion('action', [
+  z.object({
+    action: z.literal('update'),
+    employee_id: z.string().max(50).optional(),
+    department_id: z.string().uuid().nullable().optional(),
+    position_id: z.string().uuid().nullable().optional(),
+    salary_grade_id: z.string().uuid().nullable().optional(),
+    base_salary: z.number().min(0).nullable().optional(),
+    employment_type: z.enum(['full_time', 'part_time', 'contract']).optional(),
+    employee_status: z.enum(['active', 'inactive', 'resigned']).optional(),
+    hired_date: z.string().nullable().optional(),
+    resignation_date: z.string().nullable().optional(),
+    phone: z.string().nullable().optional(),
+  })
+]);
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -46,22 +49,26 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const { id } = await params;
 
   const body = await req.json();
-  const parsed = UpdateSchema.safeParse(body);
+  const parsed = PatchSchema.safeParse(body);
   if (!parsed.success) return apiError(parsed.error.message, 400);
-  const d = parsed.data;
 
-  const sets: string[] = [];
-  const vals: unknown[] = [];
-  let idx = 1;
-  const fields = ['employee_id','department_id','position_id','salary_grade_id',
-    'base_salary','employment_type','employee_status','hired_date','resignation_date','phone'] as const;
-  for (const f of fields) {
-    if (d[f] !== undefined) { sets.push(`${f} = $${idx++}`); vals.push(d[f]); }
+  if (parsed.data.action === 'update') {
+    const d = parsed.data;
+    const sets: string[] = [];
+    const vals: unknown[] = [];
+    let idx = 1;
+    const fields = ['employee_id','department_id','position_id','salary_grade_id',
+      'base_salary','employment_type','employee_status','hired_date','resignation_date','phone'] as const;
+    for (const f of fields) {
+      if (d[f] !== undefined) { sets.push(`${f} = $${idx++}`); vals.push(d[f]); }
+    }
+    if (sets.length === 0) return apiError('No fields', 400);
+    vals.push(id);
+    await queryOne(`UPDATE users SET ${sets.join(', ')} WHERE id = $${idx}`, vals);
+    return apiSuccess({ ok: true });
   }
-  if (sets.length === 0) return apiError('No fields', 400);
-  vals.push(id);
-  await queryOne(`UPDATE users SET ${sets.join(', ')} WHERE id = $${idx}`, vals);
-  return apiSuccess({ ok: true });
+
+  return apiError('Invalid action', 400);
 }
 
 export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {

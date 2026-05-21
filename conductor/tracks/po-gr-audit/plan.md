@@ -1,9 +1,9 @@
 ---
 track: po-gr-audit
-status: Active
+status: Completed
 owner: paku
 module: WMS
-updated: 2026-05-18
+updated: 2026-05-20
 ---
 
 # Track: po-gr-audit — PO & GRN Transaction Integrity Fix
@@ -290,3 +290,9 @@ Tasks 1, 2, 3 are independent — can execute in any order. No migrations requir
 - [ ] Grep `pool.connect()` in each of the 3 modified files → must exist
 - [ ] `npx tsc --noEmit` passes
 - [ ] `npm run lint` passes
+
+---
+## Execution Logs
+- [[execution-summary]]
+- [[rework-execution-summary]]
+

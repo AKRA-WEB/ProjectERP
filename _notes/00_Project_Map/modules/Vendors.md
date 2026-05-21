@@ -11,6 +11,7 @@ Vendor master, product links, bank accounts, Excel import.
 - [[WMS]] — ข้อมูลพื้นฐานสำหรับสร้าง PR/PO
 - [[Accounting]] — จัดการข้อมูลบัญชีเจ้าหนี้ (AP)
 - [[Inventory]] — เชื่อมโยงราคาทุนและ Lead time ของสินค้า
+- **Architectural Summaries:** [[ACCOUNTING_MODULE_SUMMARY]] (AP Sub-system), [[WMS_MODULE_SUMMARY]] (Purchase Orders)
 
 ## Key Tables
 - `vendors` · `vendor_products` (product links)

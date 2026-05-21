@@ -2,13 +2,13 @@
 
 **QA Date:** 2026-05-19
 **Auditor:** Billy
-**Verdict:** Rework Required
+**Verdict:** Completed
 
 ---
 
 ## 🔴 Must Fix
 
-- [ ] **MF-1 · Performance: N+1 Update Query in QC Route**
+- [x] **MF-1 · Performance: N+1 Update Query in QC Route**
   `app/api/grn/[id]/qc/route.ts` lines 72–77:
   ```typescript
   for (const line of parsed.data.lines) {
@@ -25,7 +25,7 @@
 
 ## 🟡 Should Fix
 
-- [ ] **SF-1 · Documentation: Execution Summary Quote Accuracy**
+- [x] **SF-1 · Documentation: Execution Summary Quote Accuracy**
   The execution summary mentions "Batch insert stride (10) confirmed" for GRN, but the code in `app/api/grn/route.ts` actually uses a stride of 11 (including `line_number`).
   **Fix:** Update the execution summary to reflect the actual implementation details.
 
@@ -33,6 +33,22 @@
 
 ## 🔵 Suggestions
 
-- [ ] **S-1 · Consistency: Use buildWarehouseScopeClause in Inventory API**
+- [x] **S-1 · Consistency: Use buildWarehouseScopeClause in Inventory API**
   `app/api/inventory/route.ts` implements warehouse scoping manually.
   **Fix:** Switch to `buildWarehouseScopeClause` to maintain consistency across the codebase.
+
+---
+
+## Batch 8 QA Rework
+
+### [MUST FIX] 🔴
+
+- [x] **MF-2 · Connection pool leak on connection error**
+  - **Problem:** `pool.connect()` is called outside of the `try` block in routes like:
+    - `app/api/purchase-orders/route.ts`
+    - `app/api/grn/route.ts`
+    - `app/api/grn/[id]/qc/route.ts`
+    - `app/api/grn/[id]/stock/route.ts`
+    - `app/api/transfers/route.ts`
+  - **Fix:** Move `pool.connect()` inside the `try` block and ensure `client` is released safely in `finally`.
+

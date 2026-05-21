@@ -112,3 +112,8 @@ One line added — no schema, no migration, no logic change.
 - [ ] Server log shows flatten detail on invalid body
 - [ ] `tsc --noEmit` passes
 - [ ] `lint` passes
+
+---
+## Execution Logs
+- [[execution-summary]]
+

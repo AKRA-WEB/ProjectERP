@@ -11,6 +11,7 @@ type: module-summary
 - [[Inventory]] — ตัดสต็อกทันทีเมื่อปิดการขาย (Stock Deduction)
 - [[Accounting]] — ส่งข้อมูลรายได้ (Revenue) และภาษีขาย
 - [[Core]] — ใช้ระบบ Auth และ UI สำหรับหน้าจอ Touchscreen
+- **Architectural Summary:** [[POS_MODULE_SUMMARY]]
 
 ## Flow
 ```

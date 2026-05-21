@@ -1,23 +1,27 @@
-# Execution Summary: UI Improvement — Inventory Heatmap Matrix
+# Execution Summary — UI Improvement (Inventory)
 
-**Date:** 2026-05-15
+**Track ID:** `ui-improvement-inventory`
+**Module:** Inventory
 **Status:** Completed
-**Track:** `ui-improvement-inventory`
+**Date:** 2026-05-20
 
-## 🚀 Work Completed
-- **Data Aggregation:** Implemented client-side data pivoting to transform flat stock rows into a Warehouse × SKU matrix. Increased fetch limit to 500 items for the heatmap view.
-- **KPI Row:** Added high-level metrics for Total SKUs, Total Units, Low Stock items, and Out of Stock items.
-- **Warehouse Cards:** Created summary cards for each warehouse with progress bars showing their contribution to total inventory.
-- **Heatmap Matrix:** Built a dynamic table with indigo-based color coding for stock density and warning colors (amber/red) for low/out-of-stock items.
-- **Filters & Sorting:** Added segment filters (All, Low, Out, Top 5) and sorting by product name or total quantity.
-- **Refined UI:** Migrated the page to the Stone Design System, adding a legend and a secondary tab for the original paginated list view.
+## Summary of Changes
+Re-implemented the missing Inventory Heatmap Matrix and Warehouse Summary Cards to provide a cross-warehouse view of stock levels.
 
-## 🛠 Technical Details
-- Used `useMemo` extensively for efficient client-side data processing.
-- Implemented a custom `cellColor` helper for responsive heatmap styling.
-- Maintained backward compatibility by keeping the paginated table as a secondary view.
+### Task 1 — Heatmap Matrix
+- **File changed:** `app/app/inventory/page.tsx`
+- **Key change:** Added `pivotData` useMemo logic to transform warehouse-specific stock rows into a matrix grouped by SKU. Added `getCellColor` logic for stock level intensity.
+- **Verify:** `npx tsc --noEmit` → 0 errors.
 
-## ✅ Verification
-- `npm run lint` passed.
-- Verified data accuracy against individual warehouse stock levels.
-- Tested responsive behavior for horizontal scrolling on the matrix.
+### Task 2 — Warehouse Summary Cards
+- **File changed:** `app/app/inventory/page.tsx`
+- **Key change:** Added responsive grid of cards showing total units per warehouse with emerald progress bars.
+- **Verify:** Responsive layout tested on desktop and mobile viewports.
+
+### Task 3 — Stock Segments
+- **File changed:** `app/app/inventory/page.tsx`
+- **Key change:** Added segment control (All | Low | Out | Top 10) to quickly filter the heatmap and table views.
+- **Verify:** `fetchInventory` updated to respect segment state.
+
+## Patterns/Traps Captured
+- **State Duality:** Discovered and fixed a duplication of the entire page logic within the same file caused by improper merge/edit attempts. Rewrote to a single clean implementation.

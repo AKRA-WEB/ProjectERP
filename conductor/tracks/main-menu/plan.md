@@ -147,3 +147,8 @@ components/layout/Sidebar.tsx  (edit — add menu link)
 - `/app/dashboard` (WMS KPI) ไม่เปลี่ยนแปลง
 - ถ้า session ยังไม่ load → แสดง skeleton/spinner แทน cards
 - ห้าม hardcode user name — ดึงจาก `session.user`
+
+---
+## Execution Logs
+- [[execution-summary]]
+

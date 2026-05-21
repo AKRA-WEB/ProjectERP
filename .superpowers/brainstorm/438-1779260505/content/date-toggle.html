@@ -1,0 +1,136 @@
+<h2>Toggle วันหมดอายุ / วันที่ผลิต — แสดงแบบไหน?</h2>
+<p class="subtitle">แต่ละ line item มี toggle เปลี่ยนระหว่าง "วันหมดอายุ (EXP)" กับ "วันที่ผลิต (MFG)"</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="A" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px;background:#0f172a;border-radius:8px 8px 0 0">
+      <!-- A: Segmented control per row -->
+      <div style="background:#1e293b;border-radius:8px;padding:12px;font-size:11px;color:#94a3b8">
+        <div style="color:#f1f5f9;font-weight:600;margin-bottom:8px">มะม่วงอบแห้ง 500g</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;align-items:end">
+          <div>
+            <div style="color:#475569;font-size:9px;margin-bottom:3px">จำนวนรับ</div>
+            <div style="background:#0f172a;border-radius:4px;padding:5px 8px;color:#f1f5f9;font-size:11px">48</div>
+          </div>
+          <div>
+            <!-- Segmented toggle -->
+            <div style="color:#475569;font-size:9px;margin-bottom:3px">ประเภทวันที่</div>
+            <div style="background:#0f172a;border-radius:4px;padding:2px;display:flex;gap:1px">
+              <div style="flex:1;background:#dc2626;border-radius:3px;padding:3px 0;text-align:center;color:#fff;font-size:9px;font-weight:600">EXP</div>
+              <div style="flex:1;border-radius:3px;padding:3px 0;text-align:center;color:#475569;font-size:9px">MFG</div>
+            </div>
+          </div>
+          <div>
+            <div style="color:#475569;font-size:9px;margin-bottom:3px">วันที่</div>
+            <div style="background:#0f172a;border-radius:4px;padding:5px 8px;color:#f1f5f9;font-size:11px">12/2026</div>
+          </div>
+        </div>
+
+        <div style="margin-top:8px;border-top:1px solid #1e293b;padding-top:8px;color:#f1f5f9;font-weight:600;margin-bottom:8px">กล้วยอบแห้ง 200g</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;align-items:end">
+          <div>
+            <div style="color:#475569;font-size:9px;margin-bottom:3px">จำนวนรับ</div>
+            <div style="background:#0f172a;border-radius:4px;padding:5px 8px;color:#475569;font-size:11px">—</div>
+          </div>
+          <div>
+            <div style="color:#475569;font-size:9px;margin-bottom:3px">ประเภทวันที่</div>
+            <div style="background:#0f172a;border-radius:4px;padding:2px;display:flex;gap:1px">
+              <div style="flex:1;border-radius:3px;padding:3px 0;text-align:center;color:#475569;font-size:9px">EXP</div>
+              <div style="flex:1;background:#0284c7;border-radius:3px;padding:3px 0;text-align:center;color:#fff;font-size:9px;font-weight:600">MFG</div>
+            </div>
+          </div>
+          <div>
+            <div style="color:#475569;font-size:9px;margin-bottom:3px">วันที่</div>
+            <div style="background:#0f172a;border-radius:4px;padding:5px 8px;color:#475569;font-size:11px">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Segmented Control ใน Row</h3>
+      <p>แต่ละ row มี EXP|MFG toggle ของตัวเอง กด toggle เปลี่ยนสีทันที ชัดเจน อิสระต่อกัน</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="B" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px;background:#0f172a;border-radius:8px 8px 0 0">
+      <!-- B: Label changes with small icon -->
+      <div style="background:#1e293b;border-radius:8px;padding:12px;font-size:11px;color:#94a3b8">
+        <div style="color:#f1f5f9;font-weight:600;margin-bottom:8px">มะม่วงอบแห้ง 500g</div>
+        <div style="display:grid;grid-template-columns:1fr 1.5fr;gap:6px;align-items:end">
+          <div>
+            <div style="color:#475569;font-size:9px;margin-bottom:3px">จำนวนรับ</div>
+            <div style="background:#0f172a;border-radius:4px;padding:5px 8px;color:#f1f5f9">48</div>
+          </div>
+          <div>
+            <!-- Label with inline toggle -->
+            <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">
+              <span style="color:#dc2626;font-size:9px;font-weight:700">📅 วันหมดอายุ</span>
+              <span style="color:#475569;font-size:8px;cursor:pointer;text-decoration:underline;text-underline-offset:2px">→ เปลี่ยนเป็น MFG</span>
+            </div>
+            <div style="background:#0f172a;border-radius:4px;padding:5px 8px;color:#f1f5f9">12/2026</div>
+          </div>
+        </div>
+
+        <div style="margin-top:8px;border-top:1px solid #1e293b;padding-top:8px;color:#f1f5f9;font-weight:600;margin-bottom:8px">กล้วยอบแห้ง 200g</div>
+        <div style="display:grid;grid-template-columns:1fr 1.5fr;gap:6px;align-items:end">
+          <div>
+            <div style="color:#475569;font-size:9px;margin-bottom:3px">จำนวนรับ</div>
+            <div style="background:#0f172a;border-radius:4px;padding:5px 8px;color:#475569">—</div>
+          </div>
+          <div>
+            <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">
+              <span style="color:#0284c7;font-size:9px;font-weight:700">🏭 วันที่ผลิต</span>
+              <span style="color:#475569;font-size:8px;cursor:pointer;text-decoration:underline;text-underline-offset:2px">→ เปลี่ยนเป็น EXP</span>
+            </div>
+            <div style="background:#0f172a;border-radius:4px;padding:5px 8px;color:#475569">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Link Toggle (เปลี่ยน Label)</h3>
+      <p>แสดง label ชัดๆ ว่าตอนนี้เป็น EXP หรือ MFG มีลิงก์เล็กๆ "→ เปลี่ยนเป็น MFG" กด 1 ครั้ง</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="C" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px;background:#0f172a;border-radius:8px 8px 0 0">
+      <!-- C: Global toggle at top, applies to all rows -->
+      <div style="background:#1e293b;border-radius:8px;padding:12px;font-size:11px;color:#94a3b8">
+        <!-- Global toggle -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;background:#0f172a;border-radius:6px;padding:6px 10px">
+          <span style="color:#94a3b8;font-size:10px">ประเภทวันที่ (ทุกรายการ)</span>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="color:#dc2626;font-size:10px;font-weight:600">EXP</span>
+            <div style="width:32px;height:16px;background:#0f172a;border-radius:8px;position:relative;border:1px solid #374151">
+              <div style="width:12px;height:12px;background:#64748b;border-radius:50%;position:absolute;top:1px;left:1px"></div>
+            </div>
+            <span style="color:#475569;font-size:10px">MFG</span>
+          </div>
+        </div>
+        <!-- Rows (no individual toggle) -->
+        <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:4px;margin-bottom:4px;color:#475569;font-size:8px">
+          <div>สินค้า</div><div>จำนวนรับ</div><div style="color:#dc2626">วันหมดอายุ</div>
+        </div>
+        <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:4px;align-items:center;margin-bottom:4px">
+          <div style="color:#f1f5f9;font-size:9px">มะม่วงอบแห้ง</div>
+          <div style="background:#0f172a;border-radius:3px;padding:3px 6px;color:#f1f5f9;font-size:9px">48</div>
+          <div style="background:#0f172a;border-radius:3px;padding:3px 6px;color:#f1f5f9;font-size:9px">12/26</div>
+        </div>
+        <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:4px;align-items:center">
+          <div style="color:#f1f5f9;font-size:9px">กล้วยอบแห้ง</div>
+          <div style="background:#0f172a;border-radius:3px;padding:3px 6px;color:#475569;font-size:9px">—</div>
+          <div style="background:#0f172a;border-radius:3px;padding:3px 6px;color:#475569;font-size:9px">—</div>
+        </div>
+        <div style="margin-top:6px;color:#64748b;font-size:8px;text-align:center;font-style:italic">* เปลี่ยน toggle จะเปลี่ยนทุกรายการพร้อมกัน</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Global Toggle (ใช้กับทุก row)</h3>
+      <p>Toggle เดียวด้านบน ตั้งค่า EXP หรือ MFG ให้ทุกรายการพร้อมกัน เร็วแต่ไม่ยืดหยุ่น</p>
+    </div>
+  </div>
+
+</div>

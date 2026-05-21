@@ -872,3 +872,8 @@ Total: 2 modified, 30 created.
 8. Credit limit warning returned on SO confirm when customer is over limit
 9. All list pages are paginated and warehouse-scoped
 10. Sidebar Sales group visible with correct permission gating
+
+---
+## Execution Logs
+- [[execution-summary]]
+

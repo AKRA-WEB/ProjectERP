@@ -61,3 +61,8 @@ updated: 2026-05-15
 - [x] Receiving Queue page renders at `/app/grn/receiving-queue` with KPI row and PO/IO table
 - [x] Queue page appears in WMS sidebar navigation
 - [x] `npm run lint` passes
+
+---
+## Execution Logs
+- [[execution-summary]]
+

@@ -202,22 +202,69 @@ function SearchComponent({ value, onSelect, onClear }) {
 ```
 **Found in:** task [1.1] of track [io-product-search]
 
-## ✅ Pattern — Inline Field Validation with Tab Switching
-**Context:** เมื่อฟอร์มมีหลาย Tab และ field ที่จำเป็น (Required) อยู่ใน Tab ที่ไม่ได้เปิดอยู่ตอนกด Submit
+## ✅ Pattern — Two-pass Rendering for Hydration Safety
+**Context:** เมื่อต้องการเข้าถึง Browser-only APIs (localStorage, window, Date) ที่มีค่าไม่ตรงกับ Server เพื่อป้องกัน Hydration Mismatch
 **Correct way:**
 ```typescript
-  async function handleSubmit() {
-    const newErrors: Record<string, string> = {};
-    if (!form.required_field_in_hidden_tab) {
-      newErrors.required_field_in_hidden_tab = 'กรุณาระบุข้อมูล';
-      setActiveTab('hidden-tab-name'); // เปลี่ยน Tab ให้ผู้ใช้เห็น Error ทันที
-    }
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-  }
+const [isMounted, setIsMounted] = useState(false);
+useEffect(() => { setIsMounted(true); }, []);
+
+if (!isMounted) return null; // หรือแสดง Skeleton
 ```
-**Found in:** task [1.1] of track [po-fix-400]
+**Found in:** Global hydration fix for AppLayout, DashboardPage (2026-05-19)
+
+## ✅ Pattern — CSS Grid Calendar Rendering
+**Context:** Rendering a monthly calendar grid with weekday headers and day cells, accounting for starting weekday offset.
+**Correct way:**
+```tsx
+<div className="grid grid-cols-7 gap-px bg-stone-100 border border-stone-100 rounded-lg overflow-hidden">
+  {/* Weekday headers */}
+  {['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'].map(d => (
+    <div key={d} className="text-center text-[11px] font-bold py-2 bg-white">
+      {d}
+    </div>
+  ))}
+  
+  {/* Offset for first day of month */}
+  {Array.from({ length: firstWeekday }).map((_, i) => (
+    <div key={`empty-${i}`} className="bg-white h-24" />
+  ))}
+  
+  {/* Day cells */}
+  {Array.from({ length: daysInMonth }).map((_, i) => {
+    const day = i + 1;
+    return (
+      <div key={day} className="bg-white h-24 p-2 relative">
+        <span className="text-[12px] font-mono">{day}</span>
+        {/* Render event markers here */}
+      </div>
+    );
+  })}
+</div>
+```
+**Found in:** task 6 of track hr-ui-redesign
+
+## ✅ Pattern — Frontend Tenure Calculation
+**Context:** Calculating employee tenure (years and months) from a hire date string for display in HR modules.
+**Correct way:**
+```typescript
+function getTenure(dateStr: string | null) {
+  if (!dateStr) return '—';
+  const start = new Date(dateStr);
+  const end = new Date();
+  let years = end.getFullYear() - start.getFullYear();
+  let months = end.getMonth() - start.getMonth();
+  if (months < 0) { years--; months += 12; }
+  if (years > 0) return `${years} ปี ${months} ด.`;
+  return `${months} เดือน`;
+}
+```
+**Found in:** task 5 of track hr-ui-redesign
+
+## ❌ Trap — Absolute Dropdown Clipping in Tables
+**Symptom:** รายการค้นหาหรือ Select ที่ใช้ `absolute` ไม่แสดงผลเมื่ออยู่ในตาราง
+**Root cause:** Parent container (เช่น `div` ที่ล้อมตาราง) มี `overflow-hidden` ทำให้ dropdown ถูกตัด
+**Fix:** นำ `overflow-hidden` ออกจาก table wrapper หรือเปลี่ยนมาใช้ React Portal สำหรับ dropdown
+**Found in:** task [1] of track [wms-search-nav-fix] (2026-05-19)
 
 

@@ -356,3 +356,8 @@ Mount `<ProductImportModal open={showImport} onSuccess={() => { setShowImport(fa
 - [ ] Upload progress: spinner shown, button disabled
 - [ ] Result: summary cards + error table
 - [ ] Modal close → product list refreshes
+
+---
+## Execution Logs
+- [[execution-summary]]
+

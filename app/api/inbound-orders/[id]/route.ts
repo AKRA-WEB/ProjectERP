@@ -41,7 +41,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   );
 
   const grns = await query(
-    `SELECT g.id, g.grn_number, g.status, g.received_date, u.name_en AS received_by_name
+    `SELECT g.id, g.grn_number, g.status, g.received_date,
+            g.rejection_notes, g.received_by_names,
+            u.name_en AS received_by_name
      FROM goods_receipt_notes g
      JOIN users u ON u.id = g.received_by
      WHERE g.inbound_order_id = $1
@@ -62,6 +64,19 @@ const patchSchema = z.discriminatedUnion('action', [
     lines: z.array(z.object({
       id: z.string().uuid(),
       unit_cost: z.number().nonnegative(),
+    })).min(1),
+  }),
+  z.object({
+    action: z.literal('update_header'),
+    order_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    notes: z.string().optional(),
+  }),
+  z.object({
+    action: z.literal('update_lines'),
+    lines: z.array(z.object({
+      id: z.string().uuid(),
+      qty_ordered: z.number().positive(),
+      notes: z.string().optional(),
     })).min(1),
   }),
 ]);
@@ -144,6 +159,34 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     } finally {
       client.release();
     }
+  }
+
+  if (parsed.data.action === 'update_header') {
+    const io = await queryOne<{ status: string }>('SELECT status FROM inbound_orders WHERE id = $1', [id]);
+    if (!io) return apiError('IO not found', 404);
+    if (io.status !== 'open') return apiError('Only open IOs can be edited', 409);
+    const fields: string[] = [];
+    const params: unknown[] = [];
+    let idx = 1;
+    if (parsed.data.order_date !== undefined) { fields.push(`order_date = $${idx++}`); params.push(parsed.data.order_date); }
+    if (parsed.data.notes !== undefined) { fields.push(`notes = $${idx++}`); params.push(parsed.data.notes); }
+    if (!fields.length) return apiError('No fields to update', 400);
+    params.push(id);
+    await query(`UPDATE inbound_orders SET ${fields.join(', ')} WHERE id = $${idx}`, params);
+    return apiSuccess({ id });
+  }
+
+  if (parsed.data.action === 'update_lines') {
+    const io = await queryOne<{ status: string }>('SELECT status FROM inbound_orders WHERE id = $1', [id]);
+    if (!io) return apiError('IO not found', 404);
+    if (io.status !== 'open') return apiError('Only open IOs can be edited', 409);
+    for (const line of parsed.data.lines) {
+      await query(
+        'UPDATE inbound_order_lines SET qty_ordered = $1, notes = $2 WHERE id = $3 AND io_id = $4',
+        [line.qty_ordered, line.notes ?? null, line.id, id]
+      );
+    }
+    return apiSuccess({ id });
   }
 
   return apiError('Unknown action', 400);

@@ -50,8 +50,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   );
   if (!run) return apiError('Not found', 404);
 
+  if (action === 'submit_review') {
+    if (run.status !== 'draft') return apiError('Can only submit draft runs', 400);
+    await queryOne(`UPDATE payroll_runs SET status = 'processing' WHERE id = $1`, [id]);
+  }
+
   if (action === 'approve') {
-    if (run.status !== 'draft') return apiError('Not in draft', 400);
+    if (run.status !== 'processing') return apiError('Must be in processing status to approve', 400);
     const client = await pool.connect();
     try {
       await client.query('BEGIN');

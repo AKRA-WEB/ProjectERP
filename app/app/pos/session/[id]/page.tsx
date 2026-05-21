@@ -11,11 +11,24 @@ import {
   ShoppingCart,
   X,
   Box,
+  CheckCircle2,
+  Printer,
+  Mail,
+  MessageSquare,
 } from 'lucide-react';
+import { Modal } from '@/components/ui/Modal';
+import { Button } from '@/components/ui/Button';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const VAT_INCLUSIVE_RATE = 7 / 107;
+
+const TIER_COLORS: Record<string, string> = {
+  bronze: 'bg-stone-100 text-stone-600 border-stone-200',
+  silver: 'bg-slate-100 text-slate-600 border-slate-200',
+  gold: 'bg-amber-50 text-amber-700 border-amber-200',
+  platinum: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+};
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -48,6 +61,7 @@ interface CartItem {
   name_th: string;
   price: number;
   qty: number;
+  lockedAt: number; // timestamp
 }
 
 interface HeldCart {
@@ -62,6 +76,16 @@ interface Member {
   name: string;
   tier: string;
   points: number;
+}
+
+interface CompletedOrder {
+  order_number: string;
+  created_at: string;
+  total: number;
+  items: CartItem[];
+  payment_method: string;
+  cash_tendered: number | null;
+  change: number;
 }
 
 type PaymentMethod = 'cash' | 'card' | 'mixed';
@@ -139,8 +163,14 @@ function CartItemRow({
   onQtyChange: (pid: string, qty: number) => void;
   onRemove: (pid: string) => void;
 }) {
+  const EXPIRE_MS = 15 * 60 * 1000;
+  const elapsed = Date.now() - item.lockedAt;
+  const remaining = Math.max(0, EXPIRE_MS - elapsed);
+  const pct = (remaining / EXPIRE_MS) * 100;
+  const barColor = remaining < 60000 ? 'bg-red-500' : remaining < 300000 ? 'bg-amber-400' : 'bg-emerald-500';
+
   return (
-    <div className="py-3 px-4 space-y-2">
+    <div className="py-3 px-4 space-y-2 relative overflow-hidden group">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <p className="text-[13px] font-medium text-stone-800 truncate">{item.name_th}</p>
@@ -173,7 +203,108 @@ function CartItemRow({
         </div>
         <span className="font-mono font-bold text-[15px] tabular-nums">{formatCurrency(item.price * item.qty)}</span>
       </div>
+      {/* Timer bar */}
+      <div className="absolute bottom-0 left-0 h-[2px] w-full bg-stone-100">
+        <div 
+          className={`h-full transition-all duration-1000 ${barColor}`} 
+          style={{ width: `${pct}%` }} 
+        />
+      </div>
     </div>
+  );
+}
+
+// ─── Receipt Modal ────────────────────────────────────────────────────────────
+
+function ReceiptModal({
+  order,
+  onClose,
+}: {
+  order: CompletedOrder;
+  onClose: () => void;
+}) {
+  return (
+    <Modal open={!!order} onClose={onClose} title="การชำระเงินเสร็จสิ้น">
+      <div className="flex flex-col items-center py-4">
+        <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-4">
+          <CheckCircle2 className="w-7 h-7" />
+        </div>
+        <h3 className="text-lg font-bold text-stone-900">ชำระเงินสำเร็จ</h3>
+        <p className="text-sm text-stone-500 mt-1">เลขที่อ้างอิง: {order.order_number}</p>
+
+        {/* Thermal Receipt Simulation */}
+        <div className="w-full max-w-[300px] bg-white border border-stone-200 shadow-sm mt-8 p-6 font-mono text-[12px] leading-relaxed text-stone-800">
+          <div className="text-center mb-4">
+            <p className="font-bold text-[14px]">AKRA ERP POS</p>
+            <p>สาขาสำนักงานใหญ่</p>
+            <p>{new Date(order.created_at).toLocaleString('th-TH')}</p>
+          </div>
+
+          <div className="border-t border-dashed border-stone-300 my-3" />
+
+          <div className="space-y-1.5">
+            {order.items.map((i, idx) => (
+              <div key={idx} className="flex justify-between items-start gap-2">
+                <div className="flex-1">
+                  <p>{i.name_th}</p>
+                  <p className="text-stone-400">{i.qty} x {formatCurrency(i.price)}</p>
+                </div>
+                <p className="font-bold">{formatCurrency(i.price * i.qty)}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="border-t border-dashed border-stone-300 my-3" />
+
+          <div className="space-y-1">
+            <div className="flex justify-between">
+              <span>ยอดรวม (Total)</span>
+              <span>{formatCurrency(order.total)}</span>
+            </div>
+            <div className="flex justify-between font-bold text-[13px] pt-1">
+              <span>ยอดสุทธิ (Net)</span>
+              <span>{formatCurrency(order.total)}</span>
+            </div>
+          </div>
+
+          <div className="border-t border-dashed border-stone-300 my-3" />
+
+          <div className="space-y-1">
+            <div className="flex justify-between">
+              <span>ชำระด้วย ({order.payment_method.toUpperCase()})</span>
+              <span>{formatCurrency(order.cash_tendered || order.total)}</span>
+            </div>
+            {order.cash_tendered !== null && (
+              <div className="flex justify-between">
+                <span>เงินทอน (Change)</span>
+                <span>{formatCurrency(order.change)}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="text-center mt-6 pt-4 border-t border-stone-100">
+            <p>ขอบคุณที่ใช้บริการ</p>
+            <p className="text-[10px] text-stone-400 mt-1 uppercase">Powered by AKRA ERP</p>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="grid grid-cols-2 gap-3 w-full mt-8">
+          <Button variant="outline" className="flex items-center gap-2">
+            <Printer className="w-4 h-4" /> พิมพ์บิล
+          </Button>
+          <Button variant="outline" className="flex items-center gap-2" disabled>
+            <Mail className="w-4 h-4" /> อีเมล
+          </Button>
+          <Button variant="outline" className="flex items-center gap-2 col-span-2" disabled>
+            <MessageSquare className="w-4 h-4" /> ส่ง SMS (เร็วๆ นี้)
+          </Button>
+          <Button className="col-span-2 mt-2" onClick={onClose}>
+            ปิดหน้าต่าง
+          </Button>
+        </div>
+      </div>
+    </Modal>
   );
 }
 
@@ -198,16 +329,31 @@ export default function POSSessionPage() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
   const [cashTendered, setCashTendered] = useState(0);
   const [checkingOut, setCheckingOut] = useState(false);
+  const [completedOrder, setCompletedOrder] = useState<CompletedOrder | null>(null);
   const [currentTime, setCurrentTime] = useState(() => new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }));
+  const [timerTick, setTimerTick] = useState(0);
   const [mobileTab, setMobileTab] = useState<MobileTab>('products');
   const [desktopTab, setDesktopTab] = useState<'products' | 'history'>('products');
   const searchRef = useRef<HTMLInputElement>(null);
+
+  // ── Keyboard Shortcuts ──
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'F2') {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // ── Clock ──
   useEffect(() => {
     const iv = setInterval(() => {
       setCurrentTime(new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }));
-    }, 60_000);
+      setTimerTick((t) => t + 1);
+    }, 1000);
     return () => clearInterval(iv);
   }, []);
 
@@ -255,8 +401,8 @@ export default function POSSessionPage() {
   function addToCart(product: Product) {
     setCartItems((prev) => {
       const existing = prev.find((i) => i.product_id === product.id);
-      if (existing) return prev.map((i) => i.product_id === product.id ? { ...i, qty: i.qty + 1 } : i);
-      return [...prev, { product_id: product.id, sku: product.sku, name_th: product.name_th, price: product.price, qty: 1 }];
+      if (existing) return prev.map((i) => i.product_id === product.id ? { ...i, qty: i.qty + 1, lockedAt: Date.now() } : i);
+      return [...prev, { product_id: product.id, sku: product.sku, name_th: product.name_th, price: product.price, qty: 1, lockedAt: Date.now() }];
     });
   }
 
@@ -309,6 +455,18 @@ export default function POSSessionPage() {
       };
       const res = await fetch('/api/pos/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       if (!res.ok) throw new Error('Checkout failed');
+      
+      const order = await res.json();
+      setCompletedOrder({
+        order_number: order.order_number || 'POS-' + Date.now().toString().slice(-6),
+        created_at: new Date().toISOString(),
+        total,
+        items: [...cartItems],
+        payment_method: paymentMethod,
+        cash_tendered: paymentMethod === 'cash' || paymentMethod === 'mixed' ? cashTendered : null,
+        change,
+      });
+
       setCartItems([]);
       setDiscount(0);
       setCashTendered(0);
@@ -326,6 +484,17 @@ export default function POSSessionPage() {
       router.push('/app/pos');
     } catch { /* silent */ }
   }
+
+  // ── Auto-remove expired cart items ──
+  useEffect(() => {
+    const now = Date.now();
+    const EXPIRE_MS = 15 * 60 * 1000;
+    setCartItems((prev) => {
+      const filtered = prev.filter((i) => now - i.lockedAt < EXPIRE_MS);
+      if (filtered.length !== prev.length) return filtered;
+      return prev;
+    });
+  }, [timerTick]);
 
   // ── Filtered products ──
   const filteredProducts = products.filter((p) => {
@@ -475,6 +644,9 @@ export default function POSSessionPage() {
   // ════════════════════════════════════════════════════════════════
   return (
     <>
+      {completedOrder && (
+        <ReceiptModal order={completedOrder} onClose={() => setCompletedOrder(null)} />
+      )}
       {/* ═══ MOBILE (< md) ═══════════════════════════════════════════ */}
       <div className="flex flex-col h-screen bg-stone-50 md:hidden">
 
@@ -680,12 +852,12 @@ export default function POSSessionPage() {
             <div className="bg-white border border-stone-200 rounded-[10px] shadow-sm p-4 flex-shrink-0">
               <p className="text-[12px] font-semibold text-stone-500 mb-2 uppercase tracking-wide">สมาชิก</p>
               {member ? (
-                <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+                <div className={`flex items-center justify-between border rounded-lg px-3 py-2 ${TIER_COLORS[member.tier.toLowerCase()] ?? 'bg-emerald-50 text-emerald-900 border-emerald-200'}`}>
                   <div>
-                    <p className="text-[13px] font-semibold text-emerald-900">{member.name}</p>
-                    <p className="text-[11px] text-emerald-700 font-mono">{member.tier} · {member.points} pts</p>
+                    <p className="text-[13px] font-semibold">{member.name}</p>
+                    <p className="text-[11px] font-mono opacity-80">{member.tier.toUpperCase()} · {member.points} pts</p>
                   </div>
-                  <button onClick={() => setMember(null)} className="text-emerald-400 hover:text-red-500">
+                  <button onClick={() => setMember(null)} className="opacity-40 hover:opacity-100">
                     <X className="w-4 h-4" />
                   </button>
                 </div>

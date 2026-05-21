@@ -47,32 +47,64 @@ This project uses **Obsidian** opened directly on this folder as a vault. All `.
 | `docs/TROUBLESHOOTING.md` | Reference | Known issues |
 
 **Boundary rules:**
-- `conductor/` — Gemini writes `execution-summary.md`, updates checkboxes. **Chen** writes `plan.md`, `rework-plan.md`, updates `index.md`. Claude reviews and commits.
-- `_notes/` — Human writes only. AI agents read for context, never write.
+- `conductor/` — Gemini: `execution-summary.md`, checkbox updates. Chen: `plan.md`, `rework-plan.md`, `index.md`. Claude: reviews + commits.
+- `_notes/` — Gemini writes `current-state.md`. Chen writes `01_Decisions/`. All agents read. Never write `daily/` or `.obsidian/`.
 - `.obsidian/` — Never touched by any AI agent.
+
+## Chen Planning Protocol (`Architect: <requirement>`)
+
+**Trigger:** User types `Architect: <requirement>` in Claude → Claude spawns Chen subagent.
+
+### Pre-Planning Checklist (MANDATORY before writing plan.md)
+
+Chen MUST complete these steps in order before writing a single task:
+
+1. **Read `_notes/02_Agent_Memory/current-state.md`** — active tracks, DB column facts, known import traps, latest migration number
+2. **Read `_notes/02_Agent_Memory/pitfalls.md`** — know all current traps
+3. **Read `_notes/00_Project_Map/modules/`** — understand which module is affected
+4. **Read `_notes/01_Decisions/`** relevant files — check existing architectural decisions
+5. **Explore every file that will be modified** — use Read + Grep to confirm:
+   - File path exists exactly as written
+   - Function/handler names cited in plan actually exist in code
+   - SQL column names verified against `migrations/*.sql`
+   - TypeScript types checked in `types/index.ts`
+6. **Read `docs/skills/index.md`** and load relevant skill files
+
+### Plan.md Quality Gate — Every Task Must Have:
+
+Each task in plan.md is incomplete unless it specifies:
+
+1. **Transaction boundary** — `BEGIN`/`COMMIT`/`ROLLBACK` for any multi-table write
+2. **Doc number generation** — call `next_doc_number('PREFIX', 'seq')` if creating a document
+3. **Child table inserts** — every parent+children POST must show: INSERT parent → get id → FOR EACH child: INSERT with parent_id
+4. **Side effects after status change** — `stock_ledger` insert, balance update, AP entry, etc.
+5. **Response shape** — exact fields returned in `apiSuccess()`
+
+A plan task missing any of these ≠ ready for Gemini.
+
+### Obsidian Writes (Chen)
+
+- ✅ MAY write to `_notes/01_Decisions/<topic>.md` for architectural decisions
+- ✅ MAY append to `_notes/02_Agent_Memory/pitfalls.md` for new traps
+- ✅ MUST update `conductor/index.md` when creating a new track
+- ❌ NEVER write to `_notes/daily/` or `.obsidian/`
+
+---
 
 ## Guidance for Claude (The Architect)
 
-- **Do NOT** implement large chunks of code. Focus on the *plan*.
+- Do NOT implement large chunks of code inline — focus on the plan.
 - Use checkboxes `- [ ]` for tasks in `plan.md`.
 - Be specific about file paths and logic changes.
-- Define clear verification steps for each task.
 
 ## Guidance for Gemini CLI (The Implementer)
 
-- **Read & Understand** Thoroughly read the entire Plan and understand the context before starting the first Task.
-- **Surgical Execution** Execute tasks precisely. Strictly do not modify files or Refactor code unrelated to the current Task.
-- **Zero Assumptions (HALT Rule)** If the plan is ambiguous, contradictory, or contains unspecified variables/dependencies, HALT immediately and report the issue. Never guess or make design decisions on your own.
-- **Strict Code Preservation** When editing files, do not delete existing comments or unrelated code. Do not use // ... existing code ... in a way that causes code loss or file breakage.
-- **No Architecture Changes** Do not change the Library, Framework, or core Logic established by the Planner. If a Test fails, fix the specific bug; do not overhaul the system to solve the problem.
-- **Progress Tracking** Update the checkbox [x] immediately as each Task is completed.
-- **Full-Track Workflow (NEW)** Execute **the entire track** per command. After completion of all tasks and knowledge capture, you MUST stop and wait for the user's next directive.
-- **Post-Task Knowledge Capture** After every task, run the capture protocol in `GEMINI.md` — check 3 questions, write to `docs/skills/` or `conductor/tracks/<track>/decisions.md` if applicable. Takes ~30 seconds; skip only if all 3 answers are NO.
-- **Execution Summary** Upon completion, summarize the results in execution-summary.md by specifying:
-    - Completed tasks
-    - Test results (if any)
-    - Issues encountered or necessary deviations from the plan (always provide technical justifications)
-    - Patterns/traps captured during this track (list the skill file entries added, if any)
+→ Full rules in `GEMINI.md` (auto-loaded). Summary:
+- Read `current-state.md` + `pitfalls.md` before every track
+- Surgical execution — no scope creep
+- HALT on ambiguity — never guess
+- Auto-continue to next Active track after completing one
+- Update `current-state.md` after each track
 
 ---
 

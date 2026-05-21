@@ -90,19 +90,21 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     }
 
     // Update PO status (fully or partially received)
-    const poLines = await client.query<{ qty_ordered: number; qty_received: number }>(
-      `SELECT qty_ordered, COALESCE(qty_received, 0) AS qty_received
-       FROM po_line_items WHERE po_id = $1`,
-      [grn.po_id]
-    );
-    const allFull = poLines.rows.every((l) => Number(l.qty_received) >= Number(l.qty_ordered));
-    const anyReceived = poLines.rows.some((l) => Number(l.qty_received) > 0);
-    const poStatus = allFull ? 'fully_received' : anyReceived ? 'partially_received' : undefined;
-    if (poStatus) {
-      await client.query(
-        `UPDATE purchase_orders SET status = $1 WHERE id = $2`,
-        [poStatus, grn.po_id]
+    if (grn.po_id) {
+      const poLines = await client.query<{ qty_ordered: number; qty_received: number }>(
+        `SELECT qty_ordered, COALESCE(qty_received, 0) AS qty_received
+         FROM po_line_items WHERE po_id = $1`,
+        [grn.po_id]
       );
+      const allFull = poLines.rows.every((l) => Number(l.qty_received) >= Number(l.qty_ordered));
+      const anyReceived = poLines.rows.some((l) => Number(l.qty_received) > 0);
+      const poStatus = allFull ? 'fully_received' : anyReceived ? 'partially_received' : undefined;
+      if (poStatus) {
+        await client.query(
+          `UPDATE purchase_orders SET status = $1 WHERE id = $2`,
+          [poStatus, grn.po_id]
+        );
+      }
     }
 
     // Update GRN status
@@ -112,6 +114,65 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
        WHERE id = $2`,
       [u.id, id]
     );
+
+    // Fetch source info
+    const grnFull = await client.query<{ source_type: string; inbound_order_id: string | null }>(
+      'SELECT source_type, inbound_order_id FROM goods_receipt_notes WHERE id = $1', [id]
+    );
+    const grnInfo = grnFull.rows[0];
+
+    if (grnInfo?.source_type === 'inbound_order' && grnInfo.inbound_order_id) {
+      const ioId = grnInfo.inbound_order_id;
+
+      // Fetch IO metadata for partial split
+      const ioData = await client.query<{
+        vendor_id: string; warehouse_id: string; notes: string | null; created_by: string;
+      }>('SELECT vendor_id, warehouse_id, notes, created_by FROM inbound_orders WHERE id = $1', [ioId]);
+      const io = ioData.rows[0];
+
+      // Compare received vs ordered per line
+      const lineComp = await client.query<{
+        io_line_id: string; product_id: string; qty_ordered: number;
+        qty_received_now: number; line_number: number; notes: string | null;
+      }>(
+        `SELECT iol.id AS io_line_id, iol.product_id, iol.qty_ordered, iol.notes, iol.line_number,
+                COALESCE(gli.qty_received, 0) AS qty_received_now
+         FROM inbound_order_lines iol
+         LEFT JOIN grn_line_items gli ON gli.inbound_order_line_id = iol.id AND gli.grn_id = $1
+         WHERE iol.io_id = $2`,
+        [id, ioId]
+      );
+
+      const remainingLines = lineComp.rows.filter(
+        (r) => Number(r.qty_received_now) < Number(r.qty_ordered)
+      );
+
+      // Auto-create partial IO for remaining quantities
+      if (remainingLines.length > 0 && io) {
+        const newIO = await client.query<{ id: string }>(
+          `INSERT INTO inbound_orders (vendor_id, warehouse_id, notes, parent_io_id, created_by)
+           VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+          [io.vendor_id, io.warehouse_id, io.notes, ioId, u.id]
+        );
+        const newIoId = newIO.rows[0].id;
+        for (let i = 0; i < remainingLines.length; i++) {
+          const r = remainingLines[i];
+          const remaining = Number(r.qty_ordered) - Number(r.qty_received_now);
+          await client.query(
+            `INSERT INTO inbound_order_lines (io_id, product_id, qty_ordered, notes, line_number)
+             VALUES ($1, $2, $3, $4, $5)`,
+            [newIoId, r.product_id, remaining, r.notes, i + 1]
+          );
+        }
+      }
+
+      // Mark original IO as verified
+      await client.query(
+        `UPDATE inbound_orders SET status = 'verified', verified_by = $1, verified_at = NOW()
+         WHERE id = $2`,
+        [u.id, ioId]
+      );
+    }
 
     // Auto-create AP Invoice
     if (grn.po_id) {

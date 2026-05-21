@@ -42,3 +42,14 @@ updated: 2026-05-18
 - [x] All nav Links in Sidebar have `viewTransition` prop
 - [x] `npx tsc --noEmit` — zero errors
 - [x] `npm run lint` — zero errors
+
+---
+
+## Batch 8 QA Rework
+
+### [MUST FIX] 🔴
+
+- [x] **MF-4 · Hydration Warnings / Errors under strict SSR**
+  - **Problem:** `lib/react-vts.tsx` and `components/ui/directional-transition.tsx` use browser/client-only APIs but do not have the `'use client';` directive.
+  - **Fix:** Add `'use client';` to the first line of both files.
+

@@ -43,3 +43,31 @@ Optimized the QC submission route in `app/api/grn/[id]/qc/route.ts` to eliminate
 - **Transaction Integrity:** All writes (batch update + header status update) are wrapped in `BEGIN`/`COMMIT` with `ROLLBACK` on error.
 - **Security:** `assertRole(u, ['manager', 'admin'])` is enforced.
 - **Validation:** Line IDs are verified to belong to the GRN via a `WHERE grn_id = $1` check before the transaction.
+
+---
+
+## Batch 8 QA Rework
+
+### Task MF-2 — Connection pool leak on connection error
+- **Files changed:**
+  - `app/api/purchase-orders/route.ts`
+  - `app/api/grn/route.ts`
+  - `app/api/grn/[id]/qc/route.ts`
+  - `app/api/grn/[id]/stock/route.ts`
+  - `app/api/transfers/route.ts`
+- **Key change:** Relocated `pool.connect()` inside the `try` block with a local `let client;` definition, and ensured that it only releases if `client` is successfully defined in the `finally` block:
+  ```typescript
+  let client;
+  try {
+    client = await pool.connect();
+    await client.query('BEGIN');
+    // ...
+  } catch (e) {
+    if (client) await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    if (client) client.release();
+  }
+  ```
+- **Verify:** `npx tsc --noEmit` → 0 errors, `npm run lint` → 0 errors
+

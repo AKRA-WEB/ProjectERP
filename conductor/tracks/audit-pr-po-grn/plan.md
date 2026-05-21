@@ -182,3 +182,8 @@ Track is complete when:
 - All checkboxes ticked (pass) or documented in bugs.md (fail)
 - `bugs.md` lists severity for every failure
 - No `Critical` bugs left unresolved
+
+---
+## Execution Logs
+- [[execution-summary]]
+

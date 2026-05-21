@@ -1,3 +1,5 @@
+'use client';
+
 import { ViewTransition } from '@/lib/react-vts';
 
 export function DirectionalTransition({ children }: { children: React.ReactNode }) {

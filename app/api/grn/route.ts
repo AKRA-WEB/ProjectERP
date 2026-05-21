@@ -16,6 +16,8 @@ const lineSchema = z.object({
   expiry_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   storage_location: z.string().max(100).optional(),
   notes: z.string().optional(),
+  date_type: z.enum(['expiry', 'mfg']).default('expiry'),
+  mfg_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
 });
 
 const createSchema = z.object({
@@ -24,6 +26,17 @@ const createSchema = z.object({
   warehouse_id: z.string().uuid(),
   received_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   notes: z.string().optional(),
+  received_by_names: z.string().optional(),
+  lift_fee_rounds: z.number().int().min(0).default(0),
+  lift_fee_payment_method: z.enum(['cash', 'credit']).optional().nullable(),
+  bonus_items: z.array(z.object({
+    product_id: z.string().uuid().optional().nullable(),
+    product_name: z.string().max(255).optional().nullable(),
+    qty: z.number().positive(),
+    unit: z.string().max(50).optional().nullable(),
+    expiry_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
+    notes: z.string().optional().nullable(),
+  })).optional().default([]),
   lines: z.array(lineSchema).min(1),
 }).refine(
   (d) => (d.po_id != null) !== (d.inbound_order_id != null),
@@ -113,8 +126,9 @@ export async function POST(req: Request) {
     const parsed = standaloneGRNSchema.safeParse(body);
     if (!parsed.success) return apiValidationError(parsed.error);
 
-    const client = await pool.connect();
+    let client;
     try {
+      client = await pool.connect();
       await client.query('BEGIN');
       const grnResult = await client.query(
         `INSERT INTO goods_receipt_notes (grn_number, warehouse_id, vendor_id, source_type, status, received_by, received_date, notes)
@@ -159,11 +173,11 @@ export async function POST(req: Request) {
       return apiSuccess({ grn_id: grn.id, grn_number: grn.grn_number }, 201);
     } catch (e) {
       const error = e as Error & { status?: number };
-      await client.query('ROLLBACK');
+      if (client) await client.query('ROLLBACK');
       console.error('Standalone GRN Error:', error);
       return apiError(error.message || 'Failed to create standalone GRN', error.status || 500);
     } finally {
-      client.release();
+      if (client) client.release();
     }
   }
 
@@ -172,16 +186,18 @@ export async function POST(req: Request) {
   if (!parsed.success) return apiValidationError(parsed.error);
 
   let sourceType: 'po' | 'inbound_order' = 'po';
+  let vendorId: string | null = null;
   const unitCosts = new Map<string, number>();
 
   if (parsed.data.po_id) {
     sourceType = 'po';
-    const po = await queryOne<{ status: string; warehouse_id: string }>(
-      'SELECT status, warehouse_id FROM purchase_orders WHERE id = $1',
+    const po = await queryOne<{ status: string; warehouse_id: string; vendor_id: string }>(
+      'SELECT status, warehouse_id, vendor_id FROM purchase_orders WHERE id = $1',
       [parsed.data.po_id]
     );
     if (!po) return apiError('PO not found', 404);
     if (!['sent', 'partially_received'].includes(po.status)) return apiError('PO must be in sent or partially_received status', 409);
+    vendorId = po.vendor_id;
 
     const poLines = await query<{
       id: string;
@@ -193,7 +209,7 @@ export async function POST(req: Request) {
               COALESCE(SUM(gli.qty_received), 0) AS already_received
        FROM po_line_items pol
        LEFT JOIN grn_line_items gli ON gli.po_line_item_id = pol.id
-       LEFT JOIN goods_receipt_notes grn ON grn.id = gli.grn_id AND grn.status != 'cancelled'
+       LEFT JOIN goods_receipt_notes grn ON grn.id = gli.grn_id
        WHERE pol.po_id = $1
        GROUP BY pol.id`,
       [parsed.data.po_id]
@@ -216,12 +232,13 @@ export async function POST(req: Request) {
     }
   } else if (parsed.data.inbound_order_id) {
     sourceType = 'inbound_order';
-    const io = await queryOne<{ status: string; warehouse_id: string }>(
-      'SELECT status, warehouse_id FROM inbound_orders WHERE id = $1',
+    const io = await queryOne<{ status: string; warehouse_id: string; vendor_id: string }>(
+      'SELECT status, warehouse_id, vendor_id FROM inbound_orders WHERE id = $1',
       [parsed.data.inbound_order_id]
     );
     if (!io) return apiError('Inbound Order not found', 404);
     if (!['open', 'receiving'].includes(io.status)) return apiError('Inbound Order must be open or receiving', 409);
+    vendorId = io.vendor_id;
 
     const ioLines = await query<{
       id: string;
@@ -233,7 +250,7 @@ export async function POST(req: Request) {
               COALESCE(SUM(gli.qty_received), 0) AS already_received
        FROM inbound_order_lines iol
        LEFT JOIN grn_line_items gli ON gli.inbound_order_line_id = iol.id
-       LEFT JOIN goods_receipt_notes grn ON grn.id = gli.grn_id AND grn.status != 'cancelled'
+       LEFT JOIN goods_receipt_notes grn ON grn.id = gli.grn_id
        WHERE iol.io_id = $1
        GROUP BY iol.id`,
       [parsed.data.inbound_order_id]
@@ -245,13 +262,6 @@ export async function POST(req: Request) {
       if (!line.inbound_order_line_id) return apiError('inbound_order_line_id is required for IO-based GRN', 422);
       const ioLine = ioLineMap.get(line.inbound_order_line_id);
       if (!ioLine) return apiError(`IO line ${line.inbound_order_line_id} not found`, 422);
-      const remaining = Number(ioLine.qty_ordered) - Number(ioLine.already_received);
-      if (line.qty_received > remaining + 0.0001) {
-        return apiError(
-          `qty_received (${line.qty_received}) exceeds remaining qty (${remaining.toFixed(4)}) for line ${line.inbound_order_line_id}`,
-          422
-        );
-      }
       unitCosts.set(line.inbound_order_line_id, Number(ioLine.unit_cost));
     }
   }
@@ -260,28 +270,33 @@ export async function POST(req: Request) {
     return apiError('No access to this warehouse', 403);
   }
 
-  const client2 = await pool.connect();
+  let client2;
   try {
+    client2 = await pool.connect();
     await client2.query('BEGIN');
 
     const grnResult = await client2.query<{ id: string; grn_number: string; status: string }>(
-      `INSERT INTO goods_receipt_notes (po_id, inbound_order_id, warehouse_id, received_by, received_date, notes, source_type)
-       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, grn_number, status`,
+      `INSERT INTO goods_receipt_notes (po_id, inbound_order_id, warehouse_id, vendor_id, received_by, received_date, notes, source_type, received_by_names, lift_fee_rounds, lift_fee_payment_method)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8::grn_source_type, $9, $10, $11) RETURNING id, grn_number, status`,
       [
         parsed.data.po_id ?? null,
         parsed.data.inbound_order_id ?? null,
         parsed.data.warehouse_id,
+        vendorId,
         u.id,
         parsed.data.received_date,
         parsed.data.notes ?? null,
-        sourceType
+        sourceType,
+        parsed.data.received_by_names ?? null,
+        parsed.data.lift_fee_rounds ?? 0,
+        parsed.data.lift_fee_payment_method ?? null
       ]
     );
     const grn = grnResult.rows[0];
     if (!grn) throw new Error('Failed to create GRN');
 
     const lineValues = parsed.data.lines
-      .map((_, i) => `($1, $${i * 10 + 2}, $${i * 10 + 3}, $${i * 10 + 4}, $${i * 10 + 5}, $${i * 10 + 6}, $${i * 10 + 7}, $${i * 10 + 8}, $${i * 10 + 9}, $${i * 10 + 10}, $${i * 10 + 11}, ${i + 1})`)
+      .map((_, i) => `($1, $${i * 12 + 2}, $${i * 12 + 3}, $${i * 12 + 4}, $${i * 12 + 5}, $${i * 12 + 6}, $${i * 12 + 7}, $${i * 12 + 8}, $${i * 12 + 9}, $${i * 12 + 10}::grn_source_type, $${i * 12 + 11}, $${i * 12 + 12}, $${i * 12 + 13}, ${i + 1})`)
       .join(', ');
     const lineParams: unknown[] = [grn.id];
     for (const l of parsed.data.lines) {
@@ -296,14 +311,36 @@ export async function POST(req: Request) {
         l.expiry_date ?? null,
         l.storage_location ?? null,
         sourceType,
-        cost
+        cost,
+        l.date_type ?? 'expiry',
+        l.mfg_date ?? null
       );
     }
     await client2.query(
-      `INSERT INTO grn_line_items (grn_id, po_line_item_id, inbound_order_line_id, product_id, qty_received, lot_number, serial_number, expiry_date, storage_location, source_type, unit_cost, line_number)
+      `INSERT INTO grn_line_items (grn_id, po_line_item_id, inbound_order_line_id, product_id, qty_received, lot_number, serial_number, expiry_date, storage_location, source_type, unit_cost, date_type, mfg_date, line_number)
        VALUES ${lineValues}`,
       lineParams
     );
+
+    if (parsed.data.bonus_items && parsed.data.bonus_items.length > 0) {
+      for (let i = 0; i < parsed.data.bonus_items.length; i++) {
+        const b = parsed.data.bonus_items[i];
+        await client2.query(
+          `INSERT INTO grn_bonus_items (grn_id, product_id, product_name, qty, unit, expiry_date, notes, line_number)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+          [
+            grn.id,
+            b.product_id ?? null,
+            b.product_name ?? null,
+            b.qty,
+            b.unit ?? null,
+            b.expiry_date ?? null,
+            b.notes ?? null,
+            i + 1
+          ]
+        );
+      }
+    }
 
     if (parsed.data.inbound_order_id) {
       await client2.query(
@@ -315,11 +352,11 @@ export async function POST(req: Request) {
     await client2.query('COMMIT');
     return apiSuccess(grn, 201);
   } catch (e) {
-    await client2.query('ROLLBACK');
+    if (client2) await client2.query('ROLLBACK');
     console.error('[POST /api/grn] transaction error', e);
-    throw e;
+    return apiError(e instanceof Error ? e.message : 'Internal Server Error', 500);
   } finally {
-    client2.release();
+    if (client2) client2.release();
   }
 }
 

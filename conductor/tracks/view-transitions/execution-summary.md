@@ -46,3 +46,23 @@ declare module 'next/link' {
 **Symptom:** `Property 'className' does not exist` or `Property 'children' does not exist` errors when using a casted version of `Link`.
 **Root cause:** `React.ComponentType` cast often hides optional props like `className` or `children` if not explicitly included in the generic type.
 **Fix:** Avoid casting if possible; use global type augmentation (`.d.ts`) instead so the native component retains its standard props.
+
+---
+
+## Batch 8 QA Rework
+
+### Task MF-4 — Hydration Warnings / Errors under strict SSR
+- **File changed:** `lib/react-vts.tsx` lines 1–3
+- **Key change:** Added `'use client';` directive to the top of the file
+  ```diff
+  +'use client';
+   import React, { ComponentType, useTransition } from 'react';
+  ```
+- **File changed:** `components/ui/directional-transition.tsx` lines 1–3
+- **Key change:** Added `'use client';` directive to the top of the file
+  ```diff
+  +'use client';
+   import React from 'react';
+  ```
+- **Verify:** `npx tsc --noEmit` → 0 errors, `npm run lint` → 0 errors
+

@@ -50,8 +50,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     }
   }
 
-  const client = await pool.connect();
+  let client;
   try {
+    client = await pool.connect();
     await client.query('BEGIN');
 
     // Batch update grn_line_items
@@ -92,11 +93,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     await client.query('COMMIT');
     return apiSuccess({ id, status: newStatus });
   } catch (e) {
-    await client.query('ROLLBACK');
+    if (client) await client.query('ROLLBACK');
     console.error('[POST /api/grn/[id]/qc] transaction error', e);
     throw e;
   } finally {
-    client.release();
+    if (client) client.release();
   }
 }
 

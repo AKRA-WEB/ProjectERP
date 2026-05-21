@@ -1,12 +1,32 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Button, Table, Thead, Tbody, Th, Td, Pagination, StatusBadge } from '@/components/ui';
+import { Button, Pagination, StatusBadge } from '@/components/ui';
 import { get } from '@/lib/api-client';
 import { formatDate } from '@/lib/format';
 import type { PaginatedResponse, InboundOrder, Warehouse } from '@/types';
 import Link from 'next/link';
 import { DirectionalTransition } from '@/components/ui/directional-transition';
+
+const borderColor: Record<string, string> = {
+  open: 'border-l-emerald-400',
+  receiving: 'border-l-blue-400',
+  pending_verification: 'border-l-amber-400',
+  verified: 'border-l-violet-400',
+  converted_to_po: 'border-l-gray-400',
+  rejected: 'border-l-red-400',
+  closed: 'border-l-gray-300',
+};
+
+const statusLabel: Record<string, string> = {
+  open: 'รอรับสินค้า',
+  receiving: 'กำลังรับ',
+  pending_verification: 'รอยืนยัน',
+  verified: 'ยืนยันแล้ว',
+  converted_to_po: 'เปิด PO แล้ว',
+  rejected: 'ถูกตีกลับ',
+  closed: 'ปิดแล้ว',
+};
 
 export default function InboundOrdersPage() {
   const [data, setData] = useState<PaginatedResponse<InboundOrder> | null>(null);
@@ -57,8 +77,10 @@ export default function InboundOrdersPage() {
             <option value="">ทุกสถานะ</option>
             <option value="open">รอรับสินค้า</option>
             <option value="receiving">กำลังรับ</option>
-            <option value="pending_verification">รอตรวจสอบ</option>
-            <option value="verified">ตรวจสอบแล้ว</option>
+            <option value="pending_verification">รอยืนยัน</option>
+            <option value="verified">ยืนยันแล้ว</option>
+            <option value="converted_to_po">เปิด PO แล้ว</option>
+            <option value="rejected">ถูกตีกลับ</option>
             <option value="closed">ปิดแล้ว</option>
           </select>
           <select
@@ -71,41 +93,47 @@ export default function InboundOrdersPage() {
           </select>
         </div>
 
-        <div className="rounded-xl bg-white shadow-sm border border-gray-100">
-          <Table>
-            <Thead>
-              <tr>
-                <Th>เลข IO</Th>
-                <Th>ผู้จำหน่าย / Vendor</Th>
-                <Th className="hidden sm:table-cell">คลังสินค้า</Th>
-                <Th className="hidden sm:table-cell">รายการ</Th>
-                <Th>สถานะ</Th>
-                <Th className="hidden sm:table-cell">วันที่สร้าง</Th>
-                <Th></Th>
-              </tr>
-            </Thead>
-            <Tbody>
-              {loading ? (
-                <tr><Td colSpan={7}><div className="py-8 text-center text-gray-400">กำลังโหลด...</div></Td></tr>
-              ) : data?.data.length === 0 ? (
-                <tr><Td colSpan={7}><div className="py-8 text-center text-gray-400">ไม่พบข้อมูล</div></Td></tr>
-              ) : (
-                data?.data.map((io) => (
-                  <tr key={io.id} className="hover:bg-gray-50">
-                    <Td className="font-mono font-medium text-sm">{io.io_number}</Td>
-                    <Td className="text-sm">{io.vendor_name}</Td>
-                    <Td className="hidden sm:table-cell text-sm">{io.warehouse_code}</Td>
-                    <Td className="hidden sm:table-cell text-sm text-center">{io.line_count}</Td>
-                    <Td><StatusBadge status={io.status} /></Td>
-                    <Td className="hidden sm:table-cell text-sm text-gray-500">{formatDate(io.created_at)}</Td>
-                    <Td>
-                      <Link href={`/app/inbound-orders/${io.id}`} transitionTypes={['nav-forward']} className="text-sm text-blue-600 hover:underline">ดูรายละเอียด</Link>
-                    </Td>
-                  </tr>
-                ))
-              )}
-            </Tbody>
-          </Table>
+        <div className="space-y-3">
+          {loading ? (
+            <div className="py-8 text-center text-gray-400">กำลังโหลด...</div>
+          ) : data?.data.length === 0 ? (
+            <div className="py-8 text-center text-gray-400">ไม่พบข้อมูล</div>
+          ) : (
+            data?.data.map((io) => (
+              <Link
+                key={io.id}
+                href={`/app/inbound-orders/${io.id}`}
+                transitionTypes={['nav-forward']}
+                className="block"
+              >
+                <div className={`p-4 bg-white rounded-xl shadow-sm border border-gray-100 border-l-4 ${borderColor[io.status] || 'border-l-gray-300'} hover:shadow-md hover:border-gray-200 transition-all duration-200`}>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-gray-900">{io.io_number}</span>
+                        <StatusBadge status={io.status} labelOverride={statusLabel[io.status]} />
+                      </div>
+                      <div className="text-sm text-gray-600 font-medium">
+                        {io.vendor_name}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500 mt-1">
+                        <span>วันที่สั่ง: {formatDate(io.order_date)}</span>
+                        <span className="text-gray-300">•</span>
+                        <span>คลังสินค้า: {io.warehouse_code}</span>
+                        <span className="text-gray-300">•</span>
+                        <span>{io.line_count} รายการ</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-end sm:justify-start">
+                      <span className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors">
+                        ดูรายละเอียด →
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))
+          )}
         </div>
 
         {data && (

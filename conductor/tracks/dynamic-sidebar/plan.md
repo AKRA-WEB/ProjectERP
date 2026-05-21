@@ -167,3 +167,8 @@ components/layout/TopBar.tsx    (minor — change home link href)
 - `isVisible()` function ไม่เปลี่ยน — role/permission logic เหมือนเดิม
 - ถ้า path ไม่ match module ใด (edge case เช่น path ใหม่ที่ยังไม่ได้ map) → `detectModule` returns `null` → sidebar แสดง brand only (graceful fallback)
 - BOM (`/app/bom`) อยู่ใน WMS module — manufacturing หรือ master data, ไม่ใช่ module แยก
+
+---
+## Execution Logs
+- [[execution-summary]]
+

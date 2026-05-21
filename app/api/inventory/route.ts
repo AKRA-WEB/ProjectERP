@@ -2,6 +2,7 @@ import { auth } from '@/auth';
 import { apiSuccess, apiError } from '@/lib/api-response';
 import { query } from '@/lib/db/client';
 import { DEFAULT_PAGE_SIZE } from '@/lib/constants';
+import { buildWarehouseScopeClause } from '@/lib/authz';
 import type { SessionUser } from '@/lib/authz';
 
 export async function GET(req: Request) {
@@ -21,9 +22,11 @@ export async function GET(req: Request) {
   const params: unknown[] = [];
   let idx = 1;
 
-  if (u.role === 'staff' && u.assignedWarehouseIds && u.assignedWarehouseIds.length > 0) {
-    conditions.push(`sb.warehouse_id = ANY($${idx++}::uuid[])`);
-    params.push(u.assignedWarehouseIds);
+  const scope = buildWarehouseScopeClause(u, 'sb.warehouse_id', idx);
+  if (scope) {
+    conditions.push(scope.clause);
+    params.push(...scope.params);
+    idx += scope.params.length;
   }
 
   if (warehouseId) {

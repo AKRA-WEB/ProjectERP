@@ -6,6 +6,7 @@ import { Button, StatusBadge, Badge } from '@/components/ui';
 import { get, post } from '@/lib/api-client';
 import { formatDate, formatCurrency } from '@/lib/format';
 import Link from 'next/link';
+import { ShoppingBag } from 'lucide-react';
 import type { PurchaseOrder } from '@/types';
 import { ApprovalDialog } from '@/components/purchase-orders';
 import { useT, useLanguage } from '@/lib/i18n';
@@ -241,7 +242,11 @@ export default function PODetailPage() {
         {po.status === 'sent' && (
           <>
             <Button variant="danger" onClick={() => action('cancel')} loading={acting}>{t('action.cancel')} PO</Button>
-            <Link href={`/app/grn/new?po_id=${id}`}><Button>{t('page.grn')}</Button></Link>
+            <Link href={`/app/grn/new?po_id=${id}`}>
+              <Button className="bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-2">
+                <ShoppingBag className="w-4 h-4" /> ยืนยันการรับสินค้า
+              </Button>
+            </Link>
           </>
         )}
       </div>

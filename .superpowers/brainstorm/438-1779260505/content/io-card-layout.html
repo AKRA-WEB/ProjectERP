@@ -1,0 +1,127 @@
+<h2>หน้า IO (Inbound Order) — Layout แบบไหน?</h2>
+<p class="subtitle">หัวหน้างานเปิด IO แต่ละใบ แสดงเป็นการ์ด — เลือก layout ที่ต้องการ</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="A" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px;background:#0f172a;border-radius:8px 8px 0 0">
+      <!-- Card A: Kanban-style board -->
+      <div style="display:flex;gap:8px;overflow:hidden">
+        <div style="flex:1;min-width:0">
+          <div style="background:#1e293b;border-radius:6px;padding:8px;margin-bottom:6px;font-size:11px;color:#94a3b8">
+            <div style="color:#f1f5f9;font-weight:600;font-size:12px;margin-bottom:4px">📦 IO-2026-001</div>
+            <div style="color:#60a5fa">บริษัท ABC จำกัด</div>
+            <div style="margin-top:4px;display:flex;gap:4px">
+              <span style="background:#166534;color:#86efac;padding:1px 6px;border-radius:10px;font-size:10px">open</span>
+              <span style="color:#64748b">3 รายการ</span>
+            </div>
+          </div>
+          <div style="background:#1e293b;border-radius:6px;padding:8px;font-size:11px;color:#94a3b8">
+            <div style="color:#f1f5f9;font-weight:600;font-size:12px;margin-bottom:4px">📦 IO-2026-002</div>
+            <div style="color:#60a5fa">XYZ Trading</div>
+            <div style="margin-top:4px;display:flex;gap:4px">
+              <span style="background:#1e3a5f;color:#93c5fd;padding:1px 6px;border-radius:10px;font-size:10px">receiving</span>
+              <span style="color:#64748b">5 รายการ</span>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="background:#1e293b;border-radius:6px;padding:8px;font-size:11px;color:#94a3b8">
+            <div style="color:#f1f5f9;font-weight:600;font-size:12px;margin-bottom:4px">📦 IO-2026-003</div>
+            <div style="color:#60a5fa">สินค้า Thai Co.</div>
+            <div style="margin-top:4px;display:flex;gap:4px">
+              <span style="background:#78350f;color:#fcd34d;padding:1px 6px;border-radius:10px;font-size:10px">received</span>
+              <span style="color:#64748b">2 รายการ</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Grid Card</h3>
+      <p>การ์ดเรียงเป็น grid 2-3 คอลัมน์ ดูได้หลายใบพร้อมกัน เหมาะถ้า IO เยอะ</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="B" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px;background:#0f172a;border-radius:8px 8px 0 0">
+      <!-- Card B: Full-width list card -->
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="background:#1e293b;border-radius:6px;padding:10px 12px;font-size:11px;border-left:3px solid #22c55e">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="color:#f1f5f9;font-weight:600">IO-2026-001 · บริษัท ABC จำกัด</span>
+            <span style="background:#166534;color:#86efac;padding:1px 8px;border-radius:10px;font-size:10px">open</span>
+          </div>
+          <div style="display:flex;gap:16px;color:#64748b;font-size:10px">
+            <span>📅 20 พ.ค. 2569</span>
+            <span>🏭 คลัง W1</span>
+            <span>📦 3 รายการ</span>
+          </div>
+        </div>
+        <div style="background:#1e293b;border-radius:6px;padding:10px 12px;font-size:11px;border-left:3px solid #3b82f6">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="color:#f1f5f9;font-weight:600">IO-2026-002 · XYZ Trading</span>
+            <span style="background:#1e3a5f;color:#93c5fd;padding:1px 8px;border-radius:10px;font-size:10px">receiving</span>
+          </div>
+          <div style="display:flex;gap:16px;color:#64748b;font-size:10px">
+            <span>📅 19 พ.ค. 2569</span>
+            <span>🏭 คลัง W2</span>
+            <span>📦 5 รายการ</span>
+          </div>
+        </div>
+        <div style="background:#1e293b;border-radius:6px;padding:10px 12px;font-size:11px;border-left:3px solid #f59e0b">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="color:#f1f5f9;font-weight:600">IO-2026-003 · Thai Co.</span>
+            <span style="background:#78350f;color:#fcd34d;padding:1px 8px;border-radius:10px;font-size:10px">received</span>
+          </div>
+          <div style="display:flex;gap:16px;color:#64748b;font-size:10px">
+            <span>📅 18 พ.ค. 2569</span>
+            <span>🏭 คลัง W1</span>
+            <span>📦 2 รายการ</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Full-Width Row Card</h3>
+      <p>การ์ดแถวเดียวเต็มความกว้าง เห็นข้อมูล Vendor/วันที่/คลัง/จำนวนรายการ สแกนสถานะง่าย</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="C" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px;background:#0f172a;border-radius:8px 8px 0 0">
+      <!-- Card C: Kanban by status -->
+      <div style="display:flex;gap:6px;overflow:hidden">
+        <div style="flex:1;min-width:0">
+          <div style="color:#64748b;font-size:10px;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Open</div>
+          <div style="background:#1e293b;border-radius:6px;padding:8px;font-size:10px;color:#94a3b8;border-top:2px solid #22c55e">
+            <div style="color:#f1f5f9;font-weight:600">IO-001</div>
+            <div style="color:#60a5fa;font-size:9px">ABC จำกัด</div>
+            <div style="color:#64748b;font-size:9px">3 รายการ</div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="color:#64748b;font-size:10px;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Receiving</div>
+          <div style="background:#1e293b;border-radius:6px;padding:8px;font-size:10px;color:#94a3b8;border-top:2px solid #3b82f6">
+            <div style="color:#f1f5f9;font-weight:600">IO-002</div>
+            <div style="color:#60a5fa;font-size:9px">XYZ Trading</div>
+            <div style="color:#64748b;font-size:9px">5 รายการ</div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="color:#64748b;font-size:10px;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Received</div>
+          <div style="background:#1e293b;border-radius:6px;padding:8px;font-size:10px;color:#94a3b8;border-top:2px solid #f59e0b">
+            <div style="color:#f1f5f9;font-weight:600">IO-003</div>
+            <div style="color:#60a5fa;font-size:9px">Thai Co.</div>
+            <div style="color:#64748b;font-size:9px">2 รายการ</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Kanban Board</h3>
+      <p>จัดกลุ่มตามสถานะ (Open / Receiving / Received / Confirmed) เห็น pipeline ได้ทันที</p>
+    </div>
+  </div>
+
+</div>

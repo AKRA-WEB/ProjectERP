@@ -88,3 +88,8 @@ Current `app/app/dashboard/page.tsx` shows only WMS KPIs (PR, PO, GRN, low-stock
 - [x] Activity feed shows 8 most recent events across WMS + Sales
 - [x] `npm run build` exits 0
 - [x] No existing dashboard sections removed or broken
+
+---
+## Execution Logs
+- [[execution-summary]]
+

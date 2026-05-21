@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { cn } from '@/lib/utils';
 import { Home, Search, Bell } from 'lucide-react';
 import { Modal, ModalBody } from '@/components/ui';
 import { useT } from '@/lib/i18n';
@@ -22,10 +21,24 @@ export function TopBar({ onMenuToggle, sidebarOpen, userName, userRole, onSignOu
   
   // Generate breadcrumbs from pathname
   const segments = pathname.split('/').filter(Boolean).filter(s => s !== 'app');
+  
+  // Define which segments should not be clickable or should map to specific routes
+  const routeMap: Record<string, string> = {
+    'receiving': '/app/grn',
+    'ap': '/app/ap',
+    'inventory': '/app/inventory',
+  };
+
   const breadcrumbs = segments.map((s, i) => {
-    const href = '/app/' + segments.slice(0, i + 1).join('/');
+    const segmentPath = segments.slice(0, i + 1).join('/');
+    const href = '/app/' + segmentPath;
     const label = s.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-    return { label, href };
+    
+    // Check if this segment has a specific mapping or if it's the last one
+    const mappedHref = routeMap[s] || href;
+    const isClickable = i < segments.length - 1; // Usually only intermediate are clickable, but we'll check existence
+    
+    return { label, href: mappedHref, isClickable };
   });
 
   useEffect(() => {
@@ -61,19 +74,20 @@ export function TopBar({ onMenuToggle, sidebarOpen, userName, userRole, onSignOu
             <Link href="/app/menu" viewTransition className="text-ink-3 hover:text-ink transition-colors">
               <Home className="w-3.5 h-3.5" />
             </Link>
-            {breadcrumbs.map((b, i) => (
+            {breadcrumbs.map((b) => (
               <div key={b.href} className="flex items-center gap-2">
                 <span className="text-line-strong">/</span>
-                <Link 
-                  href={b.href} 
-                  viewTransition
-                  className={cn(
-                    "transition-colors truncate max-w-[120px]",
-                    i === breadcrumbs.length - 1 ? "text-ink" : "text-ink-3 hover:text-ink"
-                  )}
-                >
-                  {b.label}
-                </Link>
+                {!b.isClickable ? (
+                  <span className="text-ink truncate max-w-[120px]">{b.label}</span>
+                ) : (
+                  <Link 
+                    href={b.href} 
+                    viewTransition
+                    className="text-ink-3 hover:text-ink transition-colors truncate max-w-[120px]"
+                  >
+                    {b.label}
+                  </Link>
+                )}
               </div>
             ))}
           </nav>

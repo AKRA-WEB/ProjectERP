@@ -132,6 +132,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       [parsed.data.delivery_date, parsed.data.receiver_name ?? null, u.id, effectiveWarehouseId, id]
     );
 
+    if (grn.source_type === 'inbound_order' && grn.inbound_order_id) {
+      await client.query(
+        `UPDATE inbound_orders
+         SET status = 'pending_verification',
+             updated_at = NOW()
+         WHERE id = $1`,
+        [grn.inbound_order_id]
+      );
+    }
+
     // Auto-split: find lines where qty_received < qty_expected
     const splitLines: (typeof grnLines[number])[] = [];
     for (const grnLine of grnLines) {

@@ -1,9 +1,9 @@
 ---
 track: product-stock-summary
-status: Active
+status: Completed
 owner: paku
 module: Inventory
-updated: 2026-05-19
+updated: 2026-05-20
 ---
 
 # Track: product-stock-summary — Product Detail Stock Overview
@@ -53,11 +53,11 @@ Update tab union type and button list to include `'stock'`.
 Add a branch for `tab === 'stock'` that renders a table similar to the 'suppliers' tab but showing warehouse stock levels.
 
 **Checklist:**
-- [ ] `stock_by_warehouse` is correctly typed.
-- [ ] Tab switching works smoothly.
-- [ ] Table shows real data from the API.
-- [ ] Empty state handled (e.g., "ไม่พบข้อมูลสต็อกในทุกคลัง").
-- [ ] `npx tsc --noEmit` passes.
+- [x] `stock_by_warehouse` is correctly typed.
+- [x] Tab switching works smoothly.
+- [x] Table shows real data from the API.
+- [x] Empty state handled (e.g., "ไม่พบข้อมูลสต็อกในทุกคลัง").
+- [x] `npx tsc --noEmit` passes.
 
 ---
 
@@ -66,3 +66,8 @@ Add a branch for `tab === 'stock'` that renders a table similar to the 'supplier
 - [ ] Click "สต็อก" tab.
 - [ ] Verify warehouse names and quantities match the `stock_balances` table.
 - [ ] Verify mobile responsiveness of the new table.
+
+---
+## Execution Logs
+- [[execution-summary]]
+
