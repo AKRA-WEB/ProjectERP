@@ -259,17 +259,17 @@ export default function ReceivingQueuePage() {
                     const urgent = isUrgent(io.created_at);
                     const overdue = isOverdue(io.created_at, io.status);
                     return (
-                      <div key={io.id} className={`bg-white rounded-2xl border p-4.5 space-y-3 transition-all duration-200 hover:shadow-md ${
+                      <div key={io.id} className={`bg-white rounded-2xl border p-5 space-y-4 transition-all duration-200 hover:shadow-md ${
                         overdue 
                           ? 'border-red-300 ring-2 ring-red-100/50 shadow-md shadow-rose-50/40' 
                           : urgent 
                           ? 'border-amber-200 ring-2 ring-amber-300/40 shadow-md shadow-amber-50/30' 
                           : 'border-stone-200/80 shadow-sm'
                       }`}>
-                        <div className="flex items-start justify-between gap-2 border-b border-stone-100/80 pb-3">
-                          <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="font-mono text-[14px] font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-lg px-2.5 py-0.5 leading-none">
+                        <div className="flex items-start justify-between gap-3 border-b border-stone-100 pb-4">
+                          <div className="flex flex-col gap-2 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-mono text-[14px] font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-1 leading-none">
                                 {io.io_number}
                               </span>
                               {urgent && (
@@ -279,16 +279,16 @@ export default function ReceivingQueuePage() {
                                 <span className="text-[9px] font-extrabold text-red-700 bg-red-50 border border-red-300 rounded-full px-2 py-0.5 tracking-wider uppercase leading-none">นานผิดปกติ</span>
                               )}
                             </div>
-                            <div className="mt-1">
+                            <div>
                               <StatusBadge status={io.status} labelOverride={IO_STATUS_LABEL[io.status]} />
                             </div>
                           </div>
-                          <div className="text-right">
+                          <div className="text-right flex-shrink-0">
                             <p className="text-2xl font-mono font-extrabold tabular-nums text-stone-900 leading-none">{formatQty(io.total_qty_remaining)}</p>
-                            <p className="text-[10px] font-bold text-stone-400 mt-1">{io.total_lines} SKU ค้างรับ</p>
+                            <p className="text-[10px] font-bold text-stone-400 mt-1.5">{io.total_lines} SKU ค้างรับ</p>
                           </div>
                         </div>
-                        <div className="space-y-1.5 pt-1">
+                        <div className="space-y-2">
                           <p className="text-[14px] font-bold text-stone-800 leading-snug">{io.vendor_name}</p>
                           <div className="flex items-center justify-between text-[11px] font-semibold text-stone-500">
                             <span>คลังปลายทาง: <span className="text-stone-700 font-bold">{io.warehouse_code}</span></span>
@@ -297,7 +297,7 @@ export default function ReceivingQueuePage() {
                         </div>
                         <button
                           onClick={() => router.push(`/app/grn/new?io_id=${io.id}`)}
-                          className="w-full h-11 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-xl text-[13.5px] font-extrabold hover:from-emerald-700 hover:to-emerald-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-sm shadow-emerald-600/10 mt-2"
+                          className="w-full h-12 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-xl text-[13.5px] font-extrabold hover:from-emerald-700 hover:to-emerald-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-sm shadow-emerald-600/10"
                         >
                           <ScanLine className="w-4.5 h-4.5" />
                           เริ่มรับสินค้า (Scan)

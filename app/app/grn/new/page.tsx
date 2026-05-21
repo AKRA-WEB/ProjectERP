@@ -471,8 +471,16 @@ function NewGRNPageInner() {
             storage_location: l.storage_location || undefined,
           })),
         });
-        toast('success', 'บันทึกการรับลงสินค้าเรียบร้อยแล้ว รอหัวหน้างานตรวจสอบ');
-        router.push('/app/grn/receiving-queue');
+
+        const skippedLines = lines.filter((l) => l.qty_received === 0);
+        if (skippedLines.length > 0 && mode === 'io' && ioIdParam) {
+          // Partial receive: redirect to new GRN for remaining items
+          toast('success', `รับสินค้า ${activeLines.length} รายการเรียบร้อย เปิดใบรับใหม่สำหรับสินค้าที่เหลืออีก ${skippedLines.length} รายการ`);
+          router.push(`/app/grn/new?io_id=${ioIdParam}`);
+        } else {
+          toast('success', 'บันทึกการรับลงสินค้าเรียบร้อยแล้ว รอหัวหน้างานตรวจสอบ');
+          router.push('/app/grn/receiving-queue');
+        }
       } else {
         toast('success', 'บันทึกฉบับร่างเรียบร้อยแล้ว');
         router.push('/app/grn/receiving-queue');
@@ -999,7 +1007,7 @@ function NewGRNPageInner() {
             </div>
             <div className="text-right">
               <span className="text-[10px] font-bold text-stone-500 block uppercase">Vendor</span>
-              <span className="text-[12px] font-bold text-stone-800 block truncate max-w-[120px]">{vendorName}</span>
+              <span className="text-[12px] font-bold text-stone-800 block truncate max-w-[160px]">{vendorName}</span>
             </div>
           </div>
 
@@ -1101,7 +1109,7 @@ function NewGRNPageInner() {
               </div>
               <div>
                 <label className="text-[10px] font-bold text-stone-400 block mb-1">ชื่อผู้รับทีมลงสินค้า *</label>
-                <input
+                  <input
                   type="text"
                   placeholder="ชื่อผู้รับลงสินค้า..."
                   value={receivedByNames}
@@ -1163,40 +1171,40 @@ function NewGRNPageInner() {
               </div>
 
               {/* Quick-add Chips */}
-              <div className="flex flex-wrap gap-2 justify-center py-1">
+              <div className="grid grid-cols-4 gap-2 py-1">
                 <button
                   type="button"
                   onClick={() => updateLine(activeIndex, 'qty_received', Number(activeLine.qty_received) + 1)}
-                  className="h-11 px-4 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-extrabold border border-stone-300 active:scale-95 transition-all flex items-center justify-center"
+                  className="h-11 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-extrabold border border-stone-300 active:scale-95 transition-all flex items-center justify-center"
                 >
                   +1
                 </button>
                 <button
                   type="button"
                   onClick={() => updateLine(activeIndex, 'qty_received', Number(activeLine.qty_received) + 5)}
-                  className="h-11 px-4 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-extrabold border border-stone-300 active:scale-95 transition-all flex items-center justify-center"
+                  className="h-11 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-extrabold border border-stone-300 active:scale-95 transition-all flex items-center justify-center"
                 >
                   +5
                 </button>
                 <button
                   type="button"
                   onClick={() => updateLine(activeIndex, 'qty_received', Number(activeLine.qty_received) + 10)}
-                  className="h-11 px-4 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-extrabold border border-stone-300 active:scale-95 transition-all flex items-center justify-center"
+                  className="h-11 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-extrabold border border-stone-300 active:scale-95 transition-all flex items-center justify-center"
                 >
                   +10
                 </button>
                 <button
                   type="button"
                   onClick={() => updateLine(activeIndex, 'qty_received', Number(activeLine.qty_ordered))}
-                  className="h-11 px-4 bg-emerald-950/40 hover:bg-emerald-950/60 text-emerald-400 rounded-xl text-xs font-extrabold border border-emerald-900/60 active:scale-95 transition-all flex items-center justify-center"
+                  className="h-11 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-extrabold border border-emerald-200 active:scale-95 transition-all flex items-center justify-center"
                 >
-                  รับครบ ({formatQty(activeLine.qty_ordered)})
+                  ✓ครบ
                 </button>
                 {Number(activeLine.qty_received) > 0 && (
                   <button
                     type="button"
                     onClick={() => updateLine(activeIndex, 'qty_received', 0)}
-                    className="h-11 px-4 bg-stone-100 hover:bg-rose-50 text-stone-500 hover:text-rose-600 rounded-xl text-xs font-extrabold border border-stone-300 active:scale-95 transition-all flex items-center justify-center"
+                    className="col-span-4 h-9 bg-stone-50 hover:bg-rose-50 text-stone-400 hover:text-rose-500 rounded-xl text-xs font-bold border border-stone-200 active:scale-95 transition-all flex items-center justify-center gap-1"
                   >
                     ล้างค่า
                   </button>
