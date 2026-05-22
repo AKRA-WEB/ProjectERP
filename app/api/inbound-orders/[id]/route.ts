@@ -29,7 +29,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   if (!io) return apiError('Inbound Order not found', 404);
 
   const lines = await query(
-    `SELECT iol.*, p.sku, p.name_th, p.name_en, u.code AS uom_code,
+    `SELECT iol.*, p.sku, p.name_th, p.name_en, p.unit_cost AS product_unit_cost, u.code AS uom_code,
             COALESCE(sb.qty_available, 0) AS qty_available
      FROM inbound_order_lines iol
      JOIN products p ON p.id = iol.product_id

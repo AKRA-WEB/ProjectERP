@@ -101,6 +101,8 @@ function NewPurchaseOrderPageInner() {
   const [ioLines, setIoLines] = useState<{
     product_id: string; sku: string; name_th: string;
     qty_received: number; uom_code: string; unit_price: number;
+    unit_cost?: number;
+    product_unit_cost?: number;
   }[]>([]);
 
   useEffect(() => {
@@ -142,7 +144,7 @@ function NewPurchaseOrderPageInner() {
 
   useEffect(() => {
     if (!selectedIOIds.length) { setIoLines([]); return; }
-    Promise.all(selectedIOIds.map((id) => get<{ lines: { product_id: string; sku: string; name_th: string; qty_received: number; uom_code: string }[]; vendor_id: string; warehouse_id: string }>(`/api/inbound-orders/${id}`)))
+    Promise.all(selectedIOIds.map((id) => get<{ lines: { product_id: string; sku: string; name_th: string; qty_received: number; uom_code: string; unit_cost?: number; product_unit_cost?: number }[]; vendor_id: string; warehouse_id: string }>(`/api/inbound-orders/${id}`)))
       .then((results) => {
         const merged = new Map<string, typeof ioLines[0]>();
         if (results.length > 0) {
@@ -156,7 +158,17 @@ function NewPurchaseOrderPageInner() {
               merged.get(l.product_id)!.qty_received += Number(l.qty_received);
             }
             else {
-              merged.set(l.product_id, { ...l, qty_received: Number(l.qty_received), unit_price: 0 });
+              const defaultCost = Number(l.unit_cost) || Number(l.product_unit_cost) || 0;
+              merged.set(l.product_id, {
+                product_id: l.product_id,
+                sku: l.sku,
+                name_th: l.name_th,
+                qty_received: Number(l.qty_received),
+                uom_code: l.uom_code,
+                unit_price: defaultCost,
+                unit_cost: Number(l.unit_cost) || 0,
+                product_unit_cost: Number(l.product_unit_cost) || 0,
+              });
             }
           }
         }
@@ -236,7 +248,9 @@ function NewPurchaseOrderPageInner() {
     const newErrors: Record<string, string> = {};
     if (!form.vendor_id) newErrors.vendor_id = 'กรุณาเลือกผู้จำหน่าย';
     if (!form.warehouse_id) newErrors.warehouse_id = 'กรุณาเลือกคลังสินค้า';
-    if (!form.expected_date) {
+    
+    // Only require expected_date if NOT in Inbound Order mode (selectedIOIds.length === 0)
+    if (selectedIOIds.length === 0 && !form.expected_date) {
       newErrors.expected_date = 'กรุณาระบุวันที่คาดรับ';
       setActiveTab('details');
     }
@@ -250,6 +264,21 @@ function NewPurchaseOrderPageInner() {
     if (selectedIOIds.length === 0 && lines.length === 0) {
       setError('กรุณาเพิ่มรายการสินค้า');
       return;
+    }
+
+    // Validate prices
+    if (selectedIOIds.length > 0) {
+      const hasInvalidPrice = ioLines.some(l => l.unit_price === undefined || l.unit_price === null || isNaN(l.unit_price) || l.unit_price < 0);
+      if (hasInvalidPrice) {
+        setError('กรุณากรอกราคาสินค้าให้ถูกต้องและครบถ้วนทุกรายการ');
+        return;
+      }
+    } else {
+      const hasInvalidPrice = lines.some(l => l.unit_price === undefined || l.unit_price === null || isNaN(l.unit_price) || l.unit_price < 0);
+      if (hasInvalidPrice) {
+        setError('กรุณากรอกราคาสินค้าให้ถูกต้องและครบถ้วนทุกรายการ');
+        return;
+      }
     }
 
     setErrors({});
@@ -377,6 +406,15 @@ function NewPurchaseOrderPageInner() {
                           <div className="flex-1">
                             <span className="font-mono text-xs text-gray-500 block">{line.sku}</span>
                             <span className="text-sm font-medium text-gray-900">{line.name_th}</span>
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-gray-500">
+                              <span className="flex items-center gap-1 bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
+                                ราคามาสเตอร์: <span className="font-semibold font-mono">{formatCurrency(line.product_unit_cost ?? 0)}</span>
+                              </span>
+                              <span className="text-gray-300">|</span>
+                              <span className="flex items-center gap-1 bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded border border-blue-100">
+                                ราคานำเข้า: <span className="font-semibold font-mono">{formatCurrency(line.unit_cost ?? 0)}</span>
+                              </span>
+                            </div>
                           </div>
                           <div className="text-sm text-gray-500 flex-shrink-0">
                             รับแล้ว <span className="font-bold font-mono text-emerald-700">{line.qty_received}</span> {line.uom_code}
