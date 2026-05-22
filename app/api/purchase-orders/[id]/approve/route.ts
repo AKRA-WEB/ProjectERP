@@ -25,7 +25,7 @@ export async function POST(
 
     // 1. Fetch PO
     const poRes = await client.query(
-      `SELECT id, warehouse_id, vendor_id, status FROM purchase_orders WHERE id = $1 FOR UPDATE`,
+      `SELECT id, warehouse_id, vendor_id, status, total_amount, payment_terms_days, po_number FROM purchase_orders WHERE id = $1 FOR UPDATE`,
       [id]
     );
     if (!poRes.rows[0]) {
@@ -95,6 +95,14 @@ export async function POST(
     await client.query(
       `UPDATE purchase_orders SET status = 'fully_received', approved_by = $2, approved_at = NOW() WHERE id = $1`,
       [id, u.id]
+    );
+
+    // 8. Auto-create AP Invoice
+    await client.query(
+      `INSERT INTO po_invoices
+       (po_id, vendor_id, grn_id, invoice_number, invoice_date, due_date, amount, paid_amount)
+       VALUES ($1, $2, $3, $4, CURRENT_DATE, CURRENT_DATE + ($5 || ' days')::INTERVAL, $6, 0)`,
+      [id, po.vendor_id, grnId, po.po_number, po.payment_terms_days, po.total_amount]
     );
 
     await client.query('COMMIT');

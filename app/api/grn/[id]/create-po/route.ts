@@ -107,6 +107,21 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       [po.id, grn.id]
     );
 
+    // Auto-create AP Invoice
+    await client.query(
+      `INSERT INTO po_invoices
+       (po_id, vendor_id, grn_id, invoice_number, invoice_date, due_date, amount, paid_amount)
+       VALUES ($1, $2, $3, $4, CURRENT_DATE, CURRENT_DATE + ($5 || ' days')::INTERVAL, $6, 0)`,
+      [
+        po.id,
+        parsed.data.vendor_id || grn.vendor_id,
+        grn.id,
+        po.po_number,
+        parsed.data.payment_terms_days,
+        total
+      ]
+    );
+
     await client.query('COMMIT');
     return apiSuccess({ po_id: po.id, po_number: po.po_number });
   } catch (e) {
