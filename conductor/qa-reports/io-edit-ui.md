@@ -1,94 +1,45 @@
-# QA Report: io-edit-ui
+# QA Report — io-edit-ui (Re-QA)
 
-**Auditor:** Billy  
-**Date:** 2026-05-21  
-**Status:** 🔴 Rework Required
-
----
-
-## Summary
-
-Track is **incomplete**. UI page (`page.tsx`) modified to add detail view but both required API routes are absent, all mutation/edit functionality missing from page, and one CLAUDE.md architectural violation present.
+**Auditor:** Claude  
+**Date:** 2026-05-22  
+**Verdict:** ✅ Verified
 
 ---
 
-## Must Fix
+## Previous Findings (from Billy 2026-05-21) — All Resolved
 
-### F-001 — API Route Missing Entirely
-**File:** `app/api/inbound-orders/[id]/route.ts` (does not exist)  
-**Issue:** Plan Task 1 requires GET + PATCH route. Neither exists. Page fetches this endpoint and receives 404.  
-**Fix:** Create `app/api/inbound-orders/[id]/route.ts` with GET (fetch order + items) and PATCH (`body.action` discriminant for `update_header`, `update_status`).
+| Finding | Status | Evidence |
+|---------|--------|----------|
+| F-001: API route missing | ✅ Fixed | `app/api/inbound-orders/[id]/route.ts` exists with GET + PATCH |
+| F-002: No mutation handlers | ✅ Fixed | `saveHeader`, `saveLines`, `saveWarehouse`, `saveCosts`, `handleConfirmGRN`, `handleRejectGRN`, `handleClose` all present |
+| F-003: execution-summary.md missing | ✅ Fixed | `conductor/tracks/io-edit-ui/execution-summary.md` exists |
+| F-004: `useTransition` from `react` not `react-vts` | ✅ Fixed | `import { useTransition } from '@/lib/react-vts'` at page.tsx:11 |
+| F-005: Items sub-route missing | ✅ Fixed | Items consolidated into parent GET — no separate sub-route needed |
 
-### F-002 — No PATCH/Mutation in page.tsx
-**File:** `app/app/inbound-orders/[id]/page.tsx`  
-**Issue:** Plan Task 2 requires edit form with save/cancel and status-change buttons. Page is read-only — no `handleSave`, no `handleStatusChange`, no form submission logic.  
-**Fix:** Add mutation handlers calling the PATCH endpoint. Include optimistic UI or reload-after-save.
+## API Route — Actions Verified
 
-### F-003 — execution-summary.md Missing
-**File:** `conductor/tracks/io-edit-ui/execution-summary.md` (does not exist)  
-**Issue:** Track completion requires execution summary per conductor protocol.  
-**Fix:** Write `execution-summary.md` listing files changed, API routes created, validation results.
+PATCH `/api/inbound-orders/[id]` supports all actions via Zod discriminatedUnion:
+- `update_header` — order_date, notes
+- `update_lines` — full replace with cascade preserve (unit_cost, qty_received)
+- `update_costs` — manager/admin only, updates IO lines + product master
+- `change_warehouse` — manager/admin only, IO must be open
 
-### F-004 — useTransition Imported from 'react' Not react-vts Bridge
-**File:** `app/app/inbound-orders/[id]/page.tsx:3`  
-**Issue:** `import { useState, useEffect, useTransition } from 'react'` — CLAUDE.md requires `useTransition` from `lib/react-vts.tsx` bridge.  
-**Fix:**
-```typescript
-import { useState, useEffect } from 'react'
-import { useTransition } from '@/lib/react-vts'
+## Should Fix (from Billy) — Status
+
+| Finding | Disposition |
+|---------|-------------|
+| F-006: No Zod on client form | ✅ Fixed — Zod schemas `headerSchema`, `warehouseSchema`, `lineQtySchema`, `lineCostSchema` in page.tsx |
+| F-007: Raw English status strings | ✅ Fixed — `StatusBadge` component handles bilingual labels |
+| F-008: `formatCurrency` not applied | ✅ Fixed — `formatCurrency(l.unit_cost)` used in read and edit modes |
+| F-009: Generic error state | ✅ Fixed — `e.message` passed through to error display |
+
+## Lint
+
 ```
-
-### F-005 — Items Sub-Route Missing
-**File:** `app/api/inbound-orders/[id]/items/route.ts` (does not exist)  
-**Issue:** Page fetches `/api/inbound-orders/${id}/items` — this route does not exist.  
-**Fix:** Create items sub-route or consolidate items into parent GET response (remove separate fetch).
-
----
-
-## Should Fix
-
-### F-006 — No Zod Validation on Client Form
-**File:** `app/app/inbound-orders/[id]/page.tsx`  
-**Issue:** No `z.object` schema for edit form fields. Plan calls for validated edit form.  
-**Fix:** Define Zod schema for editable fields (notes, expected_date, etc.) and validate on submit.
-
-### F-007 — Incomplete Bilingual Labels
-**File:** `app/app/inbound-orders/[id]/page.tsx:~480–650`  
-**Issue:** Status strings rendered as raw English (`'pending'`, `'approved'`). CLAUDE.md: Thai primary, English secondary.  
-**Fix:** Add status label map:
-```typescript
-const STATUS_LABELS: Record<string, string> = {
-  pending: 'รอดำเนินการ (Pending)',
-  approved: 'อนุมัติแล้ว (Approved)',
-  received: 'รับสินค้าแล้ว (Received)',
-  cancelled: 'ยกเลิก (Cancelled)',
-}
+npx next lint --no-cache
+✔ No ESLint warnings or errors
 ```
-
-### F-008 — formatCurrency Not Applied Uniformly
-**File:** `app/app/inbound-orders/[id]/page.tsx:~570–600`  
-**Issue:** `item.unit_price` and `item.total_amount` rendered as raw numbers in table cells. CLAUDE.md: `formatCurrency()` for all monetary values.  
-**Fix:** Wrap: `{formatCurrency(item.unit_price)}`, `{formatCurrency(item.total_amount)}`.
-
-### F-009 — Generic Error State
-**File:** `app/app/inbound-orders/[id]/page.tsx:~140–160`  
-**Issue:** Error branch renders static Thai string, not the actual API error message.  
-**Fix:** Pass `error.message` through to error display for debuggability.
-
----
-
-## Plan Coverage
-
-| Task | Status |
-|------|--------|
-| Task 1: GET + PATCH API route | ❌ Missing |
-| Task 2: Edit form + mutation handlers | ❌ Missing |
-| Task 3: Status-change buttons | ❌ Missing |
-| Task 4: UI conventions (bilingual, formatCurrency) | ⚠️ Partial |
-| Task 5: execution-summary.md | ❌ Missing |
-
----
 
 ## Verdict
 
-**Rework Required.** Core deliverables (API routes + mutation logic) unimplemented. UI page calls endpoints that return 404. Track cannot ship until F-001 through F-005 resolved.
+All Must Fix and Should Fix items resolved. Track fully implemented and lint-clean.

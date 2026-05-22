@@ -16,17 +16,17 @@
 
 | Track | Status | Plan | Rework Plan |
 |-------|--------|------|-------------|
-| maintenance-standardization | Completed | [plan.md](tracks/maintenance-standardization/plan.md) | — |
-| main-menu-ui-polish | Completed | [plan.md](tracks/main-menu-ui-polish/plan.md) | — |
-| admin-hub | Completed | [plan.md](tracks/admin-hub/plan.md) | — |
-| grn-ui-redesign | Completed | [plan.md](tracks/grn-ui-redesign/plan.md) | — |
+| maintenance-standardization | Verified | [plan.md](tracks/maintenance-standardization/plan.md) | — |
+| main-menu-ui-polish | Verified | [plan.md](tracks/main-menu-ui-polish/plan.md) | — |
+| admin-hub | Verified | [plan.md](tracks/admin-hub/plan.md) | — |
+| grn-ui-redesign | Verified | [plan.md](tracks/grn-ui-redesign/plan.md) | — |
 | grn-mobile-ui | Verified | [plan.md](tracks/grn-mobile-ui/plan.md) | — |
-| io-edit-ui | Completed | [plan.md](tracks/io-edit-ui/plan.md) | — |
-| product-stock-summary | Completed | [plan.md](tracks/product-stock-summary/plan.md) | — |
-| po-gr-audit | Completed | [plan.md](tracks/po-gr-audit/plan.md) | [rework-plan.md](tracks/po-gr-audit/rework-plan.md) |
-| chen-plan-enforcement | Completed | [plan.md](tracks/chen-plan-enforcement/plan.md) | — |
-| grn-receiving-fix | Completed | [plan.md](tracks/grn-receiving-fix/plan.md) | — |
-| grn-simplified-workflow | Completed | [plan.md](tracks/grn-simplified-workflow/plan.md) | — |
+| io-edit-ui | Verified | [plan.md](tracks/io-edit-ui/plan.md) | — |
+| product-stock-summary | Verified | [plan.md](tracks/product-stock-summary/plan.md) | — |
+| po-gr-audit | Verified | [plan.md](tracks/po-gr-audit/plan.md) | [rework-plan.md](tracks/po-gr-audit/rework-plan.md) |
+| chen-plan-enforcement | Verified | [plan.md](tracks/chen-plan-enforcement/plan.md) | — |
+| grn-receiving-fix | Verified | [plan.md](tracks/grn-receiving-fix/plan.md) | — |
+| grn-simplified-workflow | Verified | [plan.md](tracks/grn-simplified-workflow/plan.md) | — |
 
 
 ## Rework Required
@@ -87,4 +87,5 @@
 | [Admin Hub Page — center dashboard with parallel counts](./tracks/admin-hub/plan.md) | Completed | 2026-05-21 | 2026-05-21 |
 | [GRN UI Redesign — full desktop & mobile redesign](./tracks/grn-ui-redesign/plan.md) | Completed | 2026-05-21 | 2026-05-21 |
 | [GRN Mobile UI — queue cards, detail compact header, edit mobile form](./tracks/grn-mobile-ui/plan.md) | Verified | 2026-05-21 | 2026-05-21 |
-| [IO Edit UI — expose 4 PATCH actions on Inbound Order detail page](./tracks/io-edit-ui/plan.md) | Completed | 2026-05-21 | 2026-05-21 |
+| [IO Edit UI — expose 4 PATCH actions on Inbound Order detail page](./tracks/io-edit-ui/plan.md) | Verified | 2026-05-21 | 2026-05-22 |
+| [UI Improvement — WMS Operations (GRN Tabs · QC KPIs · Receiving Queue)](./tracks/ui-improvement-wms-ops/plan.md) | Verified | 2026-05-15 | 2026-05-22 |

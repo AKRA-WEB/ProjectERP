@@ -1,7 +1,7 @@
 ---
 track: io-edit-ui
 owner: puka
-status: Completed
+status: Verified
 priority: medium
 created: 2026-05-21
 updated: 2026-05-21
