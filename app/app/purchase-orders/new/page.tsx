@@ -160,7 +160,8 @@ function NewPurchaseOrderPageInner() {
             }
           }
         }
-        setIoLines(Array.from(merged.values()));
+        const filteredLines = Array.from(merged.values()).filter((l) => Number(l.qty_received) > 0);
+        setIoLines(filteredLines);
       });
   }, [selectedIOIds]);
 
