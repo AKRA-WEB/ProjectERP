@@ -172,6 +172,7 @@ interface IOLine {
   unit_cost: number;
   uom_code: string;
   qty_available: number;
+  notes?: string | null;
 }
 
 interface IODetail extends InboundOrder {
@@ -237,6 +238,7 @@ export default function InboundOrderDetailPage() {
     qty_ordered: string;
     uom_code: string;
     unit_cost: string;
+    notes: string;
   }>>([]);
 
   // Permission Logic
@@ -287,6 +289,7 @@ export default function InboundOrderDetailPage() {
       qty_ordered: String(l.qty_ordered),
       uom_code: l.uom_code,
       unit_cost: String(l.unit_cost),
+      notes: l.notes ?? '',
     }));
     setEditLines(linesList);
     setEditError(null);
@@ -307,6 +310,7 @@ export default function InboundOrderDetailPage() {
         qty_ordered: '1',
         uom_code: '',
         unit_cost: '0',
+        notes: '',
       },
     ]);
   }, []);
@@ -325,6 +329,7 @@ export default function InboundOrderDetailPage() {
         name_th: product.name_th,
         uom_code: product.uom_code || '',
         unit_cost: String(product.unit_cost || 0),
+        notes: '',
       };
       return newLines;
     });
@@ -340,6 +345,7 @@ export default function InboundOrderDetailPage() {
         name_th: '',
         uom_code: '',
         unit_cost: '0',
+        notes: '',
       };
       return newLines;
     });
@@ -357,6 +363,14 @@ export default function InboundOrderDetailPage() {
     setEditLines((prev) => {
       const newLines = [...prev];
       newLines[index] = { ...newLines[index], unit_cost: val };
+      return newLines;
+    });
+  }, []);
+
+  const updateEditLineNotes = useCallback((index: number, val: string) => {
+    setEditLines((prev) => {
+      const newLines = [...prev];
+      newLines[index] = { ...newLines[index], notes: val };
       return newLines;
     });
   }, []);
@@ -448,6 +462,7 @@ export default function InboundOrderDetailPage() {
           id: l.id,
           product_id: l.product_id,
           qty_ordered: num as number,
+          notes: l.notes || undefined,
         };
       });
 
@@ -683,16 +698,33 @@ export default function InboundOrderDetailPage() {
                   <tr key={l.id ?? `new-line-${idx}`}>
                     <td className="p-3">
                       {canEditHeader ? (
-                        <ProductSearch
-                          value={l.sku ? `${l.sku} — ${l.name_th}` : ''}
-                          onSelect={(product) => selectEditLineProduct(idx, product)}
-                          onClear={() => clearEditLineProduct(idx)}
-                          disabled={saving}
-                        />
+                        <div className="space-y-2">
+                          <ProductSearch
+                            value={l.sku ? `${l.sku} — ${l.name_th}` : ''}
+                            onSelect={(product) => selectEditLineProduct(idx, product)}
+                            onClear={() => clearEditLineProduct(idx)}
+                            disabled={saving}
+                          />
+                          {l.product_id && (
+                            <input
+                              type="text"
+                              placeholder="ระบุหมายเหตุสินค้า..."
+                              value={l.notes}
+                              onChange={(e) => updateEditLineNotes(idx, e.target.value)}
+                              className="w-full text-xs border border-gray-300 rounded px-2.5 py-1.5 min-h-[34px] focus:outline-none focus:border-emerald-500 focus:shadow-[0_0_0_3px_rgba(16,185,129,0.14)] transition-all bg-white"
+                              disabled={saving}
+                            />
+                          )}
+                        </div>
                       ) : (
                         <>
                           <div className="font-mono text-xs text-gray-400">{l.sku}</div>
                           <div className="font-medium">{l.name_th}</div>
+                          {l.notes && (
+                            <div className="text-xs text-gray-500 mt-1 bg-gray-50/50 border border-gray-100 rounded px-2 py-1 inline-block">
+                              หมายเหตุ: {l.notes}
+                            </div>
+                          )}
                         </>
                       )}
                     </td>
@@ -753,6 +785,11 @@ export default function InboundOrderDetailPage() {
                   <td className="p-3">
                     <div className="font-mono text-xs text-gray-400">{l.sku}</div>
                     <div className="font-medium">{l.name_th}</div>
+                    {l.notes && (
+                      <div className="text-xs text-gray-500 mt-1 bg-gray-50/50 border border-gray-100 rounded px-2 py-1 inline-block">
+                        หมายเหตุ: {l.notes}
+                      </div>
+                    )}
                   </td>
                   <td className="p-3 text-right font-mono">
                     {formatQty(l.qty_ordered)}

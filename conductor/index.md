@@ -26,6 +26,7 @@
 
 | Track | Status | Created | Last Updated |
 |-------|--------|---------|--------------|
+| [inbound-order-autocomplete](./archive/tracks/inbound-order-autocomplete/plan.md) | Verified| 2026-05-22 | 2026-05-22 |
 | [Maintenance & Standardization](./archive/tracks/maintenance-standardization/plan.md) | Verified | 2026-05-21 | 2026-05-22 |
 | [Product Detail Stock Overview](./archive/tracks/product-stock-summary/plan.md) | Verified | 2026-05-19 | 2026-05-20 |
 | [PO & GRN Transaction Integrity](./archive/tracks/po-gr-audit/plan.md) | Verified | 2026-05-18 | 2026-05-20 |
