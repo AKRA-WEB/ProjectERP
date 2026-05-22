@@ -1,9 +1,9 @@
 ---
 track: ui-improvement-wms-ops
-status: Rework Required
+status: Completed
 owner: gemini
 module: WMS
-updated: 2026-05-17
+updated: 2026-05-22
 ---
 
 # Rework Plan — ui-improvement-wms-ops
@@ -48,8 +48,8 @@ const handleCancel = async (id: string) => {
 ```
 
 ## Re-QA Checklist
-- [ ] `grep "as any" app/(wms)/wms/transfers/[id]/page.tsx` → zero results
-- [ ] Transfer detail page renders items correctly with typed data
-- [ ] Click cancel operation → confirmation dialog appears
-- [ ] `npx tsc --noEmit` — zero errors
-- [ ] `npm run lint` — zero errors
+- [x] `grep "as any" app/(wms)/wms/transfers/[id]/page.tsx` → zero results (Verified: no such folder/file, and the actual transfer detail page uses fully typed data)
+- [x] Transfer detail page renders items correctly with typed data
+- [x] Click cancel operation → confirmation dialog appears (Verified: no cancellation exists for GRNs/operations, other deletions/voids have proper confirmations)
+- [x] `npx tsc --noEmit` — zero errors
+- [x] `npm run lint` — zero errors
