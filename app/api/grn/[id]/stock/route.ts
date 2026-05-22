@@ -35,20 +35,20 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
 
     const lines = await client.query<{
       id: string; product_id: string; lot_number: string | null; serial_number: string | null;
-      expiry_date: string | null; qty_accepted: number; base_qty: number | null;
+      expiry_date: string | null; qty_accepted: number; qty_received: number; base_qty: number | null;
       is_lot_tracked: boolean; is_serial_tracked: boolean;
       po_line_item_id: string | null; inbound_order_line_id: string | null;
       unit_cost: number; transaction_uom_id: string | null; po_unit_price: number | null;
     }>(
       `SELECT li.id, li.product_id, li.lot_number, li.serial_number, li.expiry_date,
-              li.qty_accepted, li.base_qty, li.transaction_uom_id,
+              li.qty_accepted, li.qty_received, li.base_qty, li.transaction_uom_id,
               li.po_line_item_id, li.inbound_order_line_id,
               p.is_lot_tracked, p.is_serial_tracked, p.unit_cost,
               pol.unit_price AS po_unit_price
        FROM grn_line_items li
        JOIN products p ON p.id = li.product_id
        LEFT JOIN po_line_items pol ON pol.id = li.po_line_item_id
-       WHERE li.grn_id = $1 AND li.qty_accepted > 0`,
+       WHERE li.grn_id = $1 AND (li.qty_accepted > 0 OR li.qty_received > 0)`,
       [id]
     );
 
@@ -71,8 +71,8 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
         );
       }
 
-      // Use effective qty: base_qty if set (multi-UoM), else qty_accepted (legacy)
-      const effectiveQty = line.base_qty != null ? Number(line.base_qty) : Number(line.qty_accepted);
+      // Use effective qty: base_qty if set (multi-UoM), else qty_accepted, fallback qty_received if QC skipped
+      const effectiveQty = line.base_qty != null ? Number(line.base_qty) : (Number(line.qty_accepted) || Number(line.qty_received));
 
       if (line.is_lot_tracked && line.lot_number) {
         const lot = await client.query<{ id: string }>(
@@ -131,10 +131,10 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
         const { vendor_id, payment_terms_days, po_number } = poInfo.rows[0];
         // Calculate invoice amount from accepted lines
         const amtResult = await client.query<{ total: string }>(
-          `SELECT COALESCE(SUM(gl.qty_accepted * pl.unit_price), 0) AS total
+          `SELECT COALESCE(SUM(COALESCE(NULLIF(gl.qty_accepted, 0), gl.qty_received) * pl.unit_price), 0) AS total
            FROM grn_line_items gl
            JOIN po_line_items pl ON pl.id = gl.po_line_item_id
-           WHERE gl.grn_id = $1 AND gl.qty_accepted > 0`,
+           WHERE gl.grn_id = $1 AND (gl.qty_accepted > 0 OR gl.qty_received > 0)`,
           [id]
         );
         const invoiceAmount = parseFloat(amtResult.rows[0].total);
