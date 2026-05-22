@@ -1149,75 +1149,77 @@ function NewGRNPageInner() {
               </div>
 
               {/* Qty Stepper */}
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <label className="text-[11.5px] font-bold text-stone-500 block text-center">
                   ระบุจำนวนชิ้นสินค้าที่รับลงของ ({activeLine.unit})
                 </label>
-                <div className="flex items-center justify-between gap-4 max-w-xs mx-auto">
-                  <button
-                    type="button"
-                    onClick={() => updateLine(activeIndex, 'qty_received', Math.max(0, Number(activeLine.qty_received) - 1))}
-                    className="w-12 h-12 flex items-center justify-center rounded-2xl bg-stone-100 border border-stone-300 text-2xl font-bold text-stone-700 hover:text-stone-900 active:scale-90 transition-all"
-                  >
-                    −
-                  </button>
-                  <input
-                    type="number"
-                    min="0"
-                    step="any"
-                    value={activeLine.qty_received || ''}
-                    onChange={(e) => updateLine(activeIndex, 'qty_received', parseFloat(e.target.value) || 0)}
-                    className="flex-1 h-12 bg-stone-100 border border-stone-300 rounded-2xl text-center font-mono text-2xl font-extrabold text-stone-900 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => updateLine(activeIndex, 'qty_received', Number(activeLine.qty_received) + 1)}
-                    className="w-12 h-12 flex items-center justify-center rounded-2xl bg-stone-100 border border-stone-300 text-2xl font-bold text-stone-700 hover:text-stone-900 active:scale-90 transition-all"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
+                <div className="max-w-xs mx-auto space-y-2">
+                  <div className="flex items-center justify-between gap-4">
+                    <button
+                      type="button"
+                      onClick={() => updateLine(activeIndex, 'qty_received', Math.max(0, Number(activeLine.qty_received) - 1))}
+                      className="w-12 h-12 flex items-center justify-center rounded-2xl bg-stone-100 border border-stone-300 text-2xl font-bold text-stone-700 hover:text-stone-900 active:scale-90 transition-all flex-shrink-0"
+                    >
+                      −
+                    </button>
+                    <input
+                      type="number"
+                      min="0"
+                      step="any"
+                      value={activeLine.qty_received || ''}
+                      onChange={(e) => updateLine(activeIndex, 'qty_received', parseFloat(e.target.value) || 0)}
+                      className="flex-1 h-12 bg-stone-100 border border-stone-300 rounded-2xl text-center font-mono text-2xl font-extrabold text-stone-900 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => updateLine(activeIndex, 'qty_received', Number(activeLine.qty_received) + 1)}
+                      className="w-12 h-12 flex items-center justify-center rounded-2xl bg-stone-100 border border-stone-300 text-2xl font-bold text-stone-700 hover:text-stone-900 active:scale-90 transition-all flex-shrink-0"
+                    >
+                      +
+                    </button>
+                  </div>
 
-              {/* Quick-add Chips */}
-              <div className="grid grid-cols-4 gap-2 py-1">
-                <button
-                  type="button"
-                  onClick={() => updateLine(activeIndex, 'qty_received', Number(activeLine.qty_received) + 1)}
-                  className="h-11 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-extrabold border border-stone-300 active:scale-95 transition-all flex items-center justify-center"
-                >
-                  +1
-                </button>
-                <button
-                  type="button"
-                  onClick={() => updateLine(activeIndex, 'qty_received', Number(activeLine.qty_received) + 5)}
-                  className="h-11 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-extrabold border border-stone-300 active:scale-95 transition-all flex items-center justify-center"
-                >
-                  +5
-                </button>
-                <button
-                  type="button"
-                  onClick={() => updateLine(activeIndex, 'qty_received', Number(activeLine.qty_received) + 10)}
-                  className="h-11 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-extrabold border border-stone-300 active:scale-95 transition-all flex items-center justify-center"
-                >
-                  +10
-                </button>
-                <button
-                  type="button"
-                  onClick={() => updateLine(activeIndex, 'qty_received', Number(activeLine.qty_ordered))}
-                  className="h-11 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-extrabold border border-emerald-200 active:scale-95 transition-all flex items-center justify-center"
-                >
-                  ✓ครบ
-                </button>
-                {Number(activeLine.qty_received) > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => updateLine(activeIndex, 'qty_received', 0)}
-                    className="col-span-4 h-9 bg-stone-50 hover:bg-rose-50 text-stone-400 hover:text-rose-500 rounded-xl text-xs font-bold border border-stone-200 active:scale-95 transition-all flex items-center justify-center gap-1"
-                  >
-                    ล้างค่า
-                  </button>
-                )}
+                  {/* Quick-add Chips */}
+                  <div className="grid grid-cols-4 gap-2 py-1">
+                    <button
+                      type="button"
+                      onClick={() => updateLine(activeIndex, 'qty_received', Number(activeLine.qty_received) + 1)}
+                      className="h-11 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-extrabold border border-stone-300 active:scale-95 transition-all flex items-center justify-center"
+                    >
+                      +1
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updateLine(activeIndex, 'qty_received', Number(activeLine.qty_received) + 5)}
+                      className="h-11 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-extrabold border border-stone-300 active:scale-95 transition-all flex items-center justify-center"
+                    >
+                      +5
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updateLine(activeIndex, 'qty_received', Number(activeLine.qty_received) + 10)}
+                      className="h-11 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-extrabold border border-stone-300 active:scale-95 transition-all flex items-center justify-center"
+                    >
+                      +10
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updateLine(activeIndex, 'qty_received', Number(activeLine.qty_ordered))}
+                      className="h-11 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-extrabold border border-emerald-200 active:scale-95 transition-all flex items-center justify-center"
+                    >
+                      ✓ครบ
+                    </button>
+                    {Number(activeLine.qty_received) > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => updateLine(activeIndex, 'qty_received', 0)}
+                        className="col-span-4 h-9 bg-stone-50 hover:bg-rose-50 text-stone-400 hover:text-rose-500 rounded-xl text-xs font-bold border border-stone-200 active:scale-95 transition-all flex items-center justify-center gap-1"
+                      >
+                        ล้างค่า
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {/* Exp/Mfg Date & Lot/Location Inputs for Active item */}
