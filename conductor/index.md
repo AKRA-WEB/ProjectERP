@@ -14,78 +14,63 @@
 
 > Gemini CLI: start here. Execute top-to-bottom. One track at a time.
 
-| Track | Status | Plan | Rework Plan |
-|-------|--------|------|-------------|
-| maintenance-standardization | Verified | [plan.md](tracks/maintenance-standardization/plan.md) | — |
-| main-menu-ui-polish | Verified | [plan.md](tracks/main-menu-ui-polish/plan.md) | — |
-| admin-hub | Verified | [plan.md](tracks/admin-hub/plan.md) | — |
-| grn-ui-redesign | Verified | [plan.md](tracks/grn-ui-redesign/plan.md) | — |
-| grn-mobile-ui | Verified | [plan.md](tracks/grn-mobile-ui/plan.md) | — |
-| io-edit-ui | Verified | [plan.md](tracks/io-edit-ui/plan.md) | — |
-| product-stock-summary | Verified | [plan.md](tracks/product-stock-summary/plan.md) | — |
-| po-gr-audit | Verified | [plan.md](tracks/po-gr-audit/plan.md) | [rework-plan.md](tracks/po-gr-audit/rework-plan.md) |
-| chen-plan-enforcement | Verified | [plan.md](tracks/chen-plan-enforcement/plan.md) | — |
-| grn-receiving-fix | Verified | [plan.md](tracks/grn-receiving-fix/plan.md) | — |
-| grn-simplified-workflow | Verified | [plan.md](tracks/grn-simplified-workflow/plan.md) | — |
-
+*No active tracks. All planned items have been successfully completed and verified!*
 
 ## Rework Required
 
 > Gemini CLI: after Active Now is clear, fix these next.
 
-| Track | Status | Rework Plan |
-|-------|--------|-------------|
-| view-transitions | Completed | [rework-plan.md](tracks/view-transitions/rework-plan.md) |
-| po-gr-audit | Completed | [rework-plan.md](tracks/po-gr-audit/rework-plan.md) |
-| hr-ui-redesign | Completed | [rework-plan.md](tracks/hr-ui-redesign/rework-plan.md) |
+*No rework required. All tracks are fully verified by Billy QA and approved by Chen/Claude.*
 
 ## All Tracks
 
 | Track | Status | Created | Last Updated |
 |-------|--------|---------|--------------|
-| [Maintenance & Standardization](./tracks/maintenance-standardization/plan.md) | Completed | 2026-05-21 | 2026-05-21 |
-| [Product Detail Stock Overview](./tracks/product-stock-summary/plan.md) | Completed | 2026-05-19 | 2026-05-20 |
-| [PO & GRN Transaction Integrity](./tracks/po-gr-audit/plan.md) | Completed | 2026-05-18 | 2026-05-20 |
-| [Chen Plan Enforcement](./tracks/chen-plan-enforcement/plan.md) | Completed | 2026-05-18 | 2026-05-20 |
-| [GRN Role Segregation](./tracks/grn-role-segregation/plan.md) | Completed | 2026-05-20 | 2026-05-20 |
-| [Repack Order System](./tracks/repack-order/plan.md) | Completed | 2026-05-19 | 2026-05-20 |
-| [Collaboration Protocol](./PROTOCOLS.md) | Active | 2024-05-12 | 2024-05-12 |
-| [Audit PR→PO→GRN Flow](./tracks/audit-pr-po-grn/plan.md) | Completed | 2026-05-10 | 2026-05-17 |
-| [Fix BUG-001 Over-receipt Guard](./tracks/fix-over-receipt/plan.md) | Completed | 2026-05-10 | 2026-05-17 |
-| [Responsive Design](./tracks/responsive-design/plan.md) | Completed | 2026-05-10 | 2026-05-17 |
-| [GR Staff Workflow](./tracks/gr-staff-workflow/plan.md) | Completed | 2026-05-10 | 2026-05-17 |
-| [Inbound Order Workflow](./tracks/inbound-order-workflow/plan.md) | Completed | 2026-05-10 | 2026-05-17 |
-| [Employee Management + RBAC](./tracks/employee-rbac/plan.md) | Completed | 2026-05-10 | 2026-05-17 |
-| [IO Product Search + Remove Unit Cost](./tracks/io-product-search/plan.md) | Completed | 2026-05-10 | 2026-05-18 |
-| [Sidebar Navigation Grouping](./tracks/sidebar-grouping/plan.md) | Completed | 2026-05-10 | 2026-05-18 |
-| [Thai Double-Encoding Fix (TIS-620 re-encode)](./tracks/encoding-fix/plan.md) | Completed | 2026-05-10 | 2026-05-17 |
-| [POS Module (Point of Sale)](./tracks/pos-module/plan.md) | Completed | 2026-05-11 | 2026-05-17 |
-| [Sales Module (SQ→SO→DO→SI→SR)](./tracks/sales-module/plan.md) | Completed | 2026-05-11 | 2026-05-17 |
-| [Accounting Module (CoA→JE→Reports)](./tracks/accounting-module/plan.md) | Completed | 2026-05-11 | 2026-05-17 |
-| [Bug Hunt & Polish — WMS Core](./tracks/bug-hunt-wms-polish/plan.md) | Completed | 2026-05-11 | 2026-05-20 |
-| [HR Module (Employees→Leave→Attendance→Payroll)](./tracks/hr-module/plan.md) | Completed | 2026-05-12 | 2026-05-18 |
-| [UI Design System — อรุณ](./tracks/ui-design-system/plan.md) | Completed | 2026-05-12 | 2026-05-20 |
-| [BOM Module — สูตรการผลิต + Multi-UOM](./tracks/bom-module/plan.md) | Completed | 2026-05-12 | 2026-05-17 |
-| [Main Menu — Module Hub Page](./tracks/main-menu/plan.md) | Completed | 2026-05-13 | 2026-05-17 |
-| [Dynamic Sidebar — Module-Scoped Navigation](./tracks/dynamic-sidebar/plan.md) | Completed | 2026-05-13 | 2026-05-17 |
-| [UI Redesign — BM Design System v2](./tracks/ui-redesign/plan.md) | Completed | 2026-05-13 | 2026-05-17 |
-| [HR Bugfix Final — u.name + import sources + formatDate](./tracks/hr-bugfix-final/plan.md) | Completed | 2026-05-13 | 2026-05-17 |
-| [POS Bugfix — session close auth + formatDatetime + VAT constant](./tracks/pos-bugfix/plan.md) | Completed | 2026-05-13 | 2026-05-17 |
-| [UoM Framework — global conversions, multi-UoM line fields, admin UI](./tracks/uom-framework/plan.md) | Completed | 2026-05-13 | 2026-05-20 |
-| [Import Vendors from Excel](./tracks/import-vendors/plan.md) | Completed | 2026-05-13 | 2026-05-17 |
-| [UoM Phase 2 — Transaction Form Selectors](./tracks/uom-phase2-form-selectors/plan.md) | Completed | 2026-05-13 | 2026-05-17 |
-| [Inventory Valuation Report](./tracks/inventory-valuation-report/plan.md) | Completed | 2026-05-13 | 2026-05-17 |
-| [GRN Receiving Workflow — Staff Work Card](./tracks/grn-receiving-workflow/plan.md) | Completed | 2026-05-13 | 2026-05-17 |
-| [UI Improvement — Inventory Heatmap Matrix + Warehouse Cards](./tracks/ui-improvement-inventory/plan.md) | Completed | 2026-05-15 | 2026-05-20 |
-| [UI Improvement — POS Tier Badges · Lock Timer · Thermal Receipt](./tracks/ui-improvement-pos/plan.md) | Completed | 2026-05-15 | 2026-05-20 |
-| [Hamburger Sidebar Z-Index Fix](./tracks/hamburger-zindex-fix/plan.md) | Completed | 2026-05-16 | 2026-05-17 |
-| [hr-ui-redesign — HR UI Redesign (Dashboard · Employees · Leave · Payroll)](./tracks/hr-ui-redesign/plan.md) | Completed | 2026-05-19 | 2026-05-20 |
-| [IO → GR → PO Workflow — IO card + GRN receive + Supervisor confirm + PO from IO](./tracks/io-gr-po-workflow/plan.md) | Completed | 2026-05-20 | 2026-05-20 |
-| [GRN Receiving Fix — Mobile Date + IO Over-Receiving](./tracks/grn-receiving-fix/plan.md) | Completed | 2026-05-20 | 2026-05-20 |
-| [GRN Simplified Workflow](./tracks/grn-simplified-workflow/plan.md) | Completed | 2026-05-20 | 2026-05-20 |
-| [Main Menu UI Polish — color coding, hover anims, module stubs](./tracks/main-menu-ui-polish/plan.md) | Completed | 2026-05-21 | 2026-05-21 |
-| [Admin Hub Page — center dashboard with parallel counts](./tracks/admin-hub/plan.md) | Completed | 2026-05-21 | 2026-05-21 |
-| [GRN UI Redesign — full desktop & mobile redesign](./tracks/grn-ui-redesign/plan.md) | Completed | 2026-05-21 | 2026-05-21 |
-| [GRN Mobile UI — queue cards, detail compact header, edit mobile form](./tracks/grn-mobile-ui/plan.md) | Verified | 2026-05-21 | 2026-05-21 |
-| [IO Edit UI — expose 4 PATCH actions on Inbound Order detail page](./tracks/io-edit-ui/plan.md) | Verified | 2026-05-21 | 2026-05-22 |
-| [UI Improvement — WMS Operations (GRN Tabs · QC KPIs · Receiving Queue)](./tracks/ui-improvement-wms-ops/plan.md) | Verified | 2026-05-15 | 2026-05-22 |
+| [Maintenance & Standardization](./archive/tracks/maintenance-standardization/plan.md) | Verified | 2026-05-21 | 2026-05-22 |
+| [Product Detail Stock Overview](./archive/tracks/product-stock-summary/plan.md) | Verified | 2026-05-19 | 2026-05-20 |
+| [PO & GRN Transaction Integrity](./archive/tracks/po-gr-audit/plan.md) | Verified | 2026-05-18 | 2026-05-20 |
+| [Chen Plan Enforcement](./archive/tracks/chen-plan-enforcement/plan.md) | Verified | 2026-05-18 | 2026-05-20 |
+| [GRN Role Segregation](./archive/tracks/grn-role-segregation/plan.md) | Verified | 2026-05-20 | 2026-05-20 |
+| [Repack Order System](./archive/tracks/repack-order/plan.md) | Verified | 2026-05-19 | 2026-05-20 |
+| [Collaboration Protocol](./PROTOCOLS.md) | Verified | 2024-05-12 | 2026-05-22 |
+| [Audit PR→PO→GRN Flow](./archive/tracks/audit-pr-po-grn/plan.md) | Verified | 2026-05-10 | 2026-05-17 |
+| [Fix BUG-001 Over-receipt Guard](./archive/tracks/fix-over-receipt/plan.md) | Verified | 2026-05-10 | 2026-05-17 |
+| [Responsive Design](./archive/tracks/responsive-design/plan.md) | Verified | 2026-05-10 | 2026-05-17 |
+| [GR Staff Workflow](./archive/tracks/gr-staff-workflow/plan.md) | Verified | 2026-05-10 | 2026-05-17 |
+| [Inbound Order Workflow](./archive/tracks/inbound-order-workflow/plan.md) | Verified | 2026-05-10 | 2026-05-17 |
+| [Employee Management + RBAC](./archive/tracks/employee-rbac/plan.md) | Verified | 2026-05-10 | 2026-05-17 |
+| [IO Product Search + Remove Unit Cost](./archive/tracks/io-product-search/plan.md) | Verified | 2026-05-10 | 2026-05-18 |
+| [Sidebar Navigation Grouping](./archive/tracks/sidebar-grouping/plan.md) | Verified | 2026-05-10 | 2026-05-18 |
+| [Thai Double-Encoding Fix (TIS-620 re-encode)](./archive/tracks/encoding-fix/plan.md) | Verified | 2026-05-10 | 2026-05-17 |
+| [POS Module (Point of Sale)](./archive/tracks/pos-module/plan.md) | Verified | 2026-05-11 | 2026-05-17 |
+| [Sales Module (SQ→SO→DO→SI→SR)](./archive/tracks/sales-module/plan.md) | Verified | 2026-05-11 | 2026-05-17 |
+| [Accounting Module (CoA→JE→Reports)](./archive/tracks/accounting-module/plan.md) | Verified | 2026-05-11 | 2026-05-17 |
+| [Bug Hunt & Polish — WMS Core](./archive/tracks/bug-hunt-wms-polish/plan.md) | Verified | 2026-05-11 | 2026-05-20 |
+| [HR Module (Employees→Leave→Attendance→Payroll)](./archive/tracks/hr-module/plan.md) | Verified | 2026-05-12 | 2026-05-18 |
+| [UI Design System — อรุณ](./archive/tracks/ui-design-system/plan.md) | Verified | 2026-05-12 | 2026-05-20 |
+| [BOM Module — สูตรการผลิต + Multi-UOM](./archive/tracks/bom-module/plan.md) | Verified | 2026-05-12 | 2026-05-17 |
+| [Main Menu — Module Hub Page](./archive/tracks/main-menu/plan.md) | Verified | 2026-05-13 | 2026-05-17 |
+| [Dynamic Sidebar — Module-Scoped Navigation](./archive/tracks/dynamic-sidebar/plan.md) | Verified | 2026-05-13 | 2026-05-17 |
+| [UI Redesign — BM Design System v2](./archive/tracks/ui-redesign/plan.md) | Verified | 2026-05-13 | 2026-05-17 |
+| [HR Bugfix Final — u.name + import sources + formatDate](./archive/tracks/hr-bugfix-final/plan.md) | Verified | 2026-05-13 | 2026-05-17 |
+| [POS Bugfix — session close auth + formatDatetime + VAT constant](./archive/tracks/pos-bugfix/plan.md) | Verified | 2026-05-13 | 2026-05-17 |
+| [UoM Framework — global conversions, multi-UoM line fields, admin UI](./archive/tracks/uom-framework/plan.md) | Verified | 2026-05-13 | 2026-05-20 |
+| [Import Vendors from Excel](./archive/tracks/import-vendors/plan.md) | Verified | 2026-05-13 | 2026-05-17 |
+| [UoM Phase 2 — Transaction Form Selectors](./archive/tracks/uom-phase2-form-selectors/plan.md) | Verified | 2026-05-13 | 2026-05-17 |
+| [Inventory Valuation Report](./archive/tracks/inventory-valuation-report/plan.md) | Verified | 2026-05-13 | 2026-05-17 |
+| [GRN Receiving Workflow — Staff Work Card](./archive/tracks/grn-receiving-workflow/plan.md) | Verified | 2026-05-13 | 2026-05-17 |
+| [UI Improvement — Inventory Heatmap Matrix + Warehouse Cards](./archive/tracks/ui-improvement-inventory/plan.md) | Verified | 2026-05-15 | 2026-05-20 |
+| [UI Improvement — POS Tier Badges · Lock Timer · Thermal Receipt](./archive/tracks/ui-improvement-pos/plan.md) | Verified | 2026-05-15 | 2026-05-20 |
+| [Hamburger Sidebar Z-Index Fix](./archive/tracks/hamburger-zindex-fix/plan.md) | Verified | 2026-05-16 | 2026-05-17 |
+| [hr-ui-redesign — HR UI Redesign (Dashboard · Employees · Leave · Payroll)](./archive/tracks/hr-ui-redesign/plan.md) | Verified | 2026-05-19 | 2026-05-20 |
+| [IO → GR → PO Workflow — IO card + GRN receive + Supervisor confirm + PO from IO](./archive/tracks/io-gr-po-workflow/plan.md) | Verified | 2026-05-20 | 2026-05-20 |
+| [GRN Receiving Fix — Mobile Date + IO Over-Receiving](./archive/tracks/grn-receiving-fix/plan.md) | Verified | 2026-05-20 | 2026-05-20 |
+| [GRN Simplified Workflow](./archive/tracks/grn-simplified-workflow/plan.md) | Verified | 2026-05-20 | 2026-05-20 |
+| [Main Menu UI Polish — color coding, hover anims, module stubs](./archive/tracks/main-menu-ui-polish/plan.md) | Verified | 2026-05-21 | 2026-05-21 |
+| [Admin Hub Page — center dashboard with parallel counts](./archive/tracks/admin-hub/plan.md) | Verified | 2026-05-21 | 2026-05-21 |
+| [GRN UI Redesign — full desktop & mobile redesign](./archive/tracks/grn-ui-redesign/plan.md) | Verified | 2026-05-21 | 2026-05-21 |
+| [GRN Mobile UI — queue cards, detail compact header, edit mobile form](./archive/tracks/grn-mobile-ui/plan.md) | Verified | 2026-05-21 | 2026-05-21 |
+| [IO Edit UI — expose 4 PATCH actions on Inbound Order detail page](./archive/tracks/io-edit-ui/plan.md) | Verified | 2026-05-21 | 2026-05-22 |
+| [UI Improvement — WMS Operations (GRN Tabs · QC KPIs · Receiving Queue)](./archive/tracks/ui-improvement-wms-ops/plan.md) | Verified | 2026-05-15 | 2026-05-22 |
+| [Optimizing Purchase Order Search](./archive/tracks/po-new-autocomplete/plan.md) | Verified | 2026-05-22 | 2026-05-22 |
+| [Deleting Test Transactional Data](./archive/tracks/db-cleanup-test-data/plan.md) | Verified | 2026-05-22 | 2026-05-22 |

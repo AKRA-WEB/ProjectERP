@@ -99,5 +99,8 @@ Async Waterfall เกิดขึ้นเมื่อมีการเชื�
 
 ## ❌ Traps & Anti-patterns
 
-*   **RSC vs Client Component Hybrid Error:** การเรียกใช้ Hook ของ Next.js (เช่น `useRouter`, `usePathname`) ในไฟล์ที่ไม่ได้ระบุ `'use client';` จะก่อให้เกิดความล้มเหลวขณะคอมไพล์ใน Vercel Webpack เสมอ
-*   **Module-level Mutable State:** ห้ามสร้างตัวแปรเก็บ State ในระดับ Global นอกฟังก์ชันใน API Routes เนื่องจาก Vercel Serverless Function มีการดึง Container เดิมมาใช้งานซ้ำได้ (Container Reuse) ส่งผลให้ข้อมูลของแต่ละ Request รั่วไหลหากันได้
+*   **RSC vs Client Component Hybrid Error:** Importing Next.js dynamic hooks (e.g. `useRouter`, `usePathname`) in files without `'use client';` directive triggers Vercel Webpack compilation failures.
+*   **Module-level Mutable State:** Storing global mutable state in API files. Serverless containers are reused across requests, leading to memory leaks and cross-request state leakage.
+*   **Sequential Loop Connection Timeout (504):** Performing massive sequential row mutations/queries in a loop over HTTP (e.g. importing >1000 items) exceeds the maximum Vercel serverless execution limit (10s on hobby, 15s/60s on Pro), causing Gateway timeouts.
+    *   *Fix:* Use chunked batch inserts (e.g. 100 rows per query). Implement graceful fallback to row-by-row queries only within failing chunks to log exact row errors.
+

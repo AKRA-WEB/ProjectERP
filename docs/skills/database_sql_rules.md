@@ -189,3 +189,24 @@ Link both ways using nullable foreign keys. Use `po_id` on GRN for normal flows,
 **Root cause:** Assuming `grn_line_items` only needs SKU and Quantity. Goods receipts need `unit_cost` and `line_total` to track value at point of entry, especially for standalone receipts without a PO.
 **Fix:** Add `unit_cost` and `line_total` (GENERATED) to `grn_line_items`.
 **Found in:** track [gr-first-workflow]
+
+## ❌ Trap — Default DB Pool Import Mismatch
+**Symptom:** Module build failure or API route crash on database import.
+**Root cause:** Importing `pool` using named syntax: `import { pool } from '@/lib/db/client'`.
+**Fix:** `pool` is the default export. Use: `import pool from '@/lib/db/client'`.
+
+## ❌ Trap — DB Write After Connection Release
+**Symptom:** Data inconsistency or state changes not updating.
+**Root cause:** Running database queries (e.g. `UPDATE`) *after* calling `client.release()`.
+**Fix:** Execute all queries and mutations *before* committing the transaction and *before* releasing the client.
+
+## ❌ Trap — Using Global Query Helpers Inside Transactions
+**Symptom:** Multi-table writes do not roll back on error.
+**Root cause:** Global `query(...)` and `queryOne(...)` helpers spawn new connections from the pool, bypassing the active transaction client (`client`).
+**Fix:** Use `await client.query(...)` directly for all operations inside a transaction block.
+
+## ❌ Trap — Invalid Enum String Comparison
+**Symptom:** 500 Internal Server Error: `invalid input value for enum type_name: "value"`.
+**Root cause:** PostgreSQL throws a runtime error if you compare an enum column against a string value that is not defined in the enum's schema.
+**Fix:** Verify valid enum values in `migrations/*.sql` before writing comparison queries.
+

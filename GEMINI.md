@@ -9,8 +9,9 @@ You are the **Implementer** in this project's hybrid AI workflow. Claude (Chen) 
 | Trigger | Action |
 |---------|--------|
 | **`Go`** | Find first `Active` track in `conductor/index.md` → execute entire track → **auto-continue** (see Execution Loop below) |
+| **`Architect: <req>`** | Spawn Chen planning protocol → analyze code → create `plan.md` → update `index.md` |
+| **`QA: <track>`** | Run full Billy Audit → lint/build/type-check → review code vs plan.md → write `rework-plan.md` & update `index.md` status directly |
 | **`Summary`** | Write `execution-summary.md` for the current track |
-| **`QA: <track>`** | Run lint + build + audit — see `docs/skills/qa_audit_rules.md` |
 
 ---
 
@@ -22,17 +23,26 @@ You are the **Implementer** in this project's hybrid AI workflow. Claude (Chen) 
 
 ---
 
-## Execution Loop (Auto-Continue)
+## Execution Loop (Auto-Continue with Auto-QA & Auto-Fix)
 
-After completing one track, do NOT stop. Follow this loop:
+After receiving the `Go` command, do NOT stop until the entire registry is Verified and clean. Follow this self-correcting loop:
 
 ```
-1. Complete track → write execution-summary.md → update plan.md frontmatter to `status: Completed` → update conductor/index.md status
-2. Check conductor/index.md for next Active track
-   → Found: go to step 1 with next track
-   → None: check for `Rework Required` tracks
-3. Rework Required found: read rework-plan.md → execute 🔴 Must Fix items → mark done → update status to `Completed` → loop back to step 2
-4. Nothing actionable: write SESSION REPORT → STOP
+1. Complete track tasks in plan.md -> write execution-summary.md.
+2. Run AUTO-QA on the completed track:
+   - Run `npm run qa:verify` (lint & type-check).
+   - Perform a Deep Audit of modified files against docs/skills/qa_audit_rules.md.
+3. If Audit FAILS (issues or compiler errors found):
+   - Automatically write `rework-plan.md` in the track folder.
+   - Automatically update status to `Rework Required` in index.md.
+   - Automatically execute all 🔴 Must Fix and 🟡 Should Fix tasks in rework-plan.md.
+   - Re-run step 2 (Auto-QA validation). Loop until 100% clean (max 3 retries).
+4. If Audit PASSES (0 errors, 100% clean, no leftover placeholders):
+   - Update track status to `Verified` in index.md and plan.md frontmatter.
+   - Run `npm run track:sweep` to archive the verified track automatically.
+5. Check conductor/index.md for the next `Active` or `Rework Required` track:
+   - Found: Loop back to step 1 with the next track.
+   - None: Write SESSION REPORT → STOP.
 ```
 
 **After completing each track** — update `_notes/02_Agent_Memory/current-state.md`:
@@ -77,6 +87,7 @@ Next action needed: [QA: trackname / rework / new plan]
 Run through this before writing a single line of code:
 
 - [ ] **`git pull origin master`** — sync local with remote before any work begins.
+- [ ] **Automated Track Archiving Sweep:** Run `npm run track:sweep` to automatically clean up and archive any previously verified tracks.
 - [ ] **Worktree Isolation:** If working in parallel sessions, use `activate_skill('using-git-worktrees')` to create a dedicated branch and worktree for this track.
 - [ ] Read `docs/skills/agent-principles.md` — Karpathy & Shared operating principles.
 - [ ] Read `_notes/02_Agent_Memory/current-state.md` — active work, DB facts, API routes, import traps.
@@ -185,8 +196,10 @@ And update the track row in `conductor/index.md`.
 **Write permissions:**
 - ✅ `conductor/tracks/<track>/` — execution-summary.md, update plan.md checkboxes
 - ✅ `conductor/index.md` — update track status
-- ✅ `_notes/01_Decisions/`, `_notes/04_Debug_Log/`, `_notes/05_Summaries/`
-- ✅ `docs/skills/*.md` — append patterns/traps discovered
+- ✅ `_notes/02_Agent_Memory/current-state.md` — implementer's memory (Active work, Last 5 tracks)
+- ✅ `_notes/04_Debug_Log/` — debug logs for actual bugs found during implementation
+- ✅ `docs/skills/*.md` — append generic/domain patterns or traps discovered
+- ❌ `_notes/01_Decisions/` — architect decisions only (Chen/Claude's role)
 - ❌ `_notes/daily/` — never write
 - ❌ `.obsidian/` — never touch
 
@@ -202,6 +215,7 @@ Read `docs/skills/index.md` first. Load only what's relevant:
 | API Routes, NextAuth, Zod | `docs/skills/backend_api_rules.md` |
 | SQL, Migration, Stock Ledger | `docs/skills/database_sql_rules.md` |
 | QA, Audit, rework-plan | `docs/skills/qa_audit_rules.md` |
+| Vercel, Serverless, Performance | `docs/skills/vercel_rules.md` |
 
 ---
 

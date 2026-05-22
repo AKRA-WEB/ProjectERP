@@ -262,9 +262,30 @@ function getTenure(dateStr: string | null) {
 **Found in:** task 5 of track hr-ui-redesign
 
 ## ❌ Trap — Absolute Dropdown Clipping in Tables
-**Symptom:** รายการค้นหาหรือ Select ที่ใช้ `absolute` ไม่แสดงผลเมื่ออยู่ในตาราง
-**Root cause:** Parent container (เช่น `div` ที่ล้อมตาราง) มี `overflow-hidden` ทำให้ dropdown ถูกตัด
-**Fix:** นำ `overflow-hidden` ออกจาก table wrapper หรือเปลี่ยนมาใช้ React Portal สำหรับ dropdown
+**Symptom:** Absolute-positioned elements (dropdowns, search-as-you-type) clipped inside table rows.
+**Root cause:** Parent table wrapper container has `overflow-hidden` (often paired with `rounded-lg`).
+**Fix:** Remove `overflow-hidden` from the wrapper or render the dropdown using a React Portal.
 **Found in:** task [1] of track [wms-search-nav-fix] (2026-05-19)
+
+## ❌ Trap — Sidebar Module Path Prefix Omission
+**Symptom:** Empty sidebar when visiting a new module page (e.g., `/app/ap/*`).
+**Root cause:** `components/layout/Sidebar.tsx` uses `WMS_PREFIXES` array to detect if it should render the sidebar.
+**Fix:** Always add new module path prefixes to `WMS_PREFIXES` in `Sidebar.tsx`.
+**Found in:** task [1] of track [po-gr-audit]
+
+## ❌ Trap — Guessing Component Prop Names
+**Symptom:** UI fails to render or TypeScript build errors due to incorrect props (e.g. using `<StatusBadge label="..." />` when the code expects `labelOverride`).
+**Fix:** Never assume prop names. Read the `interface Props` definition in the target component under `components/ui/` before use.
+
+## ❌ Trap — i18n/Context Provider Suffix Mismatch
+**Symptom:** TypeScript compiler fails to recognize angle brackets or throws JSX parse errors.
+**Root cause:** Naming UI context providers or i18n utilities as `.ts` instead of `.tsx` while they contain JSX/Context logic.
+**Fix:** Use `.tsx` file extension for any file containing JSX.
+
+## ❌ Trap — Missing 'use client' in Interactive Components
+**Symptom:** Vercel build timeout or "React hook only works in a client component" error.
+**Root cause:** Missing `'use client';` directive at the top of files using `useState`, `useEffect`, or `useRouter`.
+**Fix:** Add `'use client';` as the absolute first line of any interactive component file.
+
 
 

@@ -2,7 +2,7 @@
 
 ## ⚡ Shared Principles — อ่านก่อนทุกครั้ง (ทุก Agent)
  
-อ่าน `[[agent-principles|docs/skills/agent-principles.md]]` ก่อนเริ่มงานทุกครั้ง — กฎเหล็ก 9 ข้อ (รวม Andrej Karpathy Guidelines) เพื่อลดความผิดพลาดและรักษามาตรฐานโปรเจกต์
+อ่าน `[[agent-principles|docs/skills/agent-principles.md]]` ก่อนเริ่มงานทุกครั้ง — กฎเหล็ก 10 ข้อ (รวม Andrej Karpathy Guidelines) เพื่อลดความผิดพลาดและรักษามาตรฐานโปรเจกต์
  
 ---
  

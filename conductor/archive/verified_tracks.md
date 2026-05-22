@@ -1,4 +1,4 @@
-﻿| [i18n Label Fix â€” Thai Status/Entry Labels](./tracks/i18n-label-fix/plan.md) | Verified | 2026-05-10 | 2026-05-17 |
+| [i18n Label Fix â€” Thai Status/Entry Labels](./tracks/i18n-label-fix/plan.md) | Verified | 2026-05-10 | 2026-05-17 |
 | [Fix Select options.map Crash](./tracks/debug-select-options-crash/plan.md) | Verified | 2026-05-11 | 2026-05-17 |
 | [Vendor-Product Links (data completeness)](./tracks/vendor-product-links/plan.md) | Verified | 2026-05-13 | 2026-05-13 |
 | [Reorder Point Dashboard + Auto-PR](./tracks/reorder-dashboard/plan.md) | Verified | 2026-05-13 | 2026-05-13 |
@@ -22,5 +22,14 @@
 | [po-gr-audit â€” PO & GRN Transaction Integrity Fix](./tracks/po-gr-audit/plan.md) | Verified | 2026-05-18 | 2026-05-20 |
 | [io-grn-500 â€” Fix POST /api/grn 500 from IO Receive](./tracks/io-grn-500/plan.md) | Verified | 2026-05-18 | 2026-05-20 |
 | [wms-search-nav-fix â€” Fix WMS Product Search & Navigation 404](./tracks/wms-search-nav-fix/plan.md) | Verified | 2026-05-19 | 2026-05-20 |
-| [product-stock-summary â€” Product Detail Stock Overview](./tracks/product-stock-summary/plan.md) | Verified | 2026-05-19 | 2026-05-20 |
-| [repack-order â€” Repack Order System (UoM Phase 3)](./tracks/repack-order/plan.md) | Verified | 2026-05-20 | 2026-05-20 | [rework-plan](./tracks/repack-order/rework-plan.md) |
+| [product-stock-summary — Product Detail Stock Overview](./tracks/product-stock-summary/plan.md) | Verified | 2026-05-19 | 2026-05-20 |
+| [repack-order — Repack Order System (UoM Phase 3)](./tracks/repack-order/plan.md) | Verified | 2026-05-20 | 2026-05-20 |
+| [maintenance-standardization — Maintenance & Standardization](./tracks/maintenance-standardization/plan.md) | Verified | 2026-05-21 | 2026-05-22 |
+| [main-menu-ui-polish — Main Menu UI Polish](./tracks/main-menu-ui-polish/plan.md) | Verified | 2026-05-21 | 2026-05-22 |
+| [admin-hub — Admin Hub Page](./tracks/admin-hub/plan.md) | Verified | 2026-05-21 | 2026-05-22 |
+| [grn-ui-redesign — GRN UI Redesign](./tracks/grn-ui-redesign/plan.md) | Verified | 2026-05-21 | 2026-05-22 |
+| [grn-mobile-ui — GRN Mobile UI](./tracks/grn-mobile-ui/plan.md) | Verified | 2026-05-21 | 2026-05-22 |
+| [io-edit-ui — IO Edit UI](./tracks/io-edit-ui/plan.md) | Verified | 2026-05-21 | 2026-05-22 |
+| [ui-improvement-wms-ops — WMS Ops UI Improvement](./tracks/ui-improvement-wms-ops/plan.md) | Verified | 2026-05-15 | 2026-05-22 |
+| [po-new-autocomplete — Optimizing Purchase Order Search](./tracks/po-new-autocomplete/plan.md) | Verified | 2026-05-22 | 2026-05-22 |
+| [db-cleanup-test-data — Deleting Test Transactional Data](./tracks/db-cleanup-test-data/plan.md) | Verified | 2026-05-22 | 2026-05-22 |

@@ -291,20 +291,23 @@ for (const l of lines) {
 **Found in:** `app/api/grn/route.ts` — io-grn-500 (2026-05-18)
 
 ## ❌ Trap — Explicit Enum Casting in Bulk Value Template
-**Symptom:** Error "invalid input value for enum" เมื่อพยายามบันทึกข้อมูลหลายแถวพร้อมกัน (Bulk Insert)
-**Root cause:** PostgreSQL ไม่สามารถระบุชนิดข้อมูล (type) ของตัวแปรได้ว่าเป็น Enum ชนิดใด เมื่ออยู่ในรูปแบบ Template String
-**Fix:** ใส่ casting ชัดเจนใน template SQL เช่น `($1, $2::grn_source_type)`
+**Symptom:** "invalid input value for enum" error when executing bulk database inserts.
+**Root cause:** PostgreSQL cannot infer the custom enum type of placeholder variables inside parameterized template strings.
+**Fix:** Cast placeholders explicitly in the SQL statement, e.g., `($1, $2::grn_source_type)`.
 **Found in:** task [2] of track [io-grn-500] (2026-05-19)
 
-## ❌ Trap — Zod regex rejection of empty strings
-**Symptom:** API ตอบกลับ 400 Validation Error เมื่อเว้นว่างช่องวันที่ (Date Input)
-**Root cause:** Zod `.regex(/^\d{4}-\d{2}-\d{2}$/)` ไม่ยอมรับ `""` (empty string) ซึ่งเป็นค่าเริ่มต้นของ HTML date input เมื่อไม่ได้เลือกวันที่
-**Fix:** ใช้ `.or(z.literal(''))` ใน schema และ normalize เป็น `null` ใน controller
+## ❌ Trap — Zod Regex Rejection of Empty Strings
+**Symptom:** API returns 400 Validation Error on optional date inputs when submitted empty.
+**Root cause:** Zod `.regex(/^\d{4}-\d{2}-\d{2}$/)` rejects `""` (empty string), which is the default HTML input value.
+**Fix:** Extend schema with `.or(z.literal(''))` and normalize to `null` in the controller:
 ```typescript
-// Schema
-doc_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).or(z.literal('')).optional()
-
-// Controller
-const docDate = parsed.data.doc_date || null;
+date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).or(z.literal('')).optional()
+const dbDate = parsed.data.date || null;
 ```
 **Found in:** task [2.1] of track [po-fix-400]
+
+## ❌ Trap — Duplicated Type Declarations (Merge Collision)
+**Symptom:** Build fails with errors claiming missing fields in newly declared interfaces.
+**Root cause:** Re-declaring the same interface name (e.g. `ApAgingRow`) in `types/index.ts` or multiple locations. TypeScript merges them, causing strict structural type errors.
+**Fix:** Keep declarations unique and descriptive (e.g., `ApInvoiceAgingRow` vs `ApVendorAgingRow`). Declare all shared schemas/interfaces in `types/index.ts`.
+

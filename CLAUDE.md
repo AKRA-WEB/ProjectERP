@@ -41,6 +41,9 @@ git pull origin master
 
 ถ้าไม่ pull ก่อน → local อาจล้าหลัง remote → push conflict กับ Gemini/Chen commits อื่น
 
+**Automated Track Archiving Sweep:**
+Run `npm run track:sweep` to automatically clean up, sweep, and archive any previously verified tracks. This keeps the active `conductor/tracks/` workspace clean and links organized.
+
 ## Output Silence Mode (MANDATORY)
 **To save tokens and focus on execution efficiency:**
 1. **Silence During Execution:** Do not write conversational text, progress updates, explanations, or thoughts in the chat output while running the conductor loop. Just call tools.
@@ -112,19 +115,26 @@ _notes/
 
 ## Note-Taking Guide
 
-| สิ่งที่พบ | เขียนที่ |
-|----------|---------|
-| **Track เสร็จ / DB column ใหม่ / API route ใหม่** | `_notes/02_Agent_Memory/current-state.md` — อัปเดต Active Work + Last 5 Tracks |
-| Architectural decision | `_notes/01_Decisions/<track>.md` |
-| Bug root cause / non-obvious fix | `_notes/04_Debug_Log/<YYYY-MM-DD>-<topic>.md` |
-| Anti-pattern / pitfall | `_notes/02_Agent_Memory/pitfalls.md` |
-| Module summary | `_notes/05_Summaries/<module>.md` |
-| Reusable code pattern | `docs/skills/<skill>.md` |
-| Track plan | `conductor/tracks/<track>/plan.md` |
+| สิ่งที่พบ / กิจกรรม | เขียนที่ | ผู้รับผิดชอบ (Role) |
+|----------|---------|---|
+| **Track เสร็จ / DB column ใหม่ / API route ใหม่** | `_notes/02_Agent_Memory/current-state.md` | **Gemini (Implementer)** เท่านั้น (อัปเดต Active/Last 5 tracks หลังลุยโค้ด) |
+| Architectural decision | `_notes/01_Decisions/<track>.md` | **Chen / Claude (Architect)** เท่านั้น (ห้าม Gemini เขียน) |
+| Bug root cause / non-obvious fix | `_notes/04_Debug_Log/<YYYY-MM-DD>-<topic>.md` | **ทุก Agent** ที่เจอบั๊กและทำการแก้ไขสำเร็จ |
+| Anti-pattern / pitfall | `docs/skills/<skill>.md` หรือ `pitfalls.md` | **ทุก Agent** ที่เจอข้อควรระวังจากการทำงานจริง |
+| Reusable code pattern | `docs/skills/<skill>.md` | **ทุก Agent** ที่สร้าง Pattern ต้นแบบใช้ซ้ำสำเร็จ |
+| Track plan | `conductor/tracks/<track>/plan.md` | **Chen / Claude** (เป็นคนวางแผนก่อนเริ่ม Track) |
 
 ## Post-Work Knowledge Capture (Claude) — MANDATORY
 
 After every task (bug fix, plan, analysis):
+
+1. **Verify & Archive:** If you or a developer mark any track status as `Verified` in `conductor/index.md`, immediately run:
+   ```bash
+   npm run track:sweep
+   ```
+   to automatically move the verified track folder, update all links in `conductor/index.md` to point to the archive path, and log it in `conductor/archive/verified_tracks.md`.
+
+2. **Capture Knowledge:**
 
 | Q | ถ้าใช่ |
 |---|--------|

@@ -31,8 +31,8 @@ load-when: "QA, audit, rework-plan, lint, build, review"
 2. **ตรวจทุก checkbox** — verify file exists + implementation matches spec
 3. **รัน `npm run lint`** — ต้องผ่านก่อน mark ว่า pass
 4. **ทำ Deep Code Review** — ตรวจสอบ logic, performance, และ maintainability ตาม checklist ด้านล่าง
-5. **สร้าง `rework-plan.md`** ถ้าพบปัญหา
-6. **อัพเดท `conductor/index.md`** — เปลี่ยน status เป็น `Verified` หรือ `Rework Required`
+5. **สร้าง Draft QA Report** แสดงผลเป็น structured text ใน response (ห้ามใช้ tool เขียนไฟล์ `rework-plan.md` เองเนื่องจากเป็นข้อจำกัดของ sandbox environment)
+6. **ส่งต่อรายงานให้ Chen/Claude เพื่อทำการ Validate** และเขียน `rework-plan.md` พร้อมกับอัปเดต `index.md` ตามลำดับ
 
 ## Severity Classification
 

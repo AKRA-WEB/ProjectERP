@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "qa:verify": "next lint && tsc --noEmit",
+    "track:sweep": "tsx scripts/archive-track.ts --sweep",
     "migrate": "tsx --env-file=.env lib/db/run-migrate.ts",
     "migrate:seed": "node -r dotenv/config lib/db/seed.js"
   },
