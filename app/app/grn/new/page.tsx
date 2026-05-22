@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
+import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Input, Select, useToast } from '@/components/ui';
 import { get, post } from '@/lib/api-client';
@@ -131,6 +132,7 @@ function ExpiryChip({ days }: { days: number | null }) {
 function NewGRNPageInner() {
   const router = useRouter();
   const toast = useToast();
+  const { data: session } = useSession();
   const searchParams = useSearchParams();
   const poIdParam = searchParams.get('po_id');
   const ioIdParam = searchParams.get('io_id');
@@ -156,6 +158,14 @@ function NewGRNPageInner() {
   const [liftFeePayment, setLiftFeePayment] = useState<'cash'|'credit'>('cash');
   const [isW2Warehouse, setIsW2Warehouse] = useState(false);
   const [warehouseList, setWarehouseList] = useState<{ id: string; code: string; name_th: string }[]>([]);
+
+  // Auto-fill receiver name from session user (but keep editable)
+  useEffect(() => {
+    if (session?.user?.name && !receivedByNames) {
+      setReceivedByNames(session.user.name);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user?.name]);
 
   // Mobile scan specific states
   const [activeIndex, setActiveIndex] = useState<number>(0);
@@ -1106,7 +1116,7 @@ function NewGRNPageInner() {
             </p>
             <div className="space-y-3.5">
               <div>
-                <label className="text-[10px] font-bold text-stone-400 block mb-1">วันที่มาส่ง (ATA)</label>
+                <label className="text-[10px] font-bold text-stone-700 block mb-1">วันที่มาส่ง (ATA)</label>
                 <input
                   type="text"
                   maxLength={10}
@@ -1117,7 +1127,7 @@ function NewGRNPageInner() {
                 />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-stone-400 block mb-1">ชื่อผู้รับทีมลงสินค้า *</label>
+                <label className="text-[10px] font-bold text-stone-700 block mb-1">ชื่อผู้รับทีมลงสินค้า *</label>
                   <input
                   type="text"
                   placeholder="ชื่อผู้รับลงสินค้า..."
@@ -1140,17 +1150,17 @@ function NewGRNPageInner() {
                   <h3 className="text-[15px] font-extrabold text-stone-900 leading-tight mt-2">{activeLine.product_name}</h3>
                 </div>
                 <div className="text-right flex-shrink-0">
-                  <span className="text-[10px] font-bold text-stone-500 block uppercase">สั่งมา</span>
+                  <span className="text-[10px] font-bold text-stone-700 block uppercase">สั่งมา</span>
                   <span className="text-[14.5px] font-mono font-extrabold text-stone-900">
                     {formatQty(activeLine.qty_ordered)} {activeLine.unit}
                   </span>
-                  <span className="text-[9.5px] text-stone-500 block font-semibold">เดิม: {formatQty(activeLine.stock_on_hand)}</span>
+                  <span className="text-[9.5px] text-stone-700 block font-semibold">เดิม: {formatQty(activeLine.stock_on_hand)}</span>
                 </div>
               </div>
 
               {/* Qty Stepper */}
               <div className="space-y-3">
-                <label className="text-[11.5px] font-bold text-stone-500 block text-center">
+                <label className="text-[11.5px] font-bold text-stone-800 block text-center">
                   ระบุจำนวนชิ้นสินค้าที่รับลงของ ({activeLine.unit})
                 </label>
                 <div className="max-w-xs mx-auto space-y-2">
@@ -1168,7 +1178,7 @@ function NewGRNPageInner() {
                       step="any"
                       value={activeLine.qty_received || ''}
                       onChange={(e) => updateLine(activeIndex, 'qty_received', parseFloat(e.target.value) || 0)}
-                      className="flex-1 h-12 bg-stone-100 border border-stone-300 rounded-2xl text-center font-mono text-2xl font-extrabold text-stone-900 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                      className="flex-1 h-12 bg-emerald-50 border-2 border-emerald-500 rounded-2xl text-center font-mono text-2xl font-extrabold text-black focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/30"
                     />
                     <button
                       type="button"
@@ -1225,7 +1235,7 @@ function NewGRNPageInner() {
               {/* Exp/Mfg Date & Lot/Location Inputs for Active item */}
               <div className="grid grid-cols-2 gap-3 border-t border-stone-200 pt-3.5">
                 <div>
-                  <label className="text-[10px] font-bold text-stone-500 block mb-1">ตำแหน่งเก็บ / Location</label>
+                  <label className="text-[10px] font-bold text-stone-800 block mb-1">ตำแหน่งเก็บ / Location</label>
                   <input
                     type="text"
                     placeholder="เช่น A-01-01"
@@ -1235,7 +1245,7 @@ function NewGRNPageInner() {
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-stone-500 block mb-1">Lot No. ควบคุม</label>
+                  <label className="text-[10px] font-bold text-stone-800 block mb-1">Lot No. ควบคุม</label>
                   <input
                     type="text"
                     placeholder="เช่น LOT69-01"
@@ -1246,7 +1256,7 @@ function NewGRNPageInner() {
                 </div>
 
                 <div className="col-span-2 space-y-1.5">
-                  <div className="flex items-center justify-between text-[11px] font-bold text-stone-400">
+                  <div className="flex items-center justify-between text-[11px] font-bold text-stone-700">
                     <span>{activeLine.date_type === 'expiry' ? '📅 วันหมดอายุ (EXP)' : '🏭 วันผลิต (MFG)'}</span>
                     <button
                       type="button"
