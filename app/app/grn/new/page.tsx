@@ -1178,7 +1178,7 @@ function NewGRNPageInner() {
                       step="any"
                       value={activeLine.qty_received || ''}
                       onChange={(e) => updateLine(activeIndex, 'qty_received', parseFloat(e.target.value) || 0)}
-                      className="flex-1 h-12 bg-white border border-stone-300 rounded-2xl text-center font-mono text-2xl font-extrabold text-black focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30"
+                      className="flex-1 h-12 py-0 bg-white border border-stone-300 rounded-2xl text-center font-mono text-2xl font-extrabold text-black focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 leading-[48px] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                     <button
                       type="button"
