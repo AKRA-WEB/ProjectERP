@@ -1158,8 +1158,8 @@ function NewGRNPageInner() {
                 </div>
               </div>
 
-              {/* Qty Stepper */}
-              <div className="space-y-3">
+              {/* Qty Stepper — wrapped in green highlight box */}
+              <div className="border-2 border-emerald-400 bg-emerald-50/40 rounded-2xl p-4 space-y-3 ring-4 ring-emerald-400/10">
                 <label className="text-[11.5px] font-bold text-stone-800 block text-center">
                   ระบุจำนวนชิ้นสินค้าที่รับลงของ ({activeLine.unit})
                 </label>
@@ -1168,7 +1168,7 @@ function NewGRNPageInner() {
                     <button
                       type="button"
                       onClick={() => updateLine(activeIndex, 'qty_received', Math.max(0, Number(activeLine.qty_received) - 1))}
-                      className="w-12 h-12 flex items-center justify-center rounded-2xl bg-stone-100 border border-stone-300 text-2xl font-bold text-stone-700 hover:text-stone-900 active:scale-90 transition-all flex-shrink-0"
+                      className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white border border-stone-300 text-2xl font-bold text-stone-700 hover:text-stone-900 active:scale-90 transition-all flex-shrink-0"
                     >
                       −
                     </button>
@@ -1178,12 +1178,12 @@ function NewGRNPageInner() {
                       step="any"
                       value={activeLine.qty_received || ''}
                       onChange={(e) => updateLine(activeIndex, 'qty_received', parseFloat(e.target.value) || 0)}
-                      className="flex-1 h-12 bg-emerald-50 border-2 border-emerald-500 rounded-2xl text-center font-mono text-2xl font-extrabold text-black focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/30"
+                      className="flex-1 h-12 bg-white border border-stone-300 rounded-2xl text-center font-mono text-2xl font-extrabold text-black focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30"
                     />
                     <button
                       type="button"
                       onClick={() => updateLine(activeIndex, 'qty_received', Number(activeLine.qty_received) + 1)}
-                      className="w-12 h-12 flex items-center justify-center rounded-2xl bg-stone-100 border border-stone-300 text-2xl font-bold text-stone-700 hover:text-stone-900 active:scale-90 transition-all flex-shrink-0"
+                      className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white border border-stone-300 text-2xl font-bold text-stone-700 hover:text-stone-900 active:scale-90 transition-all flex-shrink-0"
                     >
                       +
                     </button>
@@ -1194,28 +1194,28 @@ function NewGRNPageInner() {
                     <button
                       type="button"
                       onClick={() => updateLine(activeIndex, 'qty_received', Number(activeLine.qty_received) + 1)}
-                      className="h-11 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-extrabold border border-stone-300 active:scale-95 transition-all flex items-center justify-center"
+                      className="h-11 bg-white hover:bg-stone-100 text-stone-700 rounded-xl text-xs font-extrabold border border-stone-300 active:scale-95 transition-all flex items-center justify-center"
                     >
                       +1
                     </button>
                     <button
                       type="button"
                       onClick={() => updateLine(activeIndex, 'qty_received', Number(activeLine.qty_received) + 5)}
-                      className="h-11 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-extrabold border border-stone-300 active:scale-95 transition-all flex items-center justify-center"
+                      className="h-11 bg-white hover:bg-stone-100 text-stone-700 rounded-xl text-xs font-extrabold border border-stone-300 active:scale-95 transition-all flex items-center justify-center"
                     >
                       +5
                     </button>
                     <button
                       type="button"
                       onClick={() => updateLine(activeIndex, 'qty_received', Number(activeLine.qty_received) + 10)}
-                      className="h-11 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-extrabold border border-stone-300 active:scale-95 transition-all flex items-center justify-center"
+                      className="h-11 bg-white hover:bg-stone-100 text-stone-700 rounded-xl text-xs font-extrabold border border-stone-300 active:scale-95 transition-all flex items-center justify-center"
                     >
                       +10
                     </button>
                     <button
                       type="button"
                       onClick={() => updateLine(activeIndex, 'qty_received', Number(activeLine.qty_ordered))}
-                      className="h-11 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-extrabold border border-emerald-200 active:scale-95 transition-all flex items-center justify-center"
+                      className="h-11 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 rounded-xl text-xs font-extrabold border border-emerald-300 active:scale-95 transition-all flex items-center justify-center"
                     >
                       ✓ครบ
                     </button>
@@ -1223,7 +1223,7 @@ function NewGRNPageInner() {
                       <button
                         type="button"
                         onClick={() => updateLine(activeIndex, 'qty_received', 0)}
-                        className="col-span-4 h-9 bg-stone-50 hover:bg-rose-50 text-stone-400 hover:text-rose-500 rounded-xl text-xs font-bold border border-stone-200 active:scale-95 transition-all flex items-center justify-center gap-1"
+                        className="col-span-4 h-9 bg-white hover:bg-rose-50 text-stone-400 hover:text-rose-500 rounded-xl text-xs font-bold border border-stone-200 active:scale-95 transition-all flex items-center justify-center gap-1"
                       >
                         ล้างค่า
                       </button>
