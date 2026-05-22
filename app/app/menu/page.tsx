@@ -151,6 +151,37 @@ export default function MainMenuPage() {
 
   const visibleModules = MODULE_CONFIG.filter(isModuleVisible);
 
+  // Helper to determine responsive grid column spans for visual balance
+  const getGridColSpan = (index: number, total: number) => {
+    const isLastOdd = total % 2 !== 0 && index === total - 1;
+    const mobileSpan = isLastOdd ? 'col-span-12' : 'col-span-6';
+    
+    if (total === 7) {
+      // 4 on top row (span 3), 3 on bottom row (span 4)
+      return index < 4 
+        ? `${mobileSpan} md:col-span-6 lg:col-span-3` 
+        : `${mobileSpan} md:col-span-4 lg:col-span-4`;
+    }
+    if (total === 6) {
+      return 'col-span-6 md:col-span-4 lg:col-span-4';
+    }
+    if (total === 5) {
+      return index < 3
+        ? `${mobileSpan} md:col-span-4 lg:col-span-4`
+        : `${mobileSpan} md:col-span-6 lg:col-span-6`;
+    }
+    if (total === 4) {
+      return 'col-span-6 md:col-span-6 lg:col-span-3';
+    }
+    if (total === 3) {
+      return `${mobileSpan} md:col-span-4 lg:col-span-4`;
+    }
+    if (total === 2) {
+      return 'col-span-6 lg:col-span-6';
+    }
+    return 'col-span-12';
+  };
+
   const handleCardClick = (e: React.MouseEvent, mod: ModuleCard) => {
     if (mod.isStub) {
       e.preventDefault();
@@ -167,28 +198,27 @@ export default function MainMenuPage() {
       <div className="flex flex-col items-center justify-center w-full max-w-[1000px] mx-auto min-h-[calc(100vh-120px)] font-sans px-4 py-8">
         <style dangerouslySetInnerHTML={{ __html: `
           .mm-grid {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 14px;
-            max-width: 760px;
+            display: grid;
+            grid-template-columns: repeat(12, minmax(0, 1fr));
+            gap: 20px;
+            max-width: 900px;
             width: 100%;
           }
           .mm-card {
-            flex: 0 0 172px;
+            width: 100%;
             position: relative;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 36px 18px 28px;
+            padding: 32px 18px 24px;
             text-decoration: none;
             color: inherit;
             background: #fdfcf9;
             border: 1px solid var(--hair, #e4e0d6);
-            border-radius: 4px;
-            box-shadow: 0 1px 0 rgba(28,25,23,.02);
+            border-radius: 12px;
+            box-shadow: 0 1px 2px rgba(28,25,23,.03);
             overflow: hidden;
-            transition: background .18s ease, border-color .18s ease, transform .18s ease, box-shadow .25s ease;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
           }
           .mm-card::before {
             content: "";
@@ -199,34 +229,38 @@ export default function MainMenuPage() {
             height: 2px;
             background: var(--accent, #1c1917);
             opacity: .65;
-            transition: opacity .18s ease, height .18s ease;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
           }
           .mm-card:hover {
-            background: #ffffff;
-            border-color: #d3cdbd;
-            transform: translateY(-2px);
-            box-shadow: 0 12px 28px -16px rgba(28,25,23,.18), 0 2px 0 rgba(28,25,23,.02);
+            background: linear-gradient(135deg, #ffffff 0%, var(--accent-light) 100%);
+            border-color: var(--accent);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 35px -10px var(--accent-glow), 0 2px 8px rgba(28,25,23,.03);
           }
           .mm-card:hover::before {
             opacity: 1;
             height: 3px;
           }
           .mm-card:hover .mm-ico {
-            color: var(--accent, #1c1917);
-            transform: translateY(-2px);
+            color: var(--accent);
+            background: var(--accent-light);
+            transform: scale(1.05);
           }
           .mm-card:hover .mm-arrow {
             opacity: 1;
-            transform: translateX(2px);
+            transform: translate(2px, -2px);
           }
           .mm-ico {
-            width: 96px;
-            height: 96px;
+            width: 72px;
+            height: 72px;
             display: grid;
             place-items: center;
             color: #44403c;
-            transition: color .18s ease, transform .25s ease;
-            margin-bottom: 24px;
+            background: #f4f2eb;
+            border-radius: 16px;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            margin-bottom: 20px;
+            padding: 18px;
           }
           .mm-ico svg {
             width: 100%;
@@ -241,14 +275,7 @@ export default function MainMenuPage() {
             height: 16px;
             color: #78716c;
             opacity: 0;
-            transition: opacity .2s ease, transform .25s ease;
-          }
-          @media (max-width: 1000px) {
-            .mm-grid { max-width: 580px; }
-          }
-          @media (max-width: 640px) {
-            .mm-grid { max-width: 380px; gap: 12px; }
-            .mm-card { flex-basis: calc(50% - 6px); }
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
           }
         ` }} />
 
@@ -267,13 +294,17 @@ export default function MainMenuPage() {
               <p>ขออภัย คุณยังไม่มีสิทธิ์เข้าถึงระบบใดๆ</p>
             </div>
           ) : (
-            visibleModules.map((mod) => (
+            visibleModules.map((mod, index) => (
               <Link
                 key={mod.id}
                 href={mod.href}
                 onClick={(e) => handleCardClick(e, mod)}
-                className="mm-card"
-                style={{ '--accent': mod.accent } as React.CSSProperties}
+                className={`mm-card ${getGridColSpan(index, visibleModules.length)}`}
+                style={{
+                  '--accent': mod.accent,
+                  '--accent-light': `${mod.accent}08`,
+                  '--accent-glow': `${mod.accent}20`
+                } as React.CSSProperties}
               >
                 <div className="mm-ico" aria-hidden="true">
                   <mod.icon />

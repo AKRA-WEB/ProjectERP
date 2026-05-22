@@ -14,7 +14,7 @@
 
 > Gemini CLI: start here. Execute top-to-bottom. One track at a time.
 
-*No active tracks. All planned items have been successfully completed and verified!*
+- [menu-grid-polish](./tracks/menu-grid-polish/plan.md) — Active
 
 ## Rework Required
 
@@ -26,6 +26,7 @@
 
 | Track | Status | Created | Last Updated |
 |-------|--------|---------|--------------|
+| [Menu Grid Polish & Symmetry](./tracks/menu-grid-polish/plan.md) | Active | 2026-05-22 | 2026-05-22 |
 | [inbound-order-autocomplete](./archive/tracks/inbound-order-autocomplete/plan.md) | Verified| 2026-05-22 | 2026-05-22 |
 | [Maintenance & Standardization](./archive/tracks/maintenance-standardization/plan.md) | Verified | 2026-05-21 | 2026-05-22 |
 | [Product Detail Stock Overview](./archive/tracks/product-stock-summary/plan.md) | Verified | 2026-05-19 | 2026-05-20 |
