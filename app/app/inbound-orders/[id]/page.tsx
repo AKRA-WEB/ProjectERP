@@ -136,7 +136,7 @@ function ProductSearch({ value, onSelect, onClear, disabled }: ProductSearchProp
         )}
       </div>
       {open && !disabled && (
-        <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-52 overflow-y-auto">
+        <div className="absolute z-50 left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-52 overflow-y-auto w-[400px] sm:w-[500px] max-w-[90vw]">
           {loading && (
             <p className="px-3 py-2 text-xs text-gray-400">กำลังค้นหา...</p>
           )}
@@ -672,11 +672,11 @@ export default function InboundOrderDetailPage() {
       )}
 
       {/* Items Table */}
-      <div className="rounded-xl bg-white shadow-sm border border-gray-100 mb-6">
+      <div className="rounded-xl bg-white shadow-sm border border-gray-100 mb-6" style={{ overflow: 'visible' }}>
         <div className="p-4 border-b">
           <h2 className="text-sm font-semibold text-gray-700">รายการสินค้า / Items</h2>
         </div>
-        <table className="w-full text-sm">
+        <table className="w-full text-sm" style={{ overflow: 'visible' }}>
           <thead className="bg-gray-50 text-gray-600">
             <tr>
               <th className="text-left p-3 font-medium">SKU / สินค้า</th>
@@ -687,7 +687,7 @@ export default function InboundOrderDetailPage() {
               {editMode && canEditHeader && <th className="w-12"></th>}
             </tr>
           </thead>
-          <tbody className="divide-y">
+          <tbody className="divide-y" style={{ overflow: 'visible' }}>
             {editMode ? (
               editLines.map((l, idx) => {
                 const matched = io.lines.find((ol) => ol.id === l.id);
@@ -695,8 +695,8 @@ export default function InboundOrderDetailPage() {
                 const qtyAvailable = matched ? matched.qty_available : 0;
 
                 return (
-                  <tr key={l.id ?? `new-line-${idx}`}>
-                    <td className="p-3">
+                  <tr key={l.id ?? `new-line-${idx}`} style={{ overflow: 'visible' }}>
+                    <td className="p-3" style={{ overflow: 'visible' }}>
                       {canEditHeader ? (
                         <div className="space-y-2">
                           <ProductSearch

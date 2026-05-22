@@ -115,7 +115,7 @@ function ProductSearch({ value, onSelect, onClear, excludeProductIds }: ProductS
         )}
       </div>
       {open && filteredResults.length > 0 && (
-        <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-52 overflow-y-auto">
+        <div className="absolute z-50 left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-52 overflow-y-auto w-[400px] sm:w-[500px] max-w-[90vw]">
           {loading && (
             <p className="px-3 py-2 text-xs text-gray-400">กำลังค้นหา...</p>
           )}
@@ -368,8 +368,8 @@ export default function NewInboundOrderPage() {
           </div>
 
           {lines.length > 0 && (
-            <div className="border rounded-lg overflow-x-auto">
-              <table className="w-full text-sm min-w-[600px]">
+            <div className="border rounded-lg overflow-visible" style={{ overflow: 'visible' }}>
+              <table className="w-full text-sm min-w-[600px]" style={{ overflow: 'visible' }}>
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="text-left p-3 font-medium text-gray-600 w-5/12">สินค้า</th>
@@ -378,10 +378,10 @@ export default function NewInboundOrderPage() {
                     <th className="w-1/12 text-center p-3"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y border-t bg-white">
+                <tbody className="divide-y border-t bg-white" style={{ overflow: 'visible' }}>
                   {lines.map((l, i) => (
-                    <tr key={i}>
-                      <td className="p-2">
+                    <tr key={i} style={{ overflow: 'visible' }}>
+                      <td className="p-2" style={{ overflow: 'visible' }}>
                         <ProductSearch
                           value={l.product_label}
                           onSelect={(id, label) => selectProduct(i, id, label)}
