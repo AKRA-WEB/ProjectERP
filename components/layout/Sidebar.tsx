@@ -224,7 +224,6 @@ export function Sidebar({ open, onClose, userRole, permissions, collapsed, onTog
       {
         label: t('nav.purchasing'),
         items: [
-          { href: '/app/grn/new', label: t('page.new_gr'), icon: PackagePlus, permission: 'grn:create' },
           { href: '/app/purchase-requests', label: t('page.purchase_requests'), icon: ClipboardList, permission: 'pr:view' },
           { href: '/app/purchase-orders',   label: t('page.purchase_orders'),   icon: ShoppingCart, permission: 'po:view' },
           { href: '/app/inbound-orders',    label: t('page.inbound_orders'),    icon: PackageCheck, permission: 'inbound_orders:view' },

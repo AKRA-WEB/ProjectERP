@@ -248,12 +248,6 @@ function NewPurchaseOrderPageInner() {
     const newErrors: Record<string, string> = {};
     if (!form.vendor_id) newErrors.vendor_id = 'กรุณาเลือกผู้จำหน่าย';
     if (!form.warehouse_id) newErrors.warehouse_id = 'กรุณาเลือกคลังสินค้า';
-    
-    // Only require expected_date if NOT in Inbound Order mode (selectedIOIds.length === 0)
-    if (selectedIOIds.length === 0 && !form.expected_date) {
-      newErrors.expected_date = 'กรุณาระบุวันที่คาดรับ';
-      setActiveTab('details');
-    }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -591,8 +585,8 @@ function NewPurchaseOrderPageInner() {
             {error && <p className="text-sm text-red-600">{error}</p>}
 
             <div className="grid grid-cols-2 gap-3 pt-4">
-              <Button variant="secondary" onClick={() => handleSubmit(false)} loading={saving}>ขอบบิล</Button>
-              <Button onClick={() => setShowApproval(true)} disabled={saving || (selectedIOIds.length === 0 && lines.length === 0)}>อนุมัติกัน</Button>
+              <Button variant="secondary" onClick={() => handleSubmit(false)} loading={saving}>พักบิล</Button>
+              <Button onClick={() => setShowApproval(true)} disabled={saving || (selectedIOIds.length === 0 && lines.length === 0)}>อนุมัติทันที</Button>
             </div>
           </div>
         </div>
