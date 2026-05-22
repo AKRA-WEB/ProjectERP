@@ -22,7 +22,7 @@
 | [[_notes/02_Agent_Memory/README\|02_Agent_Memory]] | สิ่งที่ agent ควรรู้ก่อนเริ่มงาน, pitfalls |
 | [[_notes/03_Prompts/README\|03_Prompts]] | Prompts ที่ใช้ซ้ำ |
 | [[_notes/04_Debug_Log/README\|04_Debug_Log]] | Bug log, root cause, วิธีแก้ |
-| [[_notes/05_Summaries/README\|05_Summaries]] | Summary ของ module / ไฟล์ใหญ่ |
+
 
 ---
 

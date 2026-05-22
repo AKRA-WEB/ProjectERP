@@ -1,35 +1,58 @@
 ---
 module: Accounting
 type: module-summary
+status: Stable
+updated: 2026-05-19
 ---
 
 # Accounting — ระบบบัญชี
 
-Chart of Accounts, Journal Entries, Reports, Accounts Payable.
+Double-entry accounting system. Chart of Accounts → Journal Entries → Financial Reports. Accounts Payable sub-system for vendor payments.
 
 ## Dependencies
 - **Receives data from:** [[POS]], [[Sales]], [[WMS]], [[HR]]
 - [[Inventory]] — รับข้อมูลมูลค่าสต็อกเพื่อปรับปรุงบัญชีสินค้าคงเหลือ
 - [[Core]] — Infrastructure สำหรับการออกรายงานและส่งออกข้อมูล
-- **Architectural Summary:** [[ACCOUNTING_MODULE_SUMMARY]]
 
-## Flow
+## Key Flows
 ```
-CoA → JE (Journal Entry) → Reports
-PO → GRN → AP Invoice → Payment
+CoA Setup
+  → Manual JE (Journal Entry)
+  → Auto-JE from GRN (AP Accrual) / SI (AR Revenue)
+    → Trial Balance → P&L → Balance Sheet
+    
+GRN → AP Invoice → Vendor Payment
 ```
 
 ## Key Tables
-- `chart_of_accounts` · `journal_entries` · `journal_entry_lines`
-- `ap_invoices` · `ap_invoice_lines` · `ap_payments`
+- `chart_of_accounts` (CoA)
+- `journal_entries` · `journal_entry_lines`
+- `ap_invoices` · `ap_invoice_lines`
+- `ap_payments`
 - `vendor_bank_accounts`
+
+## Financial Reports
+- Trial Balance
+- Profit & Loss (P&L)
+- Balance Sheet
+- AP Aging Report
 
 ## Business Rules
 - VAT rate 7% (`VAT_RATE = 0.07` in `lib/constants.ts`) — ห้าม hardcode
-- JE ต้อง balanced (debit = credit)
+- Every JE must balance (total debit = total credit)
+- AP Invoice auto-created from GRN stocking (`POST /api/grn/[id]/stock`)
+- AP Payment marks invoice as `paid` or `partial`
+- Vendor bank accounts required before payment
 - AP invoice linked to PO — ห้าม invoice เกิน PO amount
 
+## Technical Notes
+- JE lines use account codes from CoA — validate account exists before insert
+- AP aging buckets: current / 30 / 60 / 90+ days
+- All monetary values in THB (no multi-currency)
+
 ## Tracks
+- `accounting-module` — Completed
+- `accounts-payable` — Verified (vendor bank, AP invoices, aging, payments)
 
 ```dataview
 TABLE status, updated

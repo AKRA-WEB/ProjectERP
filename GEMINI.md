@@ -230,4 +230,4 @@ Read `docs/skills/index.md` first. Load only what's relevant:
 - **Stock integrity:** Insert-only `stock_ledger`. Trigger `sync_stock_balances()` fires automatically.
 - **Document numbers:** `next_doc_number('PREFIX', 'seq_name')` in PostgreSQL only — never in app code.
 
-> Changelog: `_notes/05_Summaries/gemini-changelog.md`
+> Changelog: `_notes/02_Agent_Memory/gemini-changelog.md`
