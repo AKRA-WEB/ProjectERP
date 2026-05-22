@@ -1,5 +1,5 @@
 ---
-status: Active
+status: Verified
 updated: 2026-05-22
 ---
 
