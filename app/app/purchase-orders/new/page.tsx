@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense, useMemo, ChangeEvent } from 'react';
+import { useState, useEffect, Suspense, useMemo, ChangeEvent, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button, Input, Select, Tabs, Tab } from '@/components/ui';
 import { get, post } from '@/lib/api-client';
@@ -87,11 +87,73 @@ function NewPurchaseOrderPageInner() {
   const [lines, setLines] = useState<LineItem[]>([]);
   const [productSearch, setProductSearch] = useState('');
   const [productResults, setProductResults] = useState<Product[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
   const [vendorCatalog, setVendorCatalog] = useState<Record<string, number>>({});
   const [saving, setSaving] = useState(false);
   const [showApproval, setShowApproval] = useState(false);
   const [error, setError] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Searchable Vendor Autocomplete states
+  const [vendorSearchText, setVendorSearchText] = useState('');
+  const [showVendorDropdown, setShowVendorDropdown] = useState(false);
+  const vendorContainerRef = useRef<HTMLDivElement>(null);
+  const productContainerRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (vendorContainerRef.current && !vendorContainerRef.current.contains(e.target as Node)) {
+        setShowVendorDropdown(false);
+      }
+      if (productContainerRef.current && !productContainerRef.current.contains(e.target as Node)) {
+        setProductResults([]);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  // Sync vendorSearchText with selected vendor_id
+  useEffect(() => {
+    if (form.vendor_id) {
+      const selected = vendors.find(v => v.value === form.vendor_id);
+      if (selected) {
+        setVendorSearchText(selected.label);
+      }
+    } else {
+      setVendorSearchText('');
+    }
+  }, [form.vendor_id, vendors]);
+
+  // Filter vendors list in-memory matching code or name
+  const filteredVendors = useMemo(() => {
+    if (!vendorSearchText.trim() || (form.vendor_id && vendors.some(v => v.value === form.vendor_id && v.label === vendorSearchText))) {
+      return vendors;
+    }
+    const q = vendorSearchText.toLowerCase();
+    return vendors.filter(v => v.label.toLowerCase().includes(q));
+  }, [vendors, vendorSearchText, form.vendor_id]);
+
+  // Debounced product search
+  useEffect(() => {
+    if (productSearch.trim().length < 2) {
+      setProductResults([]);
+      return;
+    }
+    const t = setTimeout(async () => {
+      setSearchLoading(true);
+      try {
+        const res = await get<PaginatedResponse<Product>>(`/api/products?search=${encodeURIComponent(productSearch)}&limit=20`);
+        setProductResults(res.data ?? []);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 250);
+    return () => clearTimeout(t);
+  }, [productSearch]);
 
   // New states for Task 11
   const [confirmedIOs, setConfirmedIOs] = useState<{
@@ -215,12 +277,7 @@ function NewPurchaseOrderPageInner() {
     }
   }
 
-  async function searchProducts(q: string) {
-    setProductSearch(q);
-    if (!q) { setProductResults([]); return; }
-    const res = await get<PaginatedResponse<Product>>(`/api/products?search=${encodeURIComponent(q)}&limit=10`);
-    setProductResults(res.data ?? []);
-  }
+
 
   function addProduct(p: Product) {
     const vendorPrice = vendorCatalog[p.id];
@@ -360,15 +417,78 @@ function NewPurchaseOrderPageInner() {
 
           <div className="rounded-xl bg-white shadow-sm border border-gray-100 p-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-              <Select
-                label="ผู้จำหน่าย *"
-                value={form.vendor_id}
-                onChange={(e) => setF('vendor_id', e.target.value)}
-                options={vendors}
-                placeholder="เลือกผู้จำหน่าย"
-                error={errors.vendor_id}
-                disabled={selectedIOIds.length > 0}
-              />
+              {/* Searchable Vendor Input */}
+              <div ref={vendorContainerRef} className="relative flex flex-col">
+                <label className="text-[13px] font-medium text-gray-700 mb-1.5 flex justify-between items-center">
+                  <span>ผู้จำหน่าย *</span>
+                  {errors.vendor_id && <span className="text-red-500 text-xs font-normal">{errors.vendor_id}</span>}
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="พิมพ์รหัสหรือชื่อผู้จำหน่าย..."
+                    value={vendorSearchText}
+                    onChange={(e) => {
+                      setVendorSearchText(e.target.value);
+                      setShowVendorDropdown(true);
+                      if (!e.target.value) {
+                        setForm(f => ({ ...f, vendor_id: '' }));
+                      }
+                    }}
+                    onFocus={() => {
+                      if (!(selectedIOIds.length > 0)) {
+                        setShowVendorDropdown(true);
+                      }
+                    }}
+                    disabled={selectedIOIds.length > 0}
+                    className={cn(
+                      "w-full bg-white border rounded-[8px] pl-3 pr-8 py-2 text-[13.5px] text-gray-900 placeholder:text-gray-400 transition-all h-[38px]",
+                      errors.vendor_id ? "border-red-400 focus:border-red-500 focus:shadow-[0_0_0_3px_rgba(239,68,68,0.14)]" : "border-gray-300 focus:border-emerald-500 focus:shadow-[0_0_0_3px_rgba(16,185,129,0.14)]",
+                      (selectedIOIds.length > 0) && "bg-gray-50 text-gray-500 border-gray-200 cursor-not-allowed"
+                    )}
+                  />
+                  {form.vendor_id && !(selectedIOIds.length > 0) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setF('vendor_id', '');
+                        setVendorSearchText('');
+                      }}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs p-1"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                {showVendorDropdown && !(selectedIOIds.length > 0) && (
+                  <div className="absolute left-0 right-0 top-full mt-1 z-50 max-h-60 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg">
+                    {filteredVendors.length === 0 ? (
+                      <p className="p-3 text-sm text-gray-400 italic text-center">ไม่พบผู้จำหน่าย</p>
+                    ) : (
+                      filteredVendors.map((v) => (
+                        <button
+                          key={v.value}
+                          type="button"
+                          onClick={() => {
+                            setF('vendor_id', v.value);
+                            setVendorSearchText(v.label);
+                            setShowVendorDropdown(false);
+                          }}
+                          className={cn(
+                            "w-full text-left px-4 py-2 text-sm hover:bg-emerald-50 transition-colors border-b last:border-b-0 flex flex-col",
+                            form.vendor_id === v.value && "bg-emerald-50/50 text-emerald-700 font-medium"
+                          )}
+                        >
+                          <span className="font-mono text-xs text-gray-500">{v.label.split(' — ')[0]}</span>
+                          <span className="text-gray-950 font-medium mt-0.5">{v.label.split(' — ')[1]}</span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+
               <Select
                 label="คลังสินค้า *"
                 value={form.warehouse_id}
@@ -445,15 +565,37 @@ function NewPurchaseOrderPageInner() {
                 <div className="mt-4">
                   {activeTab === 'items' && (
                     <div className="space-y-4">
-                      <div className="relative">
-                        <Input label="ค้นหาสินค้า" value={productSearch} onChange={(e) => searchProducts(e.target.value)} placeholder="พิมพ์ SKU หรือชื่อสินค้า..." />
+                      {/* Product search container */}
+                      <div ref={productContainerRef} className="relative">
+                        <Input
+                          label="ค้นหาสินค้า"
+                          value={productSearch}
+                          onChange={(e) => setProductSearch(e.target.value)}
+                          placeholder="พิมพ์ SKU หรือชื่อสินค้า..."
+                        />
+                        {searchLoading && (
+                          <div className="absolute z-20 right-3 top-[34px] flex items-center">
+                            <span className="text-xs text-gray-400">กำลังค้นหา...</span>
+                          </div>
+                        )}
                         {productResults.length > 0 && (
-                          <div className="absolute z-10 mt-1 w-full rounded-lg border bg-white shadow-lg max-h-60 overflow-y-auto">
-                            {productResults.map((p) => (
-                              <button key={p.id} type="button" className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm" onClick={() => addProduct(p)}>
-                                <span className="font-mono font-medium">{p.sku}</span> — {p.name_th}
-                              </button>
-                            ))}
+                          <div className="absolute z-20 mt-1 w-full rounded-lg border bg-white shadow-lg max-h-60 overflow-y-auto divide-y divide-gray-100">
+                            {productResults
+                              .filter(p => !lines.some(l => l.product_id === p.id))
+                              .map((p) => (
+                                <button
+                                  key={p.id}
+                                  type="button"
+                                  className="w-full text-left px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-900 text-sm transition-colors flex flex-col"
+                                  onClick={() => addProduct(p)}
+                                >
+                                  <span className="font-mono text-xs text-gray-500">{p.sku}</span>
+                                  <span className="font-medium mt-0.5">{p.name_th}</span>
+                                </button>
+                              ))}
+                            {productResults.filter(p => !lines.some(l => l.product_id === p.id)).length === 0 && (
+                              <p className="p-3 text-sm text-gray-400 italic text-center">ไม่มีสินค้าที่ยังไม่ได้เลือก</p>
+                            )}
                           </div>
                         )}
                       </div>
