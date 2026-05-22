@@ -188,6 +188,8 @@ export async function POST(req: Request) {
   let sourceType: 'po' | 'inbound_order' = 'po';
   let vendorId: string | null = null;
   const unitCosts = new Map<string, number>();
+  let poLineMap = new Map<string, { id: string; qty_ordered: number; already_received: number; unit_price: number }>();
+  let ioLineMap = new Map<string, { id: string; qty_ordered: number; already_received: number; unit_cost: number }>();
 
   if (parsed.data.po_id) {
     sourceType = 'po';
@@ -215,7 +217,7 @@ export async function POST(req: Request) {
       [parsed.data.po_id]
     );
 
-    const poLineMap = new Map(poLines.map((l) => [l.id, l]));
+    poLineMap = new Map(poLines.map((l) => [l.id, l]));
 
     for (const line of parsed.data.lines) {
       if (!line.po_line_item_id) return apiError('po_line_item_id is required for PO-based GRN', 422);
@@ -256,7 +258,7 @@ export async function POST(req: Request) {
       [parsed.data.inbound_order_id]
     );
 
-    const ioLineMap = new Map(ioLines.map((l) => [l.id, l]));
+    ioLineMap = new Map(ioLines.map((l) => [l.id, l]));
 
     for (const line of parsed.data.lines) {
       if (!line.inbound_order_line_id) return apiError('inbound_order_line_id is required for IO-based GRN', 422);
@@ -296,16 +298,33 @@ export async function POST(req: Request) {
     if (!grn) throw new Error('Failed to create GRN');
 
     const lineValues = parsed.data.lines
-      .map((_, i) => `($1, $${i * 12 + 2}, $${i * 12 + 3}, $${i * 12 + 4}, $${i * 12 + 5}, $${i * 12 + 6}, $${i * 12 + 7}, $${i * 12 + 8}, $${i * 12 + 9}, $${i * 12 + 10}::grn_source_type, $${i * 12 + 11}, $${i * 12 + 12}, $${i * 12 + 13}, ${i + 1})`)
+      .map((_, i) => `($1, $${i * 13 + 2}, $${i * 13 + 3}, $${i * 13 + 4}, $${i * 13 + 5}, $${i * 13 + 6}, $${i * 13 + 7}, $${i * 13 + 8}, $${i * 13 + 9}, $${i * 13 + 10}, $${i * 13 + 11}::grn_source_type, $${i * 13 + 12}, $${i * 13 + 13}, $${i * 13 + 14}, ${i + 1})`)
       .join(', ');
     const lineParams: unknown[] = [grn.id];
     for (const l of parsed.data.lines) {
-      const cost = unitCosts.get(l.po_line_item_id || l.inbound_order_line_id || '') || 0;
+      let cost = 0;
+      let qtyExpected = 0;
+
+      if (sourceType === 'po' && l.po_line_item_id) {
+        const poLine = poLineMap.get(l.po_line_item_id);
+        if (poLine) {
+          cost = Number(poLine.unit_price);
+          qtyExpected = Math.max(0, Number(poLine.qty_ordered) - Number(poLine.already_received));
+        }
+      } else if (sourceType === 'inbound_order' && l.inbound_order_line_id) {
+        const ioLine = ioLineMap.get(l.inbound_order_line_id);
+        if (ioLine) {
+          cost = Number(ioLine.unit_cost);
+          qtyExpected = Math.max(0, Number(ioLine.qty_ordered) - Number(ioLine.already_received));
+        }
+      }
+
       lineParams.push(
         l.po_line_item_id ?? null,
         l.inbound_order_line_id ?? null,
         l.product_id,
         l.qty_received,
+        qtyExpected,
         l.lot_number ?? null,
         l.serial_number ?? null,
         l.expiry_date ?? null,
@@ -317,7 +336,7 @@ export async function POST(req: Request) {
       );
     }
     await client2.query(
-      `INSERT INTO grn_line_items (grn_id, po_line_item_id, inbound_order_line_id, product_id, qty_received, lot_number, serial_number, expiry_date, storage_location, source_type, unit_cost, date_type, mfg_date, line_number)
+      `INSERT INTO grn_line_items (grn_id, po_line_item_id, inbound_order_line_id, product_id, qty_received, qty_expected, lot_number, serial_number, expiry_date, storage_location, source_type, unit_cost, date_type, mfg_date, line_number)
        VALUES ${lineValues}`,
       lineParams
     );

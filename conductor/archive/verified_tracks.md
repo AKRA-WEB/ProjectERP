@@ -35,3 +35,4 @@
 | [db-cleanup-test-data — Deleting Test Transactional Data](./tracks/db-cleanup-test-data/plan.md) | Verified | 2026-05-22 | 2026-05-22 |
 | [inbound-order-autocomplete — Improving Inbound Order Search & Notes](./tracks/inbound-order-autocomplete/plan.md) | Verified | 2026-05-22 | 2026-05-22 |
 | [menu-grid-polish — Track Plan: Menu Grid Polish & Symmetrical Layout](./tracks/menu-grid-polish/plan.md) | Verified | 2026-05-22 | 2026-05-22 |
+| [grn-receiving-quantities-fix — Fixing GRN Inbound Order Receiving & Quantities](./tracks/grn-receiving-quantities-fix/plan.md) | Verified | 2026-05-22 | 2026-05-22 |

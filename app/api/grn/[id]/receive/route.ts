@@ -132,6 +132,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       [parsed.data.delivery_date, parsed.data.receiver_name ?? null, u.id, effectiveWarehouseId, id]
     );
 
+    let newIoId: string | undefined;
+    const lineIdMap = new Map<string, string>();
+
     if (grn.source_type === 'inbound_order' && grn.inbound_order_id) {
       await client.query(
         `UPDATE inbound_orders
@@ -140,6 +143,63 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
          WHERE id = $1`,
         [grn.inbound_order_id]
       );
+
+      // Query all lines of the original Inbound Order and compare ordered quantities with received quantities
+      const lineComp = await client.query<{
+        id: string;
+        product_id: string;
+        qty_ordered: number;
+        unit_cost: number;
+        notes: string | null;
+        total_received: string;
+      }>(
+        `SELECT iol.id, iol.product_id, iol.qty_ordered, iol.unit_cost, iol.notes,
+                COALESCE(SUM(CASE WHEN grn.status != 'rejected' THEN gli.qty_received ELSE 0 END), 0) AS total_received
+         FROM inbound_order_lines iol
+         LEFT JOIN grn_line_items gli ON gli.inbound_order_line_id = iol.id
+         LEFT JOIN goods_receipt_notes grn ON grn.id = gli.grn_id
+         WHERE iol.io_id = $1
+         GROUP BY iol.id`,
+        [grn.inbound_order_id]
+      );
+
+      const remainingIoLines = lineComp.rows.filter(
+        (r) => Number(r.total_received) < Number(r.qty_ordered)
+      );
+
+      // Auto-create partial IO for remaining quantities immediately on receipt
+      if (remainingIoLines.length > 0) {
+        const ioResult = await client.query<{
+          vendor_id: string;
+          warehouse_id: string;
+          notes: string | null;
+          order_date: string;
+        }>(
+          'SELECT vendor_id, warehouse_id, notes, order_date FROM inbound_orders WHERE id = $1',
+          [grn.inbound_order_id]
+        );
+        const io = ioResult.rows[0];
+
+        if (io) {
+          const newIO = await client.query<{ id: string }>(
+            `INSERT INTO inbound_orders (vendor_id, warehouse_id, notes, parent_io_id, created_by, order_date, status)
+             VALUES ($1, $2, $3, $4, $5, $6, 'open') RETURNING id`,
+            [io.vendor_id, io.warehouse_id, io.notes, grn.inbound_order_id, u.id, io.order_date]
+          );
+          newIoId = newIO.rows[0].id;
+
+          for (let i = 0; i < remainingIoLines.length; i++) {
+            const r = remainingIoLines[i];
+            const remainingQty = Number(r.qty_ordered) - Number(r.total_received);
+            const newLine = await client.query<{ id: string }>(
+              `INSERT INTO inbound_order_lines (io_id, product_id, qty_ordered, unit_cost, notes, line_number)
+               VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+              [newIoId, r.product_id, remainingQty, r.unit_cost, r.notes, i + 1]
+            );
+            lineIdMap.set(r.id, newLine.rows[0].id);
+          }
+        }
+      }
     }
 
     // Auto-split: find lines where qty_received < qty_expected
@@ -156,6 +216,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
     let splitGrnId: string | null = null;
     if (splitLines.length > 0) {
+      // If it's an inbound_order and we created a split Inbound Order, use the newIoId
+      const targetIoId = (grn.source_type === 'inbound_order' && typeof newIoId !== 'undefined') ? newIoId : (grn.inbound_order_id ?? null);
+
       // Create split GRN (same source, same warehouse, draft status)
       const splitGrn = await client.query<{ id: string; grn_number: string }>(
         `INSERT INTO goods_receipt_notes
@@ -164,7 +227,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
          RETURNING id, grn_number`,
         [
           grn.po_id ?? null,
-          grn.inbound_order_id ?? null,
+          targetIoId,
           effectiveWarehouseId,
           grn.vendor_id ?? null,
           grn.pr_id ?? null,
@@ -178,11 +241,26 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
       for (let i = 0; i < splitLines.length; i++) {
         const sl = splitLines[i];
+        // If we mapped the line ID for IO, use the new line ID
+        const targetLineId = (grn.source_type === 'inbound_order' && sl.inbound_order_line_id) 
+          ? (lineIdMap.get(sl.inbound_order_line_id) ?? null)
+          : (sl.inbound_order_line_id ?? null);
+
         await client.query(
           `INSERT INTO grn_line_items
              (grn_id, po_line_item_id, inbound_order_line_id, pr_line_item_id, product_id, qty_received, qty_expected, unit_cost, line_number, source_type)
            VALUES ($1, $2, $3, $4, $5, 0, $6, $7, $8, $9)`,
-          [splitGrnId, sl.po_line_item_id ?? null, sl.inbound_order_line_id ?? null, sl.pr_line_item_id ?? null, sl.product_id, sl.qty_expected, sl.unit_cost, i + 1, grn.source_type]
+          [
+            splitGrnId,
+            sl.po_line_item_id ?? null,
+            targetLineId,
+            sl.pr_line_item_id ?? null,
+            sl.product_id,
+            sl.qty_expected,
+            sl.unit_cost,
+            i + 1,
+            grn.source_type
+          ]
         );
       }
     }

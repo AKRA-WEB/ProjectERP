@@ -874,7 +874,7 @@ export default function InboundOrderDetailPage() {
                         {actionError && <p className="text-xs text-red-600">{actionError}</p>}
                         {!rejecting ? (
                           <div className="flex justify-center gap-2">
-                            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => handleConfirmGRN(g.id)} loading={actionLoading}>
+                            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white whitespace-nowrap" onClick={() => handleConfirmGRN(g.id)} loading={actionLoading}>
                               ✅ ยืนยันการรับสินค้า
                             </Button>
                             <Button size="sm" variant="outline" className="border-red-600 text-red-600 hover:bg-red-50" onClick={() => setRejecting(true)}>
