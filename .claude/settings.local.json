@@ -48,7 +48,16 @@
       "Bash(powershell -Command ' *)",
       "Bash(Get-ChildItem -Path \"conductor\\\\tracks\" -Directory)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\AKRA-Panich-Front\\\\OneDrive\\\\02-2 - AKRA\\\\projectERP\" -Exclude \"node_modules\" -Depth 2)",
-      "Bash(Select-Object FullName)"
+      "Bash(Select-Object FullName)",
+      "Bash(cat /mnt/c/Users/AKRA-Panich-Front/.claude/settings.local.json 2>/dev/null)",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\AKRA-Panich-Front\\\\.claude\\\\\" -Name | Where-Object { $_ -match \"mcp\" })",
+      "Bash(gh pr *)",
+      "Bash(where gh *)",
+      "Bash(Get-Command gh *)",
+      "PowerShell(Get-Command gh -ErrorAction SilentlyContinue)",
+      "Bash(npx next *)",
+      "Bash(Get-ChildItem \"C:\\\\Users\\\\AKRA-Panich-Front\\\\OneDrive\\\\02-2 - AKRA\\\\projectERP\\\\app\\\\grn\" -Recurse -ErrorAction SilentlyContinue)",
+      "Bash(Format-Table Name, FullName)"
     ]
   },
   "hooks": {
