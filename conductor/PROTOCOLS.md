@@ -136,16 +136,14 @@ Then use the Write tool with the Windows absolute path `C:\Users\AKRA-Panich-Fro
 - Use checkboxes `- [ ]` for tasks in `plan.md`.
 - Be specific about file paths and logic changes.
 
-## Guidance for Gemini CLI (The Implementer)
+## Guidance for The Implementer Profile (Any AI Agent)
 
-→ Full rules in `GEMINI.md` (auto-loaded). Summary:
-- Read `current-state.md` + `pitfalls.md` before every track
-- Surgical execution — no scope creep
-- HALT on ambiguity — never guess
-- Auto-continue to next Active track after completing one
-- Update `current-state.md` after each track
-
----
+→ Full rules in `GEMINI.md` / `CLAUDE.md` / `AI_WORKFLOW_GUIDE.md`. Summary:
+- Read `current-state.md` + `pitfalls.md` before starting any track.
+- Surgical execution — strictly focus on the plan, zero scope creep.
+- HALT on ambiguity — never guess or make assumptions.
+- 🚨 **STRICT STOP:** NEVER automatically proceed to the next Active track after completing one. Always stop immediately, write the SESSION REPORT, and wait for the user to explicitly issue the next `Go` command.
+- Update `current-state.md` and migration info after each track.
 
 ## Chen QA Review Protocol (`QA-Review: <track-name>`)
 

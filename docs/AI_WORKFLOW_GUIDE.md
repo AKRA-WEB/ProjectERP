@@ -31,76 +31,103 @@
 
 ---
 
-## 👥 2. Core Roles (บทบาทและการแบ่งหน้าที่ของ AI)
+## 👥 2. Core Roles & Behavior Profiles (บทบาทและโปรไฟล์พฤติกรรมมาตรฐาน)
 
-โปรเจกต์นี้ใช้ระบบ Hybrid AI Workflow มีการแบ่งแยกหน้าที่การทำงานอย่างชัดเจนเพื่อป้องกันสับสน:
+ระบบนี้ขับเคลื่อนด้วย **Unified Agentic Architecture** ซึ่งมีรูปแบบการทำงานและการแบ่งหน้าที่อย่างเด็ดขาดตามคำสั่งที่ได้รับ **ไม่ว่าจะเป็น Claude, Gemini, Codex หรือ AI ตัวใดในอนาคต** ทุกตัวจะทำงานตามมาตรฐานเดียวกันเมื่อสวมบทบาทในแต่ละโปรไฟล์ ดังนี้:
 
 ```mermaid
 graph TD
-    User([USER]) -->|1. Architect Request| Claude[Claude / Chen: Architect]
-    Claude -->|2. Create plan.md| Plan[conductor/tracks/Plan]
-    Plan -->|3. Go command| Gemini[Gemini CLI: Implementer]
-    Gemini -->|4. Code + Summary| Code[Modified Codebase]
-    Gemini -->|5. Completed status| QA_Trigger[QA Trigger]
-    QA_Trigger -->|6. QA command| Billy[Billy: QA Auditor]
-    Billy -->|7. Draft QA Report| Claude
-    Claude -->|8. Validate + Rework Plan| Plan
+    User([USER]) -->|1. Architect Command| Agent_A[AI Agent: Planner/Architect Profile]
+    Agent_A -->|2. Create plan.md| Plan[conductor/tracks/Plan]
+    Plan -->|3. Go command| Agent_B[AI Agent: Implementer Profile]
+    Agent_B -->|4. Code + Auto-QA + Verify| Code[Modified Codebase]
+    Agent_B -->|5. Sweep & Stop| Stop([STOP & Wait for next Go])
 ```
 
-### 1️⃣ Claude / Chen (The Architect & Planner)
-* **หน้าที่หลัก:** รับโจทย์จาก User -> วิเคราะห์สถาปัตยกรรม -> วางแผนและเขียนแผนการทำงานลงใน `plan.md` -> ตรวจสอบและอนุมัติผล QA จาก Billy -> ออกแผนแก้ไข `rework-plan.md`
-* **สิทธิ์การเขียน Obsidian:** เขียนสเปกใน `conductor/tracks/` และสรุปการตัดสินใจใน `_notes/01_Decisions/` เท่านั้น **(ห้ามเขียนโค้ดหลักเด็ดขาด)**
+### 1️⃣ Planner / Architect Profile (โปรไฟล์ผู้วางแผนและออกแบบระบบ)
+* **หน้าที่หลัก:** รับโจทย์ความต้องการจาก User -> วิเคราะห์สถาปัตยกรรมระดับกว้าง -> ออกแบบ Zod Schema / TypeScript interfaces ที่รัดกุม -> สร้างแผนและเขียนโครงร่างงานลงใน `plan.md` -> ตรวจสอบแก้ไขเมื่อเกิดข้อผิดพลาดในการตรวจสอบย้อนกลับ (Rework)
+* **สิทธิ์การแก้ไขไฟล์:** เขียนได้เฉพาะไฟล์แผนงานใน `conductor/tracks/` และเอกสารสถาปัตยกรรมใน `_notes/01_Decisions/` เท่านั้น **(ห้ามลงมือแก้ไขโค้ดการทำงานหลักในขั้นตอนนี้)**
 
-### 2️⃣ Gemini CLI (The Implementer)
-* **หน้าที่หลัก:** อ่านแผน `plan.md` -> เขียนโค้ดตามแผนแบบ Surgical Edit -> รันการทดสอบและแกะบั๊ก -> ตรวจสอบ Auto-QA -> สรุปรายงาน `execution-summary.md`
-* **สิทธิ์การเขียน Obsidian:** อัปเดตเช็คลิสต์ใน `plan.md`, อัปเดตประวัติการทำใน `_notes/02_Agent_Memory/current-state.md` **(ห้ามวางแผนโครงสร้างใหม่เองเด็ดขาด)**
+### 2️⃣ Implementer Profile (โปรไฟล์ผู้ลงมือโค้ดและทดสอบ)
+* **หน้าที่หลัก:** โค้ดตามแผนที่วางไว้ใน `plan.md` แบบ Surgical Edit -> รันการคอมไพล์และตรวจสอบข้อผิดพลาดทันที -> ทำการตรวจสอบและแก้ไขตัวเอง (Self-Correcting Loop) ร่วมกับ `npm run qa:verify` จนสะอาด 100% -> สรุปรายงาน `execution-summary.md`
+* **สิทธิ์การแก้ไขไฟล์:** แก้ไขโค้ดของระบบตามขอบเขตงาน, อัปเดตเช็คลิสต์ใน `plan.md`, อัปเดตประวัติการทำใน `_notes/02_Agent_Memory/current-state.md` และเขียนรายงานดีบั๊กใน `_notes/04_Debug_Log/` **(ห้ามเปลี่ยนแปลงแผนการทำงานโครงสร้างใหญ่ตามอำเภอใจ)**
 
-### 3️⃣ Billy (The QA Auditor)
-* **หน้าที่หลัก:** รันตรวจสอบ Static checks (`npm run lint`, `npx tsc --noEmit`) -> ทำการ Deep Audit เทียบโค้ดที่แก้ไขกับสเปกใน `plan.md` -> เขียน Draft QA Report ที่ `conductor/qa-reports/<track>.md`
-* **สิทธิ์การเขียน Obsidian:** เขียนรายงานผลตรวจสอบเท่านั้น **(ห้ามแก้โค้ด และห้ามอัปเดตไฟล์ดัชนี)**
+### 3️⃣ QA Auditor Profile (โปรไฟล์ผู้ตรวจสอบและออกรายงานผล)
+* **หน้าที่หลัก:** รันตรวจสอบ Static checks เชิงลึกและทดสอบคุณภาพของระบบ -> ตรวจความสอดคล้องระหว่างการเขียนโค้ดกับสเปก Zod/API ใน `plan.md` -> เขียนรายงานประเมินข้อผิดพลาดส่งให้ Architect ตัดสินใจทำ Rework Plan
 
 ---
 
-## ⚡ 3. Command Triggers & Execution Loop (คำสั่งและวงจรการทำงาน)
+## ⚡ 3. Command Triggers & Execution Loop (คำสั่งและวงจรการทำงานมาตรฐานของทุก AI)
+
+> [!IMPORTANT]
+> **กฎเหล็กของทุก AI:** ทุกโมเดลจะต้องทำความเข้าใจและยอมรับคำสั่ง (Triggers) พร้อมทั้งรูปแบบการทำงานเหล่านี้ให้ตรงกัน 100% โดยไม่มีการทึกทักเอาเอง
 
 ### 🔹 คำสั่ง: `Init`
-* **ผู้รับผิดชอบ:** AI ทุกตัว (ในเซสชันใหม่)
-* **หน้าที่:** เมื่อได้รับคำสั่งนี้ AI จะรัน **Pre-Flight Checklist** เต็มรูปแบบทันที:
-  1. รัน `git pull origin master` เพื่อซิงค์โค้ดก่อนเริ่ม
-  2. รัน `npm run track:sweep` เพื่อกวาดเก็บแทร็กที่เสร็จแล้วเข้า Archive
-  3. โหลดและอ่านไฟล์การประสานงานหลัก (`README.md`, `docs/skills/ai_workflow_rules.md`)
-  4. ดึงความจำระบบล่าสุดและกลหลีกเลี่ยงข้อผิดพลาด (`current-state.md`, `pitfalls.md`)
-  5. ตรวจสอบกระดานคิวงานหลัก `conductor/index.md`
-  6. รายงานสรุปความพร้อมของระบบ (DB ล่าสุด, Migration, แทร็กค้าง) ให้ผู้ใช้งานทราบทันทีเพื่อรอทริกเกอร์ถัดไป (`Architect:` หรือ `Go`)
+* **ผู้รับผิดชอบ:** AI Agent ทุกตัวในเซสชันใหม่
+* **หน้าที่:** โหลดบริบทและประเมินความพร้อมของระบบทั้งหมดทันที:
+  1. รัน `git pull origin master` เพื่อดึงข้อมูลล่าสุดจาก Remote
+  2. รัน `npm run track:sweep` (หรือ `npx tsx scripts/archive-track.ts --sweep`) เพื่อกวาดเก็บแทร็กที่ถูก `Verified` แล้วเข้าสารบบ Archive
+  3. โหลดและอ่านข้อตกลงและหลักการทำงานของ Agent (`docs/skills/agent-principles.md`)
+  4. ดึงความจำระบบและจุดผิดพลาดทั่วไป (`current-state.md`, `pitfalls.md`)
+  5. รายงานสรุปสถานะความพร้อม (DB columns ล่าสุด, API ล่าสุด, แทร็กค้าง) ให้ User ทราบเพื่อรอคำสั่งถัดไป
 
 ### 🔹 คำสั่ง: `Architect: <requirement>`
-* **ผู้รับผิดชอบ:** Claude/Chen
-* **หน้าที่:** เมื่อได้รับคำสั่งนี้ Chen จะเริ่มทำ **Pre-Planning Checklist** และสร้างห้องทำงานใหม่ (Track Folder) พร้อมสร้างไฟล์ `plan.md` และอัปเดตสถานะใน `conductor/index.md` ให้เป็น `Active` หรือ `Planned`
-* **วิธีการสร้างโฟลเดอร์บน Windows/OneDrive:** บังคับสร้างโฟลเดอร์ด้วย Bash `mkdir -p` ก่อนใช้เครื่องมือ Write เสมอ ป้องกันการทำงานล้มเหลว:
-  ```bash
-  mkdir -p "/c/Users/AKRA-Panich-Front/OneDrive/02-2 - AKRA/projectERP/conductor/tracks/<feature-name>"
-  ```
+* **ผู้รับผิดชอบ:** AI Agent ตัวที่ได้รับมอบหมายให้ออกแบบแผน
+* **หน้าที่:** วิเคราะห์สถาปัตยกรรมและกำหนดรายละเอียดลงในแผน:
+  1. สร้างโฟลเดอร์แทร็กใหม่ (บังคับรันคำสั่ง `mkdir -p` ล่วงหน้าบนสภาพแวดล้อม Windows เสมอ)
+  2. สร้างและเขียนสเปกแบบละเอียดลงใน `plan.md` ตามที่ระบุในหัวข้อที่ 4 (Zod schema, DB constraints, transactions)
+  3. เพิ่มรายการแทร็กในสารบัญ `conductor/index.md` ให้เป็นสถานะ `Planned` หรือ `Active`
 
-### 🔹 คำสั่ง: `Go`
-* **ผู้รับผิดชอบ:** Gemini CLI
-* **หน้าที่:** ทำงานตามแผนงานทีละแผนงาน (Track) เมื่อเจอคำสั่งนี้ โดยจะค้นหา Track แรกที่มีสถานะ `Active` หรือ `Rework Required` ใน `conductor/index.md` ดำเนินการตามแผนและทดสอบจนเสร็จสิ้น จากนั้นบันทึกและหยุดทำงานทันที (ห้ามก้าวไปทำ Track ถัดไปโดยอัตโนมัติ):
-  1. ทำตาม Tasks ใน `plan.md` หรือ `rework-plan.md` ของ Track ปัจจุบันเท่านั้น
-  2. เขียน `execution-summary.md`
-  3. ตรวจสอบ Auto-QA: รันตรวจสอบ static type และ lint และประเมินผลเทียบกับความต้องการ
-  4. **หากพบข้อผิดพลาด:** ดำเนินการ Rework ตามแผนและแก้ทันทีจนสมบูรณ์
-  5. **หากผ่าน 100%:** ปรับสถานะเป็น `Completed` หรือ `Verified` และหยุดการประมวลผลทันทีเพื่อรอคำสั่ง Go ครั้งถัดไป
+### 🔹 คำสั่ง: `Go` (วงจรการทำงานแบบสมบูรณ์และหยุดทันที)
+* **ผู้รับผิดชอบ:** AI Agent ตัวที่เริ่มรันขั้นตอนการเขียนโค้ด (ทำงานในบทบาท Implementer)
+* **กระบวนการทำงานและลูปตรวจสอบตัวเอง (MANDATORY EXECUTION LOOP):**
+  เมื่อได้รับคำสั่ง `Go` ไม่ว่าจะเป็น Claude, Gemini หรือ Codex **ต้องดำเนินการตามขั้นตอนเหล่านี้อย่างต่อเนื่องจนเสร็จสิ้น และห้ามหยุดกลางคันจนกว่าสถานะจะสะอาด 100%**:
+
+```
+[พิมพ์ Go]
+   │
+   ▼
+1. ค้นหา Track แรกที่มีสถานะ 'Active' หรือ 'Rework Required' ใน conductor/index.md
+   │
+   ▼
+2. ดำเนินการแก้ไขโค้ด (Surgical Edit) ตาม Tasks ทั้งหมดใน plan.md
+   │
+   ▼
+3. รันตรวจสอบ Auto-QA:
+   - รันตรวจสอบความถูกต้องผ่าน `npm run qa:verify` (Linter + TypeScript tsc --noEmit)
+   - ตรวจสอบความถูกต้องกับ `docs/skills/qa_audit_rules.md`
+   │
+   ├─► [มีข้อผิดพลาด/มีจุดเสีย/Lints/TypeScript Error]
+   │    │
+   │    ▼
+   │    ดำเนินการแก้ไขทันที (Auto-Fix/Rework) -> วนกลับไปรัน Step 3 ใหม่ (จำกัดสูงสุด 3 รอบ)
+   │
+   └─► [สะอาด 100% - ไม่มี Error และไร้ร่องรอยคอมเมนต์ชั่วคราว เช่น // TODO]
+        │
+        ▼
+4. ปิดงานและ Sweep:
+   - ปรับสถานะ Track ใน index.md และ frontmatter ของ plan.md เป็น 'Verified' หรือ 'Completed'
+   - เขียนไฟล์ 'execution-summary.md' ตามรูปแบบที่กำหนด
+   - รันคำสั่งกวาดเก็บแทร็ก `npm run track:sweep`
+   │
+   ▼
+5. 🚨 กฎเหล็กการหยุดทำงาน (STRICT STOP CONDITION):
+   - ห้ามก้าวไปทำ Track ถัดไปโดยพลการเด็ดขาด!
+   - เขียน Session Report ส่งให้ผู้ใช้งาน และหยุดทำงาน (STOP) ทันที
+   - รอคำสั่ง 'Go' ครั้งถัดไปอย่างเป็นทางการจากผู้ใช้งานเท่านั้น
+```
 
 ### 🔹 คำสั่ง: `Summary`
-* **ผู้รับผิดชอบ:** Gemini CLI
-* **หน้าที่:** เขียนไฟล์ `execution-summary.md` ในโฟลเดอร์ของ Track โดยระบุรายละเอียดและหลักฐานที่ผ่านการแก้ไขจริง (Surgical Evidence)
+* **ผู้รับผิดชอบ:** AI Agent ที่ทำหน้าที่โค้ด
+* **หน้าที่:** ตรวจสอบความเรียบร้อยและสรุปหลักฐานการทำงานลงใน `execution-summary.md` ในโฟลเดอร์ของ Track โดยระบุรายละเอียดส่วนที่แก้ไขจริง (Surgical Evidence)
 
 ### 🔹 คำสั่ง: `QA: <track-name>`
-* **ผู้รับผิดชอบ:** Billy (QA Auditor)
-* **หน้าที่:** รัน Lint & Build และประเมินผลเทียบกับ `plan.md` เพื่อสร้างรายงานข้อผิดพลาด `[DRAFT — Pending Chen Validation]` ที่ `conductor/qa-reports/<track-name>.md`
+* **ผู้รับผิดชอบ:** AI Agent ที่ทำหน้าที่ตรวจสอบ
+* **หน้าที่:** รันเครื่องมือตรวจสอบ static checks, ประเมินความถูกต้องตามสเปกใน `plan.md` และสร้าง Draft QA Report ที่ `conductor/qa-reports/<track-name>.md`
 
 ### 🔹 คำสั่ง: `QA-Review: <track-name>`
-* **ผู้รับผิดชอบ:** Chen (Claude/Architect)
-* **หน้าที่:** อ่านรีพอร์ตดราฟต์ของ Billy -> ตรวจสอบเทียบกับโค้ดจริง -> คัดกรองและจัดลำดับระดับความสำคัญ (Confirmed, Downgraded, Dismissed) -> เขียนไฟล์ `rework-plan.md` และปรับสถานะใน `conductor/index.md` เพื่อส่งกลับให้ Gemini ทำ Rework
+* **ผู้รับผิดชอบ:** AI Agent ที่รับบทบาทเป็น Architect/Planner
+* **หน้าที่:** คัดกรองจุดตรวจสอบของ QA Auditor -> ยืนยันหรือคัดออกผลตรวจสอบ -> ร่างแผนแก้ไข `rework-plan.md` และเปลี่ยนสถานะ Track เป็น `Rework Required` ในสารบัญงาน เพื่อส่งต่อให้โปรไฟล์ Implementer รันวงจรแก้รอบใหม่
 
 ---
 

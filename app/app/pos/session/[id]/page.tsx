@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
+import { OverridePinModal } from '@/components/auth/OverridePinModal';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -336,6 +337,10 @@ export default function POSSessionPage() {
   const [desktopTab, setDesktopTab] = useState<'products' | 'history'>('products');
   const searchRef = useRef<HTMLInputElement>(null);
 
+  const [overrideToken, setOverrideToken] = useState<string | null>(null);
+  const [overrideReasonCode, setOverrideReasonCode] = useState<string | null>(null);
+  const [isOverrideModalOpen, setIsOverrideModalOpen] = useState(false);
+
   // ── Keyboard Shortcuts ──
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -441,24 +446,47 @@ export default function POSSessionPage() {
   }
 
   // ── Checkout ──
-  async function handleCheckout() {
+  async function handleCheckout(overrideTok?: string, overrideReason?: string) {
     if (cartItems.length === 0 || checkingOut) return;
     setCheckingOut(true);
     try {
+      const tok = overrideTok || overrideToken || undefined;
+      const reason = overrideReason || overrideReasonCode || undefined;
       const body = {
         session_id: sessionId,
-        items: cartItems,
-        discount: discountAmt,
+        lines: cartItems.map(i => ({
+          product_id: i.product_id,
+          qty: i.qty,
+          unit_price: i.price,
+          discount_amount: 0,
+        })),
+        discount_amount: discountAmt,
         payment_method: paymentMethod,
         cash_tendered: paymentMethod === 'cash' || paymentMethod === 'mixed' ? cashTendered : null,
         member_id: member?.id ?? null,
+        override_token: tok,
+        reason_code: reason,
       };
-      const res = await fetch('/api/pos/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-      if (!res.ok) throw new Error('Checkout failed');
+      const res = await fetch('/api/pos/transactions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      
+      if (res.status === 409) {
+        const j = await res.json();
+        if (j.details?.code === 'MIN_PRICE_VIOLATION') {
+          setCheckingOut(false);
+          setIsOverrideModalOpen(true);
+          return;
+        }
+        throw new Error(j.error || 'Checkout failed');
+      }
+
+      if (!res.ok) {
+        const j = await res.json();
+        throw new Error(j.error || 'Checkout failed');
+      }
       
       const order = await res.json();
       setCompletedOrder({
-        order_number: order.order_number || 'POS-' + Date.now().toString().slice(-6),
+        order_number: order.receipt_number || 'POS-' + Date.now().toString().slice(-6),
         created_at: new Date().toISOString(),
         total,
         items: [...cartItems],
@@ -472,7 +500,12 @@ export default function POSSessionPage() {
       setCashTendered(0);
       setMember(null);
       setMemberPhone('');
-    } catch { /* silent */ } finally {
+      setOverrideToken(null);
+      setOverrideReasonCode(null);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Checkout failed';
+      alert(msg);
+    } finally {
       setCheckingOut(false);
     }
   }
@@ -939,7 +972,7 @@ export default function POSSessionPage() {
 
               {/* Checkout */}
               <button
-                onClick={handleCheckout}
+                onClick={() => handleCheckout()}
                 disabled={cartItems.length === 0 || checkingOut}
                 className="w-full py-3.5 rounded-xl text-base font-semibold bg-emerald-600 text-white hover:bg-emerald-700 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -949,6 +982,18 @@ export default function POSSessionPage() {
           </div>
         </div>
       </div>
+      
+      <OverridePinModal
+        isOpen={isOverrideModalOpen}
+        action="min_price_override"
+        onSuccess={(token, reasonCode) => {
+          setIsOverrideModalOpen(false);
+          setOverrideToken(token);
+          setOverrideReasonCode(reasonCode);
+          handleCheckout(token, reasonCode);
+        }}
+        onClose={() => setIsOverrideModalOpen(false)}
+      />
     </>
   );
 }

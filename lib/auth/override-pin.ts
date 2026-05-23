@@ -83,7 +83,7 @@ export async function consumeOverrideToken(
   try {
     const res = await jose.jwtVerify(token, secretKey);
     payload = res.payload;
-  } catch (err: any) {
+  } catch {
     throw Object.assign(new Error('Invalid or expired override token'), { status: 401 });
   }
 
@@ -120,9 +120,10 @@ export async function consumeOverrideToken(
       ]
     );
     await client.query('COMMIT');
-  } catch (err: any) {
+  } catch (err: unknown) {
     await client.query('ROLLBACK');
-    if (err.code === '23505') { // unique_violation in PostgreSQL
+    const dbErr = err as { code?: string };
+    if (dbErr.code === '23505') { // unique_violation in PostgreSQL
       throw Object.assign(new Error('Override token has already been used'), { status: 409 });
     }
     throw err;

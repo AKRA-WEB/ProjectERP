@@ -26,11 +26,16 @@ NEXTAUTH_SECRET=<random-string>
 NEXTAUTH_URL=http://localhost:3000
 ```
 
-## Claude-Gemini Collaboration Protocol
+## Unified AI Collaboration Protocol (Universal Standards)
+
+All AI agents (Claude, Gemini, Codex, etc.) must adhere to the identical operational standards and protocols:
 
 **Triggers & Commands:**
-- **`Init`** → รัน Pre-Flight Checklist เต็มรูปแบบ (git sync, sweep, โหลด current-state + pitfalls, เช็คบอร์ด Conductor และรายงานความพร้อม)
-- **`Architect: <requirement>`** → spawn Chen agent to plan. Do NOT plan inline.
+- **`Init`** → Run Pre-Flight Checklist in full (git sync, track sweep, load current-state + pitfalls, check Conductor board, and report system readiness).
+- **`Architect: <requirement>`** → Spawn Chen/Architect planning protocol. Analyze codebase, create `plan.md` inside a new track folder, and update `conductor/index.md`. Do NOT code or plan inline.
+- **`Go`** → Act as the **Implementer**. Find the first `Active` or `Rework Required` track in `conductor/index.md` -> Execute tasks surgically -> Run Auto-QA (`npm run qa:verify` -> must be 0 errors) -> Mark as `Verified` and run `npm run track:sweep` -> **STOP IMMEDIATELY**. Do NOT automatically proceed to the next track under any circumstances.
+- **`Summary`** → Write `execution-summary.md` with exact lines modified and validation results as evidence.
+
 Refer to [AI Workflow Guide](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/docs/AI_WORKFLOW_GUIDE.md) and `conductor/PROTOCOLS.md` for full protocols and workflow structures.
 
 ## Session Start (MANDATORY)

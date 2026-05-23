@@ -2,7 +2,7 @@
 track: credit-control-engine
 phase: V2.0-P1
 sequence: 6
-status: planned
+status: Verified
 owner: Chen
 created: 2026-05-23
 depends_on: [manager-override-pin]

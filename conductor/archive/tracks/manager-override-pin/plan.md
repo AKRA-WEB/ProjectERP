@@ -2,7 +2,7 @@
 track: manager-override-pin
 phase: V2.0-P1
 sequence: 4
-status: planned
+status: Verified
 owner: Chen
 created: 2026-05-23
 depends_on: []
@@ -86,7 +86,7 @@ Add a reusable in-app supervisor authorization mechanism. A manager or admin set
 - Side effects: none.
 - Response shape: N/A.
 
-- [ ] T1 complete
+- [x] T1 complete
 
 ### T2 — `lib/auth/override-pin.ts`
 **File:** `lib/auth/override-pin.ts` (new)
@@ -110,7 +110,7 @@ Add a reusable in-app supervisor authorization mechanism. A manager or admin set
 - Side effects: each verify inserts into `override_pin_attempts`; each consume inserts into `override_audit`.
 - Response shape: helper return types as above.
 
-- [ ] T2 complete
+- [x] T2 complete
 
 ### T3 — `POST /api/auth/verify-override-pin`
 **File:** `app/api/auth/verify-override-pin/route.ts` (new)
@@ -131,7 +131,7 @@ Add a reusable in-app supervisor authorization mechanism. A manager or admin set
 - Side effects: `override_pin_attempts` insert.
 - Response shape: `apiSuccess({ token: string, expires_in: number })`.
 
-- [ ] T3 complete
+- [x] T3 complete
 
 ### T4 — `PATCH /api/admin/users/[id]/override-pin`
 **File:** `app/api/admin/users/[id]/override-pin/route.ts` (new)
@@ -150,7 +150,7 @@ Add a reusable in-app supervisor authorization mechanism. A manager or admin set
 - Side effects: `users.override_pin_hash` updated.
 - Response shape: `apiSuccess({ ok: true })`.
 
-- [ ] T4 complete
+- [x] T4 complete
 
 ### T5 — `GET /api/admin/override-audit`
 **File:** `app/api/admin/override-audit/route.ts` (new)
@@ -163,7 +163,7 @@ Add a reusable in-app supervisor authorization mechanism. A manager or admin set
 
 **Quality Gate:** Response shape: `apiSuccess({ data: OverrideAuditRow[], total, page, limit })`. Others N/A.
 
-- [ ] T5 complete
+- [x] T5 complete
 
 ### T6 — React hook + modal
 **File:** `hooks/useOverridePin.ts` (new) + `components/auth/OverridePinModal.tsx` (new)
@@ -176,7 +176,7 @@ Add a reusable in-app supervisor authorization mechanism. A manager or admin set
 
 **Quality Gate:** N/A (UI).
 
-- [ ] T6 complete
+- [x] T6 complete
 
 ### T7 — Admin user-edit form: set/reset PIN button
 **File:** locate the user-edit page via `Glob "app/admin/users/**/page.tsx"`; extend.
@@ -189,7 +189,7 @@ Add a reusable in-app supervisor authorization mechanism. A manager or admin set
 
 **Quality Gate:** N/A (UI).
 
-- [ ] T7 complete
+- [x] T7 complete
 
 ### T8 — Audit log viewer page
 **File:** `app/admin/audit/overrides/page.tsx` (new)
@@ -200,7 +200,7 @@ Add a reusable in-app supervisor authorization mechanism. A manager or admin set
 
 **Quality Gate:** N/A (UI).
 
-- [ ] T8 complete
+- [x] T8 complete
 
 ### T9 — Update `current-state.md` + `pitfalls.md`
 **File:** `_notes/02_Agent_Memory/current-state.md` + `_notes/02_Agent_Memory/pitfalls.md`
@@ -210,14 +210,14 @@ Add a reusable in-app supervisor authorization mechanism. A manager or admin set
 - DB facts: `users.override_pin_hash`, `override_audit(user_id, action, target_table, target_id, jti UNIQUE)`, `override_pin_attempts(user_id, attempted_at, success)`. Migration → 044.
 - Pitfalls (append): "Override token replay — always rely on `override_audit.jti UNIQUE` constraint; never trust JWT expiry alone."
 
-- [ ] T9 complete
+- [x] T9 complete
 
 ## Definition of Done
 
-- [ ] All tasks T1..T9 ticked
-- [ ] `npm run lint` passes
-- [ ] `npx tsc --noEmit` passes
-- [ ] Migration runs idempotently
-- [ ] Manual smoke: set PIN as manager, attempt staff set PIN (403), wrong-PIN 5x → 429, consume token twice → second call rejected on `jti UNIQUE`
-- [ ] `_notes/02_Agent_Memory/current-state.md` and `pitfalls.md` updated
-- [ ] Status set to `Completed` in `conductor/index.md`
+- [x] All tasks T1..T9 ticked
+- [x] npm run lint passes
+- [x] npx tsc --noEmit passes
+- [x] Migration runs idempotently
+- [x] Manual smoke: set PIN as manager, attempt staff set PIN (403), wrong-PIN 5x → 429, consume token twice → second call rejected on `jti UNIQUE`
+- [x] _notes/02_Agent_Memory/current-state.md and pitfalls.md updated
+- [x] Status set to `Completed` in `conductor/index.md`

@@ -27,9 +27,9 @@ Master plan: [erp-v2-orion-roadmap](tracks/erp-v2-orion-roadmap/plan.md)
 | 1 | multi-bu-foundation | Verified | [plan](tracks/multi-bu-foundation/plan.md) |
 | 2 | wms-virtual-warehouses | Verified | [plan](tracks/wms-virtual-warehouses/plan.md) |
 | 3 | pricing-engine | Verified | [plan](tracks/pricing-engine/plan.md) |
-| 4 | manager-override-pin | Active | [plan](tracks/manager-override-pin/plan.md) |
-| 5 | min-price-hardstop | Active | [plan](tracks/min-price-hardstop/plan.md) |
-| 6 | credit-control-engine | Active | [plan](tracks/credit-control-engine/plan.md) |
+| 4 | manager-override-pin | Verified | [plan](tracks/manager-override-pin/plan.md) |
+| 5 | min-price-hardstop | Verified | [plan](tracks/min-price-hardstop/plan.md) |
+| 6 | credit-control-engine | Verified | [plan](tracks/credit-control-engine/plan.md) |
 | 7 | channel-on-order-header | Active | [plan](tracks/channel-on-order-header/plan.md) |
 | 8 | pos-draft-and-hybrid-flow | Active | [plan](tracks/pos-draft-and-hybrid-flow/plan.md) |
 | 9 | pos-delta-slip-and-versioning | Active | [plan](tracks/pos-delta-slip-and-versioning/plan.md) |
@@ -72,6 +72,9 @@ Master plan: [erp-v2-orion-roadmap](tracks/erp-v2-orion-roadmap/plan.md)
 
 | Track | Status | Created | Last Updated |
 |-------|--------|---------|--------------|
+| [Credit Control Engine](./archive/tracks/credit-control-engine/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
+| [Min-Price Hard Stop](./archive/tracks/min-price-hardstop/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
+| [Manager Override PIN](./archive/tracks/manager-override-pin/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
 | [WMS Virtual Warehouses & Thermal Zones](./archive/tracks/wms-virtual-warehouses/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
 | [Pricing Engine — Channel + Tier + Contract](./archive/tracks/pricing-engine/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
 | [Multi-BU Foundation](./archive/tracks/multi-bu-foundation/plan.md) | Verified | 2026-05-23 | 2026-05-23 |

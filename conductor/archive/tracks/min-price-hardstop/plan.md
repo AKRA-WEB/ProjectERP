@@ -2,9 +2,10 @@
 track: min-price-hardstop
 phase: V2.0-P1
 sequence: 5
-status: planned
+status: Verified
 owner: Chen
 created: 2026-05-23
+updated: 2026-05-23
 depends_on: [pricing-engine, manager-override-pin]
 estimate: M
 assigned_to: [Paku, Puka]

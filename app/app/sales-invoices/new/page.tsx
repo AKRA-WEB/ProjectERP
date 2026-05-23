@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { get, post } from '@/lib/api-client';
+import { get, post, ApiError } from '@/lib/api-client';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import Link from 'next/link';
 import type { SalesOrder, SalesInvoice } from '@/types';
+import { OverridePinModal } from '@/components/auth/OverridePinModal';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden';
 
@@ -24,6 +25,10 @@ export default function NewSalesInvoicePage() {
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0]);
   const [notes, setNotes] = useState('');
 
+  const [overrideToken, setOverrideToken] = useState<string | null>(null);
+  const [overrideReasonCode, setOverrideReasonCode] = useState<string | null>(null);
+  const [isOverrideModalOpen, setIsOverrideModalOpen] = useState(false);
+
   useEffect(() => {
     // Fetch confirmed/delivered SOs that are not yet fully invoiced
     get<{ data: SalesOrder[] }>('/api/sales-orders?limit=1000') // Simplification
@@ -35,19 +40,31 @@ export default function NewSalesInvoicePage() {
       .finally(() => setLoading(false));
   }, []);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit(e?: React.FormEvent, overrideTok?: string, overrideReason?: string) {
+    if (e) e.preventDefault();
     if (!soId) return alert('กรุณาเลือกใบสั่งขายอ้างอิง');
 
     setSubmitting(true);
     try {
+      const tok = overrideTok || overrideToken || undefined;
+      const reason = overrideReason || overrideReasonCode || undefined;
       const res = await post<SalesInvoice>('/api/sales-invoices', {
         so_id: soId,
         invoice_date: invoiceDate,
         notes: notes || undefined,
+        override_token: tok,
+        reason_code: reason,
       });
       router.push(`/app/sales-invoices/${res.id}`);
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof ApiError && error.status === 409) {
+        const details = error.details as { code?: string } | undefined;
+        if (details?.code === 'MIN_PRICE_VIOLATION') {
+          setSubmitting(false);
+          setIsOverrideModalOpen(true);
+          return;
+        }
+      }
       alert(error instanceof Error ? error.message : 'Failed to create Invoice');
       setSubmitting(false);
     }
@@ -108,6 +125,18 @@ export default function NewSalesInvoicePage() {
           <Button type="submit" loading={submitting}>สร้างเอกสาร / Create Invoice</Button>
         </div>
       </form>
+
+      <OverridePinModal
+        isOpen={isOverrideModalOpen}
+        action="min_price_override"
+        onSuccess={(token, reasonCode) => {
+          setIsOverrideModalOpen(false);
+          setOverrideToken(token);
+          setOverrideReasonCode(reasonCode);
+          handleSubmit(undefined, token, reasonCode);
+        }}
+        onClose={() => setIsOverrideModalOpen(false)}
+      />
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { apiSuccess, apiError, apiValidationError } from '@/lib/api-response';
 import { assertPermission, assertWarehouseAccess, buildWarehouseScopeClause } from '@/lib/authz';
 import pool, { query } from '@/lib/db/client';
 import { resolvePrice } from '@/lib/pricing/resolve';
+import { enforceMinPrice, MinPriceViolationError } from '@/lib/pricing/enforce-min-price';
 import { z } from 'zod';
 import { DEFAULT_PAGE_SIZE, VAT_RATE } from '@/lib/constants';
 import type { SessionUser } from '@/lib/authz';
@@ -20,6 +21,8 @@ const createSchema = z.object({
   card_amount: z.number().min(0).optional(),
   discount_amount: z.number().min(0).default(0), // order-level discount
   member_id: z.string().uuid().optional().nullable(),
+  override_token: z.string().optional(),
+  reason_code: z.string().optional(),
 });
 
 export async function GET(req: Request) {
@@ -86,7 +89,9 @@ export async function POST(req: Request) {
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) return apiValidationError(parsed.error);
 
-  const { session_id, lines, payment_method, cash_tendered = 0, card_amount = 0, discount_amount: orderDiscount = 0, member_id } = parsed.data;
+  const { session_id, lines, payment_method, cash_tendered = 0, card_amount = 0, discount_amount: orderDiscount = 0, member_id, override_token, reason_code } = parsed.data;
+
+  const txnId = crypto.randomUUID();
 
   const client = await pool.connect();
   try {
@@ -102,6 +107,37 @@ export async function POST(req: Request) {
     const { warehouse_id } = sessionRow.rows[0];
 
     try { assertWarehouseAccess(u, warehouse_id); } catch { await client.query('ROLLBACK'); return apiError('No access to this warehouse', 403); }
+
+    // Fetch warehouse code to determine if it is clearance
+    const whRes = await client.query('SELECT code FROM warehouses WHERE id = $1', [warehouse_id]);
+    const isClearance = whRes.rows[0]?.code === 'V-CLR';
+
+    // 1a. Enforce min price check
+    try {
+      for (const line of lines) {
+        await enforceMinPrice({
+          product_id: line.product_id,
+          unit_price: line.unit_price,
+          is_clearance: isClearance,
+          override_token,
+          user_id: u.id,
+          target_table: 'pos_transactions',
+          target_id: txnId,
+          reason_code,
+        });
+      }
+    } catch (err: unknown) {
+      await client.query('ROLLBACK');
+      if (err instanceof MinPriceViolationError) {
+        return apiError(err.message, err.status, err.details);
+      }
+      const errWithStatus = err as { status?: number; message?: string };
+      if (errWithStatus.status) {
+        return apiError(errWithStatus.message || 'Validation failed', errWithStatus.status);
+      }
+      console.error('POS Checkout min price check error:', err);
+      return apiError('Failed to validate min price', 500);
+    }
 
     // 2. Validate stock and compute totals
     let subtotalBeforeOrderDiscount_acc = 0;
@@ -131,7 +167,7 @@ export async function POST(req: Request) {
         return apiError(`No price configured for product ${line.product_id} on channel TRD`, 422);
       }
 
-      const unitPrice = resolution.price;
+      const unitPrice = line.unit_price;
       const lineTotal = (unitPrice * line.qty) - line.discount_amount;
       subtotalBeforeOrderDiscount_acc += lineTotal;
       lineData.push({ 
@@ -177,14 +213,13 @@ export async function POST(req: Request) {
 
     const changeGiven = payment_method === 'card' ? 0 : Math.max(0, (cash_tendered + card_amount) - total);
 
-    // 4. Create transaction
+    // 4. Create transaction using pre-generated UUID
     const txn = await client.query<{ id: string; receipt_number: string }>(
-      `INSERT INTO pos_transactions (session_id, warehouse_id, subtotal, discount_amount, vat_amount, total, payment_method, cash_tendered, card_amount, change_given, member_id, points_earned, created_by)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+      `INSERT INTO pos_transactions (id, session_id, warehouse_id, subtotal, discount_amount, vat_amount, total, payment_method, cash_tendered, card_amount, change_given, member_id, points_earned, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
        RETURNING id, receipt_number`,
-      [session_id, warehouse_id, subtotal, orderDiscount, vatAmount, total, payment_method, cash_tendered || null, card_amount || null, changeGiven, member_id ?? null, pointsEarned, u.id]
+      [txnId, session_id, warehouse_id, subtotal, orderDiscount, vatAmount, total, payment_method, cash_tendered || null, card_amount || null, changeGiven, member_id ?? null, pointsEarned, u.id]
     );
-    const txnId = txn.rows[0].id;
 
     // Update member points if applicable (R-002)
     if (member_id && pointsEarned > 0) {

@@ -57,7 +57,9 @@
       "PowerShell(Get-Command gh -ErrorAction SilentlyContinue)",
       "Bash(npx next *)",
       "Bash(Get-ChildItem \"C:\\\\Users\\\\AKRA-Panich-Front\\\\OneDrive\\\\02-2 - AKRA\\\\projectERP\\\\app\\\\grn\" -Recurse -ErrorAction SilentlyContinue)",
-      "Bash(Format-Table Name, FullName)"
+      "Bash(Format-Table Name, FullName)",
+      "Bash(mkdir -p \"C:/Users/AKRA-Panich-Front/OneDrive/02-2 - AKRA/projectERP/app/api/customers/[id]/credit-status\")",
+      "Bash(mkdir -p \"C:/Users/AKRA-Panich-Front/OneDrive/02-2 - AKRA/projectERP/app/api/customers/[id]/credit-release\")"
     ]
   },
   "hooks": {

@@ -25,7 +25,8 @@ Refer to [AI Workflow Guide](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20
 
 ---
 
-## Execution Loop (Auto-Continue with Auto-QA & Auto-Fix)
+## Execution Loop (Self-Correcting Auto-QA & Auto-Fix)
+
 
 After receiving the `Go` command, do NOT stop until the entire registry is Verified and clean. Follow this self-correcting loop:
 
@@ -68,6 +69,18 @@ Next action needed: [QA: trackname / rework / new plan]
 - A track fails `npx tsc --noEmit` after 1 retry attempt
 
 ---
+
+## Unified AI Collaboration Protocol (Universal Standards)
+
+All AI agents (Claude, Gemini, Codex, etc.) must adhere to the identical operational standards and protocols:
+
+**Triggers & Commands:**
+- **`Init`** → Run Pre-Flight Checklist in full (git sync, track sweep, load current-state + pitfalls, check Conductor board, and report system readiness).
+- **`Architect: <requirement>`** → Spawn Chen/Architect planning protocol. Analyze codebase, create `plan.md` inside a new track folder, and update `conductor/index.md`. Do NOT code or plan inline.
+- **`Go`** → Act as the **Implementer**. Find the first `Active` or `Rework Required` track in `conductor/index.md` -> Execute tasks surgically -> Run Auto-QA (`npm run qa:verify` -> must be 0 errors) -> Mark as `Verified` and run `npm run track:sweep` -> **STOP IMMEDIATELY**. Do NOT automatically proceed to the next track under any circumstances.
+- **`Summary`** → Write `execution-summary.md` with exact lines modified and validation results as evidence.
+
+Refer to [AI Workflow Guide](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/docs/AI_WORKFLOW_GUIDE.md) and `conductor/PROTOCOLS.md` for full protocols and workflow structures.
 
 ## Concurrency & Parallel Work Rules
 

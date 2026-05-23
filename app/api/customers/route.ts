@@ -33,6 +33,7 @@ export async function GET(req: Request) {
   const offset = (page - 1) * limit;
   const search = searchParams.get('search');
   const isActive = searchParams.get('is_active');
+  const onHold = searchParams.get('on_hold');
 
   const conditions: string[] = [];
   const params: unknown[] = [];
@@ -46,6 +47,10 @@ export async function GET(req: Request) {
   if (isActive !== null) {
     conditions.push(`is_active = $${idx++}`);
     params.push(isActive === 'true');
+  }
+  if (onHold !== null) {
+    conditions.push(`on_hold = $${idx++}`);
+    params.push(onHold === 'true');
   }
 
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';

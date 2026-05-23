@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { get, post } from '@/lib/api-client';
+import { get, post, ApiError } from '@/lib/api-client';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { formatCurrency } from '@/lib/format';
 import Link from 'next/link';
 import type { Customer, Warehouse, Product, SalesOrder } from '@/types';
+import { OverridePinModal } from '@/components/auth/OverridePinModal';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden';
 
@@ -36,6 +37,10 @@ export default function NewSalesOrderPage() {
     unit_price: number;
     discount_amount: number;
   }>>([]);
+
+  const [overrideToken, setOverrideToken] = useState<string | null>(null);
+  const [overrideReasonCode, setOverrideReasonCode] = useState<string | null>(null);
+  const [isOverrideModalOpen, setIsOverrideModalOpen] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -79,8 +84,8 @@ export default function NewSalesOrderPage() {
   const vatAmount = Math.round(subtotal * 0.07 * 100) / 100;
   const totalAmount = subtotal + vatAmount;
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit(e?: React.FormEvent, overrideTok?: string, overrideReason?: string) {
+    if (e) e.preventDefault();
     if (!customerId) return alert('กรุณาเลือกลูกค้า');
     if (!warehouseId) return alert('กรุณาเลือกคลังสินค้า');
     if (lines.length === 0) return alert('กรุณาเพิ่มสินค้าอย่างน้อย 1 รายการ');
@@ -88,12 +93,16 @@ export default function NewSalesOrderPage() {
 
     setSubmitting(true);
     try {
+      const tok = overrideTok || overrideToken || undefined;
+      const reason = overrideReason || overrideReasonCode || undefined;
       const res = await post<SalesOrder>('/api/sales-orders', {
         customer_id: customerId,
         warehouse_id: warehouseId,
         expected_delivery: expectedDelivery || undefined,
         payment_terms_days: parseInt(paymentTermsDays),
         notes,
+        override_token: tok,
+        reason_code: reason,
         lines: lines.map(l => ({
           product_id: l.product_id,
           qty_ordered: l.qty_ordered,
@@ -102,7 +111,15 @@ export default function NewSalesOrderPage() {
         })),
       });
       router.push(`/app/sales-orders/${res.id}`);
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof ApiError && error.status === 409) {
+        const details = error.details as { code?: string } | undefined;
+        if (details?.code === 'MIN_PRICE_VIOLATION') {
+          setSubmitting(false);
+          setIsOverrideModalOpen(true);
+          return;
+        }
+      }
       alert(error instanceof Error ? error.message : 'Failed to create SO');
       setSubmitting(false);
     }
@@ -228,6 +245,18 @@ export default function NewSalesOrderPage() {
           <Button type="submit" loading={submitting}>บันทึกใบสั่งขาย / Save SO</Button>
         </div>
       </form>
+
+      <OverridePinModal
+        isOpen={isOverrideModalOpen}
+        action="min_price_override"
+        onSuccess={(token, reasonCode) => {
+          setIsOverrideModalOpen(false);
+          setOverrideToken(token);
+          setOverrideReasonCode(reasonCode);
+          handleSubmit(undefined, token, reasonCode);
+        }}
+        onClose={() => setIsOverrideModalOpen(false)}
+      />
     </div>
   );
 }

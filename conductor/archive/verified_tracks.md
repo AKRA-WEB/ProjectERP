@@ -39,3 +39,6 @@
 | [multi-bu-foundation — Multi-BU Foundation](./tracks/multi-bu-foundation/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
 | [pricing-engine — Pricing Engine — Channel + Tier + Contract](./tracks/pricing-engine/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
 | [wms-virtual-warehouses — WMS Virtual Warehouses & Thermal Zones](./tracks/wms-virtual-warehouses/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
+| [manager-override-pin — Manager Override PIN](./tracks/manager-override-pin/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
+| [min-price-hardstop — Min-Price Hard Stop](./tracks/min-price-hardstop/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
+| [credit-control-engine — Credit Control Engine](./tracks/credit-control-engine/plan.md) | Verified | 2026-05-23 | 2026-05-23 |

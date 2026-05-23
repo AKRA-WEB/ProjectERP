@@ -61,7 +61,7 @@ export async function GET(req: Request) {
 
   const users = await query(
     `SELECT u.id, u.email, u.name_th, u.name_en, u.role, u.is_active, u.created_at,
-            u.employee_id, u.position, u.department, u.phone, u.hired_date, u.business_unit_id,
+            u.employee_id, u.position, u.department, u.phone, u.hired_date, u.business_unit_id, u.override_pin_hash,
             COUNT(uwa.warehouse_id) AS warehouse_count
      FROM users u
      LEFT JOIN user_warehouse_assignments uwa ON uwa.user_id = u.id

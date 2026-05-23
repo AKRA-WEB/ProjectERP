@@ -22,6 +22,7 @@ export interface User {
   phone: string | null;
   hired_date: string | null;
   business_unit_id: string | null;
+  override_pin_hash?: string | null;
   created_at: string;
   updated_at: string;
 }

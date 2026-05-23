@@ -27,7 +27,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const { id } = await params;
   const user = await queryOne(
     `SELECT u.id, u.email, u.name_th, u.name_en, u.role, u.is_active, u.created_at,
-            u.employee_id, u.position, u.department, u.phone, u.hired_date, u.business_unit_id,
+            u.employee_id, u.position, u.department, u.phone, u.hired_date, u.business_unit_id, u.override_pin_hash,
             array_agg(uwa.warehouse_id) FILTER (WHERE uwa.warehouse_id IS NOT NULL) AS assigned_warehouse_ids
      FROM users u
      LEFT JOIN user_warehouse_assignments uwa ON uwa.user_id = u.id

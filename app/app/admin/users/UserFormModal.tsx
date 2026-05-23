@@ -39,9 +39,28 @@ export default function UserFormModal({ user, onClose, onSaved }: Props) {
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [newPin, setNewPin] = useState('');
+  const [savingPin, setSavingPin] = useState(false);
+  const [pinMessage, setPinMessage] = useState('');
 
   function set(key: string, val: string | boolean) {
     setForm((f) => ({ ...f, [key]: val }));
+  }
+
+  async function handleSavePin() {
+    if (!user) return;
+    setPinMessage('');
+    setError('');
+    setSavingPin(true);
+    try {
+      await patch(`/api/admin/users/${user.id}/override-pin`, { pin: newPin });
+      setPinMessage(lang === 'en' ? 'Override PIN updated successfully!' : 'อัปเดตรหัส PIN อนุมัติสำเร็จแล้ว!');
+      setNewPin('');
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาดในการอัปเดตรหัส PIN');
+    } finally {
+      setSavingPin(false);
+    }
   }
 
   async function handleSave() {
@@ -129,6 +148,39 @@ export default function UserFormModal({ user, onClose, onSaved }: Props) {
               <Input label="วันที่เริ่มงาน / Hired Date" type="date" value={form.hired_date} onChange={(e) => set('hired_date', e.target.value)} />
             </div>
           </div>
+
+           {isEdit && (form.role === 'manager' || form.role === 'admin') && (
+            <div className="border-t pt-4">
+              <h3 className="text-xs font-bold text-gray-600 uppercase mb-4 tracking-widest">
+                รหัสผ่านอนุมัติ / Supervisor Override PIN
+              </h3>
+              <div className="flex items-end gap-3">
+                <div className="flex-1">
+                  <Input
+                    label="รหัส PIN ใหม่ (ตัวเลข 4-6 หลัก)"
+                    placeholder={user?.override_pin_hash ? "มีรหัส PIN แล้ว (เว้นว่างไว้หากไม่ต้องการเปลี่ยน)" : "ยังไม่มีรหัส PIN"}
+                    type="password"
+                    maxLength={6}
+                    pattern="[0-9]*"
+                    inputMode="numeric"
+                    value={newPin}
+                    onChange={(e) => setNewPin(e.target.value.replace(/[^0-9]/g, ''))}
+                    helperText="ป้อนตัวเลข 4 ถึง 6 หลักเพื่อทำหน้าที่เป็นผู้มีอำนาจอนุมัติ / Enter 4-6 digits for authorization role"
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={handleSavePin}
+                  loading={savingPin}
+                  disabled={!newPin || newPin.length < 4}
+                >
+                  อัปเดตรหัส PIN
+                </Button>
+              </div>
+              {pinMessage && <p className="mt-2 text-sm text-green-600 font-medium">{pinMessage}</p>}
+            </div>
+          )}
 
           {isEdit && (
             <label className="flex items-center gap-2 text-sm pt-2">

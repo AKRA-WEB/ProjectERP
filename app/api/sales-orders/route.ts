@@ -2,7 +2,9 @@ import { auth } from '@/auth';
 import { apiSuccess, apiError, apiValidationError } from '@/lib/api-response';
 import { assertPermission, buildWarehouseScopeClause } from '@/lib/authz';
 import pool, { query } from '@/lib/db/client';
-import { resolvePrice } from '@/lib/pricing/resolve';
+import { enforceMinPrice, MinPriceViolationError } from '@/lib/pricing/enforce-min-price';
+import { checkCreditStatus } from '@/lib/credit/check-credit-status';
+import { consumeOverrideToken } from '@/lib/auth/override-pin';
 import { z } from 'zod';
 import { DEFAULT_PAGE_SIZE } from '@/lib/constants';
 import type { SessionUser } from '@/lib/authz';
@@ -13,6 +15,9 @@ const createSchema = z.object({
   expected_delivery: z.string().optional().nullable(),
   payment_terms_days: z.number().int().min(0).default(30),
   notes: z.string().optional().nullable(),
+  override_token: z.string().optional(),
+  reason_code: z.string().optional(),
+  credit_release_token: z.string().optional(),
   lines: z.array(z.object({
     product_id: z.string().uuid(),
     qty_ordered: z.number().positive(),
@@ -91,26 +96,73 @@ export async function POST(req: Request) {
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) return apiValidationError(parsed.error);
 
-  const { customer_id, warehouse_id, expected_delivery, payment_terms_days, notes, lines } = parsed.data;
+  const { customer_id, warehouse_id, expected_delivery, payment_terms_days, notes, lines, override_token, reason_code, credit_release_token } = parsed.data;
+
+  // Generate sales order ID upfront so it can be passed to enforceMinPrice
+  const soId = crypto.randomUUID();
+
+  // Determine if this is a clearance warehouse
+  const whRes = await pool.query('SELECT code FROM warehouses WHERE id = $1', [warehouse_id]);
+  const isClearance = whRes.rows[0]?.code === 'V-CLR';
+
+  // 1. Enforce min price check before doing database operations
+  try {
+    for (const line of lines) {
+      await enforceMinPrice({
+        product_id: line.product_id,
+        unit_price: line.unit_price,
+        is_clearance: isClearance,
+        override_token,
+        user_id: u.id,
+        target_table: 'sales_orders',
+        target_id: soId,
+        reason_code,
+      });
+    }
+  } catch (err: unknown) {
+    if (err instanceof MinPriceViolationError) {
+      return apiError(err.message, err.status, err.details);
+    }
+    const errWithStatus = err as { status?: number; message?: string };
+    if (errWithStatus.status) {
+      return apiError(errWithStatus.message || 'Validation failed', errWithStatus.status);
+    }
+    console.error('Create SO min price check error:', err);
+    return apiError('Failed to validate min price', 500);
+  }
+
+  // 2. Credit hold check
+  const creditStatus = await checkCreditStatus(customer_id);
+  if (creditStatus.on_hold) {
+    if (!credit_release_token) {
+      return apiError('Credit hold', 412, {
+        code: 'CREDIT_HOLD',
+        outstanding: creditStatus.outstanding,
+        max_aging_days: creditStatus.max_aging_days,
+        reason: creditStatus.reason,
+      });
+    }
+    try {
+      await consumeOverrideToken(credit_release_token, 'credit_release', {
+        user_id: u.id,
+        target_table: 'sales_orders',
+        target_id: soId,
+        original_value: { on_hold: true },
+        override_value: { on_hold: false },
+        reason_code: 'inline_order_override',
+      });
+    } catch (err: unknown) {
+      const e = err as { status?: number; message?: string };
+      return apiError(e.message ?? 'Invalid credit release token', e.status ?? 401);
+    }
+  }
 
   let subtotal = 0;
   const lineData: (z.infer<typeof createSchema>['lines'][0] & { line_total: number; line_number: number })[] = [];
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    
-    // Resolve dynamic price
-    const resolution = await resolvePrice({
-      channel: 'AKRA',
-      customer_id,
-      product_id: line.product_id,
-      qty: line.qty_ordered,
-    });
-    if (!resolution) {
-      return apiError(`No price configured for product ${line.product_id} on channel AKRA`, 422);
-    }
-    
-    const unitPrice = resolution.price;
+    const unitPrice = line.unit_price;
     const lineTotal = (line.qty_ordered * unitPrice) - line.discount_amount;
     subtotal += lineTotal;
     lineData.push({ 
@@ -131,10 +183,10 @@ export async function POST(req: Request) {
     // 1. Insert Header
     const soRes = await client.query(
       `INSERT INTO sales_orders (
-        customer_id, warehouse_id, expected_delivery, payment_terms_days, subtotal, vat_amount, total_amount, notes, created_by
-       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        id, customer_id, warehouse_id, expected_delivery, payment_terms_days, subtotal, vat_amount, total_amount, notes, created_by
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        RETURNING *`,
-      [customer_id, warehouse_id, expected_delivery || null, payment_terms_days, subtotal, vatAmount, totalAmount, notes || null, u.id]
+      [soId, customer_id, warehouse_id, expected_delivery || null, payment_terms_days, subtotal, vatAmount, totalAmount, notes || null, u.id]
     );
     const so = soRes.rows[0];
 

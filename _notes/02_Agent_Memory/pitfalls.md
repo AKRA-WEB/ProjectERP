@@ -34,3 +34,8 @@ This file records generic workflow and agent-behavior pitfalls. Specific domain 
 ### 6. Contradictions in Agent Instructions
 * **Symptom:** AI falls back to the easiest/inline behavior when two instruction files contradict each other on ownership or process.
 * **Fix:** Resolve instructions immediately at the source file. Do not rely on loose memory notes.
+
+### 7. Override Token Replay
+* **Symptom:** Override authorization tokens can be replayed or reused for multiple transactions or sensitive actions.
+* **Fix:** Always rely on `override_audit.jti UNIQUE` constraint inside a database transaction block during token consumption; never trust JWT expiration time alone.
+
