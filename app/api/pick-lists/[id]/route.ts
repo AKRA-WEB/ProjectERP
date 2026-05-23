@@ -32,11 +32,14 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     `SELECT pll.*,
            p.name_th AS product_name, p.sku AS product_sku,
            COALESCE(sb.qty_on_hand, 0) AS qty_on_hand,
-           COALESCE(sb.qty_available, 0) AS qty_available
+           COALESCE(sb.qty_available, 0) AS qty_available,
+           l.lot_number AS suggested_lot_number,
+           l.expiry_date AS suggested_expiry
     FROM pick_list_lines pll
     JOIN products p ON p.id = pll.product_id
     LEFT JOIN stock_balances sb ON sb.product_id = pll.product_id
       AND sb.warehouse_id = $2
+    LEFT JOIN lots l ON l.id = pll.lot_id
     WHERE pll.pick_list_id = $1
     ORDER BY pll.created_at`,
     [id, (pickList as { warehouse_id: string }).warehouse_id]

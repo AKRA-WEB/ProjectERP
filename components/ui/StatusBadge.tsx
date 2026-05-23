@@ -51,6 +51,7 @@ const STATUS_CONFIG: Record<string, { variant: BadgeVariant }> = {
   short_picked:        { variant: 'warn' },
   shipped:             { variant: 'info' },
   delivered:           { variant: 'ok' },
+  printed:             { variant: 'info' },
 };
 
 const LABEL_TH: Record<string, string> = {
@@ -93,6 +94,7 @@ const LABEL_TH: Record<string, string> = {
   short_picked: 'หยิบไม่ครบ',
   shipped: 'จัดส่งแล้ว',
   delivered: 'ส่งถึงแล้ว',
+  printed: 'รอหยิบ (Printed)',
 };
 
 interface StatusBadgeProps {

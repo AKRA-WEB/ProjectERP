@@ -152,6 +152,10 @@ export interface PickListLine {
   status: PickLineStatus;
   qty_available?: number;
   qty_on_hand?: number;
+  lot_id?: string | null;
+  suggested_lot_number?: string | null;
+  suggested_expiry?: string | null;
+  fefo_override_jti?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -212,6 +216,9 @@ export interface RepackOrder {
   warehouse_name_th?: string;
   status: RepackStatus;
   notes: string | null;
+  yield_loss_qty: number;
+  yield_loss_reason: string | null;
+  closed_je_id: string | null;
   created_by: string;
   created_by_name?: string;
   completed_at: string | null;

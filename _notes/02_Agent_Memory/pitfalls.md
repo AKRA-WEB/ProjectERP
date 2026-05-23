@@ -1,4 +1,4 @@
-# AI Wisdom & Pitfalls — Generic Workflow Traps
+* **Lots without expiry_date:** FEFO order must use `NULLS LAST` (e.g., `ORDER BY expiry_date ASC NULLS LAST`) to keep dated lots first; otherwise, NULLs might appear first depending on DB settings, breaking FEFO logic.
 
 This file records generic workflow and agent-behavior pitfalls. Specific domain pitfalls (UI, API, SQL, Vercel) have been moved to their respective Skill Files under `docs/skills/`.
 

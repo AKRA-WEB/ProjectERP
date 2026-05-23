@@ -124,14 +124,25 @@ export async function POST(req: Request) {
     const pickNumber = plRes.rows[0].pick_number;
 
     for (const line of parsed.data.lines) {
+      // Find the best FEFO lot as a suggestion
+      const suggestedLotRes = await client.query(
+        `SELECT id FROM lots 
+         WHERE product_id = $1 AND warehouse_id = $2 AND qty_on_hand > 0
+         ORDER BY expiry_date ASC NULLS LAST, received_at ASC
+         LIMIT 1`,
+        [line.product_id, parsed.data.warehouse_id]
+      );
+      const suggestedLotId = suggestedLotRes.rows[0]?.id || null;
+
       await client.query(
-        `INSERT INTO pick_list_lines (pick_list_id, product_id, qty_requested, storage_location)
-         VALUES ($1, $2, $3, $4)`,
+        `INSERT INTO pick_list_lines (pick_list_id, product_id, qty_requested, storage_location, lot_id)
+         VALUES ($1, $2, $3, $4, $5)`,
         [
           pickListId,
           line.product_id,
           line.qty_requested,
-          line.storage_location ?? null
+          line.storage_location ?? null,
+          suggestedLotId
         ]
       );
     }

@@ -8,9 +8,9 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
-import { formatCurrency } from '@/lib/format';
+import { formatCurrency, formatDatetime } from '@/lib/format';
 import Link from 'next/link';
-import type { SalesInvoice } from '@/types';
+import type { SalesInvoice, InvoiceVersion } from '@/types';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden';
 
@@ -18,18 +18,26 @@ export default function SalesInvoiceDetailPage() {
   const { id } = useParams() as { id: string };
   const router = useRouter();
   const [si, setSi] = useState<SalesInvoice | null>(null);
+  const [versions, setVersions] = useState<InvoiceVersion[]>([]);
   const [loading, setLoading] = useState(true);
   const [actioning, setActioning] = useState('');
   
   const [voidModalOpen, setVoidModalOpen] = useState(false);
   const [voidReason, setVoidReason] = useState('');
 
+  const [deltaModalOpen, setVoidDeltaModalOpen] = useState(false);
+  const [deltaLines, setDeltaLines] = useState<{ product_id: string; qty_delta: number; price_delta: number }[]>([]);
+
   const fetchSI = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await get<SalesInvoice>(`/api/sales-invoices/${id}`);
+      const [res, vRes] = await Promise.all([
+        get<SalesInvoice>(`/api/sales-invoices/${id}`),
+        get<{ versions: InvoiceVersion[] }>(`/api/sales-invoices/${id}/versions`)
+      ]);
       setSi(res);
-    } catch (error) {
+      setVersions(vRes.versions);
+    } catch (error: unknown) {
       console.error('Failed to fetch SI:', error);
       router.push('/app/sales-invoices');
     } finally {
@@ -40,6 +48,19 @@ export default function SalesInvoiceDetailPage() {
   useEffect(() => {
     fetchSI();
   }, [fetchSI]);
+
+  async function handleViewDelta() {
+    setActioning('delta');
+    try {
+      const res = await get<{ delta_lines: { product_id: string; qty_delta: number; price_delta: number }[] }>(`/api/sales-invoices/${id}/delta-slip`);
+      setDeltaLines(res.delta_lines);
+      setVoidDeltaModalOpen(true);
+    } catch {
+      alert('Failed to fetch delta slip');
+    } finally {
+      setActioning('');
+    }
+  }
 
   async function handleAction(action: string) {
     if (action !== 'void' && !confirm(`Are you sure you want to ${action} this invoice?`)) return;
@@ -53,6 +74,12 @@ export default function SalesInvoiceDetailPage() {
       const res = await patch<SalesInvoice>(`/api/sales-invoices/${id}`, payload);
       setSi(prev => prev ? { ...prev, ...res } : null);
       if (action === 'void') setVoidModalOpen(false);
+
+      // Refresh versions if edited
+      if (action.startsWith('update')) {
+        const vRes = await get<{ versions: InvoiceVersion[] }>(`/api/sales-invoices/${id}/versions`);
+        setVersions(vRes.versions);
+      }
     } catch (error) {
       alert(error instanceof Error ? error.message : `Failed to ${action}`);
     } finally {
@@ -104,6 +131,29 @@ export default function SalesInvoiceDetailPage() {
               </div>
             )}
             <div>
+              <p className="text-stone-500 text-sm mb-1">เวอร์ชันและบาร์โค้ด / Version & Barcode</p>
+              <div className="flex items-center gap-2">
+                <div className="text-sm font-medium px-2 py-1 bg-stone-100 rounded border border-stone-200">
+                  v{si.current_version}
+                </div>
+                {si.current_version > 1 && (
+                  <Button 
+                    variant="outline" 
+                    className="h-8 text-[11px] px-2" 
+                    onClick={handleViewDelta}
+                    loading={actioning === 'delta'}
+                  >
+                    Δ Delta Slip
+                  </Button>
+                )}
+              </div>
+              {si.current_barcode && (
+                <p className="text-[10px] font-mono text-stone-400 mt-1 uppercase truncate w-full" title={si.current_barcode}>
+                  BC: {si.current_barcode}
+                </p>
+              )}
+            </div>
+            <div>
               <p className="text-stone-500 text-sm mb-1">วันที่ออกเอกสาร</p>
               <p className="font-medium">{new Date(si.invoice_date).toLocaleDateString('th-TH')}</p>
             </div>
@@ -146,6 +196,34 @@ export default function SalesInvoiceDetailPage() {
         </div>
       </div>
 
+      <div className={`${CARD}`}>
+        <div className="p-4 border-b border-stone-100 flex items-center justify-between bg-stone-50/50">
+          <h3 className="text-sm font-bold text-stone-400 uppercase tracking-wider">ประวัติเวอร์ชัน / Version History</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-stone-50 text-stone-500 text-xs uppercase">
+              <tr>
+                <th className="px-6 py-3 font-semibold">Ver</th>
+                <th className="px-6 py-3 font-semibold">Barcode</th>
+                <th className="px-6 py-3 font-semibold">สร้างโดย</th>
+                <th className="px-6 py-3 font-semibold">เมื่อวันที่</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-stone-100">
+              {versions.map((v) => (
+                <tr key={v.id} className={v.version_no === si.current_version ? 'bg-amber-50/30' : ''}>
+                  <td className="px-6 py-4 font-mono font-bold">v{v.version_no}</td>
+                  <td className="px-6 py-4 font-mono text-[10px] text-stone-400 uppercase">{v.barcode.slice(0, 16)}...</td>
+                  <td className="px-6 py-4 text-stone-600">{v.created_by_name}</td>
+                  <td className="px-6 py-4 text-stone-500">{formatDatetime(v.created_at, 'th')}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <Modal isOpen={voidModalOpen} onClose={() => setVoidModalOpen(false)} title="ยกเลิกใบแจ้งหนี้ / Void Invoice">
         <div className="space-y-4 pt-2">
           <Input
@@ -158,6 +236,44 @@ export default function SalesInvoiceDetailPage() {
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setVoidModalOpen(false)} disabled={actioning === 'void'}>ปิด / Close</Button>
             <Button className="bg-red-600 hover:bg-red-700" onClick={() => handleAction('void')} loading={actioning === 'void'}>ยืนยันยกเลิก / Confirm Void</Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal isOpen={deltaModalOpen} onClose={() => setVoidDeltaModalOpen(false)} title="รายการเปลี่ยนแปลง / Delta Slip">
+        <div className="space-y-4 pt-2">
+          <div className="p-4 bg-stone-50 rounded-lg border border-stone-200">
+            <p className="text-xs text-stone-400 uppercase font-bold mb-4">ส่วนต่างจากเวอร์ชันก่อนหน้า (+/-)</p>
+            {deltaLines.length === 0 ? (
+              <p className="text-sm text-stone-500 italic text-center py-4">ไม่มีการเปลี่ยนแปลงในรายการสินค้า</p>
+            ) : (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-stone-400 text-left border-b border-stone-200">
+                    <th className="font-semibold py-2">Product ID</th>
+                    <th className="font-semibold py-2 text-right">จำนวน Δ</th>
+                    <th className="font-semibold py-2 text-right">ราคา Δ</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-stone-100">
+                  {deltaLines.map((line, idx) => (
+                    <tr key={idx}>
+                      <td className="py-3 font-mono text-xs">{line.product_id.slice(0, 13)}...</td>
+                      <td className={`py-3 text-right font-mono font-bold ${line.qty_delta > 0 ? 'text-emerald-600' : line.qty_delta < 0 ? 'text-red-600' : ''}`}>
+                        {line.qty_delta > 0 ? '+' : ''}{line.qty_delta}
+                      </td>
+                      <td className={`py-3 text-right font-mono ${line.price_delta > 0 ? 'text-emerald-600' : line.price_delta < 0 ? 'text-red-600' : ''}`}>
+                        {line.price_delta > 0 ? '+' : ''}{formatCurrency(line.price_delta)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+          <div className="flex justify-end gap-2 print:hidden">
+            <Button variant="outline" onClick={() => setVoidDeltaModalOpen(false)}>ปิด / Close</Button>
+            <Button onClick={() => window.print()} className="flex items-center gap-2">พิมพ์ใบส่วนต่าง / Print Delta</Button>
           </div>
         </div>
       </Modal>

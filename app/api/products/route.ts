@@ -49,7 +49,11 @@ export async function GET(req: Request) {
 
   const products = await query(
     `SELECT p.*, u.code AS uom_code, u.name_en AS uom_name,
-            c.name_en AS category_name
+            c.name_en AS category_name,
+            (SELECT gli.unit_cost FROM grn_line_items gli 
+             JOIN goods_receipt_notes grn ON grn.id = gli.grn_id
+             WHERE gli.product_id = p.id AND grn.status = 'stocked'
+             ORDER BY grn.created_at DESC LIMIT 1) AS last_cost
      FROM products p
      LEFT JOIN units_of_measure u ON u.id = p.uom_id
      LEFT JOIN product_categories c ON c.id = p.category_id

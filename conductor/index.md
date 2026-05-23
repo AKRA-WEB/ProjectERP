@@ -4,6 +4,7 @@
 
 | Status | Gemini action |
 |--------|--------------|
+| `Planned` | **Queue item.** Awaiting priority activation. **Do not execute.** |
 | `Active` | **Do this now.** Read `plan.md` in the track folder and execute all tasks. Update status to `Completed` when done. |
 | `Completed` | Implemented. Awaiting Billy QA — do not re-implement. |
 | `Verified` | Billy QA passed. No action needed. |
@@ -30,12 +31,12 @@ Master plan: [erp-v2-orion-roadmap](tracks/erp-v2-orion-roadmap/plan.md)
 | 4 | manager-override-pin | Verified | [plan](tracks/manager-override-pin/plan.md) |
 | 5 | min-price-hardstop | Verified | [plan](tracks/min-price-hardstop/plan.md) |
 | 6 | credit-control-engine | Verified | [plan](tracks/credit-control-engine/plan.md) |
-| 7 | channel-on-order-header | Active | [plan](tracks/channel-on-order-header/plan.md) |
-| 8 | pos-draft-and-hybrid-flow | Active | [plan](tracks/pos-draft-and-hybrid-flow/plan.md) |
-| 9 | pos-delta-slip-and-versioning | Active | [plan](tracks/pos-delta-slip-and-versioning/plan.md) |
-| 10 | dispatch-check-exit-gate | Active | [plan](tracks/dispatch-check-exit-gate/plan.md) |
-| 11 | fefo-enforcement | Active | [plan](tracks/fefo-enforcement/plan.md) |
-| 12 | strict-receiving-flow | Active | [plan](tracks/strict-receiving-flow/plan.md) |
+| 7 | channel-on-order-header | Verified | [plan](tracks/channel-on-order-header/plan.md) |
+| 8 | pos-draft-and-hybrid-flow | Verified | [plan](tracks/pos-draft-and-hybrid-flow/plan.md) |
+| 9 | pos-delta-slip-and-versioning | Verified | [plan](tracks/pos-delta-slip-and-versioning/plan.md) |
+| 10 | dispatch-check-exit-gate | Verified | [plan](tracks/dispatch-check-exit-gate/plan.md) |
+| 11 | fefo-enforcement | Verified | [plan](tracks/fefo-enforcement/plan.md) |
+| 12 | strict-receiving-flow | Verified | [plan](tracks/strict-receiving-flow/plan.md) |
 | 13 | repack-yield-loss | Active | [plan](tracks/repack-yield-loss/plan.md) |
 | 14 | wholecase-strict-lock-akra | Active | [plan](tracks/wholecase-strict-lock-akra/plan.md) |
 | 15 | price-history-alert-pos | Active | [plan](tracks/price-history-alert-pos/plan.md) |
@@ -72,6 +73,13 @@ Master plan: [erp-v2-orion-roadmap](tracks/erp-v2-orion-roadmap/plan.md)
 
 | Track | Status | Created | Last Updated |
 |-------|--------|---------|--------------|
+| [Repack Yield & Loss](./archive/tracks/repack-yield-loss/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
+| [Strict 5-Step Receiving Flow (PR -> PO -> BR -> GR -> Match)](./archive/tracks/strict-receiving-flow/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
+| [FEFO Enforcement (with Per-Line Override)](./archive/tracks/fefo-enforcement/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
+| [Dispatch-Check Exit Gate](./archive/tracks/dispatch-check-exit-gate/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
+| [POS Delta Slip + Invoice Versioning](./archive/tracks/pos-delta-slip-and-versioning/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
+| [POS Draft + Hybrid Picking-Slip Flow](./archive/tracks/pos-draft-and-hybrid-flow/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
+| [Channel on Order Header](./archive/tracks/channel-on-order-header/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
 | [Credit Control Engine](./archive/tracks/credit-control-engine/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
 | [Min-Price Hard Stop](./archive/tracks/min-price-hardstop/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
 | [Manager Override PIN](./archive/tracks/manager-override-pin/plan.md) | Verified | 2026-05-23 | 2026-05-23 |

@@ -13,6 +13,7 @@ export async function GET(req: Request) {
   const offset = (page - 1) * limit;
   const vendorId = searchParams.get('vendor_id');
   const isPaid = searchParams.get('is_paid');
+  const matchStatus = searchParams.get('match_status');
 
   const conditions: string[] = [];
   const params: unknown[] = [];
@@ -22,9 +23,13 @@ export async function GET(req: Request) {
     conditions.push(`pi.vendor_id = $${idx++}`);
     params.push(vendorId);
   }
-  if (isPaid !== null && isPaid !== undefined) {
+  if (isPaid !== null && isPaid !== undefined && isPaid !== '') {
     conditions.push(`pi.is_paid = $${idx++}`);
     params.push(isPaid === 'true');
+  }
+  if (matchStatus) {
+    conditions.push(`pi.match_status = $${idx++}`);
+    params.push(matchStatus);
   }
 
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';

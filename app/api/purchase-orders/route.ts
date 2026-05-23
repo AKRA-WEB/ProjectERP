@@ -142,9 +142,9 @@ export async function POST(req: Request) {
       `INSERT INTO purchase_orders (
         vendor_id, warehouse_id, bill_discount, non_vat_amount, pre_vat_amount, include_vat,
         doc_date, expiry_date, delivery_date, from_address, to_address, reference,
-        expected_date, payment_terms_days, notes, subtotal, vat_amount, total_amount, created_by
+        expected_date, payment_terms_days, notes, subtotal, vat_amount, total_amount, created_by, status
        )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, 'opened')
        RETURNING id, po_number, status`,
       [
         parsed.data.vendor_id, parsed.data.warehouse_id, parsed.data.bill_discount,

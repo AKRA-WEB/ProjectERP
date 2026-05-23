@@ -87,6 +87,7 @@ export interface Product {
   is_serial_tracked: boolean;
   min_price: number | string;
   clr_min_price: number | string;
+  last_cost?: number | string | null;
   created_at: string;
 }
 

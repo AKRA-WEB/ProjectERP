@@ -28,7 +28,7 @@ Refer to [AI Workflow Guide](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20
 ## Execution Loop (Self-Correcting Auto-QA & Auto-Fix)
 
 
-After receiving the `Go` command, do NOT stop until the entire registry is Verified and clean. Follow this self-correcting loop:
+When you receive the `Go` command, execute **exactly ONE track** (the first `Active` or `Rework Required` track in `conductor/index.md`). Do NOT automatically proceed to any subsequent track in the file under any circumstances, even if other tracks are also marked as `Active`. Follow this self-correcting loop for that single track:
 
 ```
 1. Complete track tasks in plan.md -> write execution-summary.md.

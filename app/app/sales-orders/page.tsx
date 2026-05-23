@@ -23,6 +23,7 @@ export default function SalesOrdersPage() {
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState('');
   const [warehouseId, setWarehouseId] = useState('');
+  const [channel, setChannel] = useState('');
 
   const fetchSOs = useCallback(async () => {
     setLoading(true);
@@ -32,6 +33,7 @@ export default function SalesOrdersPage() {
         limit: '20',
         ...(status && { status }),
         ...(warehouseId && { warehouse_id: warehouseId }),
+        ...(channel && { channel }),
       });
       const res = await get<PaginatedResponse<SalesOrder>>(`/api/sales-orders?${query}`);
       setData(res);
@@ -40,7 +42,7 @@ export default function SalesOrdersPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, status, warehouseId]);
+  }, [page, status, warehouseId, channel]);
 
   useEffect(() => {
     get<Warehouse[]>('/api/admin/warehouses').then(setWarehouses).catch(console.error);
@@ -64,6 +66,17 @@ export default function SalesOrdersPage() {
         </div>
 
         <div className={`${CARD} p-4 flex gap-4 items-end`}>
+          <div className="w-48">
+            <Select
+              label="ช่องทาง / Channel"
+              value={channel}
+              onChange={(e) => { setChannel(e.target.value); setPage(1); }}
+            >
+              <option value="">ทั้งหมด / All</option>
+              <option value="TRD">TRD (หน้าร้าน)</option>
+              <option value="AKRA">AKRA (โมเดิร์นเทรด)</option>
+            </Select>
+          </div>
           <div className="w-48">
             <Select
               label="สถานะ / Status"
@@ -111,7 +124,18 @@ export default function SalesOrdersPage() {
           >
             {data?.data.map((so) => (
               <tr key={so.id} className="hover:bg-stone-50 transition-colors">
-                <td className="px-5 py-4 font-mono font-bold text-stone-900">{so.so_number}</td>
+                <td className="px-5 py-4">
+                  <div className="flex items-center gap-2 font-mono font-bold text-stone-900">
+                    <span>{so.so_number}</span>
+                    <span className={`inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-medium leading-4 ${
+                      so.channel === 'TRD' 
+                        ? 'bg-blue-50 text-blue-700 border border-blue-200' 
+                        : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                    }`}>
+                      {so.channel}
+                    </span>
+                  </div>
+                </td>
                 <td className="px-5 py-4 text-stone-600">{so.customer_name_th}</td>
                 <td className="px-5 py-4 text-stone-600">{so.warehouse_name_th}</td>
                 <td className="px-5 py-4"><StatusBadge status={so.status} /></td>

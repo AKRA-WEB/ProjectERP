@@ -7,8 +7,10 @@ import { Button, StatusBadge, Input, Modal, ModalHeader, ModalBody, ModalFooter,
 import { get, post, patch } from '@/lib/api-client';
 import { formatDate, formatQty } from '@/lib/format';
 import type { SessionUser } from '@/lib/authz';
-import type { PickList, User } from '@/types';
+import type { PickList, User, PickListLine } from '@/types';
 import Link from 'next/link';
+import { OverridePinModal } from '@/components/auth/OverridePinModal';
+import { Barcode } from 'lucide-react';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-[0_1px_0_rgba(15,23,42,.03),0_1px_2px_rgba(15,23,42,.04)]';
 
@@ -36,6 +38,17 @@ export default function PickListDetailPage() {
     tracking_number: '',
     notes: '',
   });
+
+  const [fefoViolation, setFefoViolation] = useState<{
+    line_id: string;
+    lot_id: string;
+    earliest_lot_id: string;
+    earliest_expiry: string;
+  } | null>(null);
+
+  const [showScan, setShowScan] = useState(false);
+  const [scanningLine, setScanningLine] = useState<PickListLine | null>(null);
+  const [lotBarcode, setLotBarcode] = useState('');
 
   const fetchPickList = useCallback(async () => {
     setLoading(true);
@@ -104,13 +117,40 @@ export default function PickListDetailPage() {
         qty_picked,
         storage_location
       });
-      // Silent update for better UX, or refetch if consistency is preferred
-      // await fetchPickList(); 
     } catch (err: unknown) {
       const e = err as { message?: string };
       setError(e.message || 'Failed to update line');
     }
   };
+
+  async function handleScanLot(lotId: string, overrideToken?: string) {
+    if (!scanningLine) return;
+    setActing(true);
+    try {
+      await post(`/api/pick-lists/${id}/scan-lot`, {
+        line_id: scanningLine.id,
+        lot_id: lotId,
+        override_token: overrideToken
+      });
+      setShowScan(false);
+      setFefoViolation(null);
+      await fetchPickList();
+    } catch (err: unknown) {
+      const e = err as { status?: number; details?: { code?: string; earliest_lot_id: string; earliest_expiry: string } };
+      if (e.status === 409 && e.details?.code === 'FEFO_VIOLATION') {
+        setFefoViolation({
+          line_id: scanningLine.id,
+          lot_id: lotId,
+          earliest_lot_id: e.details.earliest_lot_id,
+          earliest_expiry: e.details.earliest_expiry
+        });
+      } else {
+        alert((err as Error).message || 'Scan failed');
+      }
+    } finally {
+      setActing(false);
+    }
+  }
 
   if (loading) return <div className="py-16 text-center text-stone-400 animate-pulse text-[13px]">กำลังโหลดข้อมูล...</div>;
   if (!pickList) return <div className="py-16 text-center text-red-500 text-[13px]">ไม่พบข้อมูลรายการหยิบสินค้า</div>;
@@ -209,10 +249,12 @@ export default function PickListDetailPage() {
                 <thead>
                   <tr className="bg-stone-50/30 text-[11px] font-semibold text-stone-400 uppercase tracking-wider border-b border-stone-100 text-left">
                     <th className="px-5 py-2.5">สินค้า / SKU</th>
+                    <th className="px-5 py-2.5">Suggested Lot (FEFO)</th>
                     <th className="px-5 py-2.5 text-right">ที่ต้องการ</th>
                     <th className="px-5 py-2.5 text-right">ที่หยิบได้</th>
                     <th className="px-5 py-2.5">ตำแหน่งเก็บ</th>
                     <th className="px-5 py-2.5 text-center">สถานะ</th>
+                    {canEditLines && <th className="px-5 py-2.5 text-center">Scan</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-50">
@@ -221,6 +263,12 @@ export default function PickListDetailPage() {
                       <td className="px-5 py-3">
                         <div className="font-mono text-[11px] text-stone-400 leading-none mb-1">{line.product_sku}</div>
                         <div className="text-[13px] font-medium text-stone-900">{line.product_name}</div>
+                      </td>
+                      <td className="px-5 py-3">
+                        <div className="text-[12px] font-medium text-stone-900">{line.suggested_lot_number || '—'}</div>
+                        <div className="text-[10px] text-stone-400 font-mono">
+                          {line.suggested_expiry ? formatDate(line.suggested_expiry) : 'No Expiry'}
+                        </div>
                       </td>
                       <td className="px-5 py-3 text-right font-mono text-stone-500">
                         {formatQty(line.qty_requested)}
@@ -261,6 +309,18 @@ export default function PickListDetailPage() {
                           <span className="text-[11px] text-stone-300">รอดำเนินการ</span>
                         )}
                       </td>
+                      {canEditLines && (
+                        <td className="px-5 py-3 text-center">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => { setScanningLine(line); setShowScan(true); }}
+                            className="h-8 px-2"
+                          >
+                            <Barcode className="w-4 h-4" />
+                          </Button>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -364,6 +424,57 @@ export default function PickListDetailPage() {
           </Button>
         </ModalFooter>
       </Modal>
+
+      {/* Scan Lot Modal */}
+      <Modal open={showScan} onClose={() => setShowScan(false)} size="md">
+        <ModalHeader onClose={() => setShowScan(false)}>สแกน Lot สินค้า</ModalHeader>
+        <ModalBody>
+          <div className="space-y-4 py-2">
+            <div className="bg-stone-50 p-4 rounded-lg">
+              <p className="text-[11px] font-bold text-stone-400 uppercase mb-1">สินค้าที่กำลังสแกน</p>
+              <p className="text-[14px] font-medium text-stone-900">{scanningLine?.product_name}</p>
+              <p className="text-[11px] font-mono text-stone-500">{scanningLine?.product_sku}</p>
+            </div>
+            
+            <Input
+              label="Lot ID / Barcode"
+              value={lotBarcode}
+              onChange={(e) => setLotBarcode(e.target.value)}
+              placeholder="สแกนหรือระบุรหัส Lot..."
+              autoFocus
+            />
+            
+            <div className="p-3 bg-blue-50 border border-blue-100 rounded-lg flex items-start gap-2">
+              <Barcode className="w-4 h-4 text-blue-600 mt-0.5" />
+              <div className="text-[12px] text-blue-700">
+                <strong>Suggested Lot:</strong> {scanningLine?.suggested_lot_number || '—'}
+                <br />
+                <strong>Expiry:</strong> {scanningLine?.suggested_expiry ? formatDate(scanningLine.suggested_expiry) : 'No Expiry'}
+              </div>
+            </div>
+          </div>
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="ghost" onClick={() => setShowScan(false)}>ยกเลิก</Button>
+          <Button onClick={() => handleScanLot(lotBarcode)} disabled={!lotBarcode || acting} loading={acting}>
+            ยืนยันการสแกน
+          </Button>
+        </ModalFooter>
+      </Modal>
+
+      {/* Override PIN Modal */}
+      {fefoViolation && (
+        <OverridePinModal
+          isOpen={!!fefoViolation}
+          action="fefo_violation"
+          onSuccess={(token) => {
+            if (fefoViolation) {
+              handleScanLot(fefoViolation.lot_id, token);
+            }
+          }}
+          onClose={() => setFefoViolation(null)}
+        />
+      )}
     </div>
   );
 }

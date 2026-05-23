@@ -2,6 +2,7 @@
 
 | Date | Change |
 |------|--------|
+| 2026-05-23 | **Agent Centralization & Go Loop Fix** — Deleted local `.agent.md` files (Chen, Billy, Meena) to centralize rules in `docs/skills/`; corrected confusing `Go` loop stop condition in `GEMINI.md`; added `Planned` status definition to `conductor/index.md` status guide; updated `.claude/hooks/obsidian-sync.ps1` regexes to fully sync `Planned` status. |
 | 2026-05-21 | **io-lines-edit track completed** — Enabled full line items editing (autocomplete search, inline quantity and cost editing, deletion) and destination warehouse changing under transactional synchronization on the Inbound Order detail page. |
 | 2026-05-20 | **grn-role-segregation track completed** — Gated QC and Stock-In buttons under isManager in Detail page, secured POST /api/grn/[id]/stock on backend, and updated redirects to Receiving Queue with success toast |
 | 2026-05-20 | **grn-simplified-workflow track completed** — Refactored GRN receiving UX to single scrollable form with bonus items, lift fee payment, Thai labels, and 72-hour overdue badges |

@@ -33,6 +33,9 @@ export const CreateRepackOrderSchema = z.object({
 export const PatchRepackOrderSchema = z.discriminatedUnion('action', [
   z.object({
     action: z.literal('complete'),
+    yield_loss_qty: z.number().min(0).default(0),
+    yield_loss_reason: z.string().optional(),
+    override_token: z.string().optional(),
   }),
   z.object({
     action: z.literal('void'),

@@ -11,6 +11,7 @@ const createSchema = z.object({
   warehouse_id: z.string().uuid(),
   valid_until: z.string().optional().nullable(), // YYYY-MM-DD
   notes: z.string().optional().nullable(),
+  channel: z.enum(['TRD', 'AKRA']).optional(),
   lines: z.array(z.object({
     product_id: z.string().uuid(),
     qty: z.number().positive(),
@@ -31,6 +32,7 @@ export async function GET(req: Request) {
   const limit = Math.min(100, Number(searchParams.get('limit') ?? DEFAULT_PAGE_SIZE));
   const offset = (page - 1) * limit;
   const status = searchParams.get('status');
+  const channel = searchParams.get('channel');
 
   const conditions: string[] = [];
   const params: unknown[] = [];
@@ -46,6 +48,11 @@ export async function GET(req: Request) {
   if (status) {
     conditions.push(`sq.status = $${idx++}`);
     params.push(status);
+  }
+
+  if (channel) {
+    conditions.push(`sq.channel = $${idx++}`);
+    params.push(channel);
   }
 
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
@@ -87,7 +94,7 @@ export async function POST(req: Request) {
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) return apiValidationError(parsed.error);
 
-  const { customer_id, warehouse_id, valid_until, notes, lines } = parsed.data;
+  const { customer_id, warehouse_id, valid_until, notes, lines, channel } = parsed.data;
 
   let subtotal = 0;
   const lineData = [];
@@ -113,10 +120,10 @@ export async function POST(req: Request) {
     // 1. Insert Header
     const sqRes = await client.query(
       `INSERT INTO sales_quotations (
-        sq_number, customer_id, warehouse_id, valid_until, subtotal, vat_amount, total_amount, notes, created_by
-       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        sq_number, customer_id, warehouse_id, valid_until, subtotal, vat_amount, total_amount, notes, created_by, channel
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        RETURNING *`,
-      [docNumber, customer_id, warehouse_id, valid_until || null, subtotal, vatAmount, totalAmount, notes || null, u.id]
+      [docNumber, customer_id, warehouse_id, valid_until || null, subtotal, vatAmount, totalAmount, notes || null, u.id, channel || 'AKRA']
     );
     const sq = sqRes.rows[0];
 

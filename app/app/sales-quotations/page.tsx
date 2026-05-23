@@ -23,6 +23,7 @@ export default function SalesQuotationsPage() {
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState('');
   const [warehouseId, setWarehouseId] = useState('');
+  const [channel, setChannel] = useState('');
 
   const fetchSQs = useCallback(async () => {
     setLoading(true);
@@ -32,6 +33,7 @@ export default function SalesQuotationsPage() {
         limit: '20',
         ...(status && { status }),
         ...(warehouseId && { warehouse_id: warehouseId }),
+        ...(channel && { channel }),
       });
       const res = await get<PaginatedResponse<SalesQuotation>>(`/api/sales-quotations?${query}`);
       setData(res);
@@ -40,7 +42,7 @@ export default function SalesQuotationsPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, status, warehouseId]);
+  }, [page, status, warehouseId, channel]);
 
   useEffect(() => {
     get<Warehouse[]>('/api/admin/warehouses').then(setWarehouses).catch(console.error);
@@ -64,6 +66,17 @@ export default function SalesQuotationsPage() {
         </div>
 
         <div className={`${CARD} p-4 flex gap-4 items-end`}>
+          <div className="w-48">
+            <Select
+              label="ช่องทาง / Channel"
+              value={channel}
+              onChange={(e) => { setChannel(e.target.value); setPage(1); }}
+            >
+              <option value="">ทั้งหมด / All</option>
+              <option value="TRD">TRD (หน้าร้าน)</option>
+              <option value="AKRA">AKRA (โมเดิร์นเทรด)</option>
+            </Select>
+          </div>
           <div className="w-48">
             <Select
               label="สถานะ / Status"
@@ -109,7 +122,18 @@ export default function SalesQuotationsPage() {
           >
             {data?.data.map((sq) => (
               <tr key={sq.id} className="hover:bg-stone-50 transition-colors">
-                <td className="px-5 py-4 font-mono font-bold text-stone-900">{sq.sq_number}</td>
+                <td className="px-5 py-4">
+                  <div className="flex items-center gap-2 font-mono font-bold text-stone-900">
+                    <span>{sq.sq_number}</span>
+                    <span className={`inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-medium leading-4 ${
+                      sq.channel === 'TRD' 
+                        ? 'bg-blue-50 text-blue-700 border border-blue-200' 
+                        : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                    }`}>
+                      {sq.channel}
+                    </span>
+                  </div>
+                </td>
                 <td className="px-5 py-4 text-stone-600">{sq.customer_name_th}</td>
                 <td className="px-5 py-4 text-stone-600">{sq.warehouse_name_th}</td>
                 <td className="px-5 py-4"><StatusBadge status={sq.status} /></td>

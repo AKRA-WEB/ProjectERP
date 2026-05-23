@@ -85,6 +85,7 @@ export default function RepackListPage() {
                 <th className="text-left py-3 px-4">เลขที่เอกสาร</th>
                 <th className="text-left py-3 px-4">สินค้าต้นทาง (ลัง/กระสอบ)</th>
                 <th className="text-right py-3 px-4">จำนวนที่แบ่ง</th>
+                <th className="text-right py-3 px-4">ส่วนสูญเสีย (Yield Loss)</th>
                 <th className="text-center py-3 px-4">คลังสินค้า</th>
                 <th className="text-center py-3 px-4">สถานะ</th>
                 <th className="text-left py-3 px-4">วันที่ทำรายการ</th>
@@ -93,9 +94,9 @@ export default function RepackListPage() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={7} className="py-12 text-center text-stone-600">กำลังโหลด...</td></tr>
+                <tr><td colSpan={8} className="py-12 text-center text-stone-600">กำลังโหลด...</td></tr>
               ) : !data || data.data.length === 0 ? (
-                <tr><td colSpan={7} className="py-12 text-center text-stone-600">ไม่พบรายการแบ่งบรรจุ</td></tr>
+                <tr><td colSpan={8} className="py-12 text-center text-stone-600">ไม่พบรายการแบ่งบรรจุ</td></tr>
               ) : data.data.map((r) => (
                 <tr key={r.id} className="border-b border-stone-50 last:border-0 hover:bg-stone-50/50 transition-colors">
                   <td className="py-4 px-4 font-mono font-medium text-stone-600">{r.order_number}</td>
@@ -105,6 +106,13 @@ export default function RepackListPage() {
                   </td>
                   <td className="py-4 px-4 text-right font-mono">
                     {Number(r.source_qty).toLocaleString()}
+                  </td>
+                  <td className="py-4 px-4 text-right">
+                    {r.yield_loss_qty > 0 ? (
+                      <span className="text-red-500 font-mono font-bold">-{Number(r.yield_loss_qty).toLocaleString()}</span>
+                    ) : (
+                      <span className="text-stone-300 font-mono">0</span>
+                    )}
                   </td>
                   <td className="py-4 px-4 text-center text-stone-600">{r.warehouse_name_th}</td>
                   <td className="py-4 px-4 text-center">

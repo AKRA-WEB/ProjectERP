@@ -16,10 +16,17 @@ export async function GET(
   try { assertPermission(u, 'pos:cashier'); } catch { return apiError('Forbidden', 403); }
 
   const heldCart = await queryOne<Record<string, unknown>>(
-    `SELECT hc.* FROM pos_held_carts hc WHERE hc.id = $1`,
+    `SELECT hc.*, pps.status as picking_slip_status 
+     FROM pos_held_carts hc 
+     LEFT JOIN pos_picking_slips pps ON hc.wholesale_picking_slip_id = pps.id
+     WHERE hc.id = $1`,
     [id]
   );
   if (!heldCart) return apiError('Held cart not found', 404);
+
+  if (heldCart.is_hybrid && heldCart.wholesale_picking_slip_id && heldCart.picking_slip_status !== 'picked') {
+    return apiError('Picking slip not yet picked', 409);
+  }
 
   const lines = await query(
     `SELECT hcl.*, p.name_th, p.sku, p.image_url 

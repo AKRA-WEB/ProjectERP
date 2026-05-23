@@ -3,6 +3,8 @@ export * from './api';
 export * from './hr';
 export * from './inventory';
 
+import type { PriceChannel } from './db';
+
 // Remaining types not yet classified or for cross-module features (Sales, POS, Accounting)
 // ... keeping them here for now until further splitting ...
 
@@ -62,6 +64,26 @@ export interface PosHeldCart {
   created_by: string;
   created_at: string;
   line_count?: number;
+  is_hybrid: boolean;
+  wholesale_picking_slip_id: string | null;
+  picking_slip_status?: PosPickingSlipStatus;
+}
+
+export type PosPickingSlipStatus = 'printed' | 'picked' | 'cancelled';
+
+export interface PosPickingSlip {
+  id: string;
+  doc_no: string;
+  draft_cart_id: string;
+  status: PosPickingSlipStatus;
+  source_warehouse_id: string;
+  printed_at: string;
+  printed_by: string;
+  picked_at: string | null;
+  picked_by: string | null;
+  lines: any;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface PosHeldCartLine {
@@ -138,6 +160,7 @@ export interface SalesQuotation {
   warehouse_id: string;
   warehouse_name_th: string;
   status: any; // SqStatus;
+  channel: PriceChannel;
   valid_until: string | null;
   subtotal: number;
   vat_amount: number;
@@ -173,6 +196,7 @@ export interface SalesOrder {
   warehouse_id: string;
   warehouse_name_th: string;
   status: any; // SoStatus;
+  channel: PriceChannel;
   expected_delivery: string | null;
   payment_terms_days: number;
   subtotal: number;
@@ -248,6 +272,7 @@ export interface SalesInvoice {
   customer_id: string;
   customer_name_th: string;
   status: any; // SiStatus;
+  channel: PriceChannel;
   invoice_date: string;
   due_date: string;
   subtotal: number;
@@ -257,9 +282,22 @@ export interface SalesInvoice {
   voided_at: string | null;
   void_reason: string | null;
   notes: string | null;
+  current_version: number;
+  current_barcode: string | null;
   created_by: string;
   created_by_name: string;
   created_at: string;
+}
+
+export interface InvoiceVersion {
+  id: string;
+  invoice_id: string;
+  version_no: number;
+  barcode: string;
+  change_summary: any;
+  created_at: string;
+  created_by: string;
+  created_by_name?: string;
 }
 
 export interface SalesReturn {

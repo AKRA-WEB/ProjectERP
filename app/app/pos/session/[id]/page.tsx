@@ -19,6 +19,9 @@ import {
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { OverridePinModal } from '@/components/auth/OverridePinModal';
+import { get, post } from '@/lib/api-client';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import type { PosPickingSlip, PosPickingSlipStatus } from '@/types';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -36,6 +39,7 @@ const TIER_COLORS: Record<string, string> = {
 interface POSSession {
   id: string;
   session_number: string;
+  warehouse_id: string;
   warehouse_code: string;
   warehouse_name: string;
   shift_name: string;
@@ -69,6 +73,8 @@ interface HeldCart {
   id: string;
   label: string;
   items: CartItem[];
+  is_hybrid?: boolean;
+  picking_slip_status?: PosPickingSlipStatus;
 }
 
 interface Member {
@@ -324,6 +330,9 @@ export default function POSSessionPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [heldCarts, setHeldCarts] = useState<HeldCart[]>([]);
+  const [isHybrid, setIsHybrid] = useState(false);
+  const [currentHeldCartId, setCurrentHeldCartId] = useState<string | null>(null);
+
   const [member, setMember] = useState<Member | null>(null);
   const [memberPhone, setMemberPhone] = useState('');
   const [discount, setDiscount] = useState(0);
@@ -362,6 +371,19 @@ export default function POSSessionPage() {
     return () => clearInterval(iv);
   }, []);
 
+  const fetchHeldCarts = useCallback(async () => {
+    try {
+      const res = await get<HeldCart[]>(`/api/pos/held-carts?session_id=${sessionId}`);
+      setHeldCarts(res.map(hc => ({
+        id: hc.id,
+        label: hc.label || 'Held Cart',
+        items: [],
+        is_hybrid: hc.is_hybrid,
+        picking_slip_status: hc.picking_slip_status
+      })));
+    } catch { /* silent */ }
+  }, [sessionId]);
+
   // ── Load session + products ──
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -381,12 +403,13 @@ export default function POSSessionPage() {
         const cats = Array.from(new Set(prods.map((p) => p.category).filter(Boolean)));
         setCategories(cats);
       }
+      await fetchHeldCarts();
     } catch {
       // silent fail — page still renders
     } finally {
       setLoading(false);
     }
-  }, [sessionId]);
+  }, [sessionId, fetchHeldCarts]);
 
   useEffect(() => {
     fetchData();
@@ -420,17 +443,104 @@ export default function POSSessionPage() {
     setCartItems((prev) => prev.filter((i) => i.product_id !== pid));
   }
 
-  function holdCart() {
+  async function holdCart() {
     if (cartItems.length === 0) return;
-    const id = `held-${Date.now()}`;
-    setHeldCarts((prev) => [...prev, { id, label: `บิล ${prev.length + 1}`, items: cartItems }]);
-    setCartItems([]);
+    try {
+      await post('/api/pos/held-carts', {
+        session_id: sessionId,
+        warehouse_id: session?.warehouse_id,
+        lines: cartItems.map(i => ({
+          product_id: i.product_id,
+          qty: i.qty,
+          unit_price: i.price,
+          discount_amount: 0,
+        }))
+      });
+      setCartItems([]);
+      setCurrentHeldCartId(null);
+      setIsHybrid(false);
+      fetchHeldCarts();
+    } catch (err: unknown) {
+      console.error('Hold cart error:', err);
+      alert('พักบิลไม่สำเร็จ');
+    }
   }
 
-  function restoreHeld(hc: HeldCart) {
-    if (cartItems.length > 0) holdCart();
-    setCartItems(hc.items);
-    setHeldCarts((prev) => prev.filter((h) => h.id !== hc.id));
+  async function restoreHeld(hc: HeldCart) {
+    if (cartItems.length > 0) {
+      // Prompt or auto-hold
+      if (!confirm('สลับบิล? บิลปัจจุบันจะถูกพักไว้')) return;
+      await holdCart();
+    }
+    
+    setLoading(true);
+    try {
+      const res = await get<{ lines: { product_id: string; sku: string; name_th: string; unit_price: number | string; qty: number | string; }[]; is_hybrid: boolean }>(`/api/pos/held-carts/${hc.id}`);
+      setCartItems(res.lines.map((l) => ({
+        product_id: l.product_id,
+        sku: l.sku,
+        name_th: l.name_th,
+        price: Number(l.unit_price),
+        qty: Number(l.qty),
+        lockedAt: Date.now()
+      })));
+      setCurrentHeldCartId(hc.id);
+      setIsHybrid(res.is_hybrid ?? false);
+      
+      // Remove from list while active
+      setHeldCarts(prev => prev.filter(h => h.id !== hc.id));
+    } catch (err: unknown) {
+      if (err && typeof err === 'object' && 'status' in err && err.status === 409) {
+        alert('ใบหยิบสินค้ายังหยิบไม่เสร็จ (Picking in progress)');
+      } else {
+        alert('โหลดข้อมูลบิลไม่สำเร็จ');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handlePrintPickingSlip() {
+    if (cartItems.length === 0) return;
+    setCheckingOut(true);
+    try {
+      // 1. Hold cart if not already held
+      let heldId = currentHeldCartId;
+      if (!heldId) {
+        const hcRes = await post<{ id: string }>('/api/pos/held-carts', {
+          session_id: sessionId,
+          warehouse_id: session?.warehouse_id,
+          lines: cartItems.map(i => ({
+            product_id: i.product_id,
+            qty: i.qty,
+            unit_price: i.price,
+            discount_amount: 0,
+          }))
+        });
+        heldId = hcRes.id;
+        setCurrentHeldCartId(heldId);
+      }
+
+      // 2. Create picking slip (W2)
+      const whs = await get<{ id: string; code: string }[]>('/api/admin/warehouses');
+      const w2 = whs.find(w => w.code.includes('W2')) || whs[0];
+
+      const res = await post<{ slip: PosPickingSlip }>(`/api/pos/carts/${heldId}/picking-slip`, {
+        source_warehouse_id: w2.id
+      });
+      
+      alert(`ออกใบหยิบสินค้าสำเร็จ: ${res.slip.doc_no}\nกรุณาส่งใบนี้ให้แผนกคลังสินค้า`);
+      
+      // Clear cart
+      setCartItems([]);
+      setCurrentHeldCartId(null);
+      setIsHybrid(false);
+      fetchHeldCarts();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to print picking slip');
+    } finally {
+      setCheckingOut(false);
+    }
   }
 
   // ── Member search ──
@@ -540,7 +650,7 @@ export default function POSSessionPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-stone-50">
-        <div className="text-stone-400 text-sm">กำลังโหลด...</div>
+        <LoadingSpinner />
       </div>
     );
   }
@@ -625,13 +735,23 @@ export default function POSSessionPage() {
             <span className="bg-stone-100 text-stone-600 text-xs px-1.5 py-0.5 rounded-full font-mono tabular-nums">{cartCount}</span>
           )}
         </div>
-        <button
-          onClick={holdCart}
-          disabled={cartItems.length === 0}
-          className="flex items-center gap-1 text-[12px] font-semibold text-amber-700 border border-amber-300 bg-amber-50 rounded-lg px-2.5 py-1.5 hover:bg-amber-100 disabled:opacity-40"
-        >
-          ⏸ พักบิล
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setIsHybrid(!isHybrid)}
+            className={`text-[11px] font-bold px-2 py-1.5 rounded-lg border transition-colors ${
+              isHybrid ? 'bg-indigo-600 text-white border-indigo-700' : 'bg-white text-stone-500 border-stone-200'
+            }`}
+          >
+            {isHybrid ? '📦 Hybrid ON' : 'Hybrid?'}
+          </button>
+          <button
+            onClick={holdCart}
+            disabled={cartItems.length === 0}
+            className="flex items-center gap-1 text-[12px] font-semibold text-amber-700 border border-amber-300 bg-amber-50 rounded-lg px-2.5 py-1.5 hover:bg-amber-100 disabled:opacity-40"
+          >
+            ⏸ พักบิล
+          </button>
+        </div>
       </div>
 
       {/* Cart items */}
@@ -655,9 +775,14 @@ export default function POSSessionPage() {
             <button
               key={hc.id}
               onClick={() => restoreHeld(hc)}
-              className="text-[11px] font-bold text-amber-700 border border-amber-300 bg-amber-50 rounded-full px-2.5 py-1 whitespace-nowrap flex-shrink-0 hover:bg-amber-100"
+              className={`text-[11px] font-bold border rounded-full px-2.5 py-1 whitespace-nowrap flex-shrink-0 flex items-center gap-1.5 ${
+                hc.is_hybrid 
+                  ? hc.picking_slip_status === 'picked' ? 'text-emerald-700 border-emerald-300 bg-emerald-50' : 'text-indigo-700 border-indigo-300 bg-indigo-50'
+                  : 'text-amber-700 border-amber-300 bg-amber-50'
+              }`}
             >
-              {hc.label} ({hc.items.length})
+              {hc.is_hybrid && <Box className="w-3 h-3" />}
+              {hc.label} {hc.is_hybrid && `(${hc.picking_slip_status === 'picked' ? 'หยิบแล้ว' : 'รอหยิบ'})`}
             </button>
           ))}
         </div>
@@ -665,8 +790,20 @@ export default function POSSessionPage() {
 
       {/* Summary muted */}
       {cartItems.length > 0 && (
-        <div className="text-right text-[11px] text-stone-400 py-1 border-t border-stone-50 flex-shrink-0">
-          {cartCount} ชิ้น · {formatCurrency(subtotal)}
+        <div className="space-y-2 mt-2">
+          {isHybrid && (
+            <Button 
+              onClick={handlePrintPickingSlip} 
+              variant="outline" 
+              className="w-full text-indigo-600 border-indigo-200 bg-indigo-50 hover:bg-indigo-100 h-10 flex items-center justify-center gap-2"
+              loading={checkingOut}
+            >
+              <Printer className="w-4 h-4" /> พิมพ์ใบหยิบสินค้า (W2)
+            </Button>
+          )}
+          <div className="text-right text-[11px] text-stone-400 py-1 border-t border-stone-50 flex-shrink-0">
+            {cartCount} ชิ้น · {formatCurrency(subtotal)}
+          </div>
         </div>
       )}
     </div>

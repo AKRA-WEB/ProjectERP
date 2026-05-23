@@ -29,6 +29,7 @@ export async function GET(req: Request) {
   const limit = Math.min(100, Number(searchParams.get('limit') ?? DEFAULT_PAGE_SIZE));
   const offset = (page - 1) * limit;
   const status = searchParams.get('status');
+  const channel = searchParams.get('channel');
 
   const conditions: string[] = [];
   const params: unknown[] = [];
@@ -44,6 +45,11 @@ export async function GET(req: Request) {
   if (status) {
     conditions.push(`si.status = $${idx++}`);
     params.push(status);
+  }
+
+  if (channel) {
+    conditions.push(`si.channel = $${idx++}`);
+    params.push(channel);
   }
 
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
@@ -97,7 +103,7 @@ export async function POST(req: Request) {
 
     // 1. Fetch SO
     const soRes = await client.query(
-      'SELECT customer_id, warehouse_id, payment_terms_days, status, subtotal, vat_amount, total_amount FROM sales_orders WHERE id = $1 FOR SHARE',
+      'SELECT customer_id, warehouse_id, payment_terms_days, status, subtotal, vat_amount, total_amount, channel FROM sales_orders WHERE id = $1 FOR SHARE',
       [so_id]
     );
     const so = soRes.rows[0];
@@ -178,10 +184,10 @@ export async function POST(req: Request) {
     // 3. Create SI using pre-generated UUID
     const siRes = await client.query(
       `INSERT INTO sales_invoices (
-        id, so_id, delivery_order_id, customer_id, invoice_date, due_date, subtotal, vat_amount, total_amount, notes, created_by
-       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        id, so_id, delivery_order_id, customer_id, invoice_date, due_date, subtotal, vat_amount, total_amount, notes, created_by, channel
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
        RETURNING *`,
-      [siId, so_id, delivery_order_id || null, so.customer_id, invDate, dueDate, subtotal, vatAmount, totalAmount, notes || null, u.id]
+      [siId, so_id, delivery_order_id || null, so.customer_id, invDate, dueDate, subtotal, vatAmount, totalAmount, notes || null, u.id, so.channel]
     );
     const si = siRes.rows[0];
 

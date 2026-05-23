@@ -50,7 +50,7 @@ function Sync-PlanStatus {
 
     foreach ($line in $lines) {
         # Format: | [Name](./tracks/<folder>/plan.md) | Status | ... |
-        if ($line -match '\./tracks/([^/]+)/plan\.md[^|]*\|\s*(Active|Completed|Verified|Rework Required)') {
+        if ($line -match '\./tracks/([^/]+)/plan\.md[^|]*\|\s*(Active|Completed|Verified|Rework Required|Planned)') {
             $track = $matches[1]
             $status = $matches[2].Trim()
             $planPath = "$root\conductor\tracks\$track\plan.md"
@@ -65,7 +65,7 @@ function Sync-PlanStatus {
             }
         }
         # Format: | track-folder | Status | ... | (Chen short format)
-        elseif ($line -match '^\|\s*([a-z][a-z0-9-]+)\s*\|\s*(Active|Completed|Verified|Rework Required)') {
+        elseif ($line -match '^\|\s*([a-z][a-z0-9-]+)\s*\|\s*(Active|Completed|Verified|Rework Required|Planned)') {
             $track = $matches[1].Trim()
             $status = $matches[2].Trim()
             $planPath = "$root\conductor\tracks\$track\plan.md"

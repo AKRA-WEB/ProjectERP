@@ -42,3 +42,10 @@
 | [manager-override-pin — Manager Override PIN](./tracks/manager-override-pin/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
 | [min-price-hardstop — Min-Price Hard Stop](./tracks/min-price-hardstop/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
 | [credit-control-engine — Credit Control Engine](./tracks/credit-control-engine/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
+| [channel-on-order-header — Channel on Order Header](./tracks/channel-on-order-header/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
+| [pos-draft-and-hybrid-flow — POS Draft + Hybrid Picking-Slip Flow](./tracks/pos-draft-and-hybrid-flow/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
+| [pos-delta-slip-and-versioning — POS Delta Slip + Invoice Versioning](./tracks/pos-delta-slip-and-versioning/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
+| [dispatch-check-exit-gate — Dispatch-Check Exit Gate](./tracks/dispatch-check-exit-gate/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
+| [fefo-enforcement — FEFO Enforcement (with Per-Line Override)](./tracks/fefo-enforcement/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
+| [strict-receiving-flow — Strict 5-Step Receiving Flow (PR -> PO -> BR -> GR -> Match)](./tracks/strict-receiving-flow/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
+| [repack-yield-loss — Repack Yield & Loss](./tracks/repack-yield-loss/plan.md) | Verified | 2026-05-23 | 2026-05-23 |

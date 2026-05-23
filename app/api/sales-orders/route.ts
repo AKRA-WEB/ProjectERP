@@ -18,6 +18,7 @@ const createSchema = z.object({
   override_token: z.string().optional(),
   reason_code: z.string().optional(),
   credit_release_token: z.string().optional(),
+  channel: z.enum(['TRD', 'AKRA']).optional(),
   lines: z.array(z.object({
     product_id: z.string().uuid(),
     qty_ordered: z.number().positive(),
@@ -40,6 +41,7 @@ export async function GET(req: Request) {
   const limit = Math.min(100, Number(searchParams.get('limit') ?? DEFAULT_PAGE_SIZE));
   const offset = (page - 1) * limit;
   const status = searchParams.get('status');
+  const channel = searchParams.get('channel');
 
   const conditions: string[] = [];
   const params: unknown[] = [];
@@ -55,6 +57,11 @@ export async function GET(req: Request) {
   if (status) {
     conditions.push(`so.status = $${idx++}`);
     params.push(status);
+  }
+
+  if (channel) {
+    conditions.push(`so.channel = $${idx++}`);
+    params.push(channel);
   }
 
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
@@ -96,7 +103,7 @@ export async function POST(req: Request) {
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) return apiValidationError(parsed.error);
 
-  const { customer_id, warehouse_id, expected_delivery, payment_terms_days, notes, lines, override_token, reason_code, credit_release_token } = parsed.data;
+  const { customer_id, warehouse_id, expected_delivery, payment_terms_days, notes, lines, override_token, reason_code, credit_release_token, channel } = parsed.data;
 
   // Generate sales order ID upfront so it can be passed to enforceMinPrice
   const soId = crypto.randomUUID();
@@ -183,10 +190,10 @@ export async function POST(req: Request) {
     // 1. Insert Header
     const soRes = await client.query(
       `INSERT INTO sales_orders (
-        id, customer_id, warehouse_id, expected_delivery, payment_terms_days, subtotal, vat_amount, total_amount, notes, created_by
-       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        id, customer_id, warehouse_id, expected_delivery, payment_terms_days, subtotal, vat_amount, total_amount, notes, created_by, channel
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        RETURNING *`,
-      [soId, customer_id, warehouse_id, expected_delivery || null, payment_terms_days, subtotal, vatAmount, totalAmount, notes || null, u.id]
+      [soId, customer_id, warehouse_id, expected_delivery || null, payment_terms_days, subtotal, vatAmount, totalAmount, notes || null, u.id, channel || 'AKRA']
     );
     const so = soRes.rows[0];
 

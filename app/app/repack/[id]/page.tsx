@@ -2,11 +2,13 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { Button, StatusBadge } from '@/components/ui';
+import { Button, StatusBadge, Modal, Input } from '@/components/ui';
 import { get, patch } from '@/lib/api-client';
 import type { RepackOrder } from '@/types';
 import { formatDate, formatCurrency, formatNumber } from '@/lib/utils';
 import { useLanguage } from '@/lib/i18n';
+import { OverridePinModal } from '@/components/auth/OverridePinModal';
+import { TrendingDown } from 'lucide-react';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden';
 
@@ -19,6 +21,11 @@ export default function RepackOrderDetailPage() {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState('');
+
+  const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [yieldLossQty, setYieldLossQty] = useState(0);
+  const [yieldLossReason, setYieldLossReason] = useState('');
+  const [overrideViolation, setOverrideViolation] = useState<{ loss_pct: number; threshold_pct: number } | null>(null);
 
   const fetchOrder = useCallback(async () => {
     try {
@@ -36,17 +43,27 @@ export default function RepackOrderDetailPage() {
     fetchOrder();
   }, [fetchOrder]);
 
-  async function handleComplete() {
-    if (!confirm('ยืนยันการแบ่งบรรจุ? ระบบจะทำการตัดสต็อกสินค้าต้นทางและเพิ่มสต็อกสินค้าปลายทางทันที')) return;
-    
+  async function handleComplete(overrideToken?: string) {
     setProcessing(true);
     setError('');
     try {
-      await patch(`/api/repack/${id}`, { action: 'complete' });
+      await patch(`/api/repack/${id}`, { 
+        action: 'complete',
+        yield_loss_qty: Number(yieldLossQty),
+        yield_loss_reason: yieldLossReason,
+        override_token: overrideToken
+      });
+      setShowCompleteModal(false);
+      setOverrideViolation(null);
       await fetchOrder();
     } catch (err: unknown) {
-      const e = err as { message?: string };
-      setError(e.message || 'Failed to complete repack');
+      const e = err as { status?: number; details?: { code?: string; loss_pct: number; threshold_pct: number }; message?: string };
+      if (e.status === 412 && e.details?.code === 'YIELD_OVER_THRESHOLD') {
+        setOverrideViolation(e.details);
+      } else {
+        setError(e.message || 'Failed to complete repack');
+        setShowCompleteModal(false);
+      }
     } finally {
       setProcessing(false);
     }
@@ -87,7 +104,7 @@ export default function RepackOrderDetailPage() {
             <Button 
               variant="primary" 
               className="bg-emerald-600 hover:bg-emerald-700 h-10 px-6" 
-              onClick={handleComplete}
+              onClick={() => setShowCompleteModal(true)}
               loading={processing}
             >
               ✓ ยืนยันการแบ่งบรรจุ
@@ -206,6 +223,55 @@ export default function RepackOrderDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Completion Modal */}
+      <Modal isOpen={showCompleteModal} onClose={() => setShowCompleteModal(false)} title="ยืนยันการแบ่งบรรจุ (Complete Repack)">
+        <div className="space-y-4 pt-2">
+          <div className="p-4 bg-stone-50 rounded-xl border border-stone-100 flex items-start gap-3">
+            <TrendingDown className="w-5 h-5 text-amber-500 mt-0.5" />
+            <div className="text-sm">
+              <p className="font-bold text-stone-900">บันทึกส่วนสูญเสีย (Yield Loss)</p>
+              <p className="text-stone-500">หากมีสินค้าเสียหายหรือสูญหายระหว่างการแบ่งบรรจุ กรุณาระบุจำนวนที่นี่</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+             <Input 
+               label="จำนวนที่สูญเสีย (Qty)" 
+               type="number" 
+               min="0"
+               value={yieldLossQty} 
+               onChange={(e) => setYieldLossQty(Number(e.target.value))}
+               className="text-right font-mono"
+             />
+             <div className="flex flex-col justify-end pb-3 text-sm text-stone-400">
+                / {formatNumber(order.source_qty, lang)} (ต้นทาง)
+             </div>
+          </div>
+
+          {yieldLossQty > 0 && (
+            <Input 
+              label="เหตุผลที่สูญเสีย" 
+              value={yieldLossReason} 
+              onChange={(e) => setYieldLossReason(e.target.value)}
+              placeholder="ระบุสาเหตุ (เช่น แตกหัก, หกเลอะ)..."
+            />
+          )}
+
+          <div className="pt-4 border-t flex justify-end gap-3">
+            <Button variant="ghost" onClick={() => setShowCompleteModal(false)} disabled={processing}>ยกเลิก</Button>
+            <Button className="bg-emerald-600" onClick={() => handleComplete()} loading={processing}>ยืนยันและตัดสต็อก</Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Override PIN Modal */}
+      <OverridePinModal
+        isOpen={!!overrideViolation}
+        action="repack_yield_override"
+        onSuccess={(token) => handleComplete(token)}
+        onClose={() => setOverrideViolation(null)}
+      />
     </div>
   );
 }
