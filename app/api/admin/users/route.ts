@@ -11,13 +11,14 @@ const createUserSchema = z.object({
   email: z.string().email(),
   name_en: z.string().min(1).max(255),
   name_th: z.string().max(255).optional(),
-  role: z.enum(['admin', 'manager', 'staff']),
+  role: z.enum(['admin', 'manager', 'staff', 'auditor']),
   password: z.string().min(8),
   employee_id: z.string().max(50).optional(),
   position: z.string().max(100).optional(),
   department: z.string().max(100).optional(),
   phone: z.string().max(50).optional(),
   hired_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  business_unit_id: z.string().uuid().nullable().optional(),
 });
 
 export async function GET(req: Request) {
@@ -60,7 +61,7 @@ export async function GET(req: Request) {
 
   const users = await query(
     `SELECT u.id, u.email, u.name_th, u.name_en, u.role, u.is_active, u.created_at,
-            u.employee_id, u.position, u.department, u.phone, u.hired_date,
+            u.employee_id, u.position, u.department, u.phone, u.hired_date, u.business_unit_id,
             COUNT(uwa.warehouse_id) AS warehouse_count
      FROM users u
      LEFT JOIN user_warehouse_assignments uwa ON uwa.user_id = u.id
@@ -93,7 +94,7 @@ export async function POST(req: Request) {
   const parsed = createUserSchema.safeParse(body);
   if (!parsed.success) return apiValidationError(parsed.error);
 
-  const { email, name_en, name_th, role, password, employee_id, position, department, phone, hired_date } = parsed.data;
+  const { email, name_en, name_th, role, password, employee_id, position, department, phone, hired_date, business_unit_id } = parsed.data;
 
   const existing = await queryOne('SELECT id FROM users WHERE email = $1', [email]);
   if (existing) return apiError('Email already in use', 409);
@@ -106,10 +107,10 @@ export async function POST(req: Request) {
   const password_hash = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
   const user = await queryOne(
-    `INSERT INTO users (email, password_hash, name_en, name_th, role, employee_id, position, department, phone, hired_date)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-     RETURNING id, email, name_en, name_th, role, is_active, employee_id, created_at`,
-    [email, password_hash, name_en, name_th ?? null, role, employee_id ?? null, position ?? null, department ?? null, phone ?? null, hired_date ?? null]
+    `INSERT INTO users (email, password_hash, name_en, name_th, role, employee_id, position, department, phone, hired_date, business_unit_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+     RETURNING id, email, name_en, name_th, role, is_active, employee_id, business_unit_id, created_at`,
+    [email, password_hash, name_en, name_th ?? null, role, employee_id ?? null, position ?? null, department ?? null, phone ?? null, hired_date ?? null, business_unit_id ?? null]
   );
 
   return apiSuccess(user, 201);

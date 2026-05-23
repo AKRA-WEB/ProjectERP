@@ -40,8 +40,8 @@ export default function AdminUsersPage() {
 
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
-  const roleLabels: Record<string, string> = { admin: 'ผู้ดูแล', manager: 'ผู้จัดการ', staff: 'พนักงาน' };
-  const roleVariant: Record<string, 'red' | 'blue' | 'gray'> = { admin: 'red', manager: 'blue', staff: 'gray' };
+  const roleLabels: Record<string, string> = { admin: 'ผู้ดูแล', manager: 'ผู้จัดการ', staff: 'พนักงาน', auditor: 'ผู้ตรวจสอบ' };
+  const roleVariant: Record<string, 'red' | 'blue' | 'gray'> = { admin: 'red', manager: 'blue', staff: 'gray', auditor: 'gray' };
 
   return (
     <DirectionalTransition>
@@ -66,9 +66,10 @@ export default function AdminUsersPage() {
             onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
           >
             <option value="">ทุกบทบาท</option>
-            <option value="admin">ผู้ดูแลระบบ</option>
-            <option value="manager">ผู้จัดการ</option>
-            <option value="staff">พนักงานทั่วไป</option>
+            <option value="admin">ผู้ดูแลระบบ / Admin</option>
+            <option value="manager">ผู้จัดการ / Manager</option>
+            <option value="staff">พนักงานทั่วไป / Staff</option>
+            <option value="auditor">ผู้ตรวจสอบระบบ / Auditor</option>
           </select>
         </div>
 

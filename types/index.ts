@@ -45,6 +45,7 @@ export interface PosMember {
   phone: string;
   email: string | null;
   tier: string;
+  price_tier?: 'T0' | 'T1' | 'T2' | 'T3';
   discount_rate: number;
   point_balance: number;
   is_active: boolean;
@@ -440,3 +441,7 @@ export interface ApPayment {
   paid_by_name: string;
   created_at: string;
 }
+
+export type { PriceResolution } from '@/lib/pricing/resolve';
+export { resolvePrice } from '@/lib/pricing/resolve';
+

@@ -41,9 +41,28 @@ export function buildWarehouseScopeClause(
   paramOffset: number
 ): { clause: string; params: unknown[] } | null {
   if (user.role === 'admin') return null;
-  if (user.assignedWarehouseIds.length === 0) {
+
+  const hasBU = !!user.businessUnitId;
+  const hasWH = user.assignedWarehouseIds && user.assignedWarehouseIds.length > 0;
+
+  if (!hasBU && !hasWH) {
     return { clause: 'FALSE', params: [] };
   }
+
+  if (hasBU && hasWH) {
+    return {
+      clause: `${columnExpr} = ANY($${paramOffset}::uuid[]) AND ${columnExpr} IN (SELECT id FROM warehouses WHERE business_unit_id = $${paramOffset + 1})`,
+      params: [user.assignedWarehouseIds, user.businessUnitId],
+    };
+  }
+
+  if (hasBU) {
+    return {
+      clause: `${columnExpr} IN (SELECT id FROM warehouses WHERE business_unit_id = $${paramOffset})`,
+      params: [user.businessUnitId],
+    };
+  }
+
   return {
     clause: `${columnExpr} = ANY($${paramOffset}::uuid[])`,
     params: [user.assignedWarehouseIds],

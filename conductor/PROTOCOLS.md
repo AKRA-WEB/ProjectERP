@@ -57,21 +57,18 @@ This project uses **Obsidian** opened directly on this folder as a vault. All `.
 
 ### File Writing Rules (Billy) — MANDATORY
 
-**Billy runs in a sandboxed Bash context that cannot write to Windows filesystem. Neither `write_file` nor Bash HEREDOC reaches the Windows FS.**
+**Gemini CLI has full file system access and MUST use the `write_file` tool to save the QA report directly.**
 
 **Correct pattern:**
-1. Billy reads files silently — **DO NOT echo file contents** — and outputs only findings as structured text in its response
-2. Main thread (Claude) receives Billy's response and writes `conductor/qa-reports/<track>.md` using the native Write tool
-
-This means Billy's response must stay concise (< 30KB). If truncated, the report cannot be written.
+1. Billy (Gemini CLI) performs the audit.
+2. Billy writes the report directly to `conductor/qa-reports/<track>.md`.
 
 ### Billy Output Rules
-- **Never echo file contents** — read silently, output only findings
 - Label report `[DRAFT — Pending Chen Validation]`
 - Do NOT write `rework-plan.md` or update `index.md` — that is Chen's job
 - Classify: **Must Fix** | **Should Fix** | **Suggestion**
 - Each finding: `file:line — Issue — Fix`
-- Output the full report text so the main thread can write it
+- Ensure the file is written to disk before finishing.
 
 ### Spawning Billy (Claude's Responsibility)
 After Billy responds, Claude writes the report:

@@ -1,6 +1,7 @@
 # Gemini Project Context
 
 You are the **Implementer** in this project's hybrid AI workflow. Claude (Chen) plans. You build. Billy audits. Do not deviate from this boundary.
+Refer to [AI Workflow Guide](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/docs/AI_WORKFLOW_GUIDE.md) for full instructions, pre-flight checklists, planning formats, QA procedures, and Obsidian integration rules.
 
 ---
 
@@ -8,7 +9,8 @@ You are the **Implementer** in this project's hybrid AI workflow. Claude (Chen) 
 
 | Trigger | Action |
 |---------|--------|
-| **`Go`** | Find first `Active` track in `conductor/index.md` → execute entire track → **auto-continue** (see Execution Loop below) |
+| **`Init`** | Run Pre-Flight Checklist, sync git, sweep tracks, read state memory, and report project readiness! |
+| **`Go`** | Find first `Active` track in `conductor/index.md` → execute the track → **STOP** (see Execution Loop below) |
 | **`Architect: <req>`** | Spawn Chen planning protocol → analyze code → create `plan.md` → update `index.md` |
 | **`QA: <track>`** | Run full Billy Audit → lint/build/type-check → review code vs plan.md → write `rework-plan.md` & update `index.md` status directly |
 | **`Summary`** | Write `execution-summary.md` for the current track |
@@ -40,9 +42,7 @@ After receiving the `Go` command, do NOT stop until the entire registry is Verif
 4. If Audit PASSES (0 errors, 100% clean, no leftover placeholders):
    - Update track status to `Verified` in index.md and plan.md frontmatter.
    - Run `npm run track:sweep` to archive the verified track automatically.
-5. Check conductor/index.md for the next `Active` or `Rework Required` track:
-   - Found: Loop back to step 1 with the next track.
-   - None: Write SESSION REPORT → STOP.
+5. Do NOT automatically proceed to any other track. Write SESSION REPORT and STOP immediately. Wait for the user to explicitly issue the next `Go` command.
 ```
 
 **After completing each track** — update `_notes/02_Agent_Memory/current-state.md`:
@@ -160,6 +160,7 @@ const PatchSchema = z.discriminatedUnion('action', [ ... ]);
 ```yaml
 status: Completed
 updated: YYYY-MM-DD
+---
 ```
 And update the track row in `conductor/index.md`.
 
@@ -184,6 +185,7 @@ And update the track row in `conductor/index.md`.
 
 | Source | When to read |
 |--------|-------------|
+| `docs/AI_WORKFLOW_GUIDE.md` | **Start of every session/track** (All workflows & checklists) |
 | `docs/skills/agent-principles.md` | **Start of every track** (Karpathy + Core Principles) |
 | `_notes/02_Agent_Memory/pitfalls.md` | **Start of every task** (mandatory) |
 | `conductor/tracks/<track>/plan.md` | **Start of every task** (full read) |

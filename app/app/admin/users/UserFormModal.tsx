@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Input, Select } from '@/components/ui';
-import { post, patch } from '@/lib/api-client';
-import type { User } from '@/types';
+import { post, patch, get } from '@/lib/api-client';
+import { useLanguage, localeName } from '@/lib/i18n';
+import type { User, BusinessUnit } from '@/types';
 
 interface Props {
   user: User | null;
@@ -13,6 +14,15 @@ interface Props {
 
 export default function UserFormModal({ user, onClose, onSaved }: Props) {
   const isEdit = !!user;
+  const { lang } = useLanguage();
+  const [businessUnits, setBusinessUnits] = useState<BusinessUnit[]>([]);
+
+  useEffect(() => {
+    get<BusinessUnit[]>('/api/admin/business-units')
+      .then(setBusinessUnits)
+      .catch(console.error);
+  }, []);
+
   const [form, setForm] = useState({
     email: user?.email ?? '',
     name_th: user?.name_th ?? '',
@@ -25,6 +35,7 @@ export default function UserFormModal({ user, onClose, onSaved }: Props) {
     department: user?.department ?? '',
     phone: user?.phone ?? '',
     hired_date: user?.hired_date ? new Date(user.hired_date).toISOString().slice(0, 10) : '',
+    business_unit_id: user?.business_unit_id ?? '',
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -47,6 +58,7 @@ export default function UserFormModal({ user, onClose, onSaved }: Props) {
         department: form.department || null,
         phone: form.phone || null,
         hired_date: form.hired_date || null,
+        business_unit_id: form.business_unit_id || null,
       };
 
       if (isEdit) {
@@ -78,6 +90,7 @@ export default function UserFormModal({ user, onClose, onSaved }: Props) {
                 { value: 'admin', label: 'ผู้ดูแลระบบ / Admin' },
                 { value: 'manager', label: 'ผู้จัดการ / Manager' },
                 { value: 'staff', label: 'พนักงาน / Staff' },
+                { value: 'auditor', label: 'ผู้ตรวจสอบระบบ / Auditor' },
               ]}
             />
           </div>
@@ -85,6 +98,21 @@ export default function UserFormModal({ user, onClose, onSaved }: Props) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input label="ชื่อภาษาไทย" value={form.name_th} onChange={(e) => set('name_th', e.target.value)} />
             <Input label="Name (English) *" value={form.name_en} onChange={(e) => set('name_en', e.target.value)} />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Select
+              label="หน่วยธุรกิจ / Business Unit"
+              value={form.business_unit_id}
+              onChange={(e) => set('business_unit_id', e.target.value)}
+              options={[
+                { value: '', label: lang === 'en' ? 'All BUs (Cross-BU)' : 'ทุกหน่วยธุรกิจ (Cross-BU)' },
+                ...businessUnits.map((bu) => ({
+                  value: bu.id,
+                  label: `${bu.code} — ${localeName(bu.name_th, bu.name_en, lang)}`
+                })),
+              ]}
+            />
           </div>
 
           {!isEdit && (

@@ -2,6 +2,7 @@ import { auth } from '@/auth';
 import { apiSuccess, apiError, apiValidationError } from '@/lib/api-response';
 import { assertPermission, assertWarehouseAccess, buildWarehouseScopeClause } from '@/lib/authz';
 import pool, { query } from '@/lib/db/client';
+import { resolvePrice } from '@/lib/pricing/resolve';
 import { z } from 'zod';
 import { DEFAULT_PAGE_SIZE, VAT_RATE } from '@/lib/constants';
 import type { SessionUser } from '@/lib/authz';
@@ -118,9 +119,27 @@ export async function POST(req: Request) {
         return apiError(`Insufficient stock for product ${line.product_id} (Available: ${balanceRes.rows[0].qty_available})`, 422);
       }
 
-      const lineTotal = (line.unit_price * line.qty) - line.discount_amount;
+      // Resolve dynamic price
+      const resolution = await resolvePrice({
+        channel: 'TRD',
+        customer_id: member_id ?? null,
+        product_id: line.product_id,
+        qty: line.qty,
+      });
+      if (!resolution) {
+        await client.query('ROLLBACK');
+        return apiError(`No price configured for product ${line.product_id} on channel TRD`, 422);
+      }
+
+      const unitPrice = resolution.price;
+      const lineTotal = (unitPrice * line.qty) - line.discount_amount;
       subtotalBeforeOrderDiscount_acc += lineTotal;
-      lineData.push({ ...line, line_total: lineTotal, qty_after: Number(balanceRes.rows[0].qty_on_hand) - line.qty });
+      lineData.push({ 
+        ...line, 
+        unit_price: unitPrice, 
+        line_total: lineTotal, 
+        qty_after: Number(balanceRes.rows[0].qty_on_hand) - line.qty 
+      });
     }
 
     // 1b. Validate Member & Discount (R-001)

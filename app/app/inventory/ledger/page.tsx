@@ -45,6 +45,7 @@ export default function LedgerPage() {
   const ENTRY_TYPES = [
     'grn_receipt', 'grn_qc_reject', 'rma_return', 'rma_vendor_return',
     'transfer_out', 'transfer_in', 'cycle_count_adjustment', 'manual_adjustment',
+    'quarantine_in', 'quarantine_out', 'scrap', 'clearance_move', 'repack_stage_in', 'repack_stage_out'
   ];
 
   const ENTRY_LABELS: Record<string, string> = {
@@ -56,6 +57,12 @@ export default function LedgerPage() {
     transfer_in: 'โอนเข้า',
     cycle_count_adjustment: 'ปรับสต็อก (นับ)',
     manual_adjustment: 'ปรับสต็อก (manual)',
+    quarantine_in: 'กักกันเข้า (Quarantine In)',
+    quarantine_out: 'กักกันออก (Quarantine Out)',
+    scrap: 'เศษซาก (Scrap/Write-off)',
+    clearance_move: 'โอนย้ายล้างสต็อก (Clearance Move)',
+    repack_stage_in: 'เตรียม repack เข้า (Repack Stage In)',
+    repack_stage_out: 'เตรียม repack ออก (Repack Stage Out)'
   };
 
   return (

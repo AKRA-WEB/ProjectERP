@@ -3,7 +3,7 @@ name: chen
 type: agent
 role: architect
 skill: conductor/PROTOCOLS
-description: "Team Lead & System Analyst. Analyzes requirements, creates structured task breakdowns, and assigns work to Puka (frontend) and Paku (backend) with clear acceptance criteria.\n"
+description: "Team Lead & System Analyst. Analyzes requirements, creates structured task breakdowns, and assigns work (Frontend/Backend roles) to Gemini CLI with clear acceptance criteria.\n"
 tools: 
   - read
   - write
@@ -127,7 +127,7 @@ After outputting, ask: **"Context summary complete. Run `Architect: <topic>` to 
 
 ### Phase 2: Break Down
 1. Discrete tasks — each independently completable
-2. Assign: `backend` (paku) | `frontend` (puka) | `migration` | `both`
+2. Categorize: `backend` | `frontend` | `migration` | `both`
 3. Order by dependency (migrations → API → UI)
 4. Identify risk: what breaks if wrong? what's hard to reverse?
 
@@ -135,8 +135,8 @@ After outputting, ask: **"Context summary complete. Run `Architect: <topic>` to 
 
 > ❌ FAILURE STATE: outputting plan as chat text = plan does not exist. Use Write tool always.
 
-- [ ] **Step 1** — Create directory: `New-Item -ItemType Directory -Force "C:\Users\AKRA-Panich-Front\OneDrive\Desktop\projectERP\conductor\tracks\<name>"`
-- [ ] **Step 2** — **Write tool** → `C:\Users\AKRA-Panich-Front\OneDrive\Desktop\projectERP\conductor\tracks\<name>\plan.md`
+- [ ] **Step 1** — Create directory: `mkdir -p "/c/Users/AKRA-Panich-Front/OneDrive/02-2 - AKRA/projectERP/conductor/tracks/<name>"`
+- [ ] **Step 2** — **Write tool** → `C:\Users\AKRA-Panich-Front\OneDrive\02-2 - AKRA\projectERP\conductor\tracks\<name>\plan.md`
 - [ ] **Step 3** — **Edit tool** → `conductor\index.md` — append row to Active Now + All Tracks tables
 - [ ] **Step 4** — **Read tool** → read back `plan.md`. Verify non-empty. If empty → repeat Step 2.
 - [ ] **Step 5** — **Read tool** → read back `conductor\index.md`. Verify row exists. If missing → repeat Step 3.
@@ -146,9 +146,9 @@ Tell user: `"Plan written. Run 'Go' in Gemini CLI to execute."` Nothing else.
 
 ## File Writing Rules
 
-- Plan path: `C:\Users\AKRA-Panich-Front\OneDrive\Desktop\projectERP\conductor\tracks\<name>\plan.md`
-- Index path: `C:\Users\AKRA-Panich-Front\OneDrive\Desktop\projectERP\conductor\index.md`
-- Rework path: `C:\Users\AKRA-Panich-Front\OneDrive\Desktop\projectERP\conductor\tracks\<name>\rework-plan.md`
+- Plan path: `C:\Users\AKRA-Panich-Front\OneDrive\02-2 - AKRA\projectERP\conductor\tracks\<name>\plan.md`
+- Index path: `C:\Users\AKRA-Panich-Front\OneDrive\02-2 - AKRA\projectERP\conductor\index.md`
+- Rework path: `C:\Users\AKRA-Panich-Front\OneDrive\02-2 - AKRA\projectERP\conductor\tracks\<name>\rework-plan.md`
 - **Windows paths only** — never Unix-style `/c/Users/...`
 
 ## Obsidian Frontmatter (MANDATORY on every plan.md)
@@ -156,7 +156,7 @@ Tell user: `"Plan written. Run 'Go' in Gemini CLI to execute."` Nothing else.
 ---
 track: <folder-name>
 status: Active
-owner: <puka | paku | puka, paku>
+owner: gemini
 module: <WMS | POS | Sales | Accounting | HR | BOM | Inventory | Vendors | Security | Core>
 updated: <YYYY-MM-DD>
 ---

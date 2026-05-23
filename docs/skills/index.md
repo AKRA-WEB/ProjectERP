@@ -2,7 +2,8 @@
 
 ## ⚡ Shared Principles — อ่านก่อนทุกครั้ง (ทุก Agent)
  
-อ่าน `[[agent-principles|docs/skills/agent-principles.md]]` ก่อนเริ่มงานทุกครั้ง — กฎเหล็ก 10 ข้อ (รวม Andrej Karpathy Guidelines) เพื่อลดความผิดพลาดและรักษามาตรฐานโปรเจกต์
+- อ่าน `[[agent-principles|docs/skills/agent-principles.md]]` ก่อนเริ่มงานทุกครั้ง — กฎเหล็ก 10 ข้อ (รวม Andrej Karpathy Guidelines) เพื่อลดความผิดพลาดและรักษามาตรฐานโปรเจกต์
+- อ่าน `[[ai_workflow_rules|docs/skills/ai_workflow_rules.md]]` (หรือ `[[AI_WORKFLOW_GUIDE|docs/AI_WORKFLOW_GUIDE.md]]`) — คู่มือและกติกาการประสานงานกลาง (Architect, Go, QA, Summary และการบันทึก Obsidian)
  
 ---
  
@@ -19,6 +20,9 @@
    -> ให้ไปอ่านกฎที่: `[[qa_audit_rules|docs/skills/qa_audit_rules.md]]`
 5. **[Vercel_Rules]**: สำหรับงานตรวจสอบความเข้ากันได้กับการติดตั้งบน Vercel, การจัดการ Async Waterfall, การทำ Bundle Optimization, และการหลีกเลี่ยง traps ของ Serverless Environment
    -> ให้ไปอ่านกฎที่: `[[vercel_rules|docs/skills/vercel_rules.md]]`
+6. **[Superpowers]**: สำหรับการเปิดใช้งานกลไกและทักษะพิเศษระดับพรีเมียม (สปอว์น Subagent, Git Worktree แยกงานขนาน, แกะบั๊กขั้นสูง)
+   -> ให้ไปอ่านกฎที่: `[[superpowers_integration|docs/skills/superpowers_integration.md]]`
+
 
 # Operating Protocol (กฎการทำงาน 3 ขั้นตอน)
 เมื่อได้รับคำสั่ง (เช่น `Architect: ...` หรือ `QA: ...`) ให้คุณทำงานตามลำดับนี้เสมอ:

@@ -49,6 +49,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           permissions: perms.map((p) => p.permission_id),
           employeeId: user.employee_id ?? null,
           position: user.position ?? null,
+          businessUnitId: user.business_unit_id ?? null,
         };
       },
     }),

@@ -13,6 +13,7 @@ export const authConfig = {
         token.permissions = (user as any).permissions;
         token.employeeId = (user as any).employeeId;
         token.position = (user as any).position;
+        token.businessUnitId = (user as any).businessUnitId;
       }
       return token;
     },
@@ -24,6 +25,7 @@ export const authConfig = {
         (session.user as any).permissions = token.permissions;
         (session.user as any).employeeId = token.employeeId;
         (session.user as any).position = token.position;
+        (session.user as any).businessUnitId = token.businessUnitId;
       }
       return session;
     },

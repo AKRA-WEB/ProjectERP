@@ -28,18 +28,21 @@ NEXTAUTH_URL=http://localhost:3000
 
 ## Claude-Gemini Collaboration Protocol
 
-**Trigger: `Architect: <requirement>`** → spawn Chen agent to plan. Do NOT plan inline.
-Refer to `conductor/PROTOCOLS.md` for full protocol.
+**Triggers & Commands:**
+- **`Init`** → รัน Pre-Flight Checklist เต็มรูปแบบ (git sync, sweep, โหลด current-state + pitfalls, เช็คบอร์ด Conductor และรายงานความพร้อม)
+- **`Architect: <requirement>`** → spawn Chen agent to plan. Do NOT plan inline.
+Refer to [AI Workflow Guide](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/docs/AI_WORKFLOW_GUIDE.md) and `conductor/PROTOCOLS.md` for full protocols and workflow structures.
 
 ## Session Start (MANDATORY)
 
-**Before writing a single line of code or plan — always run:**
+**ก่อนเริ่มวางแผนหรือโค้ดแม้แต่บรรทัดเดียว — ต้องทำสิ่งนี้ทุกครั้ง:**
 
-```bash
-git pull origin master
-```
-
-ถ้าไม่ pull ก่อน → local อาจล้าหลัง remote → push conflict กับ Gemini/Chen commits อื่น
+1. **Read Workflow Guide:** ทำความเข้าใจและปฏิบัติตามกระบวนการและเช็คลิสต์ที่ [AI Workflow Guide](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/docs/AI_WORKFLOW_GUIDE.md)
+2. **Sync Codebase:**
+   ```bash
+   git pull origin master
+   ```
+   ถ้าไม่ pull ก่อน → local อาจล้าหลัง remote → push conflict กับ Gemini/Chen commits อื่น
 
 **Automated Track Archiving Sweep:**
 Run `npm run track:sweep` to automatically clean up, sweep, and archive any previously verified tracks. This keeps the active `conductor/tracks/` workspace clean and links organized.

@@ -36,3 +36,6 @@
 | [inbound-order-autocomplete — Improving Inbound Order Search & Notes](./tracks/inbound-order-autocomplete/plan.md) | Verified | 2026-05-22 | 2026-05-22 |
 | [menu-grid-polish — Track Plan: Menu Grid Polish & Symmetrical Layout](./tracks/menu-grid-polish/plan.md) | Verified | 2026-05-22 | 2026-05-22 |
 | [grn-receiving-quantities-fix — Fixing GRN Inbound Order Receiving & Quantities](./tracks/grn-receiving-quantities-fix/plan.md) | Verified | 2026-05-22 | 2026-05-22 |
+| [multi-bu-foundation — Multi-BU Foundation](./tracks/multi-bu-foundation/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
+| [pricing-engine — Pricing Engine — Channel + Tier + Contract](./tracks/pricing-engine/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
+| [wms-virtual-warehouses — WMS Virtual Warehouses & Thermal Zones](./tracks/wms-virtual-warehouses/plan.md) | Verified | 2026-05-23 | 2026-05-23 |

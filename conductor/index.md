@@ -14,7 +14,53 @@
 
 > Gemini CLI: start here. Execute top-to-bottom. One track at a time.
 
-*No active tracks.*
+| Track | Status | Plan |
+| --- | --- | --- |
+
+## Active Queue — V2.0 Orion Roadmap
+
+Master plan: [erp-v2-orion-roadmap](tracks/erp-v2-orion-roadmap/plan.md)
+
+### Phase 1 — V2.0 Foundation (sequential)
+| # | Track | Status | Plan |
+| --- | --- | --- | --- |
+| 1 | multi-bu-foundation | Verified | [plan](tracks/multi-bu-foundation/plan.md) |
+| 2 | wms-virtual-warehouses | Verified | [plan](tracks/wms-virtual-warehouses/plan.md) |
+| 3 | pricing-engine | Verified | [plan](tracks/pricing-engine/plan.md) |
+| 4 | manager-override-pin | Active | [plan](tracks/manager-override-pin/plan.md) |
+| 5 | min-price-hardstop | Active | [plan](tracks/min-price-hardstop/plan.md) |
+| 6 | credit-control-engine | Active | [plan](tracks/credit-control-engine/plan.md) |
+| 7 | channel-on-order-header | Active | [plan](tracks/channel-on-order-header/plan.md) |
+| 8 | pos-draft-and-hybrid-flow | Active | [plan](tracks/pos-draft-and-hybrid-flow/plan.md) |
+| 9 | pos-delta-slip-and-versioning | Active | [plan](tracks/pos-delta-slip-and-versioning/plan.md) |
+| 10 | dispatch-check-exit-gate | Active | [plan](tracks/dispatch-check-exit-gate/plan.md) |
+| 11 | fefo-enforcement | Active | [plan](tracks/fefo-enforcement/plan.md) |
+| 12 | strict-receiving-flow | Active | [plan](tracks/strict-receiving-flow/plan.md) |
+| 13 | repack-yield-loss | Active | [plan](tracks/repack-yield-loss/plan.md) |
+| 14 | wholecase-strict-lock-akra | Active | [plan](tracks/wholecase-strict-lock-akra/plan.md) |
+| 15 | price-history-alert-pos | Active | [plan](tracks/price-history-alert-pos/plan.md) |
+
+### Phase 2 — V2.0 Compliance
+| # | Track | Status | Plan |
+| --- | --- | --- | --- |
+| 17 | moving-average-cost | Active | [plan](tracks/moving-average-cost/plan.md) |
+| 18 | vendor-wht-and-form-50 | Active | [plan](tracks/vendor-wht-and-form-50/plan.md) |
+| 19 | auditor-role-and-readonly-access | Active | [plan](tracks/auditor-role-and-readonly-access/plan.md) |
+| 20 | accounting-export-adapters | Active | [plan](tracks/accounting-export-adapters/plan.md) |
+
+### Phase 3 — V2.1 Integrations
+| # | Track | Status | Plan |
+| --- | --- | --- | --- |
+| 21 | hrzoft-integration | Active | [plan](tracks/hrzoft-integration/plan.md) |
+| 22 | auto-replenishment-w1-w2 | Active | [plan](tracks/auto-replenishment-w1-w2/plan.md) |
+
+### Phase 4 — V2.2 Analytics
+| # | Track | Status | Plan |
+| --- | --- | --- | --- |
+| 23 | ai-sku-cut-and-s-curve-forecasting | Active | [plan](tracks/ai-sku-cut-and-s-curve-forecasting/plan.md) |
+| 24 | npd-trial-tracking | Active | [plan](tracks/npd-trial-tracking/plan.md) |
+| 25 | rebate-management | Active | [plan](tracks/rebate-management/plan.md) |
+| 26 | field-sales-geo-tracking | Active | [plan](tracks/field-sales-geo-tracking/plan.md) |
 
 ## Rework Required
 
@@ -26,6 +72,9 @@
 
 | Track | Status | Created | Last Updated |
 |-------|--------|---------|--------------|
+| [WMS Virtual Warehouses & Thermal Zones](./archive/tracks/wms-virtual-warehouses/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
+| [Pricing Engine — Channel + Tier + Contract](./archive/tracks/pricing-engine/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
+| [Multi-BU Foundation](./archive/tracks/multi-bu-foundation/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
 | [grn-receiving-quantities-fix](./archive/tracks/grn-receiving-quantities-fix/plan.md) | Verified| 2026-05-22 | 2026-05-22 |
 | [Menu Grid Polish & Symmetry](./archive/tracks/menu-grid-polish/plan.md) | Verified| 2026-05-22 | 2026-05-22 |
 | [inbound-order-autocomplete](./archive/tracks/inbound-order-autocomplete/plan.md) | Verified| 2026-05-22 | 2026-05-22 |

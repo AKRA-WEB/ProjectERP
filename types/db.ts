@@ -1,5 +1,13 @@
-export type UserRole = 'admin' | 'manager' | 'staff';
+export type UserRole = 'admin' | 'manager' | 'staff' | 'auditor';
 export type Locale = 'th' | 'en';
+
+export interface BusinessUnit {
+  id: string;
+  code: 'TRD' | 'AKRA' | string;
+  name_th: string;
+  name_en: string;
+  created_at: string;
+}
 
 export interface User {
   id: string;
@@ -13,6 +21,7 @@ export interface User {
   department: string | null;
   phone: string | null;
   hired_date: string | null;
+  business_unit_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -55,6 +64,7 @@ export interface Warehouse {
   address_en: string | null;
   timezone: string;
   is_active: boolean;
+  business_unit_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -74,6 +84,8 @@ export interface Product {
   is_active: boolean;
   is_lot_tracked: boolean;
   is_serial_tracked: boolean;
+  min_price: number | string;
+  clr_min_price: number | string;
   created_at: string;
 }
 
@@ -131,3 +143,50 @@ export interface Account {
   description: string | null;
   created_at: string;
 }
+
+export type WarehouseZoneThermalType = 'ambient' | 'sensitive' | 'chilled' | 'frozen';
+export type VirtualLocationPurpose = 'buffer' | 'damage' | 'clearance' | 'scrap' | 'repack';
+
+export interface WarehouseZone {
+  id: string;
+  warehouse_id: string;
+  code: string;
+  thermal_type: WarehouseZoneThermalType;
+  created_at: string;
+}
+
+export interface VirtualLocation {
+  id: string;
+  code: string;
+  purpose: VirtualLocationPurpose;
+  is_sellable: boolean;
+  visible_channels: string[];
+  created_at: string;
+}
+
+export type PriceChannel = 'TRD' | 'AKRA';
+export type PriceTier = 'T0' | 'T1' | 'T2' | 'T3';
+
+export interface ProductPrice {
+  id: string;
+  product_id: string;
+  channel: PriceChannel;
+  tier: PriceTier;
+  price: number | string;
+  valid_from: string;
+  valid_to: string | null;
+  created_at: string;
+}
+
+export interface CustomerPriceContract {
+  id: string;
+  customer_id: string;
+  product_id: string | null;
+  locked_price: number | string | null;
+  discount_pct: number | string | null;
+  valid_from: string;
+  valid_to: string | null;
+  created_at: string;
+}
+
+

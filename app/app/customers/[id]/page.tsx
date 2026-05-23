@@ -165,8 +165,16 @@ export default function CustomerDetailPage() {
           />
         </div>
 
-        <div className="flex justify-end gap-2 pt-4">
-          <Button type="submit" loading={saving}>บันทึกการเปลี่ยนแปลง / Save Changes</Button>
+        <div className="flex justify-between items-center pt-4 border-t border-stone-100">
+          <Link
+            href={`/app/admin/customers/${id}/price-contracts`}
+            className="px-4 py-2 border border-[#7a5a7e] hover:bg-[#7a5a7e]/5 text-[#7a5a7e] font-semibold text-sm rounded-[6px] transition-colors"
+          >
+            สัญญาราคาพิเศษ / Pricing Contracts
+          </Link>
+          <div className="flex gap-2">
+            <Button type="submit" loading={saving}>บันทึกการเปลี่ยนแปลง / Save Changes</Button>
+          </div>
         </div>
       </form>
     </div>

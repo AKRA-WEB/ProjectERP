@@ -5,6 +5,7 @@ export interface SessionUser {
   role: UserRole;
   assignedWarehouseIds: string[];
   permissions: string[];
+  businessUnitId?: string | null;
 }
 
 export interface PaginatedResponse<T> {
@@ -25,7 +26,7 @@ export type GrnStatus = 'draft' | 'received' | 'verified' | 'qc_pending' | 'qc_p
 export type PrStatus = 'draft' | 'submitted' | 'manager_approved' | 'admin_approved' | 'rejected' | 'converted_to_po' | 'received';
 export type PoStatus = 'draft' | 'sent' | 'partially_received' | 'fully_received' | 'invoiced' | 'paid' | 'closed' | 'cancelled';
 export type CycleCountStatus = 'open' | 'counting' | 'pending_approval' | 'approved' | 'closed';
-export type LedgerEntryType = 'grn_receipt' | 'grn_qc_reject' | 'rma_return' | 'rma_vendor_return' | 'transfer_out' | 'transfer_in' | 'cycle_count_adjustment' | 'po_reversal' | 'manual_adjustment' | 'pos_sale' | 'pos_void' | 'pick_dispatch' | 'repack_out' | 'repack_in';
+export type LedgerEntryType = 'grn_receipt' | 'grn_qc_reject' | 'rma_return' | 'rma_vendor_return' | 'transfer_out' | 'transfer_in' | 'cycle_count_adjustment' | 'po_reversal' | 'manual_adjustment' | 'pos_sale' | 'pos_void' | 'pick_dispatch' | 'repack_out' | 'repack_in' | 'quarantine_in' | 'quarantine_out' | 'scrap' | 'clearance_move' | 'repack_stage_in' | 'repack_stage_out';
 
 export type PosSessionStatus = 'open' | 'closed';
 export type PosTransactionStatus = 'completed' | 'voided';

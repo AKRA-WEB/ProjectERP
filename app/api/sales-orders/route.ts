@@ -2,6 +2,7 @@ import { auth } from '@/auth';
 import { apiSuccess, apiError, apiValidationError } from '@/lib/api-response';
 import { assertPermission, buildWarehouseScopeClause } from '@/lib/authz';
 import pool, { query } from '@/lib/db/client';
+import { resolvePrice } from '@/lib/pricing/resolve';
 import { z } from 'zod';
 import { DEFAULT_PAGE_SIZE } from '@/lib/constants';
 import type { SessionUser } from '@/lib/authz';
@@ -97,9 +98,27 @@ export async function POST(req: Request) {
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    const lineTotal = (line.qty_ordered * line.unit_price) - line.discount_amount;
+    
+    // Resolve dynamic price
+    const resolution = await resolvePrice({
+      channel: 'AKRA',
+      customer_id,
+      product_id: line.product_id,
+      qty: line.qty_ordered,
+    });
+    if (!resolution) {
+      return apiError(`No price configured for product ${line.product_id} on channel AKRA`, 422);
+    }
+    
+    const unitPrice = resolution.price;
+    const lineTotal = (line.qty_ordered * unitPrice) - line.discount_amount;
     subtotal += lineTotal;
-    lineData.push({ ...line, line_total: lineTotal, line_number: i + 1 });
+    lineData.push({ 
+      ...line, 
+      unit_price: unitPrice, 
+      line_total: lineTotal, 
+      line_number: i + 1 
+    });
   }
 
   const vatAmount = Math.round(subtotal * 0.07 * 100) / 100;
