@@ -8,7 +8,7 @@ updated: 2026-05-20
 
 # Chen Plan Enforcement Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Enforce that when user types `Architect: <requirement>`, Chen subagent always spawns AND writes `plan.md` to disk via Write tool — never as inline chat text.
 
@@ -38,7 +38,7 @@ updated: 2026-05-20
 
 This hook fires on every user message. It reads the prompt from stdin JSON, checks if it starts with `Architect:` (case-insensitive), and prints an enforcement message if so. Claude Code injects stdout as a `system-reminder` before Claude responds.
 
-- [ ] **Step 1: Create the hook file**
+- [x] **Step 1: Create the hook file**
 
 Create `.claude/hooks/enforce-architect-spawn.ps1` with this exact content:
 
@@ -80,7 +80,7 @@ Failure to spawn Chen = task failure.
 exit 0
 ```
 
-- [ ] **Step 2: Verify file created at correct path**
+- [x] **Step 2: Verify file created at correct path**
 
 ```powershell
 Test-Path "C:\Users\AKRA-Panich-Front\OneDrive\Desktop\projectERP\.claude\hooks\enforce-architect-spawn.ps1"
@@ -97,11 +97,11 @@ Expected: `True`
 
 Add a `UserPromptSubmit` key to the existing `hooks` object. The current `hooks` object only has `PostToolUse`. Add `UserPromptSubmit` at the same level.
 
-- [ ] **Step 1: Read current settings.local.json to confirm current hooks structure**
+- [x] **Step 1: Read current settings.local.json to confirm current hooks structure**
 
 Read `.claude/settings.local.json` — confirm `hooks` object ends after `PostToolUse` block.
 
-- [ ] **Step 2: Add UserPromptSubmit hook entry**
+- [x] **Step 2: Add UserPromptSubmit hook entry**
 
 In `.claude/settings.local.json`, find this exact block (end of the hooks object):
 
@@ -147,7 +147,7 @@ Replace with:
   }
 ```
 
-- [ ] **Step 3: Verify JSON is valid**
+- [x] **Step 3: Verify JSON is valid**
 
 ```powershell
 Get-Content "C:\Users\AKRA-Panich-Front\OneDrive\Desktop\projectERP\.claude\settings.local.json" | ConvertFrom-Json | Out-Null; Write-Output "JSON valid"
@@ -155,7 +155,7 @@ Get-Content "C:\Users\AKRA-Panich-Front\OneDrive\Desktop\projectERP\.claude\sett
 
 Expected: `JSON valid` (no errors)
 
-- [ ] **Step 4: Commit Tasks 1–2**
+- [x] **Step 4: Commit Tasks 1–2**
 
 ```bash
 git add .claude/hooks/enforce-architect-spawn.ps1 .claude/settings.local.json
@@ -171,7 +171,7 @@ git commit -m "feat(core): add UserPromptSubmit hook to enforce Chen spawn on Ar
 
 Replace the existing Phase 3 (soft instruction with no failure state) with an atomic checklist that includes explicit failure states and Read-back verification.
 
-- [ ] **Step 1: Open chen.agent.md and locate Phase 3**
+- [x] **Step 1: Open chen.agent.md and locate Phase 3**
 
 Read `.claude/agents/chen.agent.md`. Confirm lines 97–109 match:
 
@@ -191,7 +191,7 @@ Tell user: `"Plan written. Run 'Go' in Gemini CLI to execute."`
 Nothing else.
 ```
 
-- [ ] **Step 2: Replace Phase 3 with atomic checklist**
+- [x] **Step 2: Replace Phase 3 with atomic checklist**
 
 Replace the block above with:
 
@@ -202,21 +202,21 @@ Replace the block above with:
 
 Atomic checklist — execute in order, never skip:
 
-- [ ] **Step 1** — Create track directory (PowerShell tool):
+- [x] **Step 1** — Create track directory (PowerShell tool):
   `New-Item -ItemType Directory -Force "C:\Users\AKRA-Panich-Front\OneDrive\Desktop\projectERP\conductor\tracks\<feature-name>"`
 
-- [ ] **Step 2** — **Write tool** → full absolute Windows path:
+- [x] **Step 2** — **Write tool** → full absolute Windows path:
   `C:\Users\AKRA-Panich-Front\OneDrive\Desktop\projectERP\conductor\tracks\<feature-name>\plan.md`
   Never use relative paths. Never use Unix-style paths.
 
-- [ ] **Step 3** — **Edit tool** → `C:\Users\AKRA-Panich-Front\OneDrive\Desktop\projectERP\conductor\index.md`
+- [x] **Step 3** — **Edit tool** → `C:\Users\AKRA-Panich-Front\OneDrive\Desktop\projectERP\conductor\index.md`
   Append new row in the All Tracks table:
   `| [<Track Name>](./tracks/<feature-name>/plan.md) | Active | <YYYY-MM-DD> | <YYYY-MM-DD> |`
 
-- [ ] **Step 4** — **Read tool** → read back `plan.md`. Verify file is non-empty.
+- [x] **Step 4** — **Read tool** → read back `plan.md`. Verify file is non-empty.
   If empty or missing → repeat Step 2. Do not proceed until non-empty.
 
-- [ ] **Step 5** — **Read tool** → read back `conductor/index.md`. Verify new row exists.
+- [x] **Step 5** — **Read tool** → read back `conductor/index.md`. Verify new row exists.
   If missing → repeat Step 3. Do not proceed until row confirmed.
 
 Only after Steps 4 and 5 both pass → proceed to Phase 4.
@@ -226,11 +226,11 @@ Tell user: `"Plan written. Run 'Go' in Gemini CLI to execute."`
 Nothing else.
 ```
 
-- [ ] **Step 3: Verify the edit looks correct**
+- [x] **Step 3: Verify the edit looks correct**
 
 Read `.claude/agents/chen.agent.md` lines 95–120. Confirm old "Steps: 1. Use Write tool..." is gone and new checklist is present.
 
-- [ ] **Step 4: Commit Task 3**
+- [x] **Step 4: Commit Task 3**
 
 ```bash
 git add .claude/agents/chen.agent.md
@@ -246,7 +246,7 @@ git commit -m "fix(core): rewrite chen.agent.md Phase 3 with atomic checklist an
 
 The current boundary rule says "Claude writes plan.md" — directly contradicting chen.agent.md. This mixed signal causes Claude to write plans inline instead of spawning Chen.
 
-- [ ] **Step 1: Open PROTOCOLS.md and confirm line 50**
+- [x] **Step 1: Open PROTOCOLS.md and confirm line 50**
 
 Read `conductor/PROTOCOLS.md` lines 48–53. Confirm line 50 is:
 
@@ -254,7 +254,7 @@ Read `conductor/PROTOCOLS.md` lines 48–53. Confirm line 50 is:
 - `conductor/` — Gemini writes `execution-summary.md`, updates checkboxes. Claude writes `plan.md`, `rework-plan.md`, updates `index.md`.
 ```
 
-- [ ] **Step 2: Replace the boundary rule**
+- [x] **Step 2: Replace the boundary rule**
 
 Replace the exact line above with:
 
@@ -262,11 +262,11 @@ Replace the exact line above with:
 - `conductor/` — Gemini writes `execution-summary.md`, updates checkboxes. **Chen** writes `plan.md`, `rework-plan.md`, updates `index.md`. Claude reviews and commits.
 ```
 
-- [ ] **Step 3: Verify change**
+- [x] **Step 3: Verify change**
 
 Read `conductor/PROTOCOLS.md` lines 48–53. Confirm "Claude writes" is gone and "**Chen** writes" is present.
 
-- [ ] **Step 4: Commit Task 4**
+- [x] **Step 4: Commit Task 4**
 
 ```bash
 git add conductor/PROTOCOLS.md
@@ -279,11 +279,11 @@ git commit -m "fix(core): fix PROTOCOLS.md contradiction — Chen writes plan.md
 
 No automated test suite exists. Verify manually.
 
-- [ ] **Step 1: Reload Claude Code session**
+- [x] **Step 1: Reload Claude Code session**
 
 Close and reopen Claude Code (or start a new session) so the new `UserPromptSubmit` hook is loaded.
 
-- [ ] **Step 2: Trigger the hook manually**
+- [x] **Step 2: Trigger the hook manually**
 
 In a new session, type: `Architect: test requirement`
 
@@ -291,13 +291,13 @@ Expected: A `system-reminder` block appears in context containing `⚠️ ARCHIT
 
 If no reminder appears: check that `settings.local.json` has valid JSON and the hook path is correct.
 
-- [ ] **Step 3: Verify hook fires with non-Architect prompt**
+- [x] **Step 3: Verify hook fires with non-Architect prompt**
 
 Type any normal message (e.g., `hello`).
 
 Expected: No `⚠️ ARCHITECT TRIGGER` in context. Hook exits silently.
 
-- [ ] **Step 4: Verify chen.agent.md Phase 3 is correct on disk**
+- [x] **Step 4: Verify chen.agent.md Phase 3 is correct on disk**
 
 ```powershell
 Select-String -Path "C:\Users\AKRA-Panich-Front\OneDrive\Desktop\projectERP\.claude\agents\chen.agent.md" -Pattern "FAILURE STATE"
@@ -305,7 +305,7 @@ Select-String -Path "C:\Users\AKRA-Panich-Front\OneDrive\Desktop\projectERP\.cla
 
 Expected: one match on the `❌ FAILURE STATE` line.
 
-- [ ] **Step 5: Verify PROTOCOLS.md is correct on disk**
+- [x] **Step 5: Verify PROTOCOLS.md is correct on disk**
 
 ```powershell
 Select-String -Path "C:\Users\AKRA-Panich-Front\OneDrive\Desktop\projectERP\conductor\PROTOCOLS.md" -Pattern "Chen.*writes"
@@ -317,11 +317,12 @@ Expected: one match on the updated boundary rule line.
 
 ## QA Checklist
 
-- [ ] Hook fires only on `Architect:` prefix (case-insensitive), not on all prompts
-- [ ] Hook exits cleanly (exit code 0) on non-matching prompts — no stderr noise
-- [ ] `settings.local.json` is valid JSON after edit
-- [ ] `chen.agent.md` contains `❌ FAILURE STATE` block in Phase 3
-- [ ] `chen.agent.md` Phase 3 atomic checklist has 5 numbered steps
-- [ ] `PROTOCOLS.md` no longer contains "Claude writes `plan.md`"
-- [ ] `PROTOCOLS.md` contains "**Chen** writes `plan.md`"
-- [ ] All 4 commits exist: `git log --oneline -4`
+- [x] Hook fires only on `Architect:` prefix (case-insensitive), not on all prompts
+- [x] Hook exits cleanly (exit code 0) on non-matching prompts — no stderr noise
+- [x] `settings.local.json` is valid JSON after edit
+- [x] `chen.agent.md` contains `❌ FAILURE STATE` block in Phase 3
+- [x] `chen.agent.md` Phase 3 atomic checklist has 5 numbered steps
+- [x] `PROTOCOLS.md` no longer contains "Claude writes `plan.md`"
+- [x] `PROTOCOLS.md` contains "**Chen** writes `plan.md`"
+- [x] All 4 commits exist: `git log --oneline -4`
+

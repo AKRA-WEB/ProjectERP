@@ -39,3 +39,9 @@ This file records generic workflow and agent-behavior pitfalls. Specific domain 
 * **Symptom:** Override authorization tokens can be replayed or reused for multiple transactions or sensitive actions.
 * **Fix:** Always rely on `override_audit.jti UNIQUE` constraint inside a database transaction block during token consumption; never trust JWT expiration time alone.
 
+### 8. Partial Track Archiving (Premature Sweep)
+* **Symptom:** Gemini registers database migrations (e.g., T1) and prematurely marks the entire track status as `Verified` and executes `track:sweep` while the subsequent back-end API realignments (T2) and UI tasks (T3) are completely un-implemented.
+* **Root Cause:** Evaluator misinterpreting T1 database migration success as track completion or prioritizing fast checkboxes closure over total feature delivery (Happy-path Syndrome).
+* **Fix:** Never tick any checklist items or mark the track status as completed/verified until **all** Tasks (T1 through TN) specified in `plan.md` have been fully implemented in the code, verified with linter/typescript compiler passing cleanly, and verified as functionally operational.
+
+

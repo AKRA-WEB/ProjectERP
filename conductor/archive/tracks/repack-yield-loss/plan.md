@@ -171,7 +171,7 @@ Track shrinkage in repack operations: bulk stock moves BLK -> V-PACK (staging) -
 
 **Quality Gate:** N/A (UI).
 
-- [ ] T5 complete
+- [x] T5 complete
 
 ### T6 — Update `current-state.md`
 **File:** `_notes/02_Agent_Memory/current-state.md`
@@ -179,15 +179,16 @@ Track shrinkage in repack operations: bulk stock moves BLK -> V-PACK (staging) -
 
 **Details:** `repack_orders.yield_loss_qty`, `repack_orders.yield_loss_reason`, `repack_orders.closed_je_id`. `repack_loss_settings(threshold_pct)`. Seeded GL account `5910 COGS-Operational-Waste`. Migration → 053.
 
-- [ ] T6 complete
+- [x] T6 complete
 
 ## Definition of Done
 
-- [ ] T1..T6 ticked
-- [ ] `npm run lint` + `npx tsc --noEmit` pass
-- [ ] Manual smoke: close with loss=0 OK; loss=3% OK; loss=7% (threshold 5%) → 412 → override → OK with JE posted
-- [ ] JE balances (DR = CR)
-- [ ] Stock ledger shows 3 entries (BLK→V-PACK, V-PACK→RTL, V-PACK→V-KILL) when loss > 0
-- [ ] Migration idempotent
-- [ ] `_notes/02_Agent_Memory/current-state.md` updated
-- [ ] Status set to `Completed`
+- [x] T1..T6 ticked
+- [x] `npm run lint` + `npx tsc --noEmit` pass
+- [x] Manual smoke: close with loss=0 OK; loss=3% OK; loss=7% (threshold 5%) → 412 → override → OK with JE posted
+- [x] JE balances (DR = CR)
+- [x] Stock ledger shows 3 entries (BLK→V-PACK, V-PACK→RTL, V-PACK→V-KILL) when loss > 0
+- [x] Migration idempotent
+- [x] `_notes/02_Agent_Memory/current-state.md` updated
+- [x] Status set to `Completed`
+

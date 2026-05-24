@@ -715,16 +715,17 @@ verified (GRN)    → teal/green / 'ตรวจสอบแล้ว'
 
 ## Verification Checklist
 
-- [ ] Migration runs cleanly: `npm run migrate`
-- [ ] `npm run build` passes — no TypeScript errors
-- [ ] Create IO: staff can select vendor, warehouse, items → IO created with `open` status
-- [ ] IO appears in Receiving Queue
-- [ ] Click "รับสินค้า" on IO → GRN new form loads with IO lines, current stock visible
-- [ ] GRN created from IO → IO status changes to `receiving`; `po_line_item_id` is null on GRN lines
-- [ ] Confirm receipt → GRN status `received`; IO status `pending_verification`
-- [ ] Supervisor (manager/admin) clicks "ตรวจสอบ" → GRN `verified`; IO `verified`
-- [ ] "นำเข้าคลัง" on `verified` GRN → stock ledger updated; GRN `stocked`
-- [ ] On IO detail page, "บันทึกเลขอ้างอิง" → enter vendor ref → IO `closed`
-- [ ] Existing PO-based GRN flow is unaffected (PO mode in GRN new form still works)
-- [ ] QC flow on PO-based GRNs is unaffected
-- [ ] Staff warehouse scope enforced on IO list and creation
+- [x] Migration runs cleanly: `npm run migrate`
+- [x] `npm run build` passes — no TypeScript errors
+- [x] Create IO: staff can select vendor, warehouse, items → IO created with `open` status
+- [x] IO appears in Receiving Queue
+- [x] Click "รับสินค้า" on IO → GRN new form loads with IO lines, current stock visible
+- [x] GRN created from IO → IO status changes to `receiving`; `po_line_item_id` is null on GRN lines
+- [x] Confirm receipt → GRN status `received`; IO status `pending_verification`
+- [x] Supervisor (manager/admin) clicks "ตรวจสอบ" → GRN `verified`; IO `verified`
+- [x] "นำเข้าคลัง" on `verified` GRN → stock ledger updated; GRN `stocked`
+- [x] On IO detail page, "บันทึกเลขอ้างอิง" → enter vendor ref → IO `closed`
+- [x] Existing PO-based GRN flow is unaffected (PO mode in GRN new form still works)
+- [x] QC flow on PO-based GRNs is unaffected
+- [x] Staff warehouse scope enforced on IO list and creation
+

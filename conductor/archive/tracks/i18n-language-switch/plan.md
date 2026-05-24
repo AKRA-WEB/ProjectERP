@@ -957,17 +957,17 @@ const t = useT();
 
 ## Acceptance Criteria
 
-- [ ] `types/index.ts` exports `Locale = 'th' | 'en'`
-- [ ] `lib/i18n/th.json` and `lib/i18n/en.json` exist with identical key sets
-- [ ] `useT()` returns correct strings for both locales
-- [ ] Toggling TH↔EN via LanguageSwitcher in sidebar updates all translated strings instantly (React re-render via context)
-- [ ] Language persists across page refresh (localStorage)
-- [ ] `document.documentElement.lang` updates to match selected locale
-- [ ] Sidebar navigation labels fully translated — no more bilingual `'คลังสินค้า / Inventory'` strings
-- [ ] TopBar search, sign out, aria labels translated
-- [ ] `formatDate()` and `formatCurrency()` accept optional `lang` param — existing callers unaffected
-- [ ] `npx tsc --noEmit` passes — `useT()` return type is `(key: DictKey) => string` with TypeScript key completions
-- [ ] `npm run lint` passes on all modified files
+- [x] `types/index.ts` exports `Locale = 'th' | 'en'`
+- [x] `lib/i18n/th.json` and `lib/i18n/en.json` exist with identical key sets
+- [x] `useT()` returns correct strings for both locales
+- [x] Toggling TH↔EN via LanguageSwitcher in sidebar updates all translated strings instantly (React re-render via context)
+- [x] Language persists across page refresh (localStorage)
+- [x] `document.documentElement.lang` updates to match selected locale
+- [x] Sidebar navigation labels fully translated — no more bilingual `'คลังสินค้า / Inventory'` strings
+- [x] TopBar search, sign out, aria labels translated
+- [x] `formatDate()` and `formatCurrency()` accept optional `lang` param — existing callers unaffected
+- [x] `npx tsc --noEmit` passes — `useT()` return type is `(key: DictKey) => string` with TypeScript key completions
+- [x] `npm run lint` passes on all modified files
 
 ## Notes for Gemini
 
@@ -980,4 +980,5 @@ const t = useT();
 ---
 ## Execution Logs
 - [[execution-summary]]
+
 

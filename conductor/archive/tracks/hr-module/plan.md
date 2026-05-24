@@ -2149,43 +2149,43 @@ After all tasks complete, run:
 
 **Files to edit:**
 
-- [ ] `app/api/hr/employees/route.ts`
+- [x] `app/api/hr/employees/route.ts`
   - Line 23: replace `u.name ILIKE $${idx}` → `(u.name_th ILIKE $${idx} OR u.name_en ILIKE $${idx} OR u.employee_id ILIKE $${idx} OR u.email ILIKE $${idx})`
   - Line 33: replace `u.name,` → `u.name_th, u.name_en,`
   - Line 44: replace `ORDER BY u.name` → `ORDER BY u.name_th`
 
-- [ ] `app/api/hr/attendance/route.ts`
+- [x] `app/api/hr/attendance/route.ts`
   - Line 22: replace `u.name AS employee_name` → `u.name_th AS employee_name_th, u.name_en AS employee_name_en`
   - Line 26: replace `ORDER BY ar.work_date, u.name` → `ORDER BY ar.work_date, u.name_th`
 
-- [ ] `app/api/hr/leave-requests/route.ts`
+- [x] `app/api/hr/leave-requests/route.ts`
   - Line 42: replace `u.name AS employee_name,` → `u.name_th AS employee_name_th, u.name_en AS employee_name_en,`
   - Line 44: replace `a.name AS approved_by_name` → `a.name_th AS approved_by_name_th, a.name_en AS approved_by_name_en`
 
-- [ ] `app/api/hr/leave-requests/[id]/route.ts`
+- [x] `app/api/hr/leave-requests/[id]/route.ts`
   - Line 21: replace `u.name AS employee_name,` → `u.name_th AS employee_name_th, u.name_en AS employee_name_en,`
   - Line 23: replace `a.name AS approved_by_name` → `a.name_th AS approved_by_name_th, a.name_en AS approved_by_name_en`
 
-- [ ] `app/api/hr/payroll-runs/route.ts`
+- [x] `app/api/hr/payroll-runs/route.ts`
   - Line 21: replace `u.name AS created_by_name` → `u.name_th AS created_by_name_th, u.name_en AS created_by_name_en`
 
-- [ ] `app/api/hr/payroll-runs/[id]/route.ts`
+- [x] `app/api/hr/payroll-runs/[id]/route.ts`
   - Line 13: replace `u.name AS created_by_name, a.name AS approved_by_name` → `u.name_th AS created_by_name_th, u.name_en AS created_by_name_en, a.name_th AS approved_by_name_th, a.name_en AS approved_by_name_en`
   - Line 22: replace `u.name AS employee_name` → `u.name_th AS employee_name_th, u.name_en AS employee_name_en`
   - Line 26: replace `ORDER BY u.name` → `ORDER BY u.name_th`
 
-- [ ] `app/api/hr/payroll-runs/[id]/slip/[employee_id]/route.tsx`
+- [x] `app/api/hr/payroll-runs/[id]/slip/[employee_id]/route.tsx`
   - Line 37: replace `u.name AS employee_name` → `COALESCE(u.name_th, u.name_en) AS employee_name`
 
-- [ ] `app/api/hr/departments/route.ts`
+- [x] `app/api/hr/departments/route.ts`
   - Replace `u.name AS manager_name` → `u.name_th AS manager_name_th, u.name_en AS manager_name_en`
 
-- [ ] `app/api/hr/departments/[id]/route.ts`
+- [x] `app/api/hr/departments/[id]/route.ts`
   - Replace `u.name AS manager_name` → `u.name_th AS manager_name_th, u.name_en AS manager_name_en`
 
-- [ ] Update TypeScript interfaces in UI pages/components that read `employee_name`, `created_by_name`, `approved_by_name` to use `_th`/`_en` variants. Display: use `name_th || name_en` pattern.
+- [x] Update TypeScript interfaces in UI pages/components that read `employee_name`, `created_by_name`, `approved_by_name` to use `_th`/`_en` variants. Display: use `name_th || name_en` pattern.
 
-- [ ] Commit: `git add app/api/hr/ && git commit -m "fix(hr): replace u.name with u.name_th/name_en — users table has no name column"`
+- [x] Commit: `git add app/api/hr/ && git commit -m "fix(hr): replace u.name with u.name_th/name_en — users table has no name column"`
 
 ---
 
@@ -2195,7 +2195,7 @@ After all tasks complete, run:
 
 **Sub-task A — edit the migration (fresh deploys):**
 
-- [ ] Edit `migrations/022_hr_payroll.sql`: replace lines 27-35 (`hr_payroll_accounts` CREATE TABLE block) with:
+- [x] Edit `migrations/022_hr_payroll.sql`: replace lines 27-35 (`hr_payroll_accounts` CREATE TABLE block) with:
 
 ```sql
 -- Payroll account mapping (singleton)
@@ -2213,7 +2213,7 @@ CREATE TABLE IF NOT EXISTS hr_payroll_accounts (
 
 **Sub-task B — migration for existing DBs:**
 
-- [ ] Create `migrations/024_hr_fix_accounting_fk.sql`:
+- [x] Create `migrations/024_hr_fix_accounting_fk.sql`:
 
 ```sql
 -- Drop FK constraints added by 022_hr_payroll.sql against accounts table.
@@ -2228,8 +2228,8 @@ ALTER TABLE hr_payroll_accounts
   DROP CONSTRAINT IF EXISTS hr_payroll_accounts_tax_payable_account_id_fkey;
 ```
 
-- [ ] Run `npm run migrate`
-- [ ] Commit: `git add migrations/ && git commit -m "fix(hr): remove accounts FK from hr_payroll_accounts — deferred dependency"`
+- [x] Run `npm run migrate`
+- [x] Commit: `git add migrations/ && git commit -m "fix(hr): remove accounts FK from hr_payroll_accounts — deferred dependency"`
 
 ---
 
@@ -2237,7 +2237,7 @@ ALTER TABLE hr_payroll_accounts
 
 **Problem:** `payroll-runs/route.ts` GET has no warehouse scope. `attendance/route.ts` GET has no pagination (returns all rows for month). Both violate CLAUDE.md rules.
 
-- [ ] Edit `app/api/hr/payroll-runs/route.ts` GET handler — add `buildWarehouseScopeClause` via employee subquery and add pagination:
+- [x] Edit `app/api/hr/payroll-runs/route.ts` GET handler — add `buildWarehouseScopeClause` via employee subquery and add pagination:
 
 ```typescript
 import { buildWarehouseScopeClause } from '@/lib/authz';
@@ -2287,7 +2287,7 @@ export async function GET(req: NextRequest) {
 }
 ```
 
-- [ ] Edit `app/api/hr/attendance/route.ts` GET handler — add pagination:
+- [x] Edit `app/api/hr/attendance/route.ts` GET handler — add pagination:
 
 ```typescript
 export async function GET(req: NextRequest) {
@@ -2324,9 +2324,9 @@ export async function GET(req: NextRequest) {
 }
 ```
 
-- [ ] Update attendance UI page (`app/app/hr/attendance/page.tsx`) to read `employee_name_th` instead of `employee_name` and handle paginated `{ records, total, page }` response shape.
-- [ ] Update payroll page (`app/app/hr/payroll/page.tsx`) to handle `{ runs, total, page }` response shape.
-- [ ] Commit: `git add app/api/hr/attendance/ app/api/hr/payroll-runs/ app/app/hr/ && git commit -m "fix(hr): add pagination to attendance API, warehouse scope + pagination to payroll-runs API"`
+- [x] Update attendance UI page (`app/app/hr/attendance/page.tsx`) to read `employee_name_th` instead of `employee_name` and handle paginated `{ records, total, page }` response shape.
+- [x] Update payroll page (`app/app/hr/payroll/page.tsx`) to handle `{ runs, total, page }` response shape.
+- [x] Commit: `git add app/api/hr/attendance/ app/api/hr/payroll-runs/ app/app/hr/ && git commit -m "fix(hr): add pagination to attendance API, warehouse scope + pagination to payroll-runs API"`
 
 ---
 
@@ -2334,7 +2334,7 @@ export async function GET(req: NextRequest) {
 
 ### Task 26: Self-approval guard on leave requests (SF-4)
 
-- [ ] Edit `app/api/hr/leave-requests/[id]/route.ts` — add guard inside `approve` block after `lr` is fetched:
+- [x] Edit `app/api/hr/leave-requests/[id]/route.ts` — add guard inside `approve` block after `lr` is fetched:
 
 ```typescript
 if (action === 'approve') {
@@ -2345,13 +2345,13 @@ if (action === 'approve') {
 }
 ```
 
-- [ ] Commit: `git add app/api/hr/leave-requests/ && git commit -m "fix(hr): prevent self-approval of leave requests"`
+- [x] Commit: `git add app/api/hr/leave-requests/ && git commit -m "fix(hr): prevent self-approval of leave requests"`
 
 ---
 
 ### Task 27: DB indexes for HR query columns (SF-5)
 
-- [ ] Create `migrations/025_hr_indexes.sql`:
+- [x] Create `migrations/025_hr_indexes.sql`:
 
 ```sql
 -- HR performance indexes
@@ -2362,14 +2362,14 @@ CREATE INDEX IF NOT EXISTS idx_payroll_lines_run ON payroll_lines(run_id);
 CREATE INDEX IF NOT EXISTS idx_payroll_lines_emp ON payroll_lines(employee_id);
 ```
 
-- [ ] Run `npm run migrate`
-- [ ] Commit: `git add migrations/025_hr_indexes.sql && git commit -m "fix(hr): add indexes on HR query columns"`
+- [x] Run `npm run migrate`
+- [x] Commit: `git add migrations/025_hr_indexes.sql && git commit -m "fix(hr): add indexes on HR query columns"`
 
 ---
 
 ### Task 28: SSO constants to lib/constants.ts (SF-6)
 
-- [ ] Edit `lib/constants.ts` — append:
+- [x] Edit `lib/constants.ts` — append:
 
 ```typescript
 // Thai Social Security
@@ -2377,7 +2377,7 @@ export const SSO_WAGE_CAP = 15000;
 export const SSO_RATE = 0.05;
 ```
 
-- [ ] Edit `lib/hr/payroll-calc.ts` — use constants:
+- [x] Edit `lib/hr/payroll-calc.ts` — use constants:
 
 ```typescript
 import { SSO_WAGE_CAP, SSO_RATE } from '@/lib/constants';
@@ -2388,7 +2388,7 @@ export function calcSSO(grossPay: number): number {
 }
 ```
 
-- [ ] Commit: `git add lib/constants.ts lib/hr/payroll-calc.ts && git commit -m "fix(hr): extract SSO constants to lib/constants.ts"`
+- [x] Commit: `git add lib/constants.ts lib/hr/payroll-calc.ts && git commit -m "fix(hr): extract SSO constants to lib/constants.ts"`
 
 ---
 
@@ -2396,20 +2396,20 @@ export function calcSSO(grossPay: number): number {
 
 **Problem:** HR pages use `toLocaleDateString()` and `toLocaleString()` instead of project-standard `formatDate()` / `formatCurrency()`.
 
-- [ ] Edit `app/app/hr/attendance/page.tsx:74` → `formatDate(r.work_date)`
-- [ ] Edit `app/app/hr/attendance/my/page.tsx:139` → `formatDate(r.work_date)`
-- [ ] Edit `app/app/hr/leave-requests/page.tsx:109` → `{formatDate(r.start_date)} - {formatDate(r.end_date)}`
-- [ ] Edit `app/app/hr/leave-requests/[id]/page.tsx:70-73` → `formatDate(request.start_date)`, `formatDate(request.end_date)`, `formatDate(request.created_at)`
-- [ ] Edit `app/app/hr/employees/[id]/page.tsx:169` → `formatCurrency(employee.base_salary ?? 0)`
-- [ ] Edit `app/app/hr/payroll/page.tsx:76-77` → `formatCurrency(r.total_gross)`, `formatCurrency(r.total_net)`
-- [ ] Edit `app/app/hr/payroll/[id]/page.tsx:98-103, 118` → `formatCurrency(...)` for all monetary values
+- [x] Edit `app/app/hr/attendance/page.tsx:74` → `formatDate(r.work_date)`
+- [x] Edit `app/app/hr/attendance/my/page.tsx:139` → `formatDate(r.work_date)`
+- [x] Edit `app/app/hr/leave-requests/page.tsx:109` → `{formatDate(r.start_date)} - {formatDate(r.end_date)}`
+- [x] Edit `app/app/hr/leave-requests/[id]/page.tsx:70-73` → `formatDate(request.start_date)`, `formatDate(request.end_date)`, `formatDate(request.created_at)`
+- [x] Edit `app/app/hr/employees/[id]/page.tsx:169` → `formatCurrency(employee.base_salary ?? 0)`
+- [x] Edit `app/app/hr/payroll/page.tsx:76-77` → `formatCurrency(r.total_gross)`, `formatCurrency(r.total_net)`
+- [x] Edit `app/app/hr/payroll/[id]/page.tsx:98-103, 118` → `formatCurrency(...)` for all monetary values
 
 Import pattern (add to each file that lacks it):
 ```typescript
 import { formatDate, formatCurrency } from '@/lib/utils';
 ```
 
-- [ ] Commit: `git add app/app/hr/ && git commit -m "fix(hr): use formatDate/formatCurrency in all HR UI pages"`
+- [x] Commit: `git add app/app/hr/ && git commit -m "fix(hr): use formatDate/formatCurrency in all HR UI pages"`
 
 ---
 
@@ -2417,15 +2417,16 @@ import { formatDate, formatCurrency } from '@/lib/utils';
 
 After Gemini completes tasks 23-29:
 
-- [ ] `npm run migrate` — no errors (test both fresh DB and existing DB)
-- [ ] `npm run lint` — no errors
-- [ ] `npm run build` — no TypeScript errors
-- [ ] Manual: load `/app/hr/employees` as staff → only sees own warehouse employees
-- [ ] Manual: load `/app/hr/payroll` → pagination works
-- [ ] Manual: approve own leave request → gets 403
-- [ ] Manual: payroll slip PDF renders with correct employee name
+- [x] `npm run migrate` — no errors (test both fresh DB and existing DB)
+- [x] `npm run lint` — no errors
+- [x] `npm run build` — no TypeScript errors
+- [x] Manual: load `/app/hr/employees` as staff → only sees own warehouse employees
+- [x] Manual: load `/app/hr/payroll` → pagination works
+- [x] Manual: approve own leave request → gets 403
+- [x] Manual: payroll slip PDF renders with correct employee name
 
 ---
 ## Execution Logs
 - [[execution-summary]]
+
 

@@ -100,7 +100,7 @@ Hard-block any sales line where `unit_price < products.min_price` unless an in-f
 - Side effects: writes one `override_audit` row on successful override.
 - Response shape: throws structured error; caller transforms via `apiError(message, 409, { code, min_price, reason_codes })` — extend `apiError` to pass extras if not already supported.
 
-- [ ] T1 complete
+- [x] T1 complete
 
 ### T2 — Wire into `POST /api/sales-orders`
 **File:** `app/api/sales-orders/route.ts`
@@ -117,7 +117,7 @@ Hard-block any sales line where `unit_price < products.min_price` unless an in-f
 - Side effects: on override approval → one `override_audit` row per violating line.
 - Response shape: `apiSuccess({ sales_order })` on success; `apiError('Min price violation', 409, { code: 'MIN_PRICE_VIOLATION', min_price, reason_codes })` on block.
 
-- [ ] T2 complete
+- [x] T2 complete
 
 ### T3 — Wire into `POST/PATCH /api/sales-invoices`
 **File:** `app/api/sales-invoices/route.ts` + `app/api/sales-invoices/[id]/route.ts`
@@ -135,7 +135,7 @@ Hard-block any sales line where `unit_price < products.min_price` unless an in-f
 - Side effects: override_audit on override.
 - Response shape: `apiSuccess({ sales_invoice })` / `apiError('Min price violation', 409, {...})`.
 
-- [ ] T3 complete
+- [x] T3 complete
 
 ### T4 — Wire into POS endpoints
 **File:** `app/api/pos/transactions/route.ts` + `app/api/pos/transactions/[id]/route.ts` + `app/api/pos/held-carts/route.ts` + `app/api/pos/held-carts/[id]/route.ts`
@@ -152,7 +152,7 @@ Hard-block any sales line where `unit_price < products.min_price` unless an in-f
 - Side effects: override_audit on override; stock_ledger writes unchanged.
 - Response shape: existing on success; 409 with reason codes on block.
 
-- [ ] T4 complete
+- [x] T4 complete
 
 ### T5 — POS UI inline override modal
 **File:** locate POS line editor via `Grep "pos.*line.*price"` (likely `app/app/pos/**`).
@@ -164,7 +164,7 @@ Hard-block any sales line where `unit_price < products.min_price` unless an in-f
 
 **Quality Gate:** N/A (UI).
 
-- [ ] T5 complete
+- [x] T5 complete
 
 ### T6 — OMS UI inline override modal
 **File:** locate OMS/SO/SI line editor — likely `app/app/sales-orders/[id]/page.tsx` and `app/app/sales-invoices/[id]/page.tsx`.
@@ -174,7 +174,7 @@ Hard-block any sales line where `unit_price < products.min_price` unless an in-f
 
 **Quality Gate:** N/A (UI).
 
-- [ ] T6 complete
+- [x] T6 complete
 
 ### T7 — Update `current-state.md`
 **File:** `_notes/02_Agent_Memory/current-state.md`
@@ -184,16 +184,17 @@ Hard-block any sales line where `unit_price < products.min_price` unless an in-f
 - API behavior: 409 `MIN_PRICE_VIOLATION` returned by SO/SI/POS line write endpoints when `unit_price < threshold`.
 - New helper: `lib/pricing/enforce-min-price.ts`.
 
-- [ ] T7 complete
+- [x] T7 complete
 
 ## Definition of Done
 
-- [ ] All tasks T1..T7 ticked
-- [ ] `npm run lint` passes
-- [ ] `npx tsc --noEmit` passes
-- [ ] Manual smoke:
+- [x] All tasks T1..T7 ticked
+- [x] `npm run lint` passes
+- [x] `npx tsc --noEmit` passes
+- [x] Manual smoke:
   - Submit SO with `unit_price < min_price` → 409
   - Resubmit with valid override_token → 200, audit row written
   - Set `is_clearance=true` AND `unit_price < min_price` AND `unit_price >= clr_min_price` → allowed
-- [ ] `_notes/02_Agent_Memory/current-state.md` updated
-- [ ] Status set to `Completed` in `conductor/index.md`
+- [x] `_notes/02_Agent_Memory/current-state.md` updated
+- [x] Status set to `Completed` in `conductor/index.md`
+

@@ -181,13 +181,14 @@ Build must still pass cleanly (only warnings allowed, no type errors).
 ## Acceptance Criteria
 
 - [x] Root cause identified (double TIS-620 re-encoding by Gemini)
-- [ ] All 12 BOM files have Thai text restored to correct UTF-8
-- [ ] No UTF-8 BOM in any of the 12 files
-- [ ] File sizes reduced (garbled text was ~3x bloated)  
-- [ ] Browser renders Thai text correctly (ใบขอซื้อ, not เธเธณเธเธญ...)
-- [ ] `npm run build` passes cleanly after fix
+- [x] All 12 BOM files have Thai text restored to correct UTF-8
+- [x] No UTF-8 BOM in any of the 12 files
+- [x] File sizes reduced (garbled text was ~3x bloated)  
+- [x] Browser renders Thai text correctly (ใบขอซื้อ, not เธเธณเธเธญ...)
+- [x] `npm run build` passes cleanly after fix
 
 ---
 ## Execution Logs
 - [[execution-summary]]
+
 

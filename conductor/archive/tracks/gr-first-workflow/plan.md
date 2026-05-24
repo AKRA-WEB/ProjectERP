@@ -448,52 +448,53 @@ After all tasks: `npm run lint` + `npx tsc --noEmit`. Fix all errors before mark
 ## QA Checklist
 
 ### Schema
-- [ ] Migration 035 runs clean
-- [ ] `goods_receipt_notes`: has `vendor_id`, `source_type` (NOT NULL), `pr_id`
-- [ ] `grn_line_items`: has `pr_line_item_id`, `source_type` (NOT NULL)
-- [ ] `purchase_orders`: has `source_grn_id`
-- [ ] `pr_status` includes `'received'`
-- [ ] `chk_grn_source` absent from `information_schema.table_constraints`
-- [ ] `chk_grn_line_source` absent
-- [ ] All existing GRN rows have `source_type` backfilled
+- [x] Migration 035 runs clean
+- [x] `goods_receipt_notes`: has `vendor_id`, `source_type` (NOT NULL), `pr_id`
+- [x] `grn_line_items`: has `pr_line_item_id`, `source_type` (NOT NULL)
+- [x] `purchase_orders`: has `source_grn_id`
+- [x] `pr_status` includes `'received'`
+- [x] `chk_grn_source` absent from `information_schema.table_constraints`
+- [x] `chk_grn_line_source` absent
+- [x] All existing GRN rows have `source_type` backfilled
 
 ### API — POST /api/grn (standalone)
-- [ ] 201 + `{ grn_id, grn_number }` on valid body
-- [ ] `source_type = 'standalone'`, `status = 'stocked'`
-- [ ] `stock_ledger` row per line, `direction='in'`
-- [ ] `line_total` NOT in grn_line_items INSERT
-- [ ] 400 without `vendor_id`
-- [ ] 403 for staff
+- [x] 201 + `{ grn_id, grn_number }` on valid body
+- [x] `source_type = 'standalone'`, `status = 'stocked'`
+- [x] `stock_ledger` row per line, `direction='in'`
+- [x] `line_total` NOT in grn_line_items INSERT
+- [x] 400 without `vendor_id`
+- [x] 403 for staff
 
 ### API — POST /api/grn/[id]/create-po
-- [ ] 200 + `{ po_id, po_number }` on valid stocked standalone GRN
-- [ ] `po.status = 'fully_received'`, `po.source_grn_id = grn.id`
-- [ ] `po_line_items` count matches GRN lines
-- [ ] NO new stock_ledger rows
-- [ ] 409 if GRN already has po_id
-- [ ] 422 if GRN status not stocked
-- [ ] 422 if GRN source_type = 'po'
+- [x] 200 + `{ po_id, po_number }` on valid stocked standalone GRN
+- [x] `po.status = 'fully_received'`, `po.source_grn_id = grn.id`
+- [x] `po_line_items` count matches GRN lines
+- [x] NO new stock_ledger rows
+- [x] 409 if GRN already has po_id
+- [x] 422 if GRN status not stocked
+- [x] 422 if GRN source_type = 'po'
 
 ### API — POST /api/purchase-requisitions/[id]/receive
-- [ ] 200 + `{ grn_id, grn_number }` on admin_approved PR
-- [ ] `pr.status = 'received'`
-- [ ] `grn.source_type = 'pr_direct'`, `grn.pr_id = pr.id`
-- [ ] `grn_line_items.pr_line_item_id` set
-- [ ] 422 on non-admin_approved PR
-- [ ] 422 if PR already received (idempotency)
-- [ ] 403 for staff
+- [x] 200 + `{ grn_id, grn_number }` on admin_approved PR
+- [x] `pr.status = 'received'`
+- [x] `grn.source_type = 'pr_direct'`, `grn.pr_id = pr.id`
+- [x] `grn_line_items.pr_line_item_id` set
+- [x] 422 on non-admin_approved PR
+- [x] 422 if PR already received (idempotency)
+- [x] 403 for staff
 
 ### UI
-- [ ] `/purchasing/goods-receipt/new` renders, validates, submits, redirects
-- [ ] "สร้าง PO" button on GRN detail shows only for correct source_type + conditions
-- [ ] "รับสินค้าตาม PR" button on PR detail shows only for admin_approved
-- [ ] `'received'` status badge renders in both PR list and PR detail
-- [ ] `GrnSourceType`, `GRNLine`, `GRNDetail` defined in `types/index.ts` only
-- [ ] No `any` types in new files
-- [ ] `npx tsc --noEmit` passes project-wide
-- [ ] `npm run lint` passes
+- [x] `/purchasing/goods-receipt/new` renders, validates, submits, redirects
+- [x] "สร้าง PO" button on GRN detail shows only for correct source_type + conditions
+- [x] "รับสินค้าตาม PR" button on PR detail shows only for admin_approved
+- [x] `'received'` status badge renders in both PR list and PR detail
+- [x] `GrnSourceType`, `GRNLine`, `GRNDetail` defined in `types/index.ts` only
+- [x] No `any` types in new files
+- [x] `npx tsc --noEmit` passes project-wide
+- [x] `npm run lint` passes
 
 ---
 ## Execution Logs
 - [[execution-summary]]
+
 

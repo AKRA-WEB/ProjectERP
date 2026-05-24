@@ -391,44 +391,45 @@ After all tasks: run `npm run lint` and `npx tsc --noEmit`. Fix all errors befor
 ## QA Checklist
 
 ### Migration
-- [ ] File name exactly `034_po_discount_fields.sql`
-- [ ] `IF NOT EXISTS` guards on all `ADD COLUMN`
-- [ ] `line_discount` on `po_line_items` with `DEFAULT 0`
-- [ ] All 12 columns on `purchase_orders`
-- [ ] `approved_by` is nullable (no NOT NULL)
+- [x] File name exactly `034_po_discount_fields.sql`
+- [x] `IF NOT EXISTS` guards on all `ADD COLUMN`
+- [x] `line_discount` on `po_line_items` with `DEFAULT 0`
+- [x] All 12 columns on `purchase_orders`
+- [x] `approved_by` is nullable (no NOT NULL)
 
 ### Approve API
-- [ ] Auth + assertRole present
-- [ ] Transaction: BEGIN/COMMIT/ROLLBACK in finally
-- [ ] GRN INSERT includes `po_id`
-- [ ] Stock ledger uses `reference_type='grn'`, `reference_id=grnId` (no `reference_number`)
-- [ ] `line_total` never referenced
-- [ ] 409 on non-draft PO
-- [ ] 403 for staff role
-- [ ] `client.release()` in finally
+- [x] Auth + assertRole present
+- [x] Transaction: BEGIN/COMMIT/ROLLBACK in finally
+- [x] GRN INSERT includes `po_id`
+- [x] Stock ledger uses `reference_type='grn'`, `reference_id=grnId` (no `reference_number`)
+- [x] `line_total` never referenced
+- [x] 409 on non-draft PO
+- [x] 403 for staff role
+- [x] `client.release()` in finally
 
 ### POST/PATCH APIs
-- [ ] `line_total` not in any INSERT or UPDATE on `po_line_items`
-- [ ] `line_discount` stored per line
-- [ ] `pre_vat_amount`, `bill_discount`, `non_vat_amount` stored on PO
-- [ ] `VAT_RATE` from `lib/constants.ts`
-- [ ] All SQL uses `$N` params
+- [x] `line_total` not in any INSERT or UPDATE on `po_line_items`
+- [x] `line_discount` stored per line
+- [x] `pre_vat_amount`, `bill_discount`, `non_vat_amount` stored on PO
+- [x] `VAT_RATE` from `lib/constants.ts`
+- [x] All SQL uses `$N` params
 
 ### new/page.tsx
-- [ ] Two tabs render
-- [ ] Summary recalculates real-time
-- [ ] ขอบบิล submits draft
-- [ ] อนุมัติกัน opens dialog → confirm creates + approves
-- [ ] GRN number shown in success message
-- [ ] `ApprovalDialog.tsx` extracted to `components/purchase-orders/`
-- [ ] No `any` types, tsc passes, lint passes
+- [x] Two tabs render
+- [x] Summary recalculates real-time
+- [x] ขอบบิล submits draft
+- [x] อนุมัติกัน opens dialog → confirm creates + approves
+- [x] GRN number shown in success message
+- [x] `ApprovalDialog.tsx` extracted to `components/purchase-orders/`
+- [x] No `any` types, tsc passes, lint passes
 
 ### [id]/page.tsx
-- [ ] อนุมัติกัน visible only for draft + manager/admin
-- [ ] Approval info shown using `formatDate()`
-- [ ] No `any` types, tsc passes
+- [x] อนุมัติกัน visible only for draft + manager/admin
+- [x] Approval info shown using `formatDate()`
+- [x] No `any` types, tsc passes
 
 ---
 ## Execution Logs
 - [[execution-summary]]
+
 

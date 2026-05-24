@@ -9,7 +9,7 @@ updated: 2026-05-13
 
 # HR Bugfix Final Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 > **⚠️ Gemini: Tasks 1 and 2 are already committed. Start at Task 3.**
 > - Task 1 done: commit `24767e3` — departments API u.name fix
@@ -157,4 +157,5 @@ updated: 2026-05-13
 ---
 ## Execution Logs
 - [[execution-summary]]
+
 

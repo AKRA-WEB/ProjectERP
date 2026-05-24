@@ -62,12 +62,13 @@ Add a branch for `tab === 'stock'` that renders a table similar to the 'supplier
 ---
 
 ## Validation Plan
-- [ ] Navigate to Product Detail page.
-- [ ] Click "สต็อก" tab.
-- [ ] Verify warehouse names and quantities match the `stock_balances` table.
-- [ ] Verify mobile responsiveness of the new table.
+- [x] Navigate to Product Detail page.
+- [x] Click "สต็อก" tab.
+- [x] Verify warehouse names and quantities match the `stock_balances` table.
+- [x] Verify mobile responsiveness of the new table.
 
 ---
 ## Execution Logs
 - [[execution-summary]]
+
 

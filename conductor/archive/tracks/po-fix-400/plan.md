@@ -102,18 +102,19 @@ One line added — no schema, no migration, no logic change.
 
 ## QA Checklist (Billy)
 
-- [ ] Happy path: vendor + warehouse + date + items → 201 → redirect to PO detail
-- [ ] Missing vendor: error shown, zero network calls
-- [ ] Missing warehouse: error shown, zero network calls
-- [ ] Missing expected_date: error shown, zero network calls
-- [ ] Empty items: API 400
-- [ ] `items[].ordered_qty` in network payload (not `qty`)
-- [ ] `items[].unit_price` in network payload (not `price`)
-- [ ] Server log shows flatten detail on invalid body
-- [ ] `tsc --noEmit` passes
-- [ ] `lint` passes
+- [x] Happy path: vendor + warehouse + date + items → 201 → redirect to PO detail
+- [x] Missing vendor: error shown, zero network calls
+- [x] Missing warehouse: error shown, zero network calls
+- [x] Missing expected_date: error shown, zero network calls
+- [x] Empty items: API 400
+- [x] `items[].ordered_qty` in network payload (not `qty`)
+- [x] `items[].unit_price` in network payload (not `price`)
+- [x] Server log shows flatten detail on invalid body
+- [x] `tsc --noEmit` passes
+- [x] `lint` passes
 
 ---
 ## Execution Logs
 - [[execution-summary]]
+
 

@@ -100,7 +100,7 @@ Stamp `channel ENUM('TRD','AKRA')` on every sales document so that pricing, UoM 
 - Side effects: none (no ledger writes).
 - Response shape: N/A.
 
-- [ ] T1 complete
+- [x] T1 complete
 
 ### T2 — Stamp channel in POS routes
 **File:** `app/api/pos/transactions/route.ts`
@@ -117,7 +117,7 @@ Stamp `channel ENUM('TRD','AKRA')` on every sales document so that pricing, UoM 
 - Side effects: existing.
 - Response shape: unchanged.
 
-- [ ] T2 complete
+- [x] T2 complete
 
 ### T3 — Stamp channel in OMS routes
 **File:** `app/api/sales-orders/route.ts` + `app/api/sales-invoices/route.ts` + `app/api/sales-quotations/route.ts`
@@ -135,7 +135,7 @@ Stamp `channel ENUM('TRD','AKRA')` on every sales document so that pricing, UoM 
 - Side effects: existing.
 - Response shape: `apiSuccess({ ..., channel })`.
 
-- [ ] T3 complete
+- [x] T3 complete
 
 ### T4 — Type updates
 **File:** `types/db.ts` (extend) + `types/index.ts` (re-export)
@@ -146,7 +146,7 @@ Stamp `channel ENUM('TRD','AKRA')` on every sales document so that pricing, UoM 
 
 **Quality Gate:** N/A.
 
-- [ ] T4 complete
+- [x] T4 complete
 
 ### T5 — Wire channel into pricing-resolver call sites
 **File:** all call sites of `resolvePrice` (introduced by track 3, T8)
@@ -157,7 +157,7 @@ Stamp `channel ENUM('TRD','AKRA')` on every sales document so that pricing, UoM 
 
 **Quality Gate:** N/A (logic-only change).
 
-- [ ] T5 complete
+- [x] T5 complete
 
 ### T6 — UI channel badge + filter
 **File:** locate via `Glob "app/app/sales-orders/page.tsx"`, `app/app/sales-invoices/page.tsx`, etc.
@@ -169,7 +169,7 @@ Stamp `channel ENUM('TRD','AKRA')` on every sales document so that pricing, UoM 
 
 **Quality Gate:** N/A (UI).
 
-- [ ] T6 complete
+- [x] T6 complete
 
 ### T7 — Update `current-state.md`
 **File:** `_notes/02_Agent_Memory/current-state.md`
@@ -177,13 +177,14 @@ Stamp `channel ENUM('TRD','AKRA')` on every sales document so that pricing, UoM 
 
 **Details:** `sales_orders.channel price_channel NOT NULL`, same for `sales_invoices`, `sales_quotations`. Migration → 046.
 
-- [ ] T7 complete
+- [x] T7 complete
 
 ## Definition of Done
 
-- [ ] All tasks T1..T7 ticked
-- [ ] `npm run lint` + `npx tsc --noEmit` pass
-- [ ] Migration idempotent
-- [ ] Manual smoke: existing rows backfilled (no NULLs); new SO created via OMS = `AKRA`; new SI via POS = `TRD`
-- [ ] `_notes/02_Agent_Memory/current-state.md` updated
-- [ ] Status set to `Completed`
+- [x] All tasks T1..T7 ticked
+- [x] `npm run lint` + `npx tsc --noEmit` pass
+- [x] Migration idempotent
+- [x] Manual smoke: existing rows backfilled (no NULLs); new SO created via OMS = `AKRA`; new SI via POS = `TRD`
+- [x] `_notes/02_Agent_Memory/current-state.md` updated
+- [x] Status set to `Completed`
+

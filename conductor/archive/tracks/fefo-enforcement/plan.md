@@ -138,7 +138,7 @@ Pick lists are generated in First-Expiry-First-Out order. The handheld scanner r
 
 **Quality Gate:** N/A (UI).
 
-- [ ] T4 complete
+- [x] T4 complete
 
 ### T5 — Supervisor dashboard: FEFO override count
 **File:** locate via `Glob "app/wms/picking/**dashboard**"` or new page `app/wms/picking/overrides/page.tsx`
@@ -149,7 +149,7 @@ Pick lists are generated in First-Expiry-First-Out order. The handheld scanner r
 
 **Quality Gate:** N/A (UI).
 
-- [ ] T5 complete
+- [x] T5 complete
 
 ### T6 — Update `current-state.md` + `pitfalls.md`
 **File:** `_notes/02_Agent_Memory/current-state.md` + `pitfalls.md`
@@ -159,13 +159,14 @@ Pick lists are generated in First-Expiry-First-Out order. The handheld scanner r
 - DB: `pick_list_lines.lot_id`, `pick_list_lines.fefo_override_jti`. New index `idx_lots_fefo`. Migration → 050.
 - Pitfall (append): "Lots without expiry_date — FEFO order must use `NULLS LAST` to keep dated lots first."
 
-- [ ] T6 complete
+- [x] T6 complete
 
 ## Definition of Done
 
-- [ ] T1..T6 ticked
-- [ ] `npm run lint` + `npx tsc --noEmit` pass
-- [ ] Manual smoke: two lots (early + late expiry); scan late → 409; provide token → accepted, `override_audit` row written
-- [ ] Migration idempotent
-- [ ] `_notes/02_Agent_Memory/current-state.md` updated
-- [ ] Status set to `Completed`
+- [x] T1..T6 ticked
+- [x] `npm run lint` + `npx tsc --noEmit` pass
+- [x] Manual smoke: two lots (early + late expiry); scan late → 409; provide token → accepted, `override_audit` row written
+- [x] Migration idempotent
+- [x] `_notes/02_Agent_Memory/current-state.md` updated
+- [x] Status set to `Completed`
+

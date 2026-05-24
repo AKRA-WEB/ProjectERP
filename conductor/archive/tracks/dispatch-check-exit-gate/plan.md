@@ -187,7 +187,7 @@ Add a final scan-out gate at the warehouse exit. The handheld scans the invoice 
 
 **Quality Gate:** N/A (UI).
 
-- [ ] T6 complete
+- [x] T6 complete
 
 ### T7 — Update `current-state.md`
 **File:** `_notes/02_Agent_Memory/current-state.md`
@@ -195,13 +195,14 @@ Add a final scan-out gate at the warehouse exit. The handheld scans the invoice 
 
 **Details:** `dispatch_sessions(invoice_id, gate_user_id, status)`, `dispatch_check_log(session_id, product_id, lot_id, scanned_qty, expected_qty, result)`. `ledger_entry_type` now includes `dispatch_out`. Migration → 049.
 
-- [ ] T7 complete
+- [x] T7 complete
 
 ## Definition of Done
 
-- [ ] T1..T7 ticked
-- [ ] `npm run lint` + `npx tsc --noEmit` pass
-- [ ] Manual smoke: bump invoice version → scan old barcode → 410; scan latest → session opens; missing scan → release 409; full scan → stock_ledger entries posted
-- [ ] Migration idempotent
-- [ ] `_notes/02_Agent_Memory/current-state.md` updated
-- [ ] Status set to `Completed`
+- [x] T1..T7 ticked
+- [x] `npm run lint` + `npx tsc --noEmit` pass
+- [x] Manual smoke: bump invoice version → scan old barcode → 410; scan latest → session opens; missing scan → release 409; full scan → stock_ledger entries posted
+- [x] Migration idempotent
+- [x] `_notes/02_Agent_Memory/current-state.md` updated
+- [x] Status set to `Completed`
+

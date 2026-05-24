@@ -13,6 +13,7 @@ interface Stats {
   rolesCount: number | null;
   uomsCount: number | null;
   pricesCount: number | null;
+  productChannelUomsCount: number | null;
 }
 
 export default function AdminHubPage() {
@@ -23,6 +24,7 @@ export default function AdminHubPage() {
     rolesCount: null,
     uomsCount: null,
     pricesCount: null,
+    productChannelUomsCount: null,
   });
   const [loading, setLoading] = useState(true);
 
@@ -30,12 +32,13 @@ export default function AdminHubPage() {
     async function fetchStats() {
       try {
         setLoading(true);
-        const [usersRes, warehousesRes, rolesRes, uomsRes, pricesRes] = await Promise.all([
+        const [usersRes, warehousesRes, rolesRes, uomsRes, pricesRes, channelUomsRes] = await Promise.all([
           get<{ total: number }>('/api/hr/employees?pageSize=1').catch(() => ({ total: 0 })),
           get<unknown[]>('/api/admin/warehouses').catch(() => []),
           get<unknown[]>('/api/admin/roles').catch(() => []),
           get<unknown[]>('/api/admin/uom').catch(() => []),
           get<{ total: number }>('/api/admin/product-prices?limit=1').catch(() => ({ total: 0 })),
+          get<unknown[]>('/api/admin/product-channel-uoms').catch(() => []),
         ]);
 
         setStats({
@@ -44,6 +47,7 @@ export default function AdminHubPage() {
           rolesCount: Array.isArray(rolesRes) ? rolesRes.length : 0,
           uomsCount: Array.isArray(uomsRes) ? uomsRes.length : 0,
           pricesCount: pricesRes?.total ?? 0,
+          productChannelUomsCount: Array.isArray(channelUomsRes) ? channelUomsRes.length : 0,
         });
       } catch (err) {
         console.error('Failed to fetch admin stats:', err);
@@ -97,6 +101,14 @@ export default function AdminHubPage() {
       href: '/app/admin/pricing',
       icon: Tag,
       stat: stats.pricesCount,
+    },
+    {
+      title: 'การจำกัดหน่วยขายสินค้า',
+      titleEn: 'Allowed Sales UoMs Whitelist',
+      desc: 'จำกัดหน่วยขายสำหรับช่องทาง AKRA (Wholesale) และช่องทางทั่วไปของแต่ละสินค้า',
+      href: '/app/admin/product-channel-uoms',
+      icon: Scale,
+      stat: stats.productChannelUomsCount,
     },
   ];
 

@@ -95,8 +95,8 @@ for (const line of parsed.data.lines) {
 ```
 
 #### Verify:
-- [ ] Grep `apiError.*422` in `app/api/grn/route.ts` — only the PO guard and line-membership checks remain, no IO qty check
-- [ ] `npx tsc --noEmit` passes
+- [x] Grep `apiError.*422` in `app/api/grn/route.ts` — only the PO guard and line-membership checks remain, no IO qty check
+- [x] `npx tsc --noEmit` passes
 
 ---
 
@@ -128,8 +128,8 @@ With:
 ```
 
 #### Verify:
-- [ ] No `type="date"` remains on the mobile active-line date input
-- [ ] `placeholder="YYYY-MM-DD"` present
+- [x] No `type="date"` remains on the mobile active-line date input
+- [x] `placeholder="YYYY-MM-DD"` present
 
 ---
 
@@ -154,8 +154,8 @@ With:
 ```
 
 #### Verify:
-- [ ] No `type="date"` remains on desktop table date input
-- [ ] `placeholder="YYYY-MM-DD"` present
+- [x] No `type="date"` remains on desktop table date input
+- [x] `placeholder="YYYY-MM-DD"` present
 
 ---
 
@@ -177,8 +177,8 @@ With:
 If `Input` component does not accept `pattern`/`maxLength`/`placeholder` as passthrough props, use a raw `<input>` with the same `className` as other desktop fields.
 
 #### Verify:
-- [ ] `receivedDate` input renders as text field with placeholder
-- [ ] `npx tsc --noEmit` passes
+- [x] `receivedDate` input renders as text field with placeholder
+- [x] `npx tsc --noEmit` passes
 
 ---
 
@@ -193,12 +193,13 @@ If `Input` component does not accept `pattern`/`maxLength`/`placeholder` as pass
 
 ## QA Checklist
 
-- [ ] POST /api/grn with IO id + `qty_received` > IO `qty_ordered` → 201 (not 422)
-- [ ] POST /api/grn with PO id + `qty_received` > remaining → still 422 (PO guard unchanged)
-- [ ] Stock ledger receives correct quantity for over-receive case
-- [ ] Mobile: EXP/MFG date input shows text field with `YYYY-MM-DD` placeholder
-- [ ] Mobile: Can type date, value updates correctly
-- [ ] Desktop: EXP/MFG date column shows text field with `YYYY-MM-DD` placeholder
-- [ ] Desktop: Received date field shows text input
-- [ ] `npx tsc --noEmit` passes
-- [ ] `npm run lint` passes
+- [x] POST /api/grn with IO id + `qty_received` > IO `qty_ordered` → 201 (not 422)
+- [x] POST /api/grn with PO id + `qty_received` > remaining → still 422 (PO guard unchanged)
+- [x] Stock ledger receives correct quantity for over-receive case
+- [x] Mobile: EXP/MFG date input shows text field with `YYYY-MM-DD` placeholder
+- [x] Mobile: Can type date, value updates correctly
+- [x] Desktop: EXP/MFG date column shows text field with `YYYY-MM-DD` placeholder
+- [x] Desktop: Received date field shows text input
+- [x] `npx tsc --noEmit` passes
+- [x] `npm run lint` passes
+

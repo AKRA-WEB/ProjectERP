@@ -69,7 +69,7 @@ Establish two-Business-Unit partitioning (BU1 TRD Bakermart, BU2 Akra Wholesale)
 
 ## Tasks
 
-> Gemini executes top-to-bottom. Tick each `- [ ]` to `- [x]` after completion.
+> Gemini executes top-to-bottom. Tick each `- [x]` to `- [x]` after completion.
 
 ### T1 — Migration `041_multi_bu_foundation.sql`
 **File:** `migrations/041_multi_bu_foundation.sql` (new file)
@@ -227,3 +227,4 @@ Establish two-Business-Unit partitioning (BU1 TRD Bakermart, BU2 Akra Wholesale)
 - [x] Manual smoke: login as BU-restricted user, confirm only their BU's warehouses visible
 - [x] `_notes/02_Agent_Memory/current-state.md` updated
 - [x] Status in `conductor/index.md` set to `Completed` (Gemini self-updates)
+

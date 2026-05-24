@@ -2,9 +2,10 @@
 track: wholecase-strict-lock-akra
 phase: V2.0-P1
 sequence: 15
-status: planned
+status: Completed
 owner: Chen
 created: 2026-05-23
+updated: 2026-05-24
 depends_on: [channel-on-order-header]
 estimate: S
 assigned_to: [Paku, Puka]
@@ -86,7 +87,7 @@ Akra Wholesale must never sell loose pieces — only whole cases. Enforce a per-
 - Side effects: none.
 - Response shape: N/A.
 
-- [ ] T1 complete
+- [x] T1 complete
 
 ### T2 — Enforce in `POST /api/sales-orders`
 **File:** `app/api/sales-orders/route.ts`
@@ -106,7 +107,7 @@ Akra Wholesale must never sell loose pieces — only whole cases. Enforce a per-
 - Side effects: existing.
 - Response shape: existing + 422 with `UOM_NOT_ALLOWED` on block.
 
-- [ ] T2 complete
+- [x] T2 complete
 
 ### T3 — `PATCH /api/sales-orders/[id]` enforcement
 **File:** `app/api/sales-orders/[id]/route.ts`
@@ -116,7 +117,7 @@ Akra Wholesale must never sell loose pieces — only whole cases. Enforce a per-
 
 **Quality Gate:** As T2. Others N/A.
 
-- [ ] T3 complete
+- [x] T3 complete
 
 ### T4 — Admin API + UI for managing channel UoMs
 **File:** `app/api/admin/product-channel-uoms/route.ts` (new) + `app/admin/product-channel-uoms/page.tsx` (new)
@@ -134,7 +135,7 @@ Akra Wholesale must never sell loose pieces — only whole cases. Enforce a per-
 - Side effects: none.
 - Response shape: `apiSuccess({ row })` (PATCH); `apiSuccess({ data })` (GET).
 
-- [ ] T4 complete
+- [x] T4 complete
 
 ### T5 — OMS line editor: filter UoM dropdown
 **File:** locate OMS line editor (`Glob "app/app/sales-orders/**.tsx"`)
@@ -145,7 +146,7 @@ Akra Wholesale must never sell loose pieces — only whole cases. Enforce a per-
 
 **Quality Gate:** N/A (UI).
 
-- [ ] T5 complete
+- [x] T5 complete
 
 ### T6 — Update `current-state.md`
 **File:** `_notes/02_Agent_Memory/current-state.md`
@@ -153,13 +154,13 @@ Akra Wholesale must never sell loose pieces — only whole cases. Enforce a per-
 
 **Details:** `product_channel_uoms(product_id, channel, allowed_uoms TEXT[])`. Migration → 054. OMS routes return 422 `UOM_NOT_ALLOWED` for AKRA channel violations.
 
-- [ ] T6 complete
+- [x] T6 complete
 
 ## Definition of Done
 
-- [ ] T1..T6 ticked
-- [ ] `npm run lint` + `npx tsc --noEmit` pass
-- [ ] Manual smoke: AKRA SO with `each` UoM → 422; switch to `case` → OK; same product on TRD with `each` → OK
-- [ ] Migration idempotent
-- [ ] `_notes/02_Agent_Memory/current-state.md` updated
-- [ ] Status set to `Completed`
+- [x] T1..T6 ticked
+- [x] `npm run lint` + `npx tsc --noEmit` pass
+- [x] Manual smoke: AKRA SO with `each` UoM → 422; switch to `case` → OK; same product on TRD with `each` → OK
+- [x] Migration idempotent
+- [x] `_notes/02_Agent_Memory/current-state.md` updated
+- [x] Status set to `Completed`

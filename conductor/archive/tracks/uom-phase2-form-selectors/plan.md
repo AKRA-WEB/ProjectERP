@@ -290,8 +290,8 @@ lines: lines.map((l) => ({
 ```
 
 - [x] Run `npm run lint` → no errors
-- [ ] Test: create PO, add a product that has UoMs (e.g. a product with CTN registered). UoM dropdown appears. Select CTN, enter qty 5 → preview shows "= 240 PCS". Submit → PO created. Check DB: `SELECT transaction_uom_id, transaction_qty, base_qty FROM po_line_items ORDER BY created_at DESC LIMIT 1;` → should show CTN id, 5, 240.
-- [ ] Test: add a product with no UoMs registered → no dropdown, behaves as before.
+- [x] Test: create PO, add a product that has UoMs (e.g. a product with CTN registered). UoM dropdown appears. Select CTN, enter qty 5 → preview shows "= 240 PCS". Submit → PO created. Check DB: `SELECT transaction_uom_id, transaction_qty, base_qty FROM po_line_items ORDER BY created_at DESC LIMIT 1;` → should show CTN id, 5, 240.
+- [x] Test: add a product with no UoMs registered → no dropdown, behaves as before.
 - [x] Commit: `feat(uom): PO create form — UoM selector with conversion preview`
 
 ---
@@ -306,7 +306,7 @@ The SO form uses a different pattern (product dropdown select instead of search)
 - [x] **Step 2 — Add UoM selector in the SO line render (same JSX block as Task 4 Step 5)**
 - [x] **Step 3 — Pass `transaction_uom_id` + `transaction_qty` in SO POST body when selected**
 - [x] Run `npm run lint` → no errors
-- [ ] Test: create SO, select product with UoMs → UoM dropdown appears → select → preview shows → submit → DB has base_qty filled
+- [x] Test: create SO, select product with UoMs → UoM dropdown appears → select → preview shows → submit → DB has base_qty filled
 - [x] Commit: `feat(uom): SO create form — UoM selector with conversion preview`
 
 ---
@@ -367,10 +367,11 @@ lines: lines.map((l) => ({
 ```
 
 - [x] Run `npm run lint` → no errors
-- [ ] Test: create transfer, add product with UoMs → dropdown appears → select → preview → submit
+- [x] Test: create transfer, add product with UoMs → dropdown appears → select → preview → submit
 - [x] Commit: `feat(uom): Transfer create form — UoM selector with conversion preview`
 
 ---
 ## Execution Logs
 - [[execution-summary]]
+
 

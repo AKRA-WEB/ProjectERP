@@ -37,31 +37,32 @@ Master plan: [erp-v2-orion-roadmap](tracks/erp-v2-orion-roadmap/plan.md)
 | 10 | dispatch-check-exit-gate | Verified | [plan](tracks/dispatch-check-exit-gate/plan.md) |
 | 11 | fefo-enforcement | Verified | [plan](tracks/fefo-enforcement/plan.md) |
 | 12 | strict-receiving-flow | Verified | [plan](tracks/strict-receiving-flow/plan.md) |
-| 13 | repack-yield-loss | Active | [plan](tracks/repack-yield-loss/plan.md) |
-| 14 | wholecase-strict-lock-akra | Active | [plan](tracks/wholecase-strict-lock-akra/plan.md) |
-| 15 | price-history-alert-pos | Active | [plan](tracks/price-history-alert-pos/plan.md) |
+| 14 | adjust-warehouses-and-thermal-zones | Verified | [plan](tracks/adjust-warehouses-and-thermal-zones/plan.md) |
+| 15 | operation-core-sync-orion-2026-05-24 | Verified | [plan](tracks/operation-core-sync-orion-2026-05-24/plan.md) |
+| 16 | wholecase-strict-lock-akra | Verified | [plan](tracks/wholecase-strict-lock-akra/plan.md) |
+| 17 | price-history-alert-pos | Active | [plan](tracks/price-history-alert-pos/plan.md) |
 
 ### Phase 2 — V2.0 Compliance
 | # | Track | Status | Plan |
 | --- | --- | --- | --- |
-| 17 | moving-average-cost | Active | [plan](tracks/moving-average-cost/plan.md) |
-| 18 | vendor-wht-and-form-50 | Active | [plan](tracks/vendor-wht-and-form-50/plan.md) |
-| 19 | auditor-role-and-readonly-access | Active | [plan](tracks/auditor-role-and-readonly-access/plan.md) |
-| 20 | accounting-export-adapters | Active | [plan](tracks/accounting-export-adapters/plan.md) |
+| 18 | moving-average-cost | Active | [plan](tracks/moving-average-cost/plan.md) |
+| 19 | vendor-wht-and-form-50 | Active | [plan](tracks/vendor-wht-and-form-50/plan.md) |
+| 20 | auditor-role-and-readonly-access | Active | [plan](tracks/auditor-role-and-readonly-access/plan.md) |
+| 21 | accounting-export-adapters | Active | [plan](tracks/accounting-export-adapters/plan.md) |
 
 ### Phase 3 — V2.1 Integrations
 | # | Track | Status | Plan |
 | --- | --- | --- | --- |
-| 21 | hrzoft-integration | Active | [plan](tracks/hrzoft-integration/plan.md) |
-| 22 | auto-replenishment-w1-w2 | Active | [plan](tracks/auto-replenishment-w1-w2/plan.md) |
+| 22 | hrzoft-integration | Active | [plan](tracks/hrzoft-integration/plan.md) |
+| 23 | auto-replenishment-w1-w2 | Active | [plan](tracks/auto-replenishment-w1-w2/plan.md) |
 
 ### Phase 4 — V2.2 Analytics
 | # | Track | Status | Plan |
 | --- | --- | --- | --- |
-| 23 | ai-sku-cut-and-s-curve-forecasting | Active | [plan](tracks/ai-sku-cut-and-s-curve-forecasting/plan.md) |
-| 24 | npd-trial-tracking | Active | [plan](tracks/npd-trial-tracking/plan.md) |
-| 25 | rebate-management | Active | [plan](tracks/rebate-management/plan.md) |
-| 26 | field-sales-geo-tracking | Active | [plan](tracks/field-sales-geo-tracking/plan.md) |
+| 24 | ai-sku-cut-and-s-curve-forecasting | Active | [plan](tracks/ai-sku-cut-and-s-curve-forecasting/plan.md) |
+| 25 | npd-trial-tracking | Active | [plan](tracks/npd-trial-tracking/plan.md) |
+| 26 | rebate-management | Active | [plan](tracks/rebate-management/plan.md) |
+| 27 | field-sales-geo-tracking | Active | [plan](tracks/field-sales-geo-tracking/plan.md) |
 
 ## Rework Required
 
@@ -73,6 +74,8 @@ Master plan: [erp-v2-orion-roadmap](tracks/erp-v2-orion-roadmap/plan.md)
 
 | Track | Status | Created | Last Updated |
 |-------|--------|---------|--------------|
+| [Operation Core Sync & Orion Alignment](./archive/tracks/operation-core-sync-orion-2026-05-24/plan.md) | Verified | 2026-05-24 | 2026-05-24 |
+| [WMS Warehouse Restructuring & Thermal Zone Alignment](./archive/tracks/adjust-warehouses-and-thermal-zones/plan.md) | Verified | 2026-05-24 | 2026-05-24 |
 | [Repack Yield & Loss](./archive/tracks/repack-yield-loss/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
 | [Strict 5-Step Receiving Flow (PR -> PO -> BR -> GR -> Match)](./archive/tracks/strict-receiving-flow/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
 | [FEFO Enforcement (with Per-Line Override)](./archive/tracks/fefo-enforcement/plan.md) | Verified | 2026-05-23 | 2026-05-23 |

@@ -164,7 +164,7 @@ Support the real-world counter behavior: a cashier opens a draft cart, marks it 
 
 **Quality Gate:** N/A (UI).
 
-- [ ] T5 complete
+- [x] T5 complete
 
 ### T6 — Update `current-state.md`
 **File:** `_notes/02_Agent_Memory/current-state.md`
@@ -172,13 +172,14 @@ Support the real-world counter behavior: a cashier opens a draft cart, marks it 
 
 **Details:** `pos_held_carts.is_hybrid BOOLEAN`, `pos_held_carts.wholesale_picking_slip_id UUID`. `pos_picking_slips(doc_no PPS-, draft_cart_id, status, source_warehouse_id, lines JSONB)`. Migration → 047.
 
-- [ ] T6 complete
+- [x] T6 complete
 
 ## Definition of Done
 
-- [ ] T1..T6 ticked
-- [ ] `npm run lint` + `npx tsc --noEmit` pass
-- [ ] Manual smoke: hybrid cart prints slip; mark-picked allowed; resume blocked until picked
-- [ ] Migration idempotent
-- [ ] `_notes/02_Agent_Memory/current-state.md` updated
-- [ ] Status set to `Completed` in `conductor/index.md`
+- [x] T1..T6 ticked
+- [x] `npm run lint` + `npx tsc --noEmit` pass
+- [x] Manual smoke: hybrid cart prints slip; mark-picked allowed; resume blocked until picked
+- [x] Migration idempotent
+- [x] `_notes/02_Agent_Memory/current-state.md` updated
+- [x] Status set to `Completed` in `conductor/index.md`
+

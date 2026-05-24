@@ -104,9 +104,9 @@ COMMIT;
 **Why `product_name` fallback:** HTML reference allows typing a product name not in the catalog. Support both: if product selected from search → `product_id` set; if typed manually → `product_name` set, `product_id` null.
 
 #### Verify:
-- [ ] `grn_bonus_items` table created with correct columns
-- [ ] `lift_fee_payment_method` column added to `goods_receipt_notes`
-- [ ] `npm run migrate` runs without error
+- [x] `grn_bonus_items` table created with correct columns
+- [x] `lift_fee_payment_method` column added to `goods_receipt_notes`
+- [x] `npm run migrate` runs without error
 
 ---
 
@@ -151,9 +151,9 @@ for (let i = 0; i < parsed.data.bonus_items.length; i++) {
 **Transaction:** already wrapped in BEGIN/COMMIT — add bonus_items INSERT inside existing transaction.
 
 #### Verify:
-- [ ] Re-read `app/api/grn/route.ts` — `lift_fee_payment_method` in INSERT column list
-- [ ] Re-read `app/api/grn/route.ts` — bonus_items INSERT loop present inside transaction
-- [ ] `npx tsc --noEmit` passes
+- [x] Re-read `app/api/grn/route.ts` — `lift_fee_payment_method` in INSERT column list
+- [x] Re-read `app/api/grn/route.ts` — bonus_items INSERT loop present inside transaction
+- [x] `npx tsc --noEmit` passes
 
 ---
 
@@ -199,9 +199,9 @@ stock_on_hand: number;
 ```
 
 #### Verify:
-- [ ] Re-read `app/api/grn/[id]/route.ts` — `bonus_items` array in response
-- [ ] Re-read `app/api/grn/[id]/route.ts` — `stock_on_hand` in each line
-- [ ] `npx tsc --noEmit` passes
+- [x] Re-read `app/api/grn/[id]/route.ts` — `bonus_items` array in response
+- [x] Re-read `app/api/grn/[id]/route.ts` — `stock_on_hand` in each line
+- [x] `npx tsc --noEmit` passes
 
 ---
 
@@ -327,13 +327,13 @@ interface BonusItem {
 - Any `any` type
 
 #### Verify:
-- [ ] Re-read `app/app/grn/new/page.tsx` — no `activeLine`, `step`, `saveLine`, `skipLine`
-- [ ] Re-read `app/app/grn/new/page.tsx` — no `lot_number` in JSX or payload
-- [ ] Re-read `app/app/grn/new/page.tsx` — bonus items section with product autocomplete
-- [ ] Re-read `app/app/grn/new/page.tsx` — lift fee section gated on W2
-- [ ] Re-read `app/app/grn/new/page.tsx` — 3 sticky bottom buttons
-- [ ] `npx tsc --noEmit` passes
-- [ ] Grep `any` in file → zero results
+- [x] Re-read `app/app/grn/new/page.tsx` — no `activeLine`, `step`, `saveLine`, `skipLine`
+- [x] Re-read `app/app/grn/new/page.tsx` — no `lot_number` in JSX or payload
+- [x] Re-read `app/app/grn/new/page.tsx` — bonus items section with product autocomplete
+- [x] Re-read `app/app/grn/new/page.tsx` — lift fee section gated on W2
+- [x] Re-read `app/app/grn/new/page.tsx` — 3 sticky bottom buttons
+- [x] `npx tsc --noEmit` passes
+- [x] Grep `any` in file → zero results
 
 ---
 
@@ -359,9 +359,9 @@ The desktop table already shows `StatusBadge` — keep it, just verify it displa
 **No API change needed** — `created_at` is already returned.
 
 #### Verify:
-- [ ] Re-read `app/app/grn/receiving-queue/page.tsx` — Thai status label for IO cards
-- [ ] Re-read `app/app/grn/receiving-queue/page.tsx` — overdue badge logic
-- [ ] `npx tsc --noEmit` passes
+- [x] Re-read `app/app/grn/receiving-queue/page.tsx` — Thai status label for IO cards
+- [x] Re-read `app/app/grn/receiving-queue/page.tsx` — overdue badge logic
+- [x] `npx tsc --noEmit` passes
 
 ---
 
@@ -410,19 +410,20 @@ export function todayBE(): string {
 
 ## QA Checklist
 
-- [ ] `migrations/039_grn_bonus_items.sql` runs without error
-- [ ] POST /api/grn with `bonus_items: [{ product_name: "แถม", qty: 5, unit: "ชิ้น" }]` → 201, `grn_bonus_items` row created
-- [ ] POST /api/grn with `lift_fee_payment_method: 'cash'` → stored in DB
-- [ ] GET /api/grn/[id] returns `bonus_items` array and `stock_on_hand` per line
-- [ ] `app/app/grn/new/page.tsx` renders as single scrollable page (no step navigation)
-- [ ] No `lot_number` field visible in the form
-- [ ] Lift fee section visible only when W2 warehouse selected
-- [ ] Bonus item product search calls `/api/products?search=` and shows dropdown
-- [ ] Bonus item with typed name (no product_id) submits successfully
-- [ ] `parseBuddhistDate("31/12/2569")` → `"2026-12-31"` ✓
-- [ ] `formatBuddhistDate("2026-12-31")` → `"31/12/2569"` ✓
-- [ ] Queue mobile cards show Thai status labels
-- [ ] Queue mobile cards show "นานผิดปกติ" badge for IOs > 72 hours old
-- [ ] `npx tsc --noEmit` passes
-- [ ] `npm run lint` passes
-- [ ] No `any` type in any modified file
+- [x] `migrations/039_grn_bonus_items.sql` runs without error
+- [x] POST /api/grn with `bonus_items: [{ product_name: "แถม", qty: 5, unit: "ชิ้น" }]` → 201, `grn_bonus_items` row created
+- [x] POST /api/grn with `lift_fee_payment_method: 'cash'` → stored in DB
+- [x] GET /api/grn/[id] returns `bonus_items` array and `stock_on_hand` per line
+- [x] `app/app/grn/new/page.tsx` renders as single scrollable page (no step navigation)
+- [x] No `lot_number` field visible in the form
+- [x] Lift fee section visible only when W2 warehouse selected
+- [x] Bonus item product search calls `/api/products?search=` and shows dropdown
+- [x] Bonus item with typed name (no product_id) submits successfully
+- [x] `parseBuddhistDate("31/12/2569")` → `"2026-12-31"` ✓
+- [x] `formatBuddhistDate("2026-12-31")` → `"31/12/2569"` ✓
+- [x] Queue mobile cards show Thai status labels
+- [x] Queue mobile cards show "นานผิดปกติ" badge for IOs > 72 hours old
+- [x] `npx tsc --noEmit` passes
+- [x] `npm run lint` passes
+- [x] No `any` type in any modified file
+

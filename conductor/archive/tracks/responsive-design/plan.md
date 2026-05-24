@@ -332,10 +332,10 @@ No logic change needed — the `overflow-x-auto` on the buttons div lets users s
 ## Verification Checklist
 
 After implementation, verify at these viewport sizes:
-- [ ] **320px** (iPhone SE): Sidebar hidden, hamburger visible, page renders without horizontal scroll
-- [ ] **375px** (iPhone 14): Same as above, table columns hidden correctly
-- [ ] **768px** (iPad): Sidebar visible and static, no hamburger shown
-- [ ] **1280px** (Desktop): Full layout, all columns visible
+- [x] **320px** (iPhone SE): Sidebar hidden, hamburger visible, page renders without horizontal scroll
+- [x] **375px** (iPhone 14): Same as above, table columns hidden correctly
+- [x] **768px** (iPad): Sidebar visible and static, no hamburger shown
+- [x] **1280px** (Desktop): Full layout, all columns visible
 
 Test pages to verify:
 - [x] Dashboard — KPI cards, low stock list
@@ -344,3 +344,4 @@ Test pages to verify:
 - [x] Any `[id]` detail page — info grid stacking
 - [x] Any `new` form page — form fields stacking
 - [x] Modal open (Product add/edit) — full-screen on mobile
+

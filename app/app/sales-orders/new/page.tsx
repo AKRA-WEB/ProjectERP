@@ -36,6 +36,8 @@ export default function NewSalesOrderPage() {
     qty_ordered: number;
     unit_price: number;
     discount_amount: number;
+    transaction_uom_id?: string;
+    uoms?: Array<{ id: string; code: string; name_th: string }>;
   }>>([]);
 
   const [overrideToken, setOverrideToken] = useState<string | null>(null);
@@ -56,20 +58,73 @@ export default function NewSalesOrderPage() {
   }, []);
 
   function addLine() {
-    setLines([...lines, { product_id: '', qty_ordered: 1, unit_price: 0, discount_amount: 0 }]);
+    setLines([...lines, { product_id: '', qty_ordered: 1, unit_price: 0, discount_amount: 0, transaction_uom_id: '', uoms: [] }]);
   }
 
-  function updateLine(index: number, field: string, value: string | number) {
+  async function updateLine(index: number, field: string, value: string | number) {
     const newLines = [...lines];
-    const val = typeof value === 'string' ? (field === 'product_id' ? value : Number(value) || 0) : value;
+    const val = typeof value === 'string' ? (field === 'product_id' || field === 'transaction_uom_id' ? value : Number(value) || 0) : value;
     newLines[index] = { ...newLines[index], [field]: val as never };
     
     // Auto-fill price if product selected
     if (field === 'product_id') {
-      const p = products.find(p => p.id === value);
+      const productId = value as string;
+      const p = products.find(p => p.id === productId);
       if (p) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        newLines[index].unit_price = Number((p as any).selling_price || p.unit_cost || 0);
+        newLines[index].unit_price = Number((p as unknown as Record<string, number>).selling_price || p.unit_cost || 0);
+
+        // Fetch allowed UoMs for AKRA channel
+        let allowedUomsList: string[] = [];
+        try {
+          const whitelist = await get<Array<{ allowed_uoms: string[] }>>(`/api/admin/product-channel-uoms?product_id=${productId}&channel=AKRA`);
+          if (whitelist && whitelist.length > 0) {
+            allowedUomsList = whitelist[0].allowed_uoms || [];
+          }
+        } catch (e) {
+          console.error('Failed to fetch allowed UoMs:', e);
+        }
+
+        // Fetch all UoMs for this product
+        let productUoms: Array<{ id: string; code: string; name_th: string }> = [];
+        try {
+          const uomsRes = await get<Array<{ uom_id: string; uom_code: string; uom_name_th: string }>>(`/api/products/${productId}/uom`);
+          productUoms = uomsRes.map(u => ({
+            id: u.uom_id,
+            code: u.uom_code,
+            name_th: u.uom_name_th
+          }));
+        } catch (e) {
+          console.error('Failed to fetch product UoMs:', e);
+        }
+
+        // Add base UoM if not in productUoms
+        const baseUomId = (p as unknown as Record<string, string>).uom_id;
+        const baseUomCode = (p as unknown as Record<string, string>).uom_code;
+        const baseUomName = (p as unknown as Record<string, string>).uom_name || baseUomCode;
+        if (baseUomId && !productUoms.some(u => u.id === baseUomId)) {
+          productUoms.unshift({
+            id: baseUomId,
+            code: baseUomCode,
+            name_th: baseUomName
+          });
+        }
+
+        // Normalize allowed UoMs to lowercase
+        const normalizedAllowed = allowedUomsList.map(u => u.toLowerCase());
+
+        // Filter product UoMs by the whitelist
+        const filteredUoms = productUoms.filter(u => {
+          if (normalizedAllowed.length > 0) {
+            return normalizedAllowed.includes(u.code.toLowerCase());
+          }
+          return u.id === baseUomId;
+        });
+
+        newLines[index].uoms = filteredUoms;
+        newLines[index].transaction_uom_id = filteredUoms.length > 0 ? filteredUoms[0].id : (baseUomId || '');
+      } else {
+        newLines[index].uoms = [];
+        newLines[index].transaction_uom_id = '';
       }
     }
     
@@ -108,6 +163,8 @@ export default function NewSalesOrderPage() {
           qty_ordered: l.qty_ordered,
           unit_price: l.unit_price,
           discount_amount: l.discount_amount,
+          transaction_uom_id: l.transaction_uom_id || undefined,
+          transaction_qty: l.transaction_uom_id ? l.qty_ordered : undefined,
         })),
       });
       router.push(`/app/sales-orders/${res.id}`);
@@ -174,6 +231,7 @@ export default function NewSalesOrderPage() {
               <thead className="text-stone-500 bg-stone-50">
                 <tr>
                   <th className="p-2 w-1/3">สินค้า / Product</th>
+                  <th className="p-2 w-28">หน่วย / UoM</th>
                   <th className="p-2 w-24">จำนวน / Qty</th>
                   <th className="p-2 w-32">ราคาต่อหน่วย / Price</th>
                   <th className="p-2 w-32">ส่วนลด / Disc.</th>
@@ -196,6 +254,24 @@ export default function NewSalesOrderPage() {
                       </select>
                     </td>
                     <td className="p-2">
+                      <select
+                        className="w-full px-2 py-1.5 border border-stone-200 rounded text-sm"
+                        value={line.transaction_uom_id || ''}
+                        onChange={e => updateLine(i, 'transaction_uom_id', e.target.value)}
+                        disabled={!line.product_id}
+                        required
+                      >
+                        {(line.uoms || []).map((u) => (
+                          <option key={u.id} value={u.id}>
+                            {u.code.toUpperCase()}
+                          </option>
+                        ))}
+                        {(!line.product_id || !line.uoms?.length) && (
+                          <option value="">--</option>
+                        )}
+                      </select>
+                    </td>
+                    <td className="p-2">
                       <input type="number" min="1" step="0.01" className="w-full px-2 py-1.5 border border-stone-200 rounded text-sm text-right" value={line.qty_ordered || ''} onChange={e => updateLine(i, 'qty_ordered', e.target.value)} required />
                     </td>
                     <td className="p-2">
@@ -213,7 +289,7 @@ export default function NewSalesOrderPage() {
                   </tr>
                 ))}
                 {lines.length === 0 && (
-                  <tr><td colSpan={6} className="p-8 text-center text-stone-400 border-2 border-dashed border-stone-200 rounded-lg m-4">คลิก &apos;+ เพิ่มรายการ&apos; เพื่อใส่สินค้า</td></tr>
+                  <tr><td colSpan={7} className="p-8 text-center text-stone-400 border-2 border-dashed border-stone-200 rounded-lg m-4">คลิก &apos;+ เพิ่มรายการ&apos; เพื่อใส่สินค้า</td></tr>
                 )}
               </tbody>
             </table>

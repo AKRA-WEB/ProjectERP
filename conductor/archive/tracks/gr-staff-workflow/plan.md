@@ -305,12 +305,13 @@ Add a secondary button/link next to "+ สร้าง GRN" that navigates to th
 
 ## Verification Checklist
 
-- [ ] `npm run migrate` applies `013_grn_storage_location.sql` cleanly
-- [ ] `/app/grn/receiving-queue` loads and shows POs with `sent`/`partially_received` status
-- [ ] Clicking "รับสินค้า" on a pending PO navigates to `/app/grn/new?po_id=...` and pre-fills lines
-- [ ] GRN new form shows "สต็อกปัจจุบัน" column with correct values from `stock_balances`
-- [ ] GRN new form has "ตำแหน่งจัดเก็บ" input per line; value is saved in DB
-- [ ] GRN detail view shows the `storage_location` column
-- [ ] Receiver name is clearly visible in the GRN new form header
-- [ ] `npm run build` passes with no TypeScript errors
-- [ ] Warehouse scope: staff user only sees POs for their assigned warehouse in the receiving queue
+- [x] `npm run migrate` applies `013_grn_storage_location.sql` cleanly
+- [x] `/app/grn/receiving-queue` loads and shows POs with `sent`/`partially_received` status
+- [x] Clicking "รับสินค้า" on a pending PO navigates to `/app/grn/new?po_id=...` and pre-fills lines
+- [x] GRN new form shows "สต็อกปัจจุบัน" column with correct values from `stock_balances`
+- [x] GRN new form has "ตำแหน่งจัดเก็บ" input per line; value is saved in DB
+- [x] GRN detail view shows the `storage_location` column
+- [x] Receiver name is clearly visible in the GRN new form header
+- [x] `npm run build` passes with no TypeScript errors
+- [x] Warehouse scope: staff user only sees POs for their assigned warehouse in the receiving queue
+

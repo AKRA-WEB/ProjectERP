@@ -164,6 +164,40 @@ export async function POST(req: Request) {
     }
   }
 
+  // 3. Whole-Case strict lock check (AKRA channel only)
+  const resolvedChannel = channel || 'AKRA';
+  if (resolvedChannel === 'AKRA') {
+    for (const line of lines) {
+      const lineUomId = line.transaction_uom_id || null;
+      const { rows: [uomCheck] } = await pool.query(`
+        SELECT 
+          LOWER(uom.code) as submitted_uom_code,
+          p.sku,
+          pcu.allowed_uoms
+        FROM products p
+        JOIN units_of_measure uom ON uom.id = COALESCE($2::uuid, p.uom_id)
+        LEFT JOIN product_channel_uoms pcu ON pcu.product_id = p.id AND pcu.channel = 'AKRA'
+        WHERE p.id = $1
+      `, [line.product_id, lineUomId]);
+
+      if (!uomCheck) {
+        return apiError('Product not found', 404);
+      }
+
+      const submittedUomCode = uomCheck.submitted_uom_code;
+      const allowedUoms: string[] = uomCheck.allowed_uoms || [];
+
+      if (!allowedUoms.includes(submittedUomCode)) {
+        return apiError(`UoM '${submittedUomCode}' is not allowed for AKRA channel on product ${uomCheck.sku}`, 422, {
+          code: 'UOM_NOT_ALLOWED',
+          product_id: line.product_id,
+          sku: uomCheck.sku,
+          allowed_uoms: allowedUoms
+        });
+      }
+    }
+  }
+
   let subtotal = 0;
   const lineData: (z.infer<typeof createSchema>['lines'][0] & { line_total: number; line_number: number })[] = [];
 

@@ -404,54 +404,55 @@ Read the full file before starting. This is the largest task — do NOT batch ed
 ## QA Checklist (Billy)
 
 ### Migration
-- [ ] `027_pos_improvements.sql` exists; all `IF NOT EXISTS` guards present
-- [ ] `pos_members.phone` UNIQUE constraint
-- [ ] `pos_held_cart_lines` cascades on `pos_held_carts` delete
-- [ ] `pos_transactions.member_discount` has DEFAULT 0
-- [ ] `pos_sessions.shift_id` nullable FK to `pos_shifts`
+- [x] `027_pos_improvements.sql` exists; all `IF NOT EXISTS` guards present
+- [x] `pos_members.phone` UNIQUE constraint
+- [x] `pos_held_cart_lines` cascades on `pos_held_carts` delete
+- [x] `pos_transactions.member_discount` has DEFAULT 0
+- [x] `pos_sessions.shift_id` nullable FK to `pos_shifts`
 
 ### Members API
-- [ ] `GET /api/pos/members?q=0812345678` returns matching member
-- [ ] `POST /api/pos/members` missing `name_th` → 400
-- [ ] `POST /api/pos/members` duplicate phone → error surfaced (409 or 500 with message)
-- [ ] `PATCH /api/pos/members/[id]` updates `updated_at`
+- [x] `GET /api/pos/members?q=0812345678` returns matching member
+- [x] `POST /api/pos/members` missing `name_th` → 400
+- [x] `POST /api/pos/members` duplicate phone → error surfaced (409 or 500 with message)
+- [x] `PATCH /api/pos/members/[id]` updates `updated_at`
 
 ### Transactions API
-- [ ] `POST /api/pos/transactions` with `member_id` updates `pos_members.point_balance`
-- [ ] Points: 500 THB order → 25 points (`floor(500/20)`)
-- [ ] Stock ledger entry created correctly when `member_id` present
+- [x] `POST /api/pos/transactions` with `member_id` updates `pos_members.point_balance`
+- [x] Points: 500 THB order → 25 points (`floor(500/20)`)
+- [x] Stock ledger entry created correctly when `member_id` present
 
 ### Held Carts API
-- [ ] POST creates cart + lines atomically
-- [ ] DELETE removes cart and lines
-- [ ] GET returns only carts for given `session_id`
+- [x] POST creates cart + lines atomically
+- [x] DELETE removes cart and lines
+- [x] GET returns only carts for given `session_id`
 
 ### Shifts API
-- [ ] GET returns only `is_active = TRUE` shifts
-- [ ] Session POST with `shift_id` stores correctly
-- [ ] Session GET returns `shift_name_th` via JOIN
+- [x] GET returns only `is_active = TRUE` shifts
+- [x] Session POST with `shift_id` stores correctly
+- [x] Session GET returns `shift_name_th` via JOIN
 
 ### Terminal Page
-- [ ] No hardcoded `7/107` VAT — uses `VAT_RATE`
-- [ ] Product grid: 5 columns on large screens
-- [ ] Category tab filters correctly
-- [ ] Stock badge: `qty_available=0` → red "หมด"
-- [ ] Stock badge: `qty_available=5, reorder_point=10` → amber "สต็อกต่ำ"
-- [ ] Barcode scanner: rapid keystrokes (<50ms) → auto-add product
-- [ ] Human typing: slow keystrokes (>100ms) → no barcode trigger
-- [ ] Hold Bill: hold 2 items → clear → resume → cart restored → held cart deleted
-- [ ] Member discount: 5% on 1000 THB → 950 THB total
-- [ ] History tab: `setInterval` cleanup on unmount (no memory leak)
-- [ ] Void button: visible only for manager/admin
+- [x] No hardcoded `7/107` VAT — uses `VAT_RATE`
+- [x] Product grid: 5 columns on large screens
+- [x] Category tab filters correctly
+- [x] Stock badge: `qty_available=0` → red "หมด"
+- [x] Stock badge: `qty_available=5, reorder_point=10` → amber "สต็อกต่ำ"
+- [x] Barcode scanner: rapid keystrokes (<50ms) → auto-add product
+- [x] Human typing: slow keystrokes (>100ms) → no barcode trigger
+- [x] Hold Bill: hold 2 items → clear → resume → cart restored → held cart deleted
+- [x] Member discount: 5% on 1000 THB → 950 THB total
+- [x] History tab: `setInterval` cleanup on unmount (no memory leak)
+- [x] Void button: visible only for manager/admin
 
 ### Members Page
-- [ ] Search debounce 300ms
-- [ ] Register modal clears fields after success
+- [x] Search debounce 300ms
+- [x] Register modal clears fields after success
 
 ### Shifts Page
-- [ ] Sessions with no shift → "ไม่ระบุกะ / No Shift" group
+- [x] Sessions with no shift → "ไม่ระบุกะ / No Shift" group
 
 ---
 ## Execution Logs
 - [[execution-summary]]
+
 

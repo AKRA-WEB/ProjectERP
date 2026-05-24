@@ -184,13 +184,14 @@ Track invoice edits as versions so that the dispatch gate can hard-reject stale 
 
 **Details:** `invoice_versions(invoice_id, version_no, barcode UNIQUE, change_summary)`, `sales_invoices.current_version`, `sales_invoices.current_barcode UNIQUE`. Migration → 048.
 
-- [ ] T7 complete
+- [x] T7 complete
 
 ## Definition of Done
 
-- [ ] T1..T7 ticked
-- [ ] `npm run lint` + `npx tsc --noEmit` pass
-- [ ] Migration idempotent (existing invoices get a v1 row + barcode)
-- [ ] Manual smoke: edit invoice → new version → old barcode rejected by `verifyInvoiceBarcode`
-- [ ] `_notes/02_Agent_Memory/current-state.md` updated
-- [ ] Status set to `Completed`
+- [x] T1..T7 ticked
+- [x] `npm run lint` + `npx tsc --noEmit` pass
+- [x] Migration idempotent (existing invoices get a v1 row + barcode)
+- [x] Manual smoke: edit invoice → new version → old barcode rejected by `verifyInvoiceBarcode`
+- [x] `_notes/02_Agent_Memory/current-state.md` updated
+- [x] Status set to `Completed`
+

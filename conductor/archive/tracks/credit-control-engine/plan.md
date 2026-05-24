@@ -86,7 +86,7 @@ Block new orders when a customer is over their credit limit or has any invoice a
 - Side effects: none.
 - Response shape: N/A.
 
-- [ ] T1 complete
+- [x] T1 complete
 
 ### T2 — Helper `lib/credit/check-credit-status.ts`
 **File:** `lib/credit/check-credit-status.ts` (new)
@@ -118,7 +118,7 @@ Block new orders when a customer is over their credit limit or has any invoice a
 - Side effects: none.
 - Response shape: `CreditStatus`.
 
-- [ ] T2 complete
+- [x] T2 complete
 
 ### T3 — `GET /api/customers/[id]/credit-status`
 **File:** `app/api/customers/[id]/credit-status/route.ts` (new)
@@ -130,7 +130,7 @@ Block new orders when a customer is over their credit limit or has any invoice a
 
 **Quality Gate:** Response shape: `apiSuccess({ status: CreditStatus })`. Others N/A.
 
-- [ ] T3 complete
+- [x] T3 complete
 
 ### T4 — `POST /api/customers/[id]/credit-release`
 **File:** `app/api/customers/[id]/credit-release/route.ts` (new)
@@ -152,7 +152,7 @@ Block new orders when a customer is over their credit limit or has any invoice a
 - Side effects: `override_audit` insert + 2 UPDATEs.
 - Response shape: `apiSuccess({ released: true })`.
 
-- [ ] T4 complete
+- [x] T4 complete
 
 ### T5 — Wire guard into `POST /api/sales-orders`
 **File:** `app/api/sales-orders/route.ts`
@@ -170,7 +170,7 @@ Block new orders when a customer is over their credit limit or has any invoice a
 - Side effects: stock reservation unchanged; +override_audit on override.
 - Response shape: `apiSuccess({ sales_order })` / `apiError('Credit hold', 412, {...})`.
 
-- [ ] T5 complete
+- [x] T5 complete
 
 ### T6 — Wire guard into POS checkout
 **File:** `app/api/pos/transactions/route.ts`
@@ -186,7 +186,7 @@ Block new orders when a customer is over their credit limit or has any invoice a
 - Side effects: stock_ledger (`pos_sale`) preserved.
 - Response shape: `apiError('Credit hold', 412, {...})` on block.
 
-- [ ] T6 complete
+- [x] T6 complete
 
 ### T7 — Nightly aging sweep `lib/jobs/credit-aging-sweep.ts`
 **File:** `lib/jobs/credit-aging-sweep.ts` (new)
@@ -213,7 +213,7 @@ Block new orders when a customer is over their credit limit or has any invoice a
 - Side effects: customers.on_hold flips.
 - Response shape: function returns `{ updated: number }`.
 
-- [ ] T7 complete
+- [x] T7 complete
 
 ### T8 — Credit holds UI page
 **File:** `app/sales/credit-holds/page.tsx` (new)
@@ -224,7 +224,7 @@ Block new orders when a customer is over their credit limit or has any invoice a
 
 **Quality Gate:** N/A (UI).
 
-- [ ] T8 complete
+- [x] T8 complete
 
 ### T9 — Update `current-state.md`
 **File:** `_notes/02_Agent_Memory/current-state.md`
@@ -232,13 +232,14 @@ Block new orders when a customer is over their credit limit or has any invoice a
 
 **Details:** `customers.on_hold BOOLEAN DEFAULT FALSE`; `customer_credit_holds(customer_id, reason, started_at, released_at, released_by)`. Migration → 045. Sales-order / POS checkout now returns 412 `CREDIT_HOLD`.
 
-- [ ] T9 complete
+- [x] T9 complete
 
 ## Definition of Done
 
-- [ ] All tasks T1..T9 ticked
-- [ ] `npm run lint` + `npx tsc --noEmit` pass
-- [ ] Migration idempotent
-- [ ] Manual smoke: aging invoice → on_hold flips → SO POST returns 412 → override_token releases → next POST succeeds
-- [ ] `_notes/02_Agent_Memory/current-state.md` updated
-- [ ] Status set to `Completed` in `conductor/index.md`
+- [x] All tasks T1..T9 ticked
+- [x] `npm run lint` + `npx tsc --noEmit` pass
+- [x] Migration idempotent
+- [x] Manual smoke: aging invoice → on_hold flips → SO POST returns 412 → override_token releases → next POST succeeds
+- [x] `_notes/02_Agent_Memory/current-state.md` updated
+- [x] Status set to `Completed` in `conductor/index.md`
+

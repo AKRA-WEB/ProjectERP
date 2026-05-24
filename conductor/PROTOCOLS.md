@@ -57,11 +57,13 @@ This project uses **Obsidian** opened directly on this folder as a vault. All `.
 
 ### File Writing Rules (Billy) — MANDATORY
 
-**Gemini CLI has full file system access and MUST use the `write_file` tool to save the QA report directly.**
+**Billy subagent CANNOT write to the Windows filesystem.** Billy's `write_file` tool and Bash HEREDOCs silently "succeed" but write to the container FS, not `C:\`. The files never appear in the project.
 
 **Correct pattern:**
-1. Billy (Gemini CLI) performs the audit.
-2. Billy writes the report directly to `conductor/qa-reports/<track>.md`.
+1. Billy performs the audit and outputs the full report as structured text in its response.
+2. Tell Billy: **"Do NOT echo file contents — output only findings as text, keep response under 30KB."**
+3. After Billy responds, **main thread Claude** writes the file using the native Write tool:
+   `C:\Users\AKRA-Panich-Front\OneDrive\02-2 - AKRA\projectERP\conductor\qa-reports\<track>.md`
 
 ### Billy Output Rules
 - Label report `[DRAFT — Pending Chen Validation]`

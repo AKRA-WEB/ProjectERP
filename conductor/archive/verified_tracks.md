@@ -49,3 +49,5 @@
 | [fefo-enforcement — FEFO Enforcement (with Per-Line Override)](./tracks/fefo-enforcement/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
 | [strict-receiving-flow — Strict 5-Step Receiving Flow (PR -> PO -> BR -> GR -> Match)](./tracks/strict-receiving-flow/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
 | [repack-yield-loss — Repack Yield & Loss](./tracks/repack-yield-loss/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
+| [adjust-warehouses-and-thermal-zones — WMS Warehouse Restructuring & Thermal Zone Alignment](./tracks/adjust-warehouses-and-thermal-zones/plan.md) | Verified | 2026-05-24 | 2026-05-24 |
+| [operation-core-sync-orion-2026-05-24 — Operation Core Sync & Orion Alignment](./tracks/operation-core-sync-orion-2026-05-24/plan.md) | Verified | 2026-05-24 | 2026-05-24 |

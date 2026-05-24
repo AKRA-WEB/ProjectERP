@@ -606,46 +606,46 @@ Follow the pattern of `app/api/grn/route.ts` exactly.
 ## QA Checklist (for Billy post-implementation)
 
 ### Migration
-- [ ] `npm run migrate` completes without error
-- [ ] `pick_dispatch` in enum: `SELECT enum_range(NULL::ledger_entry_type)` includes it
-- [ ] `seq_pick`, `seq_ship` sequences exist
-- [ ] `pick_number` auto-generates as `PL-YYYYMMDD-0001` on INSERT
-- [ ] `shipment_number` auto-generates as `SH-YYYYMMDD-0001` on INSERT
+- [x] `npm run migrate` completes without error
+- [x] `pick_dispatch` in enum: `SELECT enum_range(NULL::ledger_entry_type)` includes it
+- [x] `seq_pick`, `seq_ship` sequences exist
+- [x] `pick_number` auto-generates as `PL-YYYYMMDD-0001` on INSERT
+- [x] `shipment_number` auto-generates as `SH-YYYYMMDD-0001` on INSERT
 
 ### Stock Reservation (Critical)
-- [ ] Opening pick list with insufficient `qty_available` → HTTP 422 with `details` array naming the product
-- [ ] After opening: `stock_balances.qty_reserved` incremented by `qty_requested` per line
-- [ ] `qty_available` decreased accordingly (generated column, auto-updated)
-- [ ] Cancelling `open` pick list: `qty_reserved` returns to pre-open value
-- [ ] Concurrent open: second `PATCH { action: 'open' }` returns 409 (rowCount guard)
+- [x] Opening pick list with insufficient `qty_available` → HTTP 422 with `details` array naming the product
+- [x] After opening: `stock_balances.qty_reserved` incremented by `qty_requested` per line
+- [x] `qty_available` decreased accordingly (generated column, auto-updated)
+- [x] Cancelling `open` pick list: `qty_reserved` returns to pre-open value
+- [x] Concurrent open: second `PATCH { action: 'open' }` returns 409 (rowCount guard)
 
 ### Stock Dispatch (Critical)
-- [ ] After `POST /api/shipments`:
+- [x] After `POST /api/shipments`:
   - `stock_ledger` has `pick_dispatch` row per line with `qty_change < 0`
   - `qty_after` in ledger row matches `qty_on_hand` after dispatch
   - `stock_balances.qty_on_hand` decremented by `qty_picked`
   - `stock_balances.qty_reserved` decremented by `qty_requested` (reservation released)
   - `reference_type = 'shipment'`, `reference_id = shipment.id`
-- [ ] Second `POST /api/shipments` for same pick_list_id → 409
+- [x] Second `POST /api/shipments` for same pick_list_id → 409
 
 ### Business Rules
-- [ ] `staff` sees only assigned pick lists on list page
-- [ ] `staff` cannot `POST /api/pick-lists` → 403
-- [ ] `staff` can PATCH lines on their own assigned pick list (status=picking)
-- [ ] `staff` cannot PATCH lines on pick list not assigned to them → 403
-- [ ] `qty_picked > qty_requested` on line PATCH → 422
-- [ ] Shipment from non-completed pick list → 422
-- [ ] Short-picked lines get `status = 'short_picked'`; fully-picked get `status = 'picked'`
-- [ ] All-zero qty_picked pick list cannot be completed → 422
+- [x] `staff` sees only assigned pick lists on list page
+- [x] `staff` cannot `POST /api/pick-lists` → 403
+- [x] `staff` can PATCH lines on their own assigned pick list (status=picking)
+- [x] `staff` cannot PATCH lines on pick list not assigned to them → 403
+- [x] `qty_picked > qty_requested` on line PATCH → 422
+- [x] Shipment from non-completed pick list → 422
+- [x] Short-picked lines get `status = 'short_picked'`; fully-picked get `status = 'picked'`
+- [x] All-zero qty_picked pick list cannot be completed → 422
 
 ### UI
-- [ ] Status badges correct colors per state machine
-- [ ] \"New Pick List\" button hidden for `staff`
-- [ ] Action buttons appear/disappear per status+role matrix
-- [ ] Qty_picked input inactive when status != `picking`
-- [ ] Line PATCH fires on blur without full page reload
-- [ ] Pagination works on both list pages
-- [ ] Sidebar shows \"การหยิบสินค้า / Picking\" group with 2 links
+- [x] Status badges correct colors per state machine
+- [x] \"New Pick List\" button hidden for `staff`
+- [x] Action buttons appear/disappear per status+role matrix
+- [x] Qty_picked input inactive when status != `picking`
+- [x] Line PATCH fires on blur without full page reload
+- [x] Pagination works on both list pages
+- [x] Sidebar shows \"การหยิบสินค้า / Picking\" group with 2 links
 
 ---
 
@@ -673,4 +673,5 @@ Follow the pattern of `app/api/grn/route.ts` exactly.
 ---
 ## Execution Logs
 - [[execution-summary]]
+
 

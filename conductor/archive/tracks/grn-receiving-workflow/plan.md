@@ -803,7 +803,7 @@ File: `app/app/purchase-orders/[id]/page.tsx`
 )}
 ```
 
-- [ ] Add `handleCreateWorkCard` function:
+- [x] Add `handleCreateWorkCard` function:
 
 ```typescript
 async function handleCreateWorkCard() {
@@ -1113,4 +1113,5 @@ const STATUS_LABEL: Record<string, string> = {
 ---
 ## Execution Logs
 - [[execution-summary]]
+
 

@@ -33,7 +33,7 @@ All AI agents (Claude, Gemini, Codex, etc.) must adhere to the identical operati
 **Triggers & Commands:**
 - **`Init`** → Run Pre-Flight Checklist in full (git sync, track sweep, load current-state + pitfalls, check Conductor board, and report system readiness).
 - **`Architect: <requirement>`** → Spawn Chen/Architect planning protocol. Analyze codebase, create `plan.md` inside a new track folder, and update `conductor/index.md`. Do NOT code or plan inline.
-- **`Go`** → Act as the **Implementer**. Find the first `Active` or `Rework Required` track in `conductor/index.md` -> Execute tasks surgically -> Run Auto-QA (`npm run qa:verify` -> must be 0 errors) -> Mark as `Verified` and run `npm run track:sweep` -> **STOP IMMEDIATELY**. Do NOT automatically proceed to the next track under any circumstances.
+- **`Go`** → Act as the **Implementer**. Find the first `Active` or `Rework Required` track in `conductor/index.md` → Execute tasks surgically → Run `npm run qa:verify` (0 errors) → Spawn Billy QA subagent → route findings to Chen for validation → write `rework-plan.md` if needed → fix all Must Fix items → re-QA until `Verified` → run `npm run track:sweep` → **STOP IMMEDIATELY**. Do NOT automatically proceed to the next track under any circumstances.
 - **`Summary`** → Write `execution-summary.md` with exact lines modified and validation results as evidence.
 
 Refer to [AI Workflow Guide](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/docs/AI_WORKFLOW_GUIDE.md) and `conductor/PROTOCOLS.md` for full protocols and workflow structures.

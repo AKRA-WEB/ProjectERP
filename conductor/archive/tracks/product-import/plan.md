@@ -337,27 +337,28 @@ Mount `<ProductImportModal open={showImport} onSuccess={() => { setShowImport(fa
 - Batch size pagination for very large files (4,762 rows fits in one transaction)
 
 ## QA Checklist
-- [ ] `npm run migrate` succeeds with new 032 file
-- [ ] `npx tsc --noEmit` passes after all files written
-- [ ] POST /api/products/import with xlsx → `{ inserted, updated, failed, errors }`
-- [ ] Re-import same file → `inserted: 0`, `updated: 4762`
-- [ ] Row empty SKU → in errors[], import continues
-- [ ] Row empty name_th → in errors[], import continues
-- [ ] Viewer role → 403
-- [ ] Unauthenticated → 401
-- [ ] col12=2 + col13 present → barcode = col13
-- [ ] col12=1 → barcode = NULL
-- [ ] New product qty > 0 → 1 stock_ledger row, entry_type='initial_import'
-- [ ] New product qty ≤ 0 → no stock_ledger row
-- [ ] Re-imported product → no extra stock_ledger row
-- [ ] New category → product_categories row created
-- [ ] New UOM → units_of_measure row created
-- [ ] File input accepts .xlsx only
-- [ ] Upload progress: spinner shown, button disabled
-- [ ] Result: summary cards + error table
-- [ ] Modal close → product list refreshes
+- [x] `npm run migrate` succeeds with new 032 file
+- [x] `npx tsc --noEmit` passes after all files written
+- [x] POST /api/products/import with xlsx → `{ inserted, updated, failed, errors }`
+- [x] Re-import same file → `inserted: 0`, `updated: 4762`
+- [x] Row empty SKU → in errors[], import continues
+- [x] Row empty name_th → in errors[], import continues
+- [x] Viewer role → 403
+- [x] Unauthenticated → 401
+- [x] col12=2 + col13 present → barcode = col13
+- [x] col12=1 → barcode = NULL
+- [x] New product qty > 0 → 1 stock_ledger row, entry_type='initial_import'
+- [x] New product qty ≤ 0 → no stock_ledger row
+- [x] Re-imported product → no extra stock_ledger row
+- [x] New category → product_categories row created
+- [x] New UOM → units_of_measure row created
+- [x] File input accepts .xlsx only
+- [x] Upload progress: spinner shown, button disabled
+- [x] Result: summary cards + error table
+- [x] Modal close → product list refreshes
 
 ---
 ## Execution Logs
 - [[execution-summary]]
+
 

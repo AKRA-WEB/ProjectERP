@@ -272,27 +272,28 @@ Tasks 1, 2, 3 are independent — can execute in any order. No migrations requir
 
 ## Acceptance Criteria
 
-- [ ] `POST /api/purchase-orders` — if line items INSERT fails (e.g., invalid product_id), PO header is NOT created (rolled back)
-- [ ] `POST /api/grn` (IO path) — if line items INSERT fails, GRN header is NOT created
-- [ ] `POST /api/grn/[id]/qc` with role `staff` → HTTP 403
-- [ ] `POST /api/grn/[id]/qc` with role `manager` → qc_passed/qc_failed correctly set
-- [ ] `npx tsc --noEmit` → 0 errors
-- [ ] `npm run lint` → 0 errors
+- [x] `POST /api/purchase-orders` — if line items INSERT fails (e.g., invalid product_id), PO header is NOT created (rolled back)
+- [x] `POST /api/grn` (IO path) — if line items INSERT fails, GRN header is NOT created
+- [x] `POST /api/grn/[id]/qc` with role `staff` → HTTP 403
+- [x] `POST /api/grn/[id]/qc` with role `manager` → qc_passed/qc_failed correctly set
+- [x] `npx tsc --noEmit` → 0 errors
+- [x] `npm run lint` → 0 errors
 
 ## QA Checklist (Billy)
 
-- [ ] PO POST: create PO with valid data → 201, po_number present in response
-- [ ] PO POST: transaction rollback test — inject invalid product_id in last line item → expect 500 (or validation error) AND no orphan PO header in DB
-- [ ] GRN POST (IO path): valid IO id + lines → 201, grn_number present
-- [ ] GRN QC: staff user → 403
-- [ ] GRN QC: manager user with valid qc data → 200, GRN status = qc_passed
-- [ ] GRN QC: all lines qc_status = 'fail' → GRN status = qc_failed
-- [ ] Grep `pool.connect()` in each of the 3 modified files → must exist
-- [ ] `npx tsc --noEmit` passes
-- [ ] `npm run lint` passes
+- [x] PO POST: create PO with valid data → 201, po_number present in response
+- [x] PO POST: transaction rollback test — inject invalid product_id in last line item → expect 500 (or validation error) AND no orphan PO header in DB
+- [x] GRN POST (IO path): valid IO id + lines → 201, grn_number present
+- [x] GRN QC: staff user → 403
+- [x] GRN QC: manager user with valid qc data → 200, GRN status = qc_passed
+- [x] GRN QC: all lines qc_status = 'fail' → GRN status = qc_failed
+- [x] Grep `pool.connect()` in each of the 3 modified files → must exist
+- [x] `npx tsc --noEmit` passes
+- [x] `npm run lint` passes
 
 ---
 ## Execution Logs
 - [[execution-summary]]
 - [[rework-execution-summary]]
+
 

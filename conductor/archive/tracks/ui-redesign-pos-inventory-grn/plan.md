@@ -30,10 +30,10 @@ updated: 2026-05-16
 
 ### Acceptance Criteria
 
-- [ ] Tab switch สินค้า↔ตะกร้า works
-- [ ] Cart total in sticky button updates live
-- [ ] Product grid 2-col on mobile, 4-col on desktop
-- [ ] Checkout flow works same as desktop
+- [x] Tab switch สินค้า↔ตะกร้า works
+- [x] Cart total in sticky button updates live
+- [x] Product grid 2-col on mobile, 4-col on desktop
+- [x] Checkout flow works same as desktop
 
 ---
 
@@ -61,3 +61,4 @@ None.
 | T-004 | `app/app/pos/session/[id]/page.tsx` |
 | T-005 | `app/app/inventory/page.tsx` |
 | T-006 | `app/app/pos/session/[id]/page.tsx` (additive to T-004) |
+

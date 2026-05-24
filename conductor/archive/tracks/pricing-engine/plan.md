@@ -91,7 +91,7 @@ Replace ad-hoc pricing logic with a single deterministic resolver that takes `(c
 - Side effects: none.
 - Response shape: N/A.
 
-- [ ] T1 complete
+- [x] T1 complete
 
 ### T2 — `lib/pricing/resolve.ts`
 **File:** `lib/pricing/resolve.ts` (new)
@@ -127,7 +127,7 @@ Replace ad-hoc pricing logic with a single deterministic resolver that takes `(c
 - Side effects: none.
 - Response shape: `PriceResolution | null`.
 
-- [ ] T2 complete
+- [x] T2 complete
 
 ### T3 — Types
 **File:** `types/db.ts` (extend) + `types/index.ts` (re-export)
@@ -138,7 +138,7 @@ Replace ad-hoc pricing logic with a single deterministic resolver that takes `(c
 
 **Quality Gate:** N/A.
 
-- [ ] T3 complete
+- [x] T3 complete
 
 ### T4 — `GET /api/pricing/resolve`
 **File:** `app/api/pricing/resolve/route.ts` (new)
@@ -158,7 +158,7 @@ Replace ad-hoc pricing logic with a single deterministic resolver that takes `(c
 - Side effects: none.
 - Response shape: `apiSuccess({ resolution: PriceResolution })` or 404.
 
-- [ ] T4 complete
+- [x] T4 complete
 
 ### T5 — `POST /api/admin/product-prices/bulk` + `GET`
 **File:** `app/api/admin/product-prices/bulk/route.ts` (new)
@@ -177,7 +177,7 @@ Replace ad-hoc pricing logic with a single deterministic resolver that takes `(c
 - Side effects: none.
 - Response shape: `apiSuccess({ inserted: number })`.
 
-- [ ] T5 complete
+- [x] T5 complete
 
 ### T6 — `GET/POST /api/admin/customer-price-contracts`
 **File:** `app/api/admin/customer-price-contracts/route.ts` (new)
@@ -195,7 +195,7 @@ Replace ad-hoc pricing logic with a single deterministic resolver that takes `(c
 - Side effects: none.
 - Response shape: `apiSuccess({ contract })` (POST) / `apiSuccess({ data })` (GET).
 
-- [ ] T6 complete
+- [x] T6 complete
 
 ### T7 — Admin pricing UI
 **File:** `app/admin/pricing/page.tsx` (new) + `app/admin/customers/[id]/price-contracts/page.tsx` (new)
@@ -206,7 +206,7 @@ Replace ad-hoc pricing logic with a single deterministic resolver that takes `(c
 
 **Quality Gate:** N/A (UI).
 
-- [ ] T7 complete
+- [x] T7 complete
 
 ### T8 — Wire resolver into POS & OMS line-add
 **File:** `app/api/pos/transactions/route.ts` + `app/api/sales-orders/route.ts` + `app/api/sales-invoices/route.ts`
@@ -224,7 +224,7 @@ Replace ad-hoc pricing logic with a single deterministic resolver that takes `(c
 - Side effects: pre-existing stock_ledger writes on confirm.
 - Response shape: unchanged on success; new `422` on missing price.
 
-- [ ] T8 complete
+- [x] T8 complete
 
 ### T9 — Update `current-state.md`
 **File:** `_notes/02_Agent_Memory/current-state.md`
@@ -232,14 +232,15 @@ Replace ad-hoc pricing logic with a single deterministic resolver that takes `(c
 
 **Details:** Append: `product_prices(product_id, channel, tier, price, valid_from, valid_to)` UNIQUE; `customer_price_contracts(customer_id, product_id, locked_price, discount_pct, valid_from, valid_to)`; `products.min_price`, `products.clr_min_price`; `pos_members.price_tier price_tier DEFAULT 'T0'` (legacy `tier VARCHAR(20)` kept). Migration → 043.
 
-- [ ] T9 complete
+- [x] T9 complete
 
 ## Definition of Done
 
-- [ ] All tasks T1..T9 ticked
-- [ ] `npm run lint` passes
-- [ ] `npx tsc --noEmit` passes
-- [ ] Migration runs idempotently
-- [ ] Manual smoke: resolve a T2-locked contract → price returned; resolve missing → 404
-- [ ] `_notes/02_Agent_Memory/current-state.md` updated
-- [ ] Status set to `Completed` in `conductor/index.md`
+- [x] All tasks T1..T9 ticked
+- [x] `npm run lint` passes
+- [x] `npx tsc --noEmit` passes
+- [x] Migration runs idempotently
+- [x] Manual smoke: resolve a T2-locked contract → price returned; resolve missing → 404
+- [x] `_notes/02_Agent_Memory/current-state.md` updated
+- [x] Status set to `Completed` in `conductor/index.md`
+

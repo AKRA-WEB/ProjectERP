@@ -49,9 +49,9 @@ updated: 2026-05-13
 
 ## Phase 1 — Page: `app/(app)/menu/page.tsx`
 
-- [ ] **1.1** `'use client'` — ใช้ `useSession()` เพื่อดึง `role` + `permissions`
+- [x] **1.1** `'use client'` — ใช้ `useSession()` เพื่อดึง `role` + `permissions`
 
-- [ ] **1.2** Define `MODULE_CONFIG` array (ภายในไฟล์ ไม่ต้องแยกไฟล์):
+- [x] **1.2** Define `MODULE_CONFIG` array (ภายในไฟล์ ไม่ต้องแยกไฟล์):
   ```typescript
   interface ModuleCard {
     id: string;
@@ -66,24 +66,24 @@ updated: 2026-05-13
   }
   ```
 
-- [ ] **1.3** Implement `isModuleVisible(mod: ModuleCard, role: string, permissions: string[]): boolean`:
+- [x] **1.3** Implement `isModuleVisible(mod: ModuleCard, role: string, permissions: string[]): boolean`:
   - admin → sees all
   - adminOnly === true → only admin
   - else → check `permissions.includes(mod.permission)` (admin bypass already handled)
 
-- [ ] **1.4** Render header section:
+- [x] **1.4** Render header section:
   - Greeting: `สวัสดี, [name]` + role badge
   - Subtitle: `เลือกระบบที่ต้องการใช้งาน / Select a module`
   - Current date (Thai locale, `Asia/Bangkok`)
 
-- [ ] **1.5** Render module cards grid:
+- [x] **1.5** Render module cards grid:
   - Responsive: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`
   - Each card: large icon, Thai name, English name, description, "เข้าสู่ระบบ →" button
   - Quick links below main button (2-3 ลิงก์ shortcut)
   - Role badge บนการ์ด Admin: แสดง "Admin Only"
   - Loading state ขณะ session กำลังโหลด
 
-- [ ] **1.6** Style — ใช้ design system ของโปรเจกต์:
+- [x] **1.6** Style — ใช้ design system ของโปรเจกต์:
   - Card: `bg-white border border-stone-200 rounded-[12px] shadow-sm hover:shadow-md transition-shadow`
   - Primary button: `bg-stone-950 text-white`
   - Quick links: `text-stone-500 hover:text-stone-800 text-[12.5px]`
@@ -93,7 +93,7 @@ updated: 2026-05-13
 
 ## Phase 2 — Middleware Update: `middleware.ts`
 
-- [ ] **2.1** เปลี่ยน post-login redirect:
+- [x] **2.1** เปลี่ยน post-login redirect:
   ```typescript
   // เดิม
   return NextResponse.redirect(new URL('/app/dashboard', req.url));
@@ -101,7 +101,7 @@ updated: 2026-05-13
   return NextResponse.redirect(new URL('/app/menu', req.url));
   ```
 
-- [ ] **2.2** เปลี่ยน non-admin `/app/admin` redirect target ให้ชี้ไป `/app/menu` แทน `/app/dashboard`:
+- [x] **2.2** เปลี่ยน non-admin `/app/admin` redirect target ให้ชี้ไป `/app/menu` แทน `/app/dashboard`:
   ```typescript
   return NextResponse.redirect(new URL('/app/menu', req.url));
   ```
@@ -110,7 +110,7 @@ updated: 2026-05-13
 
 ## Phase 3 — Sidebar: add Menu link
 
-- [ ] **3.1** เพิ่ม entry แรกใน navGroup `ภาพรวม` ของ `components/layout/Sidebar.tsx`:
+- [x] **3.1** เพิ่ม entry แรกใน navGroup `ภาพรวม` ของ `components/layout/Sidebar.tsx`:
   ```typescript
   { href: '/app/menu', label: 'เมนูหลัก / Main Menu', icon: '🏠', permission: 'dashboard:view' },
   ```
@@ -120,14 +120,14 @@ updated: 2026-05-13
 
 ## Acceptance Criteria
 
-- [ ] หน้า `/app/menu` โหลดได้ ไม่มี TypeScript error
-- [ ] Admin เห็น 6 module cards (WMS, POS, Sales, Accounting, HR, Admin)
-- [ ] Staff ที่มีแค่ `pos:cashier` เห็นเฉพาะ POS card
-- [ ] คลิก "เข้าสู่ระบบ" บนการ์ด WMS → ไปที่ `/app/dashboard`
-- [ ] Quick links คลิกได้และ navigate ถูก
-- [ ] Login สำเร็จ → redirect ไป `/app/menu` (ไม่ใช่ `/app/dashboard` อีกต่อไป)
-- [ ] `/app/admin` ถูกเข้าโดย non-admin → redirect ไป `/app/menu`
-- [ ] `npm run lint` ผ่าน
+- [x] หน้า `/app/menu` โหลดได้ ไม่มี TypeScript error
+- [x] Admin เห็น 6 module cards (WMS, POS, Sales, Accounting, HR, Admin)
+- [x] Staff ที่มีแค่ `pos:cashier` เห็นเฉพาะ POS card
+- [x] คลิก "เข้าสู่ระบบ" บนการ์ด WMS → ไปที่ `/app/dashboard`
+- [x] Quick links คลิกได้และ navigate ถูก
+- [x] Login สำเร็จ → redirect ไป `/app/menu` (ไม่ใช่ `/app/dashboard` อีกต่อไป)
+- [x] `/app/admin` ถูกเข้าโดย non-admin → redirect ไป `/app/menu`
+- [x] `npm run lint` ผ่าน
 
 ---
 
@@ -151,4 +151,5 @@ components/layout/Sidebar.tsx  (edit — add menu link)
 ---
 ## Execution Logs
 - [[execution-summary]]
+
 

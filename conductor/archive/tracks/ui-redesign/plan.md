@@ -87,8 +87,8 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 ```
 
-- [ ] **1.2a** Import both fonts
-- [ ] **1.2b** Apply `className={`${ibmPlexSansThai.variable} ${ibmPlexMono.variable}`}` to `<html>` tag
+- [x] **1.2a** Import both fonts
+- [x] **1.2b** Apply `className={`${ibmPlexSansThai.variable} ${ibmPlexMono.variable}`}` to `<html>` tag
 
 ---
 
@@ -110,8 +110,8 @@ Minimal layout — no Sidebar, no TopBar.
 
 > **Note:** If `app/(app)/menu/page.tsx` already exists (from main-menu track), migrate it to `app/(hub)/menu/page.tsx` and delete the old file.
 
-- [ ] **2.2a** Page background: `min-h-screen bg-[#f6f4ef]` (paper warm — from design)
-- [ ] **2.2b** Centered layout: `flex flex-col items-center justify-center px-6 py-14`
+- [x] **2.2a** Page background: `min-h-screen bg-[#f6f4ef]` (paper warm — from design)
+- [x] **2.2b** Centered layout: `flex flex-col items-center justify-center px-6 py-14`
 
 ### 2.3 Brand pill header
 
@@ -122,9 +122,9 @@ Minimal layout — no Sidebar, no TopBar.
 </div>
 ```
 
-- [ ] **2.3a** Brand pill above title
-- [ ] **2.3b** Title: `เลือกระบบงาน` (font-display, 34px, weight 500, tracking -0.025em)
-- [ ] **2.3c** Subtitle: `Choose a workspace to continue` (13px, muted)
+- [x] **2.3a** Brand pill above title
+- [x] **2.3b** Title: `เลือกระบบงาน` (font-display, 34px, weight 500, tracking -0.025em)
+- [x] **2.3c** Subtitle: `Choose a workspace to continue` (13px, muted)
 
 ### 2.4 Module grid (5 modules)
 
@@ -148,9 +148,9 @@ Each card:
 | 4 | hr | บุคคล | HR | `/app/hr/employees` |
 | 5 | admin | ผู้ดูแลระบบ | Admin | `/app/admin/users` |
 
-- [ ] **2.4a** Implement MODULE_CONFIG array with SVG icon per module
-- [ ] **2.4b** Role-based visibility: `admin` only sees Admin card; others filtered by permissions (same logic as before)
-- [ ] **2.4c** Responsive: 3-col on ≤1000px, 2-col on ≤640px
+- [x] **2.4a** Implement MODULE_CONFIG array with SVG icon per module
+- [x] **2.4b** Role-based visibility: `admin` only sees Admin card; others filtered by permissions (same logic as before)
+- [x] **2.4c** Responsive: 3-col on ≤1000px, 2-col on ≤640px
 
 **SVG Icons** — inline, `viewBox="0 0 64 64"`, `stroke="currentColor"`, `stroke-width="1.25"`, `stroke-linecap="round"`, `stroke-linejoin="round"`:
 
@@ -174,7 +174,7 @@ Copy exact SVG paths from `docs/design/main-menu.html`:
 </div>
 ```
 
-- [ ] **2.5a** User avatar (initials), name, role from session
+- [x] **2.5a** User avatar (initials), name, role from session
 
 ### 2.6 Version rule
 
@@ -186,11 +186,11 @@ Copy exact SVG paths from `docs/design/main-menu.html`:
 </div>
 ```
 
-- [ ] **2.6a** Version + Thai month/year
+- [x] **2.6a** Version + Thai month/year
 
 ### 2.7 Update middleware redirect
 
-- [ ] `middleware.ts` → post-login: `/app/menu` → `/app/menu` (if using `(hub)` group, path stays `/menu` which maps to `app/(hub)/menu/page.tsx`)
+- [x] `middleware.ts` → post-login: `/app/menu` → `/app/menu` (if using `(hub)` group, path stays `/menu` which maps to `app/(hub)/menu/page.tsx`)
 
 > **Note:** Next.js route groups `(hub)` and `(app)` — the URL is still `/menu` not `/(hub)/menu`. No middleware change needed if path is already `/app/menu` ... wait:
 >
@@ -207,7 +207,7 @@ Copy exact SVG paths from `docs/design/main-menu.html`:
 >
 > **Revised decision:** Layout passes `pageId` to main wrapper. When `pageId === 'menu'`, apply `[data-page="menu"]` class that hides sidebar via CSS. This avoids moving files.
 
-- [ ] **Revise Phase 2 architecture:** Keep `app/(app)/menu/page.tsx`. Modify `app/(app)/layout.tsx`:
+- [x] **Revise Phase 2 architecture:** Keep `app/(app)/menu/page.tsx`. Modify `app/(app)/layout.tsx`:
   - Detect `pathname === '/app/menu'`
   - When true: render `children` without Sidebar/TopBar, add `bg-[#f6f4ef]` to wrapper
   - When false: render full layout as before
@@ -261,21 +261,21 @@ Map current emoji → Lucide icon component:
 | 🏠 | `Warehouse` | Warehouses |
 | 🏠 | `Home` | Menu link |
 
-- [ ] **3.2a** Update `NavItem` interface: change `icon: string` → `icon: LucideIcon`
-- [ ] **3.2b** Update all `navItems` arrays to use Lucide components
-- [ ] **3.2c** Render: `<Icon className="w-[17px] h-[17px]" strokeWidth={1.6} />`
+- [x] **3.2a** Update `NavItem` interface: change `icon: string` → `icon: LucideIcon`
+- [x] **3.2b** Update all `navItems` arrays to use Lucide components
+- [x] **3.2c** Render: `<Icon className="w-[17px] h-[17px]" strokeWidth={1.6} />`
 
 ### 3.3 User profile footer
 
-- [ ] **3.3a** Add `sb-foot` section at bottom of Sidebar (before closing `</aside>`)
-- [ ] **3.3b** "จัดการเมนู" button:
+- [x] **3.3a** Add `sb-foot` section at bottom of Sidebar (before closing `</aside>`)
+- [x] **3.3b** "จัดการเมนู" button:
   ```tsx
   <button className="flex items-center justify-center gap-1.5 w-full px-2.5 py-[7px] mb-2.5 text-[12.5px] font-medium text-ink-2 bg-surface-sunken border border-dashed border-line rounded-lg hover:bg-white hover:text-ink transition-colors">
     <Settings className="w-3.5 h-3.5" />
     {!collapsed && <span>จัดการเมนู</span>}
   </button>
   ```
-- [ ] **3.3c** User row (click → profile or sign out menu):
+- [x] **3.3c** User row (click → profile or sign out menu):
   ```tsx
   <div className="flex items-center gap-2.5 px-1.5 py-1.5 rounded-lg hover:bg-surface-sunken cursor-pointer">
     <div className="w-7 h-7 rounded-[7px] grid place-items-center font-semibold text-[12px]" style={{ background: avatarBg, color: avatarColor }}>
@@ -292,16 +292,16 @@ Map current emoji → Lucide icon component:
 
 ### 3.4 "จัดการเมนู" edit mode
 
-- [ ] **3.4a** State: `const [editing, setEditing] = useState(false)`
-- [ ] **3.4b** State: `const [hiddenItems, setHiddenItems] = useState<string[]>(() => JSON.parse(localStorage.getItem('sidebar_hidden_items') ?? '[]'))`
-- [ ] **3.4c** When `editing === true`:
+- [x] **3.4a** State: `const [editing, setEditing] = useState(false)`
+- [x] **3.4b** State: `const [hiddenItems, setHiddenItems] = useState<string[]>(() => JSON.parse(localStorage.getItem('sidebar_hidden_items') ?? '[]'))`
+- [x] **3.4c** When `editing === true`:
   - Show yellow edit banner: "จัดการเมนู · ติ๊กเพื่อเปิด-ปิดเมนู (n/total)"
   - Show checkboxes on each item
   - Clicking item toggles `hiddenItems` (does NOT navigate)
   - "เสร็จ" button closes edit mode
-- [ ] **3.4d** Persist to `localStorage` on change: `localStorage.setItem('sidebar_hidden_items', JSON.stringify(hiddenItems))`
-- [ ] **3.4e** Filter items: if not editing, exclude items in `hiddenItems` from render
-- [ ] **3.4f** When collapsed, hide edit button (show only user avatar)
+- [x] **3.4d** Persist to `localStorage` on change: `localStorage.setItem('sidebar_hidden_items', JSON.stringify(hiddenItems))`
+- [x] **3.4e** Filter items: if not editing, exclude items in `hiddenItems` from render
+- [x] **3.4f** When collapsed, hide edit button (show only user avatar)
 
 ### 3.5 Module header (from dynamic-sidebar plan)
 
@@ -410,4 +410,5 @@ components/ui/index.ts                 (edit — export SegControl, Tabs)
 ---
 ## Execution Logs
 - [[execution-summary]]
+
 

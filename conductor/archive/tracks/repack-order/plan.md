@@ -88,14 +88,15 @@ The "Repack Order" system is designed for Bakery Mart business to handle the pro
 
 ## Acceptance Criteria
 
-- [ ] Users can create and save Repack Templates.
-- [ ] Users can create a Repack Order with 1 source and multiple outputs.
-- [ ] Automated stock adjustment (In/Out) occurs on completion.
-- [ ] Output unit costs are correctly recorded in the stock ledger.
-- [ ] Barcode labels can be generated from the order detail page.
-- [ ] `npx tsc --noEmit` passes with 0 errors.
+- [x] Users can create and save Repack Templates.
+- [x] Users can create a Repack Order with 1 source and multiple outputs.
+- [x] Automated stock adjustment (In/Out) occurs on completion.
+- [x] Output unit costs are correctly recorded in the stock ledger.
+- [x] Barcode labels can be generated from the order detail page.
+- [x] `npx tsc --noEmit` passes with 0 errors.
 
 ---
 ## Execution Logs
 - [[execution-summary]]
+
 
