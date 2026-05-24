@@ -40,7 +40,7 @@ Master plan: [erp-v2-orion-roadmap](tracks/erp-v2-orion-roadmap/plan.md)
 | 14 | adjust-warehouses-and-thermal-zones | Verified | [plan](tracks/adjust-warehouses-and-thermal-zones/plan.md) |
 | 15 | operation-core-sync-orion-2026-05-24 | Verified | [plan](tracks/operation-core-sync-orion-2026-05-24/plan.md) |
 | 16 | wholecase-strict-lock-akra | Verified | [plan](tracks/wholecase-strict-lock-akra/plan.md) |
-| 17 | price-history-alert-pos | Active | [plan](tracks/price-history-alert-pos/plan.md) |
+| 17 | price-history-alert-pos | Verified | [plan](tracks/price-history-alert-pos/plan.md) |
 
 ### Phase 2 — V2.0 Compliance
 | # | Track | Status | Plan |

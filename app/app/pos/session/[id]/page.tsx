@@ -20,6 +20,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { OverridePinModal } from '@/components/auth/OverridePinModal';
 import { get, post } from '@/lib/api-client';
+import { useToast } from '@/components/ui/Toast';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import type { PosPickingSlip, PosPickingSlipStatus } from '@/types';
 
@@ -321,6 +322,7 @@ export default function POSSessionPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const sessionId = params.id;
+  const toast = useToast();
 
   const [session, setSession] = useState<POSSession | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -432,6 +434,26 @@ export default function POSSessionPage() {
       if (existing) return prev.map((i) => i.product_id === product.id ? { ...i, qty: i.qty + 1, lockedAt: Date.now() } : i);
       return [...prev, { product_id: product.id, sku: product.sku, name_th: product.name_th, price: product.price, qty: 1, lockedAt: Date.now() }];
     });
+
+    if (member?.id) {
+      get<{ history: { unit_price: number; invoice_no: string; sold_at: string } | null }>(
+        `/api/pos/price-history?customer_id=${member.id}&product_id=${product.id}`
+      ).then((res) => {
+        if (res?.history) {
+          const dateStr = new Date(res.history.sold_at).toLocaleDateString('th-TH', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+          });
+          toast(
+            'info',
+            `ลูกค้ารายนี้ซื้อล่าสุด: ${formatCurrency(res.history.unit_price)} เมื่อ ${dateStr} (${res.history.invoice_no})`
+          );
+        }
+      }).catch((err) => {
+        console.error('Failed to fetch product price history:', err);
+      });
+    }
   }
 
   function changeQty(pid: string, qty: number) {

@@ -2,9 +2,10 @@
 track: price-history-alert-pos
 phase: V2.0-P1
 sequence: 16
-status: planned
+status: Completed
 owner: Chen
 created: 2026-05-23
+updated: 2026-05-24
 depends_on: [pricing-engine]
 estimate: S
 assigned_to: [Paku, Puka]
@@ -79,7 +80,7 @@ At POS line-add, surface the last unit price the same customer paid for the same
 - Side effects: none.
 - Response shape: N/A.
 
-- [ ] T1 complete
+- [x] T1 complete
 
 ### T2 — `GET /api/pos/price-history`
 **File:** `app/api/pos/price-history/route.ts` (new)
@@ -111,7 +112,7 @@ At POS line-add, surface the last unit price the same customer paid for the same
 - Side effects: none.
 - Response shape: `apiSuccess({ history: { unit_price: number, invoice_no: string, sold_at: string } | null })`.
 
-- [ ] T2 complete
+- [x] T2 complete
 
 ### T3 — POS line-add UI toast
 **File:** locate POS line-add component (`Glob "app/app/pos/**"`, e.g. cart editor)
@@ -125,7 +126,7 @@ At POS line-add, surface the last unit price the same customer paid for the same
 
 **Quality Gate:** N/A (UI).
 
-- [ ] T3 complete
+- [x] T3 complete
 
 ### T4 — Update `current-state.md`
 **File:** `_notes/02_Agent_Memory/current-state.md`
@@ -133,14 +134,14 @@ At POS line-add, surface the last unit price the same customer paid for the same
 
 **Details:** New endpoint `GET /api/pos/price-history`. Indexes `idx_si_customer_created`, `idx_do_line_items_product`. Migration → 055. Note: there is no `sales_invoice_lines` table — history derived via `do_line_items` JOIN.
 
-- [ ] T4 complete
+- [x] T4 complete
 
 ## Definition of Done
 
-- [ ] T1..T4 ticked
-- [ ] `npm run lint` + `npx tsc --noEmit` pass
-- [ ] Manual smoke: repeat purchase combo → toast shows; never-bought combo → silent
-- [ ] Cash-only sale → no fetch issued
-- [ ] Migration idempotent
-- [ ] `_notes/02_Agent_Memory/current-state.md` updated
-- [ ] Status set to `Completed`
+- [x] T1..T4 ticked
+- [x] `npm run lint` + `npx tsc --noEmit` pass
+- [x] Manual smoke: repeat purchase combo → toast shows; never-bought combo → silent
+- [x] Cash-only sale → no fetch issued
+- [x] Migration idempotent
+- [x] `_notes/02_Agent_Memory/current-state.md` updated
+- [x] Status set to `Completed`
