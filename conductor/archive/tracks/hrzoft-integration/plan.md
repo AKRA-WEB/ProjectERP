@@ -2,9 +2,10 @@
 track: hrzoft-integration
 phase: V2.1
 sequence: 21
-status: planned
+status: Verified
 owner: Chen
 created: 2026-05-23
+updated: 2026-05-25
 depends_on: [multi-bu-foundation]
 estimate: L
 assigned_to: [Paku]

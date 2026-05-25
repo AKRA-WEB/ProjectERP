@@ -2,9 +2,10 @@
 track: accounting-export-adapters
 phase: V2.0-P2
 sequence: 20
-status: planned
+status: Verified
 owner: Chen
 created: 2026-05-23
+updated: 2026-05-25
 depends_on: [auditor-role-and-readonly-access]
 estimate: L
 assigned_to: [Paku]

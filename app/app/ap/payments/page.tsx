@@ -6,10 +6,13 @@ import { formatDate, formatCurrency } from '@/lib/format';
 import type { ApPayment } from '@/types';
 import Link from 'next/link';
 import { DirectionalTransition } from '@/components/ui/directional-transition';
+import { useSession } from 'next-auth/react';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-[0_1px_0_rgba(15,23,42,.03),0_1px_2px_rgba(15,23,42,.04)]';
 
 export default function ApPaymentsPage() {
+  const { data: session } = useSession();
+  const role = (session?.user as { role?: string } | undefined)?.role;
   const [data, setData] = useState<{ payments: ApPayment[]; total: number; total_pages: number } | null>(null);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -42,14 +45,16 @@ export default function ApPaymentsPage() {
             AP Payments Log · {loading ? '—' : (data?.total ?? 0).toLocaleString('th-TH')} รายการ
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Link
-            href="/app/ap/payments/new"
-            className="inline-flex items-center gap-1.5 h-8 px-3 rounded-[7px] bg-stone-950 text-white text-[13px] font-medium shadow-sm hover:bg-stone-800 transition-colors"
-          >
-            + บันทึกการชำระเงิน
-          </Link>
-        </div>
+        {role !== 'auditor' && (
+          <div className="flex items-center gap-2">
+            <Link
+              href="/app/ap/payments/new"
+              className="inline-flex items-center gap-1.5 h-8 px-3 rounded-[7px] bg-stone-950 text-white text-[13px] font-medium shadow-sm hover:bg-stone-800 transition-colors"
+            >
+              + บันทึกการชำระเงิน
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Table card */}

@@ -1,4 +1,5 @@
 import { auth } from '@/auth';
+import { readOnlyMiddleware } from '@/lib/auth/readOnlyMiddleware';
 import { apiSuccess, apiError } from '@/lib/api-response';
 import pool from '@/lib/db/client';
 import type { SessionUser } from '@/types';
@@ -9,6 +10,9 @@ const MatchSchema = z.object({
 });
 
 export async function POST(req: Request) {
+  const blocked = await readOnlyMiddleware(req);
+  if (blocked) return blocked;
+
   const session = await auth();
   if (!session?.user) return apiError('Unauthorized', 401);
   const u = session.user as unknown as SessionUser;

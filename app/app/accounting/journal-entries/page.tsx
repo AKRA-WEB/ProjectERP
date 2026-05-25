@@ -11,10 +11,13 @@ import { formatCurrency } from '@/lib/format';
 import Link from 'next/link';
 import { useLanguage } from '@/lib/i18n';
 import type { JournalEntry, PaginatedResponse, FiscalPeriod } from '@/types';
+import { useSession } from 'next-auth/react';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden';
 
 export default function JournalEntriesPage() {
+  const { data: session } = useSession();
+  const role = (session?.user as { role?: string } | undefined)?.role;
   const { lang } = useLanguage();
   const [data, setData] = useState<PaginatedResponse<JournalEntry> | null>(null);
   const [periods, setPeriods] = useState<FiscalPeriod[]>([]);
@@ -58,9 +61,11 @@ export default function JournalEntriesPage() {
           <h1 className="text-2xl font-semibold text-stone-900">รายการบัญชี / Journal Entries</h1>
           <p className="text-stone-500 text-sm">บันทึกรายการสมุดรายวันทั่วไปและตรวจสอบสถานะ</p>
         </div>
-        <Link href="/app/accounting/journal-entries/new">
-          <Button>+ สร้างรายการ / New Entry</Button>
-        </Link>
+        {role !== 'auditor' && (
+          <Link href="/app/accounting/journal-entries/new">
+            <Button>+ สร้างรายการ / New Entry</Button>
+          </Link>
+        )}
       </div>
 
       <div className={`${CARD} p-4 flex gap-4 items-end`}>

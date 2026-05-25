@@ -7,6 +7,7 @@ import { StatusBadge } from '@/components/ui';
 import type { ApInvoice } from '@/types';
 import Link from 'next/link';
 import { DirectionalTransition } from '@/components/ui/directional-transition';
+import { useSession } from 'next-auth/react';
 
 const TABS = [
   { id: '', label: 'ทั้งหมด' },
@@ -17,6 +18,8 @@ const TABS = [
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-[0_1px_0_rgba(15,23,42,.03),0_1px_2px_rgba(15,23,42,.04)]';
 
 export default function ApInvoicesPage() {
+  const { data: session } = useSession();
+  const role = (session?.user as { role?: string } | undefined)?.role;
   const [data, setData] = useState<{ invoices: ApInvoice[]; total: number; total_pages: number } | null>(null);
   const [page, setPage] = useState(1);
   const [isPaid, setIsPaid] = useState('');
@@ -59,13 +62,15 @@ export default function ApInvoicesPage() {
             >
               รายงานอายุหนี้
             </Link>
-            <Link
-              href="/app/ap/payments/new"
-              transitionTypes={['nav-forward']}
-              className="inline-flex items-center gap-1.5 h-8 px-3 rounded-[7px] bg-stone-950 text-white text-[13px] font-medium shadow-sm hover:bg-stone-800 transition-colors"
-            >
-              + บันทึกการชำระเงิน
-            </Link>
+            {role !== 'auditor' && (
+              <Link
+                href="/app/ap/payments/new"
+                transitionTypes={['nav-forward']}
+                className="inline-flex items-center gap-1.5 h-8 px-3 rounded-[7px] bg-stone-950 text-white text-[13px] font-medium shadow-sm hover:bg-stone-800 transition-colors"
+              >
+                + บันทึกการชำระเงิน
+              </Link>
+            )}
           </div>
         </div>
 

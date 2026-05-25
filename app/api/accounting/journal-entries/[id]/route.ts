@@ -1,4 +1,5 @@
 import { auth } from '@/auth';
+import { readOnlyMiddleware } from '@/lib/auth/readOnlyMiddleware';
 import { apiSuccess, apiError, apiValidationError } from '@/lib/api-response';
 import { assertPermission } from '@/lib/authz';
 import pool, { queryOne, query } from '@/lib/db/client';
@@ -47,6 +48,9 @@ const actionSchema = z.discriminatedUnion('action', [
 ]);
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const blocked = await readOnlyMiddleware(req);
+  if (blocked) return blocked;
+
   const session = await auth();
   if (!session?.user) return apiError('Unauthorized', 401);
   const u = session.user as unknown as SessionUser;

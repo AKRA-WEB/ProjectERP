@@ -3,7 +3,7 @@
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import React, { useState, useEffect } from 'react';
-import { Users, Shield, Scale, Warehouse as WarehouseIcon, ArrowRight, Loader2, Tag } from 'lucide-react';
+import { Users, Shield, Scale, Warehouse as WarehouseIcon, ArrowRight, Loader2, Tag, RefreshCw } from 'lucide-react';
 import { get } from '@/lib/api-client';
 import { DirectionalTransition } from '@/components/ui/directional-transition';
 
@@ -14,6 +14,7 @@ interface Stats {
   uomsCount: number | null;
   pricesCount: number | null;
   productChannelUomsCount: number | null;
+  hrzoftCount: number | null;
 }
 
 export default function AdminHubPage() {
@@ -25,6 +26,7 @@ export default function AdminHubPage() {
     uomsCount: null,
     pricesCount: null,
     productChannelUomsCount: null,
+    hrzoftCount: null,
   });
   const [loading, setLoading] = useState(true);
 
@@ -32,13 +34,14 @@ export default function AdminHubPage() {
     async function fetchStats() {
       try {
         setLoading(true);
-        const [usersRes, warehousesRes, rolesRes, uomsRes, pricesRes, channelUomsRes] = await Promise.all([
+        const [usersRes, warehousesRes, rolesRes, uomsRes, pricesRes, channelUomsRes, hrzoftRes] = await Promise.all([
           get<{ total: number }>('/api/hr/employees?pageSize=1').catch(() => ({ total: 0 })),
           get<unknown[]>('/api/admin/warehouses').catch(() => []),
           get<unknown[]>('/api/admin/roles').catch(() => []),
           get<unknown[]>('/api/admin/uom').catch(() => []),
           get<{ total: number }>('/api/admin/product-prices?limit=1').catch(() => ({ total: 0 })),
           get<unknown[]>('/api/admin/product-channel-uoms').catch(() => []),
+          get<{ mappings: unknown[] }>('/api/admin/hrzoft/last-run').catch(() => ({ mappings: [] })),
         ]);
 
         setStats({
@@ -48,6 +51,7 @@ export default function AdminHubPage() {
           uomsCount: Array.isArray(uomsRes) ? uomsRes.length : 0,
           pricesCount: pricesRes?.total ?? 0,
           productChannelUomsCount: Array.isArray(channelUomsRes) ? channelUomsRes.length : 0,
+          hrzoftCount: Array.isArray(hrzoftRes?.mappings) ? hrzoftRes.mappings.length : 0,
         });
       } catch (err) {
         console.error('Failed to fetch admin stats:', err);
@@ -109,6 +113,14 @@ export default function AdminHubPage() {
       href: '/app/admin/product-channel-uoms',
       icon: Scale,
       stat: stats.productChannelUomsCount,
+    },
+    {
+      title: 'การเชื่อมต่อ Hrzoft',
+      titleEn: 'Hrzoft Sync Integration',
+      desc: 'ซิงค์ข้อมูลพนักงานบัญชีชื่อผู้ใช้จากระบบภายนอก Hrzoft ติดตามและจัดการความขัดแย้ง',
+      href: '/app/admin/integrations/hrzoft',
+      icon: RefreshCw,
+      stat: stats.hrzoftCount,
     },
   ];
 

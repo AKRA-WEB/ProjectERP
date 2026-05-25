@@ -47,13 +47,13 @@ Master plan: [erp-v2-orion-roadmap](tracks/erp-v2-orion-roadmap/plan.md)
 | --- | --- | --- | --- |
 | 18 | moving-average-cost | Verified | [plan](tracks/moving-average-cost/plan.md) |
 | 19 | vendor-wht-and-form-50 | Verified | [plan](tracks/vendor-wht-and-form-50/plan.md) |
-| 20 | auditor-role-and-readonly-access | Active | [plan](tracks/auditor-role-and-readonly-access/plan.md) |
-| 21 | accounting-export-adapters | Active | [plan](tracks/accounting-export-adapters/plan.md) |
+| 20 | auditor-role-and-readonly-access | Verified | [plan](tracks/auditor-role-and-readonly-access/plan.md) |
+| 21 | accounting-export-adapters | Verified | [plan](tracks/accounting-export-adapters/plan.md) |
 
 ### Phase 3 — V2.1 Integrations
 | # | Track | Status | Plan |
 | --- | --- | --- | --- |
-| 22 | hrzoft-integration | Active | [plan](tracks/hrzoft-integration/plan.md) |
+| 22 | hrzoft-integration | Verified | [plan](tracks/hrzoft-integration/plan.md) |
 | 23 | auto-replenishment-w1-w2 | Active | [plan](tracks/auto-replenishment-w1-w2/plan.md) |
 
 ### Phase 4 — V2.2 Analytics
@@ -74,6 +74,9 @@ Master plan: [erp-v2-orion-roadmap](tracks/erp-v2-orion-roadmap/plan.md)
 
 | Track | Status | Created | Last Updated |
 |-------|--------|---------|--------------|
+| [Hrzoft Integration](./archive/tracks/hrzoft-integration/plan.md) | Verified | 2026-05-25 | 2026-05-25 |
+| [Accounting Export Adapters (Express / FlowAccount / PEAK)](./archive/tracks/accounting-export-adapters/plan.md) | Verified | 2026-05-25 | 2026-05-25 |
+| [Auditor Role & Read-Only Access](./archive/tracks/auditor-role-and-readonly-access/plan.md) | Verified | 2026-05-25 | 2026-05-25 |
 | [Vendor WHT & Form 50 Twi](./archive/tracks/vendor-wht-and-form-50/plan.md) | Verified | 2026-05-25 | 2026-05-25 |
 | [Moving Average Cost](./archive/tracks/moving-average-cost/plan.md) | Verified | 2026-05-25 | 2026-05-25 |
 | [Operation Core Sync & Orion Alignment](./archive/tracks/operation-core-sync-orion-2026-05-24/plan.md) | Verified | 2026-05-24 | 2026-05-24 |

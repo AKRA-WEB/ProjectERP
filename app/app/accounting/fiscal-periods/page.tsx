@@ -8,10 +8,13 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import Link from 'next/link';
 import { useLanguage } from '@/lib/i18n';
 import type { FiscalPeriod } from '@/types';
+import { useSession } from 'next-auth/react';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden';
 
 export default function FiscalPeriodsPage() {
+  const { data: session } = useSession();
+  const role = (session?.user as { role?: string } | undefined)?.role;
   const { lang } = useLanguage();
   const [periods, setPeriods] = useState<FiscalPeriod[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,9 +56,11 @@ export default function FiscalPeriodsPage() {
           <h1 className="text-2xl font-semibold text-stone-900">รอบบัญชี / Fiscal Periods</h1>
           <p className="text-stone-500 text-sm">จัดการสถานะเปิด/ปิดการบันทึกรายการรายเดือน</p>
         </div>
-        <Link href="/app/accounting/fiscal-periods/new">
-          <Button>+ สร้างรอบใหม่ / New Period</Button>
-        </Link>
+        {role !== 'auditor' && (
+          <Link href="/app/accounting/fiscal-periods/new">
+            <Button>+ สร้างรอบใหม่ / New Period</Button>
+          </Link>
+        )}
       </div>
 
       <div className={CARD}>
@@ -85,12 +90,12 @@ export default function FiscalPeriodsPage() {
               <td className="px-5 py-4 text-center font-mono font-bold text-blue-600">{p.entry_count}</td>
               <td className="px-5 py-4 text-right">
                 <div className="flex justify-end gap-2">
-                  {p.status === 'open' && (
+                  {role !== 'auditor' && p.status === 'open' && (
                     <Button variant="outline" size="sm" onClick={() => handleAction(p.id, 'close')} loading={actioning === p.id} className="text-red-600 border-red-100 hover:bg-red-50">
                       ปิดรอบ / Close
                     </Button>
                   )}
-                  {p.status === 'closed' && (
+                  {role !== 'auditor' && p.status === 'closed' && (
                     <>
                       <Button variant="outline" size="sm" onClick={() => handleAction(p.id, 'reopen')} loading={actioning === p.id}>
                         เปิดใหม่ / Reopen

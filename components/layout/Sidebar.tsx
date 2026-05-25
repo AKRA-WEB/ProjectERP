@@ -318,6 +318,7 @@ export function Sidebar({ open, onClose, userRole, permissions, collapsed, onTog
           { href: '/app/accounting/chart-of-accounts', label: t('page.coa'),            icon: BarChart3, permission: 'accounts:view' },
           { href: '/app/accounting/fiscal-periods',    label: t('page.fiscal_periods'), icon: Calendar,  permission: 'fiscal_periods:view' },
           { href: '/app/accounting/journal-entries',   label: t('page.journal'),        icon: BookOpen,  permission: 'accounting:view' },
+          { href: '/app/accounting/export',            label: 'ส่งออกข้อมูล / Export Adapters', icon: Landmark,  permission: 'reports:accounting' },
         ],
       },
       {

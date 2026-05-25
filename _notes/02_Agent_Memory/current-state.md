@@ -6,11 +6,11 @@ updated_by: Gemini
 # Project Current State — Anti-Context-Loss Briefing
 
 ## Last 5 Completed Tracks
+- **hrzoft-integration**: Synced employee master data from external HR system (Hrzoft) nightly, handled full mapping and profiles synchronization, created database tables `external_user_sync` and `hrzoft_sync_runs` with indexes, exposed API routes `/api/admin/hrzoft/sync` and `/api/admin/hrzoft/last-run`, and built a premium, modern integration panel supporting manual sync actions, conflict logging, and employee grid mapping (2026-05-25)
+- **accounting-export-adapters**: Implemented a unified general ledger exporter supporting Express, FlowAccount, and PEAK, created database table `accounting_export_jobs` to audit past exports, exposed API routes `/api/accounting/export` and `/api/accounting/export/jobs`, and built premium, responsive interfaces for date-range downloads and log tables (2026-05-25)
+- **auditor-role-and-readonly-access**: Wired `auditor` role so they have strictly read-only access, hard-blocked all non-GET requests with a 403 error at the API layer, conditionally hid write controls across AP and accounting fiscal period/journal UIs, implemented two specialized auditing endpoints (`GET /api/accounting/audit/ledger` and `GET /api/accounting/audit/trial-balance`), and designed a premium, dedicated auditor dashboard landing page (2026-05-25)
 - **vendor-wht-and-form-50**: Implemented Thai withholding-tax (WHT) automatic handling on AP payments, added certificates tracking with doc sequence number allocation, recorded WHT journal entries (DR AP, CR Cash/Bank, CR WHT Payable), and created premium bilingual Sarabun-font Form 50 Twi PDF rendering engine (2026-05-25)
 - **moving-average-cost**: Replaced legacy cost basis with automated real-time Moving Average Cost (MAC) calculated via stock_ledger insert trigger, added backfill engine, updated API reporting layer, and integrated valuation comparison table (2026-05-25)
-- **price-history-alert-pos**: Created POS line-add toast alert showing customer purchase history for repeat SKUs, added optimized indexes, and implemented querying API (2026-05-24)
-- **wholecase-strict-lock-akra**: Enforced wholecase-only sales for AKRA channel, created whitelists table and seeded default UoMs, added admin management screen, and restricted OMS order lines to allowed whitelists (2026-05-24)
-- **operation-core-sync-orion-2026-05-24**: Synchronized location models, added transfer qty modes enum, and created dispatch exception logging schema (2026-05-24)
 
 ## Active Work
 - None.
@@ -18,6 +18,9 @@ updated_by: Gemini
 ---
 
 ## DB Facts
+- **external_user_sync**: maps Hrzoft `employee_id` to local users, tracks sync status and conflict notes (v061).
+- **hrzoft_sync_runs**: audit log table recording each sync execution stats and statuses (v062).
+- **accounting_export_jobs**: audit table logging format, date range, requested_by, status, and output_meta for general ledger exports (v060).
 - **vendors.default_wht_rate**: default withholding tax rate for AP payments (v059).
 - **wht_certificates**: table tracking generated withholding tax certificates and Form 50 Twi doc numbers (v059).
 - **accounts**: seeded `2310` (Withholding Tax Payable) for WHT liability postings (v059).
@@ -37,6 +40,10 @@ updated_by: Gemini
 - **stock_ledger**: INSERT-ONLY. Entry types include `repack_stage_in`, `repack_stage_out`, `scrap`.
 
 ## API Routes
+- **POST /api/admin/hrzoft/sync**: manual sync trigger (v061).
+- **GET /api/admin/hrzoft/last-run**: details of the last sync run + mapping records (v061).
+- **GET /api/accounting/audit/ledger**: Paginated, filterable audit ledger line query (v060).
+- **GET /api/accounting/audit/trial-balance**: Period/date scoped trial balance calculations for auditor validation (v060).
 - **GET /api/ap/wht**: query lists of WHT certificates with vendor/month filters (v059).
 - **GET /api/ap/wht/[id]**: retrieve a single withholding tax certificate (v059).
 - **GET /api/ap/wht/[id]/form-50-twi.pdf**: premium Sarabun-font Form 50 Twi withholding tax certificate PDF engine (v059).
@@ -55,9 +62,9 @@ updated_by: Gemini
 
 ---
 
-## Migration Numbers (latest: 059)
-Next migration = `060_<name>.sql`
-Latest: `059_vendor_wht.sql`
+## Migration Numbers (latest: 062)
+Next migration = `063_<name>.sql`
+Latest: `062_hrzoft_sync_runs.sql`
 
 ----
 
