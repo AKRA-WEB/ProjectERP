@@ -265,6 +265,7 @@ export function Sidebar({ open, onClose, userRole, permissions, collapsed, onTog
         items: [
           { href: '/app/ap',          label: t('page.ap_invoices'), icon: CreditCard, permission: 'vendors:view' },
           { href: '/app/ap/payments', label: t('page.ap_payments'), icon: History,    permission: 'vendors:view' },
+          { href: '/app/ap/wht',      label: t('page.wht_certificates'), icon: FileText,   permission: 'vendors:view' },
           { href: '/app/ap/aging',    label: t('page.ap_aging'),    icon: Clock,      permission: 'vendors:view' },
         ],
       },

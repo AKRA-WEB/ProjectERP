@@ -32,6 +32,7 @@ interface Vendor {
   is_active: boolean;
   created_at: string;
   catalog: CatalogItem[] | null;
+  default_wht_rate: number | null;
 }
 
 interface Product {
@@ -57,6 +58,7 @@ function EditModal({ vendor, onClose, onSaved }: { vendor: Vendor; onClose: () =
     address_th: vendor.address_th ?? '',
     payment_terms_days: String(vendor.payment_terms_days),
     is_active: vendor.is_active,
+    default_wht_rate: vendor.default_wht_rate !== null && vendor.default_wht_rate !== undefined ? String(vendor.default_wht_rate) : '',
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -80,6 +82,7 @@ function EditModal({ vendor, onClose, onSaved }: { vendor: Vendor; onClose: () =
         address_th: form.address_th || null,
         payment_terms_days: parseInt(form.payment_terms_days) || 30,
         is_active: form.is_active,
+        default_wht_rate: form.default_wht_rate !== '' ? parseFloat(form.default_wht_rate) : null,
       });
       onSaved();
     } catch (e: unknown) {
@@ -128,13 +131,20 @@ function EditModal({ vendor, onClose, onSaved }: { vendor: Vendor; onClose: () =
             />
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex-1">
+            <div className="flex-grow">
               <label className={LABEL_CLS}>เครดิต (วัน)</label>
               <input type="number" value={form.payment_terms_days}
                 onChange={(e) => setForm((f) => ({ ...f, payment_terms_days: e.target.value }))}
                 className={FIELD_CLS} />
             </div>
-            <label className="flex items-center gap-2 text-[13px] text-stone-600 cursor-pointer mt-5">
+            <div className="flex-grow">
+              <label className={LABEL_CLS}>อัตราภาษีหัก ณ ที่จ่าย (WHT %)</label>
+              <input type="number" step="0.01" min="0" max="100" placeholder="ไม่มี (None)"
+                value={form.default_wht_rate}
+                onChange={(e) => setForm((f) => ({ ...f, default_wht_rate: e.target.value }))}
+                className={FIELD_CLS} />
+            </div>
+            <label className="flex items-center gap-2 text-[13px] text-stone-600 cursor-pointer mt-5 shrink-0">
               <input type="checkbox" checked={form.is_active}
                 onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))}
                 className="w-3.5 h-3.5 rounded border-stone-300 accent-emerald-600" />
@@ -353,10 +363,11 @@ export default function VendorDetailPage() {
           </div>
 
           {/* Info grid */}
-          <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-5 border-t border-stone-100">
+          <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 pt-5 border-t border-stone-100">
             {[
               { label: 'รหัส', value: vendor.code, mono: true },
               { label: 'เลขผู้เสียภาษี', value: vendor.tax_id ?? '—', mono: true },
+              { label: 'อัตรา WHT', value: vendor.default_wht_rate !== null && vendor.default_wht_rate !== undefined ? `${vendor.default_wht_rate}%` : 'ไม่มี (None)' },
               { label: 'เครดิต', value: `${vendor.payment_terms_days} วัน` },
               { label: 'วันที่เพิ่ม', value: formatDate(vendor.created_at) },
             ].map((item) => (

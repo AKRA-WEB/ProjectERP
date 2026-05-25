@@ -34,7 +34,7 @@ Expose a single unified export endpoint capable of producing journal entries and
 5. `npm run lint` and `npx tsc --noEmit` pass.
 
 ## Migrations
-- `058_accounting_export_jobs.sql` — create the audit table.
+- `060_accounting_export_jobs.sql` — create the audit table.
 
 ## API routes
 - New: `GET /api/accounting/export`.

@@ -2,9 +2,10 @@
 track: vendor-wht-and-form-50
 phase: V2.0-P2
 sequence: 18
-status: planned
+status: Verified
 owner: Chen
 created: 2026-05-23
+updated: 2026-05-25
 depends_on: []
 estimate: M
 assigned_to: [Paku, Puka]
@@ -35,7 +36,7 @@ Automate Thai withholding-tax handling on AP payments. Each vendor has a default
 5. `npm run lint` and `npx tsc --noEmit` pass.
 
 ## Migrations
-- `057_vendor_wht.sql` — add `vendors.default_wht_rate`, create `wht_certificates`, ensure `WHT` doc sequence exists.
+- `059_vendor_wht.sql` — add `vendors.default_wht_rate`, create `wht_certificates`, ensure `WHT` doc sequence exists.
 
 ## API routes
 - Touched: `app/api/ap/payments/route.ts`.

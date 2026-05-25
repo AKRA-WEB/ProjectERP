@@ -88,6 +88,7 @@ export interface Product {
   min_price: number | string;
   clr_min_price: number | string;
   last_cost?: number | string | null;
+  moving_avg_cost?: number | string | null;
   created_at: string;
 }
 

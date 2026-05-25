@@ -40,6 +40,7 @@
   "page.claims": "เคลมเจ้าหนี้",
   "page.ap_invoices": "ใบแจ้งหนี้เจ้าหนี้",
   "page.ap_payments": "รายการชำระเงิน",
+  "page.wht_certificates": "ภาษีหัก ณ ที่จ่าย",
   "page.ap_aging": "รายงานอายุหนี้",
   "page.products": "สินค้า",
   "page.bom": "สูตรการผลิต",

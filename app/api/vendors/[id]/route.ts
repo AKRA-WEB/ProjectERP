@@ -19,6 +19,7 @@ const updateSchema = z.object({
   bank_account_number: z.string().max(100).nullable().optional(),
   bank_account_name: z.string().max(255).nullable().optional(),
   is_active: z.boolean().optional(),
+  default_wht_rate: z.number().min(0).max(100).nullable().optional(),
 });
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -60,7 +61,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const vals: unknown[] = [];
   let idx = 1;
 
-  const fields = ['name_th', 'name_en', 'contact_name', 'email', 'phone', 'address_th', 'address_en', 'tax_id', 'payment_terms_days', 'bank_name', 'bank_account_number', 'bank_account_name', 'is_active'] as const;
+  const fields = ['name_th', 'name_en', 'contact_name', 'email', 'phone', 'address_th', 'address_en', 'tax_id', 'payment_terms_days', 'bank_name', 'bank_account_number', 'bank_account_name', 'is_active', 'default_wht_rate'] as const;
   for (const f of fields) {
     if (parsed.data[f] !== undefined) { updates.push(`${f} = $${idx++}`); vals.push(parsed.data[f]); }
   }

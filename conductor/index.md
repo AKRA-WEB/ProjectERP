@@ -45,8 +45,8 @@ Master plan: [erp-v2-orion-roadmap](tracks/erp-v2-orion-roadmap/plan.md)
 ### Phase 2 — V2.0 Compliance
 | # | Track | Status | Plan |
 | --- | --- | --- | --- |
-| 18 | moving-average-cost | Active | [plan](tracks/moving-average-cost/plan.md) |
-| 19 | vendor-wht-and-form-50 | Active | [plan](tracks/vendor-wht-and-form-50/plan.md) |
+| 18 | moving-average-cost | Verified | [plan](tracks/moving-average-cost/plan.md) |
+| 19 | vendor-wht-and-form-50 | Verified | [plan](tracks/vendor-wht-and-form-50/plan.md) |
 | 20 | auditor-role-and-readonly-access | Active | [plan](tracks/auditor-role-and-readonly-access/plan.md) |
 | 21 | accounting-export-adapters | Active | [plan](tracks/accounting-export-adapters/plan.md) |
 
@@ -74,6 +74,8 @@ Master plan: [erp-v2-orion-roadmap](tracks/erp-v2-orion-roadmap/plan.md)
 
 | Track | Status | Created | Last Updated |
 |-------|--------|---------|--------------|
+| [Vendor WHT & Form 50 Twi](./archive/tracks/vendor-wht-and-form-50/plan.md) | Verified | 2026-05-25 | 2026-05-25 |
+| [Moving Average Cost](./archive/tracks/moving-average-cost/plan.md) | Verified | 2026-05-25 | 2026-05-25 |
 | [Operation Core Sync & Orion Alignment](./archive/tracks/operation-core-sync-orion-2026-05-24/plan.md) | Verified | 2026-05-24 | 2026-05-24 |
 | [WMS Warehouse Restructuring & Thermal Zone Alignment](./archive/tracks/adjust-warehouses-and-thermal-zones/plan.md) | Verified | 2026-05-24 | 2026-05-24 |
 | [Repack Yield & Loss](./archive/tracks/repack-yield-loss/plan.md) | Verified | 2026-05-23 | 2026-05-23 |

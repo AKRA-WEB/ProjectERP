@@ -21,6 +21,7 @@ interface ProductDetail {
   name_en: string;
   description: string | null;
   unit_cost: number;
+  moving_avg_cost?: number;
   reorder_point: number;
   max_stock: number;
   is_active: boolean;
@@ -114,8 +115,14 @@ export default function ProductDetailPage() {
               <p className="text-[14px] text-stone-900">{product.uom_code}</p>
             </div>
             <div>
-              <p className={LABEL_CLS}>ต้นทุน / หน่วย</p>
+              <p className={LABEL_CLS}>ต้นทุนล่าสุด (ล่าสุด)</p>
               <p className="text-[14px] text-stone-900 font-medium">{formatCurrency(product.unit_cost)}</p>
+            </div>
+            <div>
+              <p className={LABEL_CLS}>ต้นทุนเฉลี่ย (MAC)</p>
+              <p className="text-[14px] text-emerald-700 font-bold tabular-nums">
+                {formatCurrency(product.moving_avg_cost ?? 0)}
+              </p>
             </div>
             <div>
               <p className={LABEL_CLS}>หมวดหมู่</p>

@@ -51,3 +51,5 @@
 | [repack-yield-loss — Repack Yield & Loss](./tracks/repack-yield-loss/plan.md) | Verified | 2026-05-23 | 2026-05-23 |
 | [adjust-warehouses-and-thermal-zones — WMS Warehouse Restructuring & Thermal Zone Alignment](./tracks/adjust-warehouses-and-thermal-zones/plan.md) | Verified | 2026-05-24 | 2026-05-24 |
 | [operation-core-sync-orion-2026-05-24 — Operation Core Sync & Orion Alignment](./tracks/operation-core-sync-orion-2026-05-24/plan.md) | Verified | 2026-05-24 | 2026-05-24 |
+| [moving-average-cost — Moving Average Cost](./tracks/moving-average-cost/plan.md) | Verified | 2026-05-25 | 2026-05-25 |
+| [vendor-wht-and-form-50 — Vendor WHT & Form 50 Twi](./tracks/vendor-wht-and-form-50/plan.md) | Verified | 2026-05-25 | 2026-05-25 |

@@ -17,6 +17,7 @@ const createSchema = z.object({
   address_en: z.string().optional(),
   tax_id: z.string().max(50).optional(),
   payment_terms_days: z.number().int().nonnegative().default(30),
+  default_wht_rate: z.number().min(0).max(100).nullable().optional(),
 });
 
 export async function GET(req: Request) {
@@ -69,13 +70,14 @@ export async function POST(req: Request) {
   if (existing) return apiError('Vendor code already exists', 409);
 
   const vendor = await queryOne(
-    `INSERT INTO vendors (code, name_th, name_en, contact_name, email, phone, address_th, address_en, tax_id, payment_terms_days)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+    `INSERT INTO vendors (code, name_th, name_en, contact_name, email, phone, address_th, address_en, tax_id, payment_terms_days, default_wht_rate)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
     [
       parsed.data.code, parsed.data.name_th, parsed.data.name_en,
       parsed.data.contact_name ?? null, parsed.data.email ?? null, parsed.data.phone ?? null,
       parsed.data.address_th ?? null, parsed.data.address_en ?? null,
       parsed.data.tax_id ?? null, parsed.data.payment_terms_days,
+      parsed.data.default_wht_rate ?? null,
     ]
   );
   return apiSuccess(vendor, 201);

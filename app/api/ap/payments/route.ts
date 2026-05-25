@@ -102,6 +102,19 @@ export async function POST(req: Request) {
       }
     }
 
+    // Resolve vendor WHT details
+    const vendorRes = await client.query<{ default_wht_rate: string | null; code: string; name_th: string }>(
+      'SELECT default_wht_rate, code, name_th FROM vendors WHERE id = $1',
+      [vendor_id]
+    );
+    const vendorDetails = vendorRes.rows[0];
+    if (!vendorDetails) {
+      await client.query('ROLLBACK');
+      return apiError('Vendor not found', 404);
+    }
+    const defaultWhtRate = vendorDetails.default_wht_rate ? parseFloat(vendorDetails.default_wht_rate) : null;
+    const whtAmount = defaultWhtRate !== null ? Math.round(total_amount * (defaultWhtRate / 100) * 100) / 100 : 0;
+
     // 2. INSERT ap_payments
     const pmtResult = await client.query<{ id: string; payment_number: string }>(
       `INSERT INTO ap_payments (vendor_id, payment_date, total_amount, bank_ref, notes, paid_by)
@@ -109,6 +122,7 @@ export async function POST(req: Request) {
       [vendor_id, payment_date, total_amount, bank_ref ?? null, notes ?? null, u.id]
     );
     const paymentId = pmtResult.rows[0].id;
+    const paymentNumber = pmtResult.rows[0].payment_number;
 
     // 3. Process allocations
     for (const alloc of allocations) {
@@ -119,6 +133,85 @@ export async function POST(req: Request) {
       await client.query(
         'UPDATE po_invoices SET paid_amount = paid_amount + $1 WHERE id = $2',
         [alloc.allocated_amount, alloc.invoice_id]
+      );
+    }
+
+    // 4. Create WHT Certificate if rate is set and WHT amount is positive
+    if (defaultWhtRate !== null && whtAmount > 0) {
+      const docNoRes = await client.query<{ doc_no: string }>(
+        `SELECT next_doc_number('WHT', 'wht_certificates_seq') AS doc_no`
+      );
+      const docNo = docNoRes.rows[0].doc_no;
+
+      await client.query(
+        `INSERT INTO wht_certificates (vendor_id, payment_id, wht_rate, wht_amount, doc_no, issued_at, issued_by)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [vendor_id, paymentId, defaultWhtRate, whtAmount, docNo, payment_date, u.id]
+      );
+    }
+
+    // 5. Create Accounting Journal Entry for the payment
+    const periodRes = await client.query<{ id: string }>(
+      `SELECT id FROM fiscal_periods WHERE status = 'open' AND $1::DATE BETWEEN start_date AND end_date LIMIT 1`,
+      [payment_date]
+    );
+    const fiscalPeriodId = periodRes.rows[0]?.id;
+    if (!fiscalPeriodId) {
+      await client.query('ROLLBACK');
+      return apiError(`No open fiscal period found for payment date ${payment_date}`, 400);
+    }
+
+    const accounts = await client.query<{ id: string; account_code: string }>(
+      `SELECT id, account_code FROM accounts WHERE account_code IN ('2100', '1110', '1100', '2310')`
+    );
+    const apAcc = accounts.rows.find(r => r.account_code === '2100')?.id;
+    const bankAcc = accounts.rows.find(r => r.account_code === '1110')?.id;
+    const cashAcc = accounts.rows.find(r => r.account_code === '1100')?.id;
+    const whtAcc = accounts.rows.find(r => r.account_code === '2310')?.id;
+
+    if (!apAcc || !bankAcc || !cashAcc) {
+      await client.query('ROLLBACK');
+      return apiError('Required accounts (2100 Accounts Payable, 1110 Bank, or 1100 Cash) not configured in Chart of Accounts', 500);
+    }
+
+    // Insert JE Header
+    const jeRes = await client.query<{ id: string }>(
+      `INSERT INTO journal_entries (
+        fiscal_period_id, entry_date, entry_type, status, 
+        reference_type, reference_id, description, created_by, posted_by, posted_at
+      )
+      VALUES ($1, $2, 'payment', 'posted', 'ap_payments', $3, $4, $5, $5, NOW())
+      RETURNING id`,
+      [fiscalPeriodId, payment_date, paymentId, `AP Payment ${paymentNumber} to ${vendorDetails.code} - ${vendorDetails.name_th}`, u.id]
+    );
+    const jeId = jeRes.rows[0].id;
+
+    // JE Line 1: Debit Accounts Payable (Clear Liability)
+    await client.query(
+      `INSERT INTO journal_entry_lines (journal_entry_id, account_id, debit_amount, credit_amount, line_number, description)
+       VALUES ($1, $2, $3, 0, 1, $4)`,
+      [jeId, apAcc, total_amount, `Debit AP: Clear outstanding vendor invoice for payment ${paymentNumber}`]
+    );
+
+    // JE Line 2: Credit Cash/Bank (Net cash leg reduced by WHT amount)
+    const cashBankAcc = bank_ref ? bankAcc : cashAcc;
+    const netAmount = total_amount - whtAmount;
+    await client.query(
+      `INSERT INTO journal_entry_lines (journal_entry_id, account_id, debit_amount, credit_amount, line_number, description)
+       VALUES ($1, $2, 0, $3, 2, $4)`,
+      [jeId, cashBankAcc, netAmount, `Credit Cash/Bank: Payment outflow net of WHT`]
+    );
+
+    // JE Line 3: Credit WHT Payable (Tax Withheld)
+    if (whtAmount > 0) {
+      if (!whtAcc) {
+        await client.query('ROLLBACK');
+        return apiError('Withholding Tax Payable account 2310 not configured in Chart of Accounts', 500);
+      }
+      await client.query(
+        `INSERT INTO journal_entry_lines (journal_entry_id, account_id, debit_amount, credit_amount, line_number, description)
+         VALUES ($1, $2, 0, $3, 3, $4)`,
+        [jeId, whtAcc, whtAmount, `Credit WHT: Withheld tax at ${defaultWhtRate}%`]
       );
     }
 

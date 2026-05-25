@@ -15,6 +15,8 @@ interface ValuationRow {
   product_name_th: string;
   product_name_en: string;
   unit_cost: number;
+  moving_avg_cost: number;
+  legacy_unit_cost: number;
   uom_code: string;
   qty_on_hand: number;
   qty_available: number;
@@ -161,8 +163,9 @@ export default function InventoryValuationPage() {
                     <th className="px-4 py-2.5 text-left font-medium text-stone-500">ชื่อสินค้า</th>
                     <th className="px-4 py-2.5 text-left font-medium text-stone-500">หมวดหมู่</th>
                     <th className="px-4 py-2.5 text-right font-medium text-stone-500">ปริมาณ (On Hand)</th>
-                    <th className="px-4 py-2.5 text-right font-medium text-stone-500">ต้นทุน/หน่วย</th>
-                    <th className="px-4 py-2.5 text-right font-medium text-stone-500">มูลค่า</th>
+                    <th className="px-4 py-2.5 text-right font-medium text-stone-500">ต้นทุนเฉลี่ย (MAC)</th>
+                    <th className="px-4 py-2.5 text-right font-medium text-stone-500">ต้นทุนล่าสุด</th>
+                    <th className="px-4 py-2.5 text-right font-medium text-stone-500">มูลค่า (MAC)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -174,14 +177,15 @@ export default function InventoryValuationPage() {
                       <td className="px-4 py-2.5 text-right tabular-nums text-stone-700">
                         {Number(row.qty_on_hand).toLocaleString('th-TH')} {row.uom_code}
                       </td>
-                      <td className="px-4 py-2.5 text-right tabular-nums">{formatCurrency(row.unit_cost)}</td>
+                      <td className="px-4 py-2.5 text-right tabular-nums text-emerald-700 font-medium">{formatCurrency(row.moving_avg_cost)}</td>
+                      <td className="px-4 py-2.5 text-right tabular-nums text-stone-400 text-[12px]">{formatCurrency(row.legacy_unit_cost)}</td>
                       <td className="px-4 py-2.5 text-right tabular-nums font-medium text-stone-900">{formatCurrency(Number(row.total_value))}</td>
                     </tr>
                   ))}
                 </tbody>
                 <tfoot className="border-t-2 border-stone-200 bg-stone-50">
                   <tr>
-                    <td colSpan={5} className="px-4 py-2.5 text-[12px] font-medium text-stone-600">รวม {rows.length} รายการ</td>
+                    <td colSpan={6} className="px-4 py-2.5 text-[12px] font-medium text-stone-600">รวม {rows.length} รายการ</td>
                     <td className="px-4 py-2.5 text-right tabular-nums font-bold text-stone-900">
                       {whSummary ? formatCurrency(whSummary.total_value) : '—'}
                     </td>

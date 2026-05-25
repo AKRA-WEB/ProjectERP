@@ -15,6 +15,8 @@ export interface ValuationRow {
   product_name_th: string;
   product_name_en: string;
   unit_cost: number;
+  moving_avg_cost: number;
+  legacy_unit_cost: number;
   uom_code: string;
   qty_on_hand: number;
   qty_available: number;
@@ -60,8 +62,8 @@ export async function GET(req: Request) {
   const where = `WHERE ${conditions.join(' AND ')}`;
 
   const costExpr = method === 'fifo' 
-    ? 'COALESCE(sl_fifo.unit_cost, p.unit_cost)' 
-    : 'p.unit_cost';
+    ? 'COALESCE(sl_fifo.unit_cost, COALESCE(NULLIF(p.moving_avg_cost, 0), p.unit_cost))' 
+    : 'COALESCE(NULLIF(p.moving_avg_cost, 0), p.unit_cost)';
 
   const joinExpr = method === 'fifo'
     ? `JOIN LATERAL (
@@ -86,6 +88,8 @@ export async function GET(req: Request) {
        p.name_th                                 AS product_name_th,
        p.name_en                                 AS product_name_en,
        ${costExpr}                               AS unit_cost,
+       p.moving_avg_cost                         AS moving_avg_cost,
+       p.unit_cost                               AS legacy_unit_cost,
        u.code                                    AS uom_code,
        sb.qty_on_hand,
        sb.qty_available,

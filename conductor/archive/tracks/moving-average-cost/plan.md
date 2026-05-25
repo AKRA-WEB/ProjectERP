@@ -2,7 +2,7 @@
 track: moving-average-cost
 phase: V2.0-P2
 sequence: 17
-status: planned
+status: Verified
 owner: Chen
 created: 2026-05-23
 depends_on: []
@@ -21,6 +21,7 @@ Replace the existing latest-cost or static-cost basis with a Moving Average Cost
 - DB trigger function `recalculate_mac()` fires AFTER INSERT on `grn_lines` (only for stocked rows) and updates `products.moving_avg_cost` using `new_mac = (old_qty*old_mac + received_qty*received_cost) / (old_qty + received_qty)`.
 - Backfill MAC for every product from full GRN history once.
 - Inventory-valuation report uses `moving_avg_cost` for COGS columns; legacy columns kept for audit comparison during transition.
+- The trigger must locks the `products` row via `SELECT ... FOR UPDATE` before calculation to prevent concurrent race conditions.
 
 ## Scope OUT
 - Negative-quantity edge case (returns to vendor) — V2.0 ignores RTV impact on MAC; revisit in V2.1.
@@ -34,7 +35,7 @@ Replace the existing latest-cost or static-cost basis with a Moving Average Cost
 5. `npm run lint` and `npx tsc --noEmit` pass.
 
 ## Migrations
-- `056_moving_average_cost.sql` — add column, install trigger, run backfill in a one-time function call.
+- `058_moving_average_cost.sql` — add column, install trigger, run backfill in a one-time function call.
 
 ## API routes
 - Touched: `app/api/reports/inventory-valuation/route.ts` (use new column).
