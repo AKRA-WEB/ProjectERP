@@ -8,7 +8,7 @@ import { Modal } from '@/components/ui/Modal';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useSession } from 'next-auth/react';
-import type { PosMember, SessionUser } from '@/types';
+import type { PosMember, SessionUser, PaginatedResponse } from '@/types';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden';
 
@@ -20,6 +20,7 @@ export default function MembersPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   
   // Registration modal
   const [isRegModalOpen, setIsRegModalOpen] = useState(false);
@@ -32,10 +33,12 @@ export default function MembersPage() {
   const fetchMembers = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await get<PosMember[]>(`/api/pos/members?q=${encodeURIComponent(searchQuery)}&page=${page}`);
-      setMembers(res);
+      const res = await get<PaginatedResponse<PosMember>>(`/api/pos/members?q=${encodeURIComponent(searchQuery)}&page=${page}`);
+      setMembers(res?.data ?? []);
+      setTotalPages(res?.total_pages ?? 1);
     } catch (error) {
       console.error('Failed to fetch members:', error);
+      setMembers([]);
     } finally {
       setLoading(false);
     }
@@ -186,10 +189,10 @@ export default function MembersPage() {
         </div>
         
         <div className="px-6 py-4 bg-stone-50/50 border-t border-stone-200 flex justify-between items-center text-xs text-stone-400">
-           <span>หน้า {page}</span>
+           <span>หน้า {page} จาก {totalPages}</span>
            <div className="flex gap-2">
              <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(p => p - 1)}>ก่อนหน้า</Button>
-             <Button variant="outline" size="sm" disabled={members.length < 20} onClick={() => setPage(p => p + 1)}>ถัดไป</Button>
+             <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>ถัดไป</Button>
            </div>
         </div>
       </div>

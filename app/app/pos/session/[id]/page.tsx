@@ -569,12 +569,30 @@ export default function POSSessionPage() {
   async function searchMember() {
     if (!memberPhone.trim()) return;
     try {
-      const res = await fetch(`/api/pos/members?phone=${memberPhone}`);
+      const res = await fetch(`/api/pos/members?q=${encodeURIComponent(memberPhone)}`);
       if (res.ok) {
         const j = await res.json();
-        setMember(j.data ?? j);
+        const membersList = j.data?.data;
+        if (Array.isArray(membersList) && membersList.length > 0) {
+          const m = membersList[0];
+          setMember({
+            id: m.id,
+            phone: m.phone,
+            name: m.name_th,
+            tier: m.tier,
+            points: m.point_balance,
+          });
+        } else {
+          setMember(null);
+          toast('error', 'ไม่พบสมาชิกเบอร์นี้ / Member not found');
+        }
+      } else {
+        toast('error', 'เกิดข้อผิดพลาดในการค้นหา / Search error');
       }
-    } catch { /* silent */ }
+    } catch (err) {
+      console.error(err);
+      toast('error', 'เกิดข้อผิดพลาดในการค้นหา / Search error');
+    }
   }
 
   // ── Checkout ──
