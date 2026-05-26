@@ -82,6 +82,8 @@ export interface Product {
   uom_id: string | null;
   uom_code: string | null;
   reorder_point: number | string | null;
+  w1_reorder_point?: number | string | null;
+  w1_reorder_qty?: number | string | null;
   is_active: boolean;
   is_lot_tracked: boolean;
   is_serial_tracked: boolean;

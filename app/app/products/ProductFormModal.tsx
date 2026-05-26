@@ -33,6 +33,8 @@ export default function ProductFormModal({ product, onClose, onSaved }: Props) {
     category_id: product?.category_id ?? '',
     unit_cost: product?.unit_cost?.toString() ?? '0',
     reorder_point: product?.reorder_point?.toString() ?? '0',
+    w1_reorder_point: product?.w1_reorder_point?.toString() ?? '0',
+    w1_reorder_qty: product?.w1_reorder_qty?.toString() ?? '0',
     is_lot_tracked: product?.is_lot_tracked ?? false,
     is_serial_tracked: product?.is_serial_tracked ?? false,
   });
@@ -82,6 +84,8 @@ export default function ProductFormModal({ product, onClose, onSaved }: Props) {
         category_id: form.category_id || null,
         unit_cost: parseFloat(form.unit_cost),
         reorder_point: parseInt(form.reorder_point),
+        w1_reorder_point: form.w1_reorder_point ? parseFloat(form.w1_reorder_point) : null,
+        w1_reorder_qty: form.w1_reorder_qty ? parseFloat(form.w1_reorder_qty) : null,
       };
       if (isEdit && product) {
         await patch(`/api/products/${product.id}`, payload);
@@ -173,6 +177,8 @@ export default function ProductFormModal({ product, onClose, onSaved }: Props) {
               />
               <Input label="ราคาทุน / Unit Cost (THB)" type="number" value={form.unit_cost} onChange={(e) => set('unit_cost', e.target.value)} />
               <Input label="จุดสั่งซื้อ / Reorder Point" type="number" value={form.reorder_point} onChange={(e) => set('reorder_point', e.target.value)} />
+              <Input label="จุดสั่งเติม W1 (หน้าร้าน) / W1 Reorder Point" type="number" value={form.w1_reorder_point} onChange={(e) => set('w1_reorder_point', e.target.value)} />
+              <Input label="จำนวนสั่งเติม W1 (หน้าร้าน) / W1 Reorder Qty" type="number" value={form.w1_reorder_qty} onChange={(e) => set('w1_reorder_qty', e.target.value)} />
             </div>
             <div className="mt-4 flex gap-6">
               <label className="flex items-center gap-2 text-sm text-stone-600 cursor-pointer">

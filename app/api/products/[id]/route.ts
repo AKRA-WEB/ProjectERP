@@ -17,6 +17,8 @@ const PatchSchema = z.discriminatedUnion('action', [
     uom_id: z.string().uuid().optional(),
     unit_cost: z.number().nonnegative().optional(),
     reorder_point: z.number().int().nonnegative().optional(),
+    w1_reorder_point: z.number().nonnegative().nullable().optional(),
+    w1_reorder_qty: z.number().nonnegative().nullable().optional(),
     is_lot_tracked: z.boolean().optional(),
     is_serial_tracked: z.boolean().optional(),
   }),
@@ -38,8 +40,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
              WHERE gli.product_id = p.id AND grn.status = 'stocked'
              ORDER BY grn.created_at DESC LIMIT 1) AS last_cost,
             json_agg(json_build_object(
-              'warehouse_id', sb.warehouse_id, 'qty_on_hand', sb.qty_on_hand,
-              'qty_available', sb.qty_available, 'warehouse_name', w.name_en
+               'warehouse_id', sb.warehouse_id, 'qty_on_hand', sb.qty_on_hand,
+               'qty_available', sb.qty_available, 'warehouse_name', w.name_en
             )) FILTER (WHERE sb.warehouse_id IS NOT NULL) AS stock_by_warehouse
      FROM products p
      LEFT JOIN units_of_measure u ON u.id = p.uom_id
@@ -48,7 +50,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
      LEFT JOIN warehouses w ON w.id = sb.warehouse_id
      WHERE p.id = $1
      GROUP BY p.id, u.code, u.name_en, c.name_en`,
-    [id]
+     [id]
   );
   if (!product) return apiError('Product not found', 404);
   return apiSuccess(product);
@@ -82,6 +84,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const fields = [
       'name_th', 'name_en', 'description_th', 'description_en', 'barcode',
       'category_id', 'uom_id', 'unit_cost', 'reorder_point',
+      'w1_reorder_point', 'w1_reorder_qty',
       'is_lot_tracked', 'is_serial_tracked',
     ] as const;
 

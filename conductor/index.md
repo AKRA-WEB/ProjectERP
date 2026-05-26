@@ -54,7 +54,7 @@ Master plan: [erp-v2-orion-roadmap](tracks/erp-v2-orion-roadmap/plan.md)
 | # | Track | Status | Plan |
 | --- | --- | --- | --- |
 | 22 | hrzoft-integration | Verified | [plan](tracks/hrzoft-integration/plan.md) |
-| 23 | auto-replenishment-w1-w2 | Active | [plan](tracks/auto-replenishment-w1-w2/plan.md) |
+| 23 | auto-replenishment-w1-w2 | Verified | [plan](tracks/auto-replenishment-w1-w2/plan.md) |
 
 ### Phase 4 — V2.2 Analytics
 | # | Track | Status | Plan |
@@ -74,6 +74,7 @@ Master plan: [erp-v2-orion-roadmap](tracks/erp-v2-orion-roadmap/plan.md)
 
 | Track | Status | Created | Last Updated |
 |-------|--------|---------|--------------|
+| [Auto-Replenishment W1 from W2](./archive/tracks/auto-replenishment-w1-w2/plan.md) | Verified | 2026-05-26 | 2026-05-26 |
 | [Hrzoft Integration](./archive/tracks/hrzoft-integration/plan.md) | Verified | 2026-05-25 | 2026-05-25 |
 | [Accounting Export Adapters (Express / FlowAccount / PEAK)](./archive/tracks/accounting-export-adapters/plan.md) | Verified | 2026-05-25 | 2026-05-25 |
 | [Auditor Role & Read-Only Access](./archive/tracks/auditor-role-and-readonly-access/plan.md) | Verified | 2026-05-25 | 2026-05-25 |

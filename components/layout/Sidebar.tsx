@@ -48,7 +48,7 @@ function detectModule(pathname: string): ModuleKey | null {
     '/app/inbound-orders', '/app/grn', '/app/rma', '/app/claims',
     '/app/transfers', '/app/cycle-counts', '/app/inventory',
     '/app/products', '/app/vendors', '/app/bom', '/app/inventory/reorder',
-    '/app/picking', '/app/shipments', '/app/ap',
+    '/app/picking', '/app/shipments', '/app/ap', '/app/wms',
   ];
 
   if (WMS_PREFIXES.some(p => pathname === p || pathname.startsWith(p + '/'))) return 'wms';
@@ -248,6 +248,7 @@ export function Sidebar({ open, onClose, userRole, permissions, collapsed, onTog
         items: [
           { href: '/app/inventory',             label: t('page.inventory'), icon: Archive,       permission: 'inventory:view' },
           { href: '/app/inventory/reorder',     label: t('page.reorder'),   icon: AlertTriangle, permission: 'inventory:view' },
+          { href: '/app/wms/replenish',         label: 'เติมสินค้าหน้าร้าน / Auto-Replenish', icon: ArrowLeftRight, roles: ['admin', 'manager'] },
           { href: '/app/inventory/valuation',   label: t('page.valuation'), icon: BarChart2,     permission: 'inventory:view' },
           { href: '/app/transfers',             label: t('page.transfers'), icon: ArrowLeftRight, permission: 'transfers:view' },
           { href: '/app/cycle-counts',          label: t('page.cycle_counts'), icon: Hash,       permission: 'cycle_counts:view' },

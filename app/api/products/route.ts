@@ -17,6 +17,8 @@ const createSchema = z.object({
   uom_id: z.string().uuid(),
   unit_cost: z.number().nonnegative(),
   reorder_point: z.number().int().nonnegative().default(0),
+  w1_reorder_point: z.number().nonnegative().nullable().optional(),
+  w1_reorder_qty: z.number().nonnegative().nullable().optional(),
   is_lot_tracked: z.boolean().default(false),
   is_serial_tracked: z.boolean().default(false),
 }).refine(d => !(d.is_lot_tracked && d.is_serial_tracked), {
@@ -93,14 +95,16 @@ export async function POST(req: Request) {
 
   const product = await queryOne(
     `INSERT INTO products (sku, barcode, name_th, name_en, description_th, description_en,
-      category_id, uom_id, unit_cost, reorder_point, is_lot_tracked, is_serial_tracked, created_by)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+      category_id, uom_id, unit_cost, reorder_point, w1_reorder_point, w1_reorder_qty,
+      is_lot_tracked, is_serial_tracked, created_by)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
      RETURNING *`,
     [
       parsed.data.sku, parsed.data.barcode ?? null, parsed.data.name_th, parsed.data.name_en,
       parsed.data.description_th ?? null, parsed.data.description_en ?? null,
       parsed.data.category_id ?? null, parsed.data.uom_id, parsed.data.unit_cost,
-      parsed.data.reorder_point, parsed.data.is_lot_tracked, parsed.data.is_serial_tracked, u.id,
+      parsed.data.reorder_point, parsed.data.w1_reorder_point ?? null, parsed.data.w1_reorder_qty ?? null,
+      parsed.data.is_lot_tracked, parsed.data.is_serial_tracked, u.id,
     ]
   );
   return apiSuccess(product, 201);

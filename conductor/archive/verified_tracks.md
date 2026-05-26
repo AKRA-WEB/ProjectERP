@@ -56,3 +56,4 @@
 | [auditor-role-and-readonly-access — Auditor Role & Read-Only Access](./tracks/auditor-role-and-readonly-access/plan.md) | Verified | 2026-05-25 | 2026-05-25 |
 | [accounting-export-adapters — Accounting Export Adapters (Express / FlowAccount / PEAK)](./tracks/accounting-export-adapters/plan.md) | Verified | 2026-05-25 | 2026-05-25 |
 | [hrzoft-integration — Hrzoft Integration](./tracks/hrzoft-integration/plan.md) | Verified | 2026-05-25 | 2026-05-25 |
+| [auto-replenishment-w1-w2 — Auto-Replenishment W1 from W2](./tracks/auto-replenishment-w1-w2/plan.md) | Verified | 2026-05-26 | 2026-05-26 |

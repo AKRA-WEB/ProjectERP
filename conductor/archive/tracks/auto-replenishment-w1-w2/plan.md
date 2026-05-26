@@ -2,9 +2,10 @@
 track: auto-replenishment-w1-w2
 phase: V2.1
 sequence: 22
-status: planned
+status: Verified
 owner: Chen
 created: 2026-05-23
+updated: 2026-05-26
 depends_on: [wms-virtual-warehouses]
 estimate: M
 assigned_to: [Paku]

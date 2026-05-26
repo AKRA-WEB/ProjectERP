@@ -6,11 +6,11 @@ updated_by: Gemini
 # Project Current State — Anti-Context-Loss Briefing
 
 ## Last 5 Completed Tracks
+- **auto-replenishment-w1-w2**: Automated W1 front-store reordering from W2 wholesale hub, implemented nightly system-scope job, exposed secure REST endpoints for approval/rejection/editing, posted double-entry inter-company journal entries to `1300-TRD`/`1300-AKRA`/`2190-AKRA`/`1190-TRD` on approval, and designed premium WMS auto-replenish dashboard (2026-05-26)
 - **hrzoft-integration**: Synced employee master data from external HR system (Hrzoft) nightly, handled full mapping and profiles synchronization, created database tables `external_user_sync` and `hrzoft_sync_runs` with indexes, exposed API routes `/api/admin/hrzoft/sync` and `/api/admin/hrzoft/last-run`, and built a premium, modern integration panel supporting manual sync actions, conflict logging, and employee grid mapping (2026-05-25)
 - **accounting-export-adapters**: Implemented a unified general ledger exporter supporting Express, FlowAccount, and PEAK, created database table `accounting_export_jobs` to audit past exports, exposed API routes `/api/accounting/export` and `/api/accounting/export/jobs`, and built premium, responsive interfaces for date-range downloads and log tables (2026-05-25)
 - **auditor-role-and-readonly-access**: Wired `auditor` role so they have strictly read-only access, hard-blocked all non-GET requests with a 403 error at the API layer, conditionally hid write controls across AP and accounting fiscal period/journal UIs, implemented two specialized auditing endpoints (`GET /api/accounting/audit/ledger` and `GET /api/accounting/audit/trial-balance`), and designed a premium, dedicated auditor dashboard landing page (2026-05-25)
 - **vendor-wht-and-form-50**: Implemented Thai withholding-tax (WHT) automatic handling on AP payments, added certificates tracking with doc sequence number allocation, recorded WHT journal entries (DR AP, CR Cash/Bank, CR WHT Payable), and created premium bilingual Sarabun-font Form 50 Twi PDF rendering engine (2026-05-25)
-- **moving-average-cost**: Replaced legacy cost basis with automated real-time Moving Average Cost (MAC) calculated via stock_ledger insert trigger, added backfill engine, updated API reporting layer, and integrated valuation comparison table (2026-05-25)
 
 ## Active Work
 - None.
@@ -18,6 +18,9 @@ updated_by: Gemini
 ---
 
 ## DB Facts
+- **products.w1_reorder_point**, **products.w1_reorder_qty**: reorder parameters for W1 store replenishment (v063).
+- **transfer_suggestions**: tracks nightly replenishment suggestions with status `pending`, `approved`, `rejected`, or `executed` (v063).
+- **accounts**: seeded inter-company accounts `1300-TRD` (Inventory — TRD), `1300-AKRA` (Inventory — AKRA), `2190-AKRA` (Inter-company Payable — AKRA), and `1190-TRD` (Inter-company Receivable — TRD) (v063).
 - **external_user_sync**: maps Hrzoft `employee_id` to local users, tracks sync status and conflict notes (v061).
 - **hrzoft_sync_runs**: audit log table recording each sync execution stats and statuses (v062).
 - **accounting_export_jobs**: audit table logging format, date range, requested_by, status, and output_meta for general ledger exports (v060).
@@ -40,6 +43,9 @@ updated_by: Gemini
 - **stock_ledger**: INSERT-ONLY. Entry types include `repack_stage_in`, `repack_stage_out`, `scrap`.
 
 ## API Routes
+- **GET /api/replenish/suggestions**: returns paginated transfer suggestions with product info and stock details (v063).
+- **PATCH /api/replenish/suggestions/[id]**: handles approve, reject, or edit suggestion with automatic inter-BU journal entry (v063).
+- **POST /api/admin/replenish/run-now**: administrator synchronous nightly job runner (v063).
 - **POST /api/admin/hrzoft/sync**: manual sync trigger (v061).
 - **GET /api/admin/hrzoft/last-run**: details of the last sync run + mapping records (v061).
 - **GET /api/accounting/audit/ledger**: Paginated, filterable audit ledger line query (v060).
@@ -62,9 +68,6 @@ updated_by: Gemini
 
 ---
 
-## Migration Numbers (latest: 062)
-Next migration = `063_<name>.sql`
-Latest: `062_hrzoft_sync_runs.sql`
-
-----
-
+## Migration Numbers (latest: 063)
+Next migration = `064_<name>.sql`
+Latest: `063_auto_replenishment.sql`
