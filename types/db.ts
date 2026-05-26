@@ -89,6 +89,7 @@ export interface Product {
   is_serial_tracked: boolean;
   min_price: number | string;
   clr_min_price: number | string;
+  is_npd_trial?: boolean;
   last_cost?: number | string | null;
   moving_avg_cost?: number | string | null;
   created_at: string;
@@ -192,6 +193,53 @@ export interface CustomerPriceContract {
   valid_from: string;
   valid_to: string | null;
   created_at: string;
+}
+
+export type RebatePeriodType = 'monthly' | 'quarterly' | 'annual';
+export type RebateAccrualStatus = 'pending' | 'accrued' | 'realised' | 'expired';
+
+export interface VendorRebateContract {
+  id: string;
+  vendor_id: string;
+  vendor_code?: string;
+  vendor_name_th?: string;
+  vendor_name_en?: string;
+  threshold_amount: number | string;
+  rebate_rate: number | string;
+  period: RebatePeriodType;
+  valid_from: string;
+  valid_to: string;
+  created_at: string;
+}
+
+export interface VendorRebateAccrual {
+  id: string;
+  vendor_id: string;
+  vendor_code?: string;
+  vendor_name_th?: string;
+  vendor_name_en?: string;
+  contract_id: string;
+  period_label: string;
+  eligible_purchases: number | string;
+  accrued_rebate: number | string;
+  status: RebateAccrualStatus;
+  posted_je_id: string | null;
+  created_at: string;
+}
+
+export interface FieldSalesCheckin {
+  id: string;
+  agent_user_id: string;
+  agent_name?: string;
+  customer_id: string;
+  customer_code?: string;
+  customer_name_th?: string;
+  customer_name_en?: string;
+  gps_lat: number | string;
+  gps_lng: number | string;
+  accuracy_m: number;
+  checked_in_at: string;
+  ended_at: string | null;
 }
 
 

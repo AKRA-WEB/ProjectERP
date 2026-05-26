@@ -59,10 +59,10 @@ Master plan: [erp-v2-orion-roadmap](tracks/erp-v2-orion-roadmap/plan.md)
 ### Phase 4 — V2.2 Analytics
 | # | Track | Status | Plan |
 | --- | --- | --- | --- |
-| 24 | ai-sku-cut-and-s-curve-forecasting | Active | [plan](tracks/ai-sku-cut-and-s-curve-forecasting/plan.md) |
-| 25 | npd-trial-tracking | Active | [plan](tracks/npd-trial-tracking/plan.md) |
-| 26 | rebate-management | Active | [plan](tracks/rebate-management/plan.md) |
-| 27 | field-sales-geo-tracking | Active | [plan](tracks/field-sales-geo-tracking/plan.md) |
+| 24 | ai-sku-cut-and-s-curve-forecasting | Verified | [plan](tracks/ai-sku-cut-and-s-curve-forecasting/plan.md) |
+| 25 | npd-trial-tracking | Verified | [plan](tracks/npd-trial-tracking/plan.md) |
+| 26 | rebate-management | Verified | [plan](tracks/rebate-management/plan.md) |
+| 27 | field-sales-geo-tracking | Verified | [plan](tracks/field-sales-geo-tracking/plan.md) |
 
 ## Rework Required
 
@@ -74,6 +74,10 @@ Master plan: [erp-v2-orion-roadmap](tracks/erp-v2-orion-roadmap/plan.md)
 
 | Track | Status | Created | Last Updated |
 |-------|--------|---------|--------------|
+| [Field-Sales Geo Tracking](./archive/tracks/field-sales-geo-tracking/plan.md) | Verified | 2026-05-26 | 2026-05-26 |
+| [Rebate Management](./archive/tracks/rebate-management/plan.md) | Verified | 2026-05-26 | 2026-05-26 |
+| [NPD Trial Tracking](./archive/tracks/npd-trial-tracking/plan.md) | Verified | 2026-05-26 | 2026-05-26 |
+| [AI SKU-Cut & S-Curve Forecasting](./archive/tracks/ai-sku-cut-and-s-curve-forecasting/plan.md) | Verified | 2026-05-26 | 2026-05-26 |
 | [Auto-Replenishment W1 from W2](./archive/tracks/auto-replenishment-w1-w2/plan.md) | Verified | 2026-05-26 | 2026-05-26 |
 | [Hrzoft Integration](./archive/tracks/hrzoft-integration/plan.md) | Verified | 2026-05-25 | 2026-05-25 |
 | [Accounting Export Adapters (Express / FlowAccount / PEAK)](./archive/tracks/accounting-export-adapters/plan.md) | Verified | 2026-05-25 | 2026-05-25 |

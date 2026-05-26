@@ -2,7 +2,8 @@
 track: field-sales-geo-tracking
 phase: V2.2
 sequence: 26
-status: planned
+status: Verified
+updated: 2026-05-26
 owner: Chen
 created: 2026-05-23
 depends_on: [channel-on-order-header]

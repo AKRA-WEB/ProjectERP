@@ -52,6 +52,10 @@ const STATUS_CONFIG: Record<string, { variant: BadgeVariant }> = {
   shipped:             { variant: 'info' },
   delivered:           { variant: 'ok' },
   printed:             { variant: 'info' },
+  // Rebate statuses
+  accrued:             { variant: 'purple' },
+  realised:            { variant: 'ok' },
+  expired:             { variant: 'danger' },
 };
 
 const LABEL_TH: Record<string, string> = {
@@ -95,6 +99,10 @@ const LABEL_TH: Record<string, string> = {
   shipped: 'จัดส่งแล้ว',
   delivered: 'ส่งถึงแล้ว',
   printed: 'รอหยิบ (Printed)',
+  // Rebate labels
+  accrued: 'สะสมยอดครบ (Accrued)',
+  realised: 'รับรู้แล้ว (Realised)',
+  expired: 'หมดอายุ (Expired)',
 };
 
 interface StatusBadgeProps {

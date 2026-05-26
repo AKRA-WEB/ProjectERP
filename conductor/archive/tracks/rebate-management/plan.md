@@ -2,9 +2,10 @@
 track: rebate-management
 phase: V2.2
 sequence: 25
-status: planned
+status: Verified
 owner: Chen
 created: 2026-05-23
+updated: 2026-05-26
 depends_on: []
 estimate: M
 assigned_to: [Paku]

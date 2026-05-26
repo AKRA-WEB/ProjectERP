@@ -1,16 +1,16 @@
 ---
-updated: 2026-05-25
+updated: 2026-05-26
 updated_by: Gemini
 ---
 
 # Project Current State — Anti-Context-Loss Briefing
 
 ## Last 5 Completed Tracks
+- **field-sales-geo-tracking**: Enforced geo-tagged customer check-in on mobile-responsive UI before field sales agents can book orders, created table `field_sales_checkins` for coordinate indexing, exposed endpoints for checkin/checkout/today logs, and created manager interactive SVG tracking dashboard (2026-05-26)
+- **rebate-management**: Implemented end-to-end vendor rebate contract tracking (volume-tier/period-based), automated nightly & on-demand accruals calculation, designed high-fidelity reactive dashboards, and executed manager-authorised realisation posting inter-company double-entry journal entries: DR 1220 Rebate Receivable / CR 4300 Rebate Income or 5100 COGS (2026-05-26)
+- **npd-trial-tracking**: Implemented new-product-development (NPD) trial tracking to monitor trial SKUs, automate graduation (score >= 40) or cut (score < 40) decisions based on SKU performance metrics, and orchestrate the transfer of physical stock to virtual clearance warehouse 'V-CLR' (2026-05-26)
+- **ai-sku-cut-and-s-curve-forecasting**: Implemented pure SQL & statistical analytical SKU Cut Candidates view (bottom decile with scored reason codes) and a seasonally-adjusted S-curve 90-day demand forecasting library, exposed secure paginated snapshot endpoints and manual refresh job triggers, and designed premium responsive UI dashboards with custom interactive SVG line charts (2026-05-26)
 - **auto-replenishment-w1-w2**: Automated W1 front-store reordering from W2 wholesale hub, implemented nightly system-scope job, exposed secure REST endpoints for approval/rejection/editing, posted double-entry inter-company journal entries to `1300-TRD`/`1300-AKRA`/`2190-AKRA`/`1190-TRD` on approval, and designed premium WMS auto-replenish dashboard (2026-05-26)
-- **hrzoft-integration**: Synced employee master data from external HR system (Hrzoft) nightly, handled full mapping and profiles synchronization, created database tables `external_user_sync` and `hrzoft_sync_runs` with indexes, exposed API routes `/api/admin/hrzoft/sync` and `/api/admin/hrzoft/last-run`, and built a premium, modern integration panel supporting manual sync actions, conflict logging, and employee grid mapping (2026-05-25)
-- **accounting-export-adapters**: Implemented a unified general ledger exporter supporting Express, FlowAccount, and PEAK, created database table `accounting_export_jobs` to audit past exports, exposed API routes `/api/accounting/export` and `/api/accounting/export/jobs`, and built premium, responsive interfaces for date-range downloads and log tables (2026-05-25)
-- **auditor-role-and-readonly-access**: Wired `auditor` role so they have strictly read-only access, hard-blocked all non-GET requests with a 403 error at the API layer, conditionally hid write controls across AP and accounting fiscal period/journal UIs, implemented two specialized auditing endpoints (`GET /api/accounting/audit/ledger` and `GET /api/accounting/audit/trial-balance`), and designed a premium, dedicated auditor dashboard landing page (2026-05-25)
-- **vendor-wht-and-form-50**: Implemented Thai withholding-tax (WHT) automatic handling on AP payments, added certificates tracking with doc sequence number allocation, recorded WHT journal entries (DR AP, CR Cash/Bank, CR WHT Payable), and created premium bilingual Sarabun-font Form 50 Twi PDF rendering engine (2026-05-25)
 
 ## Active Work
 - None.
@@ -18,6 +18,14 @@ updated_by: Gemini
 ---
 
 ## DB Facts
+- **field_sales_checkins**: table tracking agent-customer geolocation check-ins, accuracy meters, timestamps, and indexes on agent/time and customer (v067).
+- **vendor_rebate_contracts**: table storing rebate threshold and rate with date ranges per vendor and period type enum (v066).
+- **vendor_rebate_accruals**: table tracking purchases progression, accrued amount, status, and posted journal entries (v066).
+- **accounts**: seeded leaf clearing entities 1220 (Rebate Receivable) and 4300 (Rebate Income) (v066).
+- **npd_trials**: table tracking active/completed/extended/cut trials with foreign key to products, decision details, notes, and index on status and end_date (v065).
+- **products.is_npd_trial**: boolean column indicating if a product is an active NPD trial SKU (v065).
+- **sku_performance_snapshot**: materialized view aggregating rolling 30d/365d sales, gross margin, sell-through, days-on-hand, and velocity bucket per product, refreshed nightly (v064).
+- **sku_cut_candidates**: view evaluating bottom 10% scored SKUs slated for discontinuation with reasons (v064).
 - **products.w1_reorder_point**, **products.w1_reorder_qty**: reorder parameters for W1 store replenishment (v063).
 - **transfer_suggestions**: tracks nightly replenishment suggestions with status `pending`, `approved`, `rejected`, or `executed` (v063).
 - **accounts**: seeded inter-company accounts `1300-TRD` (Inventory — TRD), `1300-AKRA` (Inventory — AKRA), `2190-AKRA` (Inter-company Payable — AKRA), and `1190-TRD` (Inter-company Receivable — TRD) (v063).
@@ -43,6 +51,20 @@ updated_by: Gemini
 - **stock_ledger**: INSERT-ONLY. Entry types include `repack_stage_in`, `repack_stage_out`, `scrap`.
 
 ## API Routes
+- **POST /api/field-sales/checkin**: Register a new agent check-in (auto checking out older active ones) (v067).
+- **POST /api/field-sales/checkout**: Ends the current active agent check-in session (v067).
+- **GET /api/field-sales/today**: Retrieve check-in coordinates logs for a date range (managers/admins only) (v067).
+- **GET/POST /api/rebate/contracts**: Query and create vendor rebate contracts (v066).
+- **PATCH /api/rebate/contracts/[id]**: Modify/extend an existing rebate contract (v066).
+- **GET/POST /api/rebate/accruals**: Fetch vendor rebate accruals list or trigger calculations job sweep on-demand (v066).
+- **POST /api/rebate/accruals/[id]/realise**: Authorise accrual, post Double-Entry Journal Entry (DR 1220 / CR 4300 or 5100) and update status (v066).
+- **GET/POST/PATCH /api/products/[id]/npd-trial**: Retrieve trial details, schedule a new trial/extension, graduate a product, or execute a cut with virtual warehouse stock clearance transfers (v065).
+- **GET /api/analytics/npd-trials/decisions-pending**: Expose expired trial SKUs with automated graduation/cut recommendations based on SKU scoring logic (v065).
+- **GET /api/analytics/npd-trials**: Expose complete filterable list of active and historical NPD trials (v065).
+- **GET /api/analytics/sku-performance**: returns paginated SKU performance snapshot data with velocity and search filtering (v064).
+- **GET /api/analytics/sku-cut-candidates**: returns list of candidates slated for discontinuation (v064).
+- **POST /api/analytics/sku-performance/refresh**: trigger manual concurrent refresh of SKU performance snapshot (v064).
+- **GET /api/forecast/[product_id]**: computes and returns next-90-days demand forecasting points, upper, and lower confidence limits (v064).
 - **GET /api/replenish/suggestions**: returns paginated transfer suggestions with product info and stock details (v063).
 - **PATCH /api/replenish/suggestions/[id]**: handles approve, reject, or edit suggestion with automatic inter-BU journal entry (v063).
 - **POST /api/admin/replenish/run-now**: administrator synchronous nightly job runner (v063).
@@ -68,6 +90,6 @@ updated_by: Gemini
 
 ---
 
-## Migration Numbers (latest: 063)
-Next migration = `064_<name>.sql`
-Latest: `063_auto_replenishment.sql`
+## Migration Numbers (latest: 067)
+    Next migration = `068_<name>.sql`
+    Latest: `067_field_sales_geo.sql`

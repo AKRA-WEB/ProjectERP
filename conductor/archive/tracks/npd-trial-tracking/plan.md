@@ -2,9 +2,10 @@
 track: npd-trial-tracking
 phase: V2.2
 sequence: 24
-status: planned
+status: Verified
 owner: Chen
 created: 2026-05-23
+updated: 2026-05-26
 depends_on: [ai-sku-cut-and-s-curve-forecasting]
 estimate: M
 assigned_to: [Paku, Puka]

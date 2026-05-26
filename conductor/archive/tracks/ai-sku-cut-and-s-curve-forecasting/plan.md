@@ -2,9 +2,10 @@
 track: ai-sku-cut-and-s-curve-forecasting
 phase: V2.2
 sequence: 23
-status: planned
+status: Verified
 owner: Chen
 created: 2026-05-23
+updated: 2026-05-26
 depends_on: [moving-average-cost]
 estimate: XL
 assigned_to: [Paku]

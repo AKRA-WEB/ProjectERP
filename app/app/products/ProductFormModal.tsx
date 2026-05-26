@@ -37,6 +37,8 @@ export default function ProductFormModal({ product, onClose, onSaved }: Props) {
     w1_reorder_qty: product?.w1_reorder_qty?.toString() ?? '0',
     is_lot_tracked: product?.is_lot_tracked ?? false,
     is_serial_tracked: product?.is_serial_tracked ?? false,
+    is_npd_trial: product?.is_npd_trial ?? false,
+    npd_end_date: '',
   });
   const [uoms, setUoms] = useState<UomOption[]>([]);
   const [categories, setCategories] = useState<{ value: string; label: string }[]>([]);
@@ -67,6 +69,26 @@ export default function ProductFormModal({ product, onClose, onSaved }: Props) {
     );
     if (isEdit && product) {
       fetchProductUoms();
+      get<{ is_npd_trial: boolean; trial: { end_date: string } | null }>(`/api/products/${product.id}/npd-trial`)
+        .then((res) => {
+          if (res && res.trial) {
+            const endDate = res.trial.end_date;
+            const isNpdTrial = res.is_npd_trial;
+            setForm((f) => ({
+              ...f,
+              is_npd_trial: isNpdTrial,
+              npd_end_date: endDate ? new Date(endDate).toISOString().split('T')[0] : '',
+            }));
+          } else {
+            const isNpdTrial = res?.is_npd_trial ?? false;
+            setForm((f) => ({
+              ...f,
+              is_npd_trial: isNpdTrial,
+              npd_end_date: '',
+            }));
+          }
+        })
+        .catch((err) => console.error('Failed to load NPD trial details:', err));
     }
   }, [isEdit, product, fetchProductUoms]);
 
@@ -78,20 +100,38 @@ export default function ProductFormModal({ product, onClose, onSaved }: Props) {
     setError('');
     setSaving(true);
     try {
-      const payload = {
-        ...form,
+      const productPayload = {
+        sku: form.sku,
         barcode: form.barcode || null,
+        name_th: form.name_th,
+        name_en: form.name_en,
+        uom_id: form.uom_id,
         category_id: form.category_id || null,
         unit_cost: parseFloat(form.unit_cost),
         reorder_point: parseInt(form.reorder_point),
         w1_reorder_point: form.w1_reorder_point ? parseFloat(form.w1_reorder_point) : null,
         w1_reorder_qty: form.w1_reorder_qty ? parseFloat(form.w1_reorder_qty) : null,
+        is_lot_tracked: form.is_lot_tracked,
+        is_serial_tracked: form.is_serial_tracked,
+        action: 'update_info' as const,
       };
+
+      let savedProduct: Product | null = null;
       if (isEdit && product) {
-        await patch(`/api/products/${product.id}`, payload);
+        savedProduct = await patch<Product>(`/api/products/${product.id}`, productPayload);
       } else {
-        await post('/api/products', payload);
+        savedProduct = await post<Product>('/api/products', productPayload);
       }
+
+      const finalProductId = product?.id ?? savedProduct?.id;
+
+      if (form.is_npd_trial && form.npd_end_date && finalProductId) {
+        await post(`/api/products/${finalProductId}/npd-trial`, { end_date: form.npd_end_date });
+      } else if (!form.is_npd_trial && product?.is_npd_trial) {
+        // If toggled off in edit form, graduate it to normal standard SKU as a simple toggle fallback
+        await patch(`/api/products/${product.id}/npd-trial`, { action: 'graduate' });
+      }
+
       onSaved();
     } catch (e: unknown) {
       const err = e as { message?: string };
@@ -199,7 +239,27 @@ export default function ProductFormModal({ product, onClose, onSaved }: Props) {
                 />
                 ติดตาม Serial Number
               </label>
+              <label className="flex items-center gap-2 text-sm text-stone-600 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.is_npd_trial}
+                  onChange={(e) => set('is_npd_trial', e.target.checked)}
+                  className="rounded border-stone-300 text-stone-900 focus:ring-stone-900/5"
+                />
+                สินค้าทดลองขายใหม่ (NPD Trial)
+              </label>
             </div>
+            {form.is_npd_trial && (
+              <div className="mt-2 p-3 bg-stone-50 rounded-lg border border-stone-200 space-y-1">
+                <Input 
+                  label="วันที่สิ้นสุดระยะเวลาทดลองขาย / Trial End Date *" 
+                  type="date" 
+                  value={form.npd_end_date} 
+                  onChange={(e) => set('npd_end_date', e.target.value)} 
+                />
+                <p className="text-[11.5px] text-stone-400 mt-1">เมื่อครบกำหนด ระบบจะพยากรณ์ยอดขายรายวันและสถิติเพื่อช่วยแนะนำให้ Graduate หรือ Cut ออกจากระบบ</p>
+              </div>
+            )}
           </div>
         ) : (
           <div className="space-y-4">

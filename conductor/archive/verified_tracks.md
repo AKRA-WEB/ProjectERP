@@ -57,3 +57,7 @@
 | [accounting-export-adapters — Accounting Export Adapters (Express / FlowAccount / PEAK)](./tracks/accounting-export-adapters/plan.md) | Verified | 2026-05-25 | 2026-05-25 |
 | [hrzoft-integration — Hrzoft Integration](./tracks/hrzoft-integration/plan.md) | Verified | 2026-05-25 | 2026-05-25 |
 | [auto-replenishment-w1-w2 — Auto-Replenishment W1 from W2](./tracks/auto-replenishment-w1-w2/plan.md) | Verified | 2026-05-26 | 2026-05-26 |
+| [ai-sku-cut-and-s-curve-forecasting — AI SKU-Cut & S-Curve Forecasting](./tracks/ai-sku-cut-and-s-curve-forecasting/plan.md) | Verified | 2026-05-26 | 2026-05-26 |
+| [npd-trial-tracking — NPD Trial Tracking](./tracks/npd-trial-tracking/plan.md) | Verified | 2026-05-26 | 2026-05-26 |
+| [rebate-management — Rebate Management](./tracks/rebate-management/plan.md) | Verified | 2026-05-26 | 2026-05-26 |
+| [field-sales-geo-tracking — Field-Sales Geo Tracking](./tracks/field-sales-geo-tracking/plan.md) | Verified | 2026-05-26 | 2026-05-26 |

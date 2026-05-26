@@ -19,6 +19,7 @@ const createSchema = z.object({
   reason_code: z.string().optional(),
   credit_release_token: z.string().optional(),
   channel: z.enum(['TRD', 'AKRA']).optional(),
+  source: z.string().optional(),
   lines: z.array(z.object({
     product_id: z.string().uuid(),
     qty_ordered: z.number().positive(),
@@ -103,7 +104,26 @@ export async function POST(req: Request) {
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) return apiValidationError(parsed.error);
 
-  const { customer_id, warehouse_id, expected_delivery, payment_terms_days, notes, lines, override_token, reason_code, credit_release_token, channel } = parsed.data;
+  const { customer_id, warehouse_id, expected_delivery, payment_terms_days, notes, lines, override_token, reason_code, credit_release_token, channel, source } = parsed.data;
+
+  // 0. Active check-in guard for mobile_field source
+  if (source === 'mobile_field') {
+    const activeCheckin = await pool.query(
+      `SELECT id FROM field_sales_checkins
+       WHERE agent_user_id = $1
+         AND customer_id = $2
+         AND checked_in_at >= NOW() - INTERVAL '4 hours'
+         AND ended_at IS NULL
+       LIMIT 1`,
+      [u.id, customer_id]
+    );
+
+    if (activeCheckin.rows.length === 0) {
+      return apiError('Active check-in required to create sales orders from mobile field', 412, {
+        code: 'CHECKIN_REQUIRED',
+      });
+    }
+  }
 
   // Generate sales order ID upfront so it can be passed to enforceMinPrice
   const soId = crypto.randomUUID();

@@ -12,7 +12,7 @@ import {
   Clock, Banknote, Users, Timer, Settings, KeyRound,
   Warehouse, ChevronLeft, ChevronDown, CheckSquare, Square,
   GitBranch, UserPlus, CalendarRange, CalendarCheck, CalendarDays, ListChecks,
-  Briefcase, UserSearch, Tag, TrendingUp
+  Briefcase, UserSearch, Tag, TrendingUp, Sparkles
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useT } from '@/lib/i18n';
@@ -48,12 +48,12 @@ function detectModule(pathname: string): ModuleKey | null {
     '/app/inbound-orders', '/app/grn', '/app/rma', '/app/claims',
     '/app/transfers', '/app/cycle-counts', '/app/inventory',
     '/app/products', '/app/vendors', '/app/bom', '/app/inventory/reorder',
-    '/app/picking', '/app/shipments', '/app/ap', '/app/wms',
+    '/app/picking', '/app/shipments', '/app/ap', '/app/wms', '/app/analytics', '/app/purchasing', '/app/rebate',
   ];
 
   if (WMS_PREFIXES.some(p => pathname === p || pathname.startsWith(p + '/'))) return 'wms';
   if (pathname.startsWith('/app/pos'))         return 'pos';
-  if (pathname.startsWith('/app/sales-') || pathname.startsWith('/app/customers') || pathname.startsWith('/app/delivery-orders')) return 'sales';
+  if (pathname.startsWith('/app/sales-') || pathname.startsWith('/app/customers') || pathname.startsWith('/app/delivery-orders') || pathname.startsWith('/app/sales/')) return 'sales';
   if (pathname.startsWith('/app/accounting'))  return 'accounting';
   if (pathname.startsWith('/app/hr'))          return 'hr';
   if (pathname.startsWith('/app/admin'))       return 'admin';
@@ -227,6 +227,9 @@ export function Sidebar({ open, onClose, userRole, permissions, collapsed, onTog
           { href: '/app/purchase-requests', label: t('page.purchase_requests'), icon: ClipboardList, permission: 'pr:view' },
           { href: '/app/purchase-orders',   label: t('page.purchase_orders'),   icon: ShoppingCart, permission: 'po:view' },
           { href: '/app/inbound-orders',    label: t('page.inbound_orders'),    icon: PackageCheck, permission: 'inbound_orders:view' },
+          { href: '/app/purchasing/npd',    label: 'ติดตามสินค้าใหม่ / NPD Trials', icon: Sparkles, roles: ['admin', 'manager'] },
+          { href: '/app/rebate/contracts',  label: 'สัญญาเงินคืน / Rebate Contracts', icon: FileText, roles: ['admin', 'manager'] },
+          { href: '/app/rebate/accruals',   label: 'สะสมยอดเงินคืน / Rebate Accruals', icon: TrendingUp, roles: ['admin', 'manager'] },
         ],
       },
       {
@@ -249,6 +252,7 @@ export function Sidebar({ open, onClose, userRole, permissions, collapsed, onTog
           { href: '/app/inventory',             label: t('page.inventory'), icon: Archive,       permission: 'inventory:view' },
           { href: '/app/inventory/reorder',     label: t('page.reorder'),   icon: AlertTriangle, permission: 'inventory:view' },
           { href: '/app/wms/replenish',         label: 'เติมสินค้าหน้าร้าน / Auto-Replenish', icon: ArrowLeftRight, roles: ['admin', 'manager'] },
+          { href: '/app/analytics/sku-cut',     label: 'วิเคราะห์การตัด SKU / AI SKU Cut', icon: BarChart3, roles: ['admin', 'manager'] },
           { href: '/app/inventory/valuation',   label: t('page.valuation'), icon: BarChart2,     permission: 'inventory:view' },
           { href: '/app/transfers',             label: t('page.transfers'), icon: ArrowLeftRight, permission: 'transfers:view' },
           { href: '/app/cycle-counts',          label: t('page.cycle_counts'), icon: Hash,       permission: 'cycle_counts:view' },
@@ -298,6 +302,7 @@ export function Sidebar({ open, onClose, userRole, permissions, collapsed, onTog
         label: t('nav.sales_master'),
         items: [
           { href: '/app/customers', label: t('page.customers'), icon: UserCircle, permission: 'customers:view' },
+          { href: '/app/sales/field-map', label: 'ติดตามพิกัดฝ่ายขาย / Field Sales Map', icon: UserSearch, roles: ['admin', 'manager'] },
         ],
       },
       {
