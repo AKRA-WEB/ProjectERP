@@ -76,7 +76,7 @@ graph TD
 * **หน้าที่:** วิเคราะห์สถาปัตยกรรมและกำหนดรายละเอียดลงในแผน:
   1. สร้างโฟลเดอร์แทร็กใหม่ (บังคับรันคำสั่ง `mkdir -p` ล่วงหน้าบนสภาพแวดล้อม Windows เสมอ)
   2. สร้างและเขียนสเปกแบบละเอียดลงใน `plan.md` ตามที่ระบุในหัวข้อที่ 4 (Zod schema, DB constraints, transactions)
-  3. เพิ่มรายการแทร็กในสารบัญ `conductor/index.md` ให้เป็นสถานะ `Planned` หรือ `Active`
+  3. เพิ่มรายการแทร็กในสารบัญ `conductor/index.md` ให้เป็นสถานะ `Active`
 
 ### 🔹 คำสั่ง: `Go` (วงจรการทำงานแบบสมบูรณ์และหยุดทันที)
 * **ผู้รับผิดชอบ:** AI Agent ตัวที่เริ่มรันขั้นตอนการเขียนโค้ด (ทำงานในบทบาท Implementer)
@@ -193,8 +193,8 @@ updated: YYYY-MM-DD
 
 | สิ่งที่ต้องการบันทึก | เส้นทางไฟล์ (Path) | ผู้รับผิดชอบ (Role) | กฎเกณฑ์ที่ต้องปฏิบัติตาม |
 | :--- | :--- | :--- | :--- |
-| **Track เสร็จสิ้น / คอลัมน์ DB ใหม่ / API route ใหม่** | `_notes/02_Agent_Memory/current-state.md` | **Gemini (Implementer)** เท่านั้น | อัปเดตหลังจากปิด Track สำเร็จ ย้าย Track ที่เสร็จเข้า "Last 5 Completed Tracks" และลบออกจาก "Active Work" |
-| **การตัดสินใจเชิงสถาปัตยกรรม (Architecture Decision)** | `_notes/01_Decisions/<topic-name>.md` | **Chen / Claude** เท่านั้น | บันทึกเฉพาะโครงสร้างใหญ่ ๆ ห้าม Gemini เขียนโค้ดทับสเปกที่กำหนดไว้ที่นี่ |
+| **Track เสร็จสิ้น / คอลัมน์ DB ใหม่ / API route ใหม่** | `_notes/02_Agent_Memory/current-state.md` | **ทุก Agent**  | อัปเดตหลังจากปิด Track สำเร็จ ย้าย Track ที่เสร็จเข้า "Last 5 Completed Tracks" และลบออกจาก "Active Work" |
+| **การตัดสินใจเชิงสถาปัตยกรรม (Architecture Decision)** | `_notes/01_Decisions/<topic-name>.md` | **ทุก Agent**  | บันทึกเฉพาะโครงสร้างใหญ่ ๆ ห้าม Gemini เขียนโค้ดทับสเปกที่กำหนดไว้ที่นี่ |
 | **สาเหตุของบั๊กและการแก้ไขเชิงลึก (Bug Root Cause & Complex Fix)** | `_notes/04_Debug_Log/<YYYY-MM-DD>-<topic>.md` | **ทุก Agent** | เขียนเฉพาะกรณีที่เจอบั๊กที่ยากและหาวิธีการแก้ที่ไม่ธรรมดา เพื่อเป็นแนวทางในอนาคต |
 | **การค้นพบจุดบกพร่องทั่วไป / Traps ใหม่** | `_notes/02_Agent_Memory/pitfalls.md` | **ทุก Agent** | อัปเดตเพื่อจดจำ generic traps ที่อาจส่งผลกระทบต่อสถาปัตยกรรมและการพัฒนา |
 | **กฎมาตรฐานแยกตามหัวข้อทางเทคนิค** | `docs/skills/<skill_rules>.md` | **ทุก Agent** | ปรับปรุงพฤติกรรม รูปแบบ หรือ Pattern โค้ดที่นำกลับมาใช้ใหม่ได้ |

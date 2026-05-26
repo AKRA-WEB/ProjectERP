@@ -14,7 +14,7 @@
 
 | ขอบเขตงาน / สถานการณ์ | โหลด Skill File (ทักษะ) | คำอธิบาย |
 | :--- | :--- | :--- |
-| จัดการกระบวนการพัฒนา ประสานงาน และคิวงาน | [[docs/skills/ai_workflow_rules]] | คู่มือพัฒนาหลัก และ Obsidian Guide (โหลดก่อนเริ่มงานทุกครั้ง) |
+| จัดการกระบวนการพัฒนา ประสานงาน และคิวงาน | [[docs/AI_WORKFLOW_GUIDE]] | คู่มือพัฒนาหลัก และ Obsidian Guide (โหลดก่อนเริ่มงานทุกครั้ง) |
 | เขียน React component / UI / Tailwind | [[docs/skills/frontend_ui_rules]] | มาตรฐานงานหน้าบ้าน ระบบสองภาษา และ Traps บน React 19 |
 | เขียน API route / auth / Zod | [[docs/skills/backend_api_rules]] | มาตรฐานงาน API การตรวจสอบ Input และ NextAuth v5 |
 | เขียน SQL / migration / ledger | [[docs/skills/database_sql_rules]] | มาตรฐาน Parameterized, การควบคุมสต็อก และลำดับ Migration |

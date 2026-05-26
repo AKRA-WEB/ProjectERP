@@ -41,10 +41,10 @@ This project uses **Obsidian** opened directly on this folder as a vault. All `.
 | Folder | Owner | Purpose |
 |--------|-------|---------|
 | `conductor/` | Claude + Gemini | Plans, protocols, track artifacts |
-| `_notes/` | Human only | Daily log, decisions, module context |
-| `_notes/decisions/` | Human only | Architectural decision records |
+| `_notes/` | All Agents | Knowledge capture, current state, logs |
+| `_notes/01_Decisions/` | Chen (Architect) | Architectural decision records (ADR) |
 | `docs/skills/` | Gemini reads | Skill files loaded on-demand |
-| `docs/TROUBLESHOOTING.md` | Reference | Known issues |
+| `_notes/04_Debug_Log/` | All Agents | Debug logs for actual bugs found |
 
 **Boundary rules:**
 - `conductor/` — Gemini: `execution-summary.md`, checkbox updates. Chen: `plan.md`, `rework-plan.md`, `index.md`. Claude: reviews + commits.

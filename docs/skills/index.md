@@ -3,7 +3,7 @@
 ## ⚡ Shared Principles — อ่านก่อนทุกครั้ง (ทุก Agent)
  
 - อ่าน `[[agent-principles|docs/skills/agent-principles.md]]` ก่อนเริ่มงานทุกครั้ง — กฎเหล็ก 10 ข้อ (รวม Andrej Karpathy Guidelines) เพื่อลดความผิดพลาดและรักษามาตรฐานโปรเจกต์
-- อ่าน `[[ai_workflow_rules|docs/skills/ai_workflow_rules.md]]` (หรือ `[[AI_WORKFLOW_GUIDE|docs/AI_WORKFLOW_GUIDE.md]]`) — คู่มือและกติกาการประสานงานกลาง (Architect, Go, QA, Summary และการบันทึก Obsidian)
+- อ่าน `[[AI_WORKFLOW_GUIDE|docs/AI_WORKFLOW_GUIDE.md]]` — คู่มือและกติกาการประสานงานกลาง (Architect, Go, QA, Summary และการบันทึก Obsidian)
  
 ---
  
