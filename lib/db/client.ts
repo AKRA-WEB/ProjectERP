@@ -2,10 +2,10 @@ import { Pool } from 'pg';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  max: 3,
-  idleTimeoutMillis: 10000,
+  max: 1,
+  idleTimeoutMillis: 0,
   connectionTimeoutMillis: 5000,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  ssl: { rejectUnauthorized: false },
 });
 
 export default pool;
@@ -19,3 +19,4 @@ export async function queryOne<T = unknown>(text: string, params?: unknown[]): P
   const result = await pool.query(text, params);
   return (result.rows[0] as T) ?? null;
 }
+

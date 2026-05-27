@@ -61,23 +61,28 @@ export async function GET(req: Request) {
 
   const where = `WHERE ${conditions.join(' AND ')}`;
 
-  const costExpr = method === 'fifo' 
-    ? 'COALESCE(sl_fifo.unit_cost, COALESCE(NULLIF(p.moving_avg_cost, 0), p.unit_cost))' 
-    : 'COALESCE(NULLIF(p.moving_avg_cost, 0), p.unit_cost)';
-
-  const joinExpr = method === 'fifo'
-    ? `JOIN LATERAL (
-         SELECT unit_cost
+  const cteExpr = method === 'fifo'
+    ? `WITH latest_grn_cost AS (
+         SELECT DISTINCT ON (product_id, warehouse_id)
+           product_id, warehouse_id, unit_cost
          FROM stock_ledger
-         WHERE product_id = sb.product_id
-           AND warehouse_id = sb.warehouse_id
-           AND entry_type = 'grn_receipt'
-         ORDER BY created_at DESC
-         LIMIT 1
-       ) sl_fifo ON TRUE`
+         WHERE entry_type = 'grn_receipt'
+         ORDER BY product_id, warehouse_id, created_at DESC
+       )`
     : '';
 
+  const fifoJoin = method === 'fifo'
+    ? `LEFT JOIN latest_grn_cost lc
+         ON lc.product_id = sb.product_id
+        AND lc.warehouse_id = sb.warehouse_id`
+    : '';
+
+  const costExpr = method === 'fifo'
+    ? 'COALESCE(lc.unit_cost, COALESCE(NULLIF(p.moving_avg_cost, 0), p.unit_cost))'
+    : 'COALESCE(NULLIF(p.moving_avg_cost, 0), p.unit_cost)';
+
   const queryStr = `
+    ${cteExpr}
     SELECT
        w.id                                      AS warehouse_id,
        w.code                                    AS warehouse_code,
@@ -99,7 +104,7 @@ export async function GET(req: Request) {
      JOIN warehouses w           ON w.id  = sb.warehouse_id
      JOIN units_of_measure u     ON u.id  = p.uom_id
      LEFT JOIN product_categories c ON c.id = p.category_id
-     ${joinExpr}
+     ${fifoJoin}
      ${where}
      ORDER BY w.code, c.name_th NULLS LAST, p.sku`;
 

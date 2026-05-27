@@ -1,7 +1,7 @@
 ---
-track: perf-tier1-connection-query
+track:perf-tier1-connection-query
 title: "Performance Tier 1 — Supabase Transaction Pooler + FIFO CTE Fix"
-status: Active
+status: Verified
 created: 2026-05-27
 updated: 2026-05-27
 spec: docs/superpowers/specs/2026-05-27-performance-optimization-design.md

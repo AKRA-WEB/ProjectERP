@@ -61,3 +61,6 @@
 | [npd-trial-tracking — NPD Trial Tracking](./tracks/npd-trial-tracking/plan.md) | Verified | 2026-05-26 | 2026-05-26 |
 | [rebate-management — Rebate Management](./tracks/rebate-management/plan.md) | Verified | 2026-05-26 | 2026-05-26 |
 | [field-sales-geo-tracking — Field-Sales Geo Tracking](./tracks/field-sales-geo-tracking/plan.md) | Verified | 2026-05-26 | 2026-05-26 |
+| [perf-tier1-connection-query — Performance Tier 1 — Connection Layer + FIFO Query Fix](./tracks/perf-tier1-connection-query/plan.md) | Verified | 2026-05-27 | 2026-05-27 |
+| [perf-tier2-materialized-views — Performance Tier 2 — Materialized Views + HR Composite Indexes](./tracks/perf-tier2-materialized-views/plan.md) | Verified | 2026-05-27 | 2026-05-27 |
+| [perf-tier3-frontend-bundle — Performance Tier 3 — Frontend Bundle Audit + Selective Dynamic Imports](./tracks/perf-tier3-frontend-bundle/plan.md) | Verified | 2026-05-27 | 2026-05-27 |

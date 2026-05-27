@@ -17,15 +17,14 @@
 
 | Track | Status | Plan |
 | --- | --- | --- |
-| perf-tier1-connection-query | Active | [plan](tracks/perf-tier1-connection-query/plan.md) |
 
 ## Performance Optimization Tracks (sequential — measure after each tier)
 
 | # | Track | Status | Plan |
 | --- | --- | --- | --- |
-| P1 | perf-tier1-connection-query | Active | [plan](tracks/perf-tier1-connection-query/plan.md) |
-| P2 | perf-tier2-materialized-views | Planned | [plan](tracks/perf-tier2-materialized-views/plan.md) |
-| P3 | perf-tier3-frontend-bundle | Planned | [plan](tracks/perf-tier3-frontend-bundle/plan.md) |
+| P1 | perf-tier1-connection-query | Verified | [plan](tracks/perf-tier1-connection-query/plan.md) |
+| P2 | perf-tier2-materialized-views | Verified | [plan](tracks/perf-tier2-materialized-views/plan.md) |
+| P3 | perf-tier3-frontend-bundle | Verified | [plan](tracks/perf-tier3-frontend-bundle/plan.md) |
 
 ## Active Queue — V2.0 Orion Roadmap
 
@@ -82,7 +81,10 @@ Master plan: [erp-v2-orion-roadmap](tracks/erp-v2-orion-roadmap/plan.md)
 ## All Tracks
 
 | Track | Status | Created | Last Updated |
-|-------|--------|---------|--------------|
+|-------|--------|---------|--------------|| [Performance Tier 3 — Frontend Bundle Audit + Selective Dynamic Imports](./archive/tracks/perf-tier3-frontend-bundle/plan.md) | Verified | 2026-05-27 | 2026-05-27 |
+| [Performance Tier 2 — Materialized Views + HR Composite Indexes](./archive/tracks/perf-tier2-materialized-views/plan.md) | Verified | 2026-05-27 | 2026-05-27 |
+| [Performance Tier 1 — Connection Layer + FIFO Query Fix](./archive/tracks/perf-tier1-connection-query/plan.md) | Verified | 2026-05-27 | 2026-05-27 |
+
 | [Field-Sales Geo Tracking](./archive/tracks/field-sales-geo-tracking/plan.md) | Verified | 2026-05-26 | 2026-05-26 |
 | [Rebate Management](./archive/tracks/rebate-management/plan.md) | Verified | 2026-05-26 | 2026-05-26 |
 | [NPD Trial Tracking](./archive/tracks/npd-trial-tracking/plan.md) | Verified | 2026-05-26 | 2026-05-26 |

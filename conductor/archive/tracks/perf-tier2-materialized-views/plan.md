@@ -1,7 +1,7 @@
 ---
 track: perf-tier2-materialized-views
 title: "Performance Tier 2 — HR Stats Materialized View + Composite Indexes"
-status: Planned
+status: Verified
 created: 2026-05-27
 updated: 2026-05-27
 spec: docs/superpowers/specs/2026-05-27-performance-optimization-design.md

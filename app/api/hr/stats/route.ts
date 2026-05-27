@@ -29,12 +29,6 @@ interface PendingLeaveRow {
   approver_name_th: string;
 }
 
-interface DeptHeadcountRow {
-  department_id: string;
-  name_th: string;
-  name_en: string;
-  count: number;
-}
 
 interface UpcomingEventRow {
   employee_id: string;
@@ -45,6 +39,15 @@ interface UpcomingEventRow {
   sub: string;
 }
 
+interface HrStatsSnapshot {
+  total_employees: string;
+  active_employees: string;
+  probation_count: string;
+  resigned_this_month: string;
+  dept_headcount: Array<{ id: string; name_th: string; name_en: string; count: number }> | null;
+  latest_payroll: { run_number: string; period_month: number; period_year: number; status: string; total_net: string } | null;
+}
+
 export async function GET() {
   const session = await auth();
   if (!session?.user) return apiError('Unauthorized', 401);
@@ -52,57 +55,36 @@ export async function GET() {
   const DEPT_COLORS = ['#6366f1', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#06b6d4', '#f97316', '#ec4899'];
 
   const [
-    empStats,
-    deptStats,
-    leaveStats,
+    snapshot,
     attendanceStats,
-    latestPayroll,
+    pendingLeaveCount,
     attendanceFeed,
     pendingLeaveQueue,
-    deptHeadcount,
     upcomingEvents
   ] = await Promise.all([
-    // 1. Employee Stats
-    queryOne<{ total: string; active: string; probation: string; resigned_this_month: string; probation_days_remaining: string }>(
-      `SELECT 
-         COUNT(*) AS total,
-         COUNT(*) FILTER (WHERE employee_status = 'active') AS active,
-         COUNT(*) FILTER (WHERE hired_date >= CURRENT_DATE - 120) AS probation,
-         COUNT(*) FILTER (WHERE resignation_date >= date_trunc('month', CURRENT_DATE)) AS resigned_this_month,
-         MIN(EXTRACT(DAY FROM (hired_date + INTERVAL '120 days' - CURRENT_DATE))) FILTER (WHERE hired_date >= CURRENT_DATE - 120) AS probation_days_remaining
-       FROM users WHERE role NOT IN ('admin', 'superadmin')`,
+    // 1. Slow-changing stats from materialized view (refreshed nightly)
+    queryOne<HrStatsSnapshot>(`SELECT * FROM hr_stats_snapshot`, []),
+
+    // 2. Today's attendance (real-time — changes per clock-in/out)
+    queryOne<{ present: string; late: string; absent: string; on_leave: string }>(
+      `SELECT
+         COUNT(*) FILTER (WHERE status = 'present') AS present,
+         COUNT(*) FILTER (WHERE status = 'late') AS late,
+         COUNT(*) FILTER (WHERE status = 'absent') AS absent,
+         (SELECT COUNT(*) FROM leave_requests lr
+          WHERE lr.status = 'approved' AND CURRENT_DATE BETWEEN lr.start_date AND lr.end_date) AS on_leave
+       FROM attendance_records
+       WHERE work_date = CURRENT_DATE`,
       []
     ),
-    // 2. Department count
-    queryOne<{ count: string }>(
-      `SELECT COUNT(*) FROM departments WHERE is_active = TRUE`,
-      []
-    ),
-    // 3. Pending Leave Requests
+
+    // 3. Total pending leave count (real-time — drives badge number, not capped)
     queryOne<{ pending: string }>(
       `SELECT COUNT(*) AS pending FROM leave_requests WHERE status = 'submitted'`,
       []
     ),
-    // 4. Today's Attendance Stats
-    queryOne<{ present: string; late: string; absent: string; on_leave: string }>(
-      `SELECT 
-         COUNT(*) FILTER (WHERE status = 'present') AS present,
-         COUNT(*) FILTER (WHERE status = 'late') AS late,
-         COUNT(*) FILTER (WHERE status = 'absent') AS absent,
-         (SELECT COUNT(*) FROM leave_requests lr 
-          WHERE lr.status = 'approved' AND CURRENT_DATE BETWEEN lr.start_date AND lr.end_date) AS on_leave
-       FROM attendance_records 
-       WHERE work_date = CURRENT_DATE`,
-      []
-    ),
-    // 5. Latest Payroll Run
-    queryOne<{ run_number: string; period_month: number; period_year: number; status: string; total_net: string }>(
-      `SELECT run_number, period_month, period_year, status, total_net
-       FROM payroll_runs 
-       ORDER BY created_at DESC LIMIT 1`,
-      []
-    ),
-    // 6. Attendance Feed
+
+    // 4. Attendance feed (real-time — top 10 for dashboard)
     query<AttendanceFeedRow>(
       `SELECT
         u.id AS employee_id,
@@ -139,7 +121,8 @@ export async function GET() {
       LIMIT 10`,
       []
     ),
-    // 7. Pending Leave Queue
+
+    // 5. Pending leave queue (real-time — 4 rows for dashboard widget)
     query<PendingLeaveRow>(
       `SELECT
         lr.id,
@@ -162,20 +145,8 @@ export async function GET() {
       LIMIT 4`,
       []
     ),
-    // 8. Headcount by Dept
-    query<DeptHeadcountRow>(
-      `SELECT
-        d.id AS department_id,
-        d.name_th,
-        d.name_en,
-        COUNT(u.id)::int AS count
-      FROM departments d
-      LEFT JOIN users u ON u.department_id = d.id AND u.is_active = TRUE
-      GROUP BY d.id, d.name_th, d.name_en
-      ORDER BY count DESC`,
-      []
-    ),
-    // 9. Upcoming Events
+
+    // 6. Upcoming anniversary events
     query<UpcomingEventRow>(
       `SELECT
         u.id AS employee_id,
@@ -200,46 +171,41 @@ export async function GET() {
     )
   ]);
 
-  const headcountByDept = deptHeadcount.map((d, i: number) => ({
+  const headcountByDept = (snapshot?.dept_headcount ?? []).map((d, i: number) => ({
     ...d,
     color: DEPT_COLORS[i % DEPT_COLORS.length]
   }));
 
   return apiSuccess({
-    // KPI fields for redesigned dashboard
-    totalEmployees: parseInt(empStats?.total || '0'),
-    activeEmployees: parseInt(empStats?.active || '0'),
-    probationCount: parseInt(empStats?.probation || '0'),
-    probationDaysRemaining: empStats?.probation_days_remaining ? parseInt(empStats.probation_days_remaining) : null,
-    resignedThisMonth: parseInt(empStats?.resigned_this_month || '0'),
+    totalEmployees: parseInt(snapshot?.total_employees || '0'),
+    activeEmployees: parseInt(snapshot?.active_employees || '0'),
+    probationCount: parseInt(snapshot?.probation_count || '0'),
+    probationDaysRemaining: null,
+    resignedThisMonth: parseInt(snapshot?.resigned_this_month || '0'),
     presentToday: parseInt(attendanceStats?.present || '0'),
     lateCount: parseInt(attendanceStats?.late || '0'),
     absentCount: parseInt(attendanceStats?.absent || '0'),
     onLeaveToday: parseInt(attendanceStats?.on_leave || '0'),
-    pendingLeaveCount: parseInt(leaveStats?.pending || '0'),
-    latestPayrollNet: latestPayroll ? parseFloat(latestPayroll.total_net) : null,
-    latestPayrollDate: latestPayroll ? `${latestPayroll.period_month}/${latestPayroll.period_year}` : null,
-    
-    // Legacy fields (optional support)
+    pendingLeaveCount: parseInt(pendingLeaveCount?.pending || '0'),
+    latestPayrollNet: snapshot?.latest_payroll ? parseFloat(snapshot.latest_payroll.total_net) : null,
+    latestPayrollDate: snapshot?.latest_payroll
+      ? `${snapshot.latest_payroll.period_month}/${snapshot.latest_payroll.period_year}`
+      : null,
     employees: {
-      total: parseInt(empStats?.total || '0'),
-      active: parseInt(empStats?.active || '0')
+      total: parseInt(snapshot?.total_employees || '0'),
+      active: parseInt(snapshot?.active_employees || '0'),
     },
-    departments: parseInt(deptStats?.count || '0'),
-    leave: {
-      pending: parseInt(leaveStats?.pending || '0')
-    },
+    departments: headcountByDept.length,
+    leave: { pending: parseInt(pendingLeaveCount?.pending || '0') },
     attendance: {
       present: parseInt(attendanceStats?.present || '0'),
       late: parseInt(attendanceStats?.late || '0'),
-      absent: parseInt(attendanceStats?.absent || '0')
+      absent: parseInt(attendanceStats?.absent || '0'),
     },
-    payroll: latestPayroll || null,
-
-    // New arrays
+    payroll: snapshot?.latest_payroll ?? null,
     attendanceFeed,
     pendingLeaveQueue,
     headcountByDept,
-    upcoming: upcomingEvents
+    upcoming: upcomingEvents,
   });
 }

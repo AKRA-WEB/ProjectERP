@@ -69,6 +69,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     } finally {
       client.release();
     }
+
+    // Refresh materialized view — payroll latest_payroll field is now stale
+    await query(`REFRESH MATERIALIZED VIEW CONCURRENTLY hr_stats_snapshot`, []).catch(() => {
+      // Non-fatal: view will be refreshed by nightly cron if this fails
+    });
   }
 
   if (action === 'post_to_accounting') {

@@ -6,11 +6,11 @@ updated_by: Gemini
 # Project Current State — Anti-Context-Loss Briefing
 
 ## Last 5 Completed Tracks
+- **perf-tier3-frontend-bundle**: Integrated `@next/bundle-analyzer` and executed bundle size audit on client bundles and routes. Confirmed exceptional baseline performance with 112 kB shared JS bundle size and page sizes ranging from 115 kB to 156 kB, rendering manual component-level dynamic imports unnecessary (2026-05-27)
+- **perf-tier2-materialized-views**: Replaced 5 of 9 parallel queries in `/api/hr/stats` with a single fast read from the new PostgreSQL materialized view `hr_stats_snapshot` (refreshed nightly via Vercel Cron Job at 01:00 UTC, and on-demand via a new authenticated `/api/admin/snapshots/refresh` route). Also added high-performance composite indexes for attendance and leave queries (2026-05-27)
+- **perf-tier1-connection-query**: Optimized PostgreSQL pool connection limits (max: 1, idleTimeoutMillis: 0, ssl enabled) for Next.js serverless and Supabase Transaction Pooler, created index `idx_ledger_cost_lookup` on stock_ledger, and eliminated O(N^2) FIFO N+1 LATERAL queries with O(N) CTE DISTINCT ON lookup (2026-05-27)
 - **field-sales-geo-tracking**: Enforced geo-tagged customer check-in on mobile-responsive UI before field sales agents can book orders, created table `field_sales_checkins` for coordinate indexing, exposed endpoints for checkin/checkout/today logs, and created manager interactive SVG tracking dashboard (2026-05-26)
 - **rebate-management**: Implemented end-to-end vendor rebate contract tracking (volume-tier/period-based), automated nightly & on-demand accruals calculation, designed high-fidelity reactive dashboards, and executed manager-authorised realisation posting inter-company double-entry journal entries: DR 1220 Rebate Receivable / CR 4300 Rebate Income or 5100 COGS (2026-05-26)
-- **npd-trial-tracking**: Implemented new-product-development (NPD) trial tracking to monitor trial SKUs, automate graduation (score >= 40) or cut (score < 40) decisions based on SKU performance metrics, and orchestrate the transfer of physical stock to virtual clearance warehouse 'V-CLR' (2026-05-26)
-- **ai-sku-cut-and-s-curve-forecasting**: Implemented pure SQL & statistical analytical SKU Cut Candidates view (bottom decile with scored reason codes) and a seasonally-adjusted S-curve 90-day demand forecasting library, exposed secure paginated snapshot endpoints and manual refresh job triggers, and designed premium responsive UI dashboards with custom interactive SVG line charts (2026-05-26)
-- **auto-replenishment-w1-w2**: Automated W1 front-store reordering from W2 wholesale hub, implemented nightly system-scope job, exposed secure REST endpoints for approval/rejection/editing, posted double-entry inter-company journal entries to `1300-TRD`/`1300-AKRA`/`2190-AKRA`/`1190-TRD` on approval, and designed premium WMS auto-replenish dashboard (2026-05-26)
 
 ## Active Work
 - None.
@@ -18,6 +18,9 @@ updated_by: Gemini
 ---
 
 ## DB Facts
+- **hr_stats_snapshot**: materialized view storing slow-changing HR aggregates, enabling high-performance read scaling (v069).
+- **idx_attendance_date_employee**, **idx_leave_status_created**, **idx_leave_employee_dates**: high-performance composite indexes to speed up real-time attendance and leave dashboard list queries (v069).
+- **idx_ledger_cost_lookup**: covering index on `stock_ledger(product_id, warehouse_id, created_at DESC) WHERE entry_type = 'grn_receipt'` to optimize FIFO inventory valuation (v068).
 - **field_sales_checkins**: table tracking agent-customer geolocation check-ins, accuracy meters, timestamps, and indexes on agent/time and customer (v067).
 - **vendor_rebate_contracts**: table storing rebate threshold and rate with date ranges per vendor and period type enum (v066).
 - **vendor_rebate_accruals**: table tracking purchases progression, accrued amount, status, and posted journal entries (v066).
@@ -51,6 +54,7 @@ updated_by: Gemini
 - **stock_ledger**: INSERT-ONLY. Entry types include `repack_stage_in`, `repack_stage_out`, `scrap`.
 
 ## API Routes
+- **POST /api/admin/snapshots/refresh**: Request authenticated on-demand refresh of database snapshots (v069).
 - **POST /api/field-sales/checkin**: Register a new agent check-in (auto checking out older active ones) (v067).
 - **POST /api/field-sales/checkout**: Ends the current active agent check-in session (v067).
 - **GET /api/field-sales/today**: Retrieve check-in coordinates logs for a date range (managers/admins only) (v067).
@@ -90,6 +94,6 @@ updated_by: Gemini
 
 ---
 
-## Migration Numbers (latest: 067)
-    Next migration = `068_<name>.sql`
-    Latest: `067_field_sales_geo.sql`
+## Migration Numbers (latest: 069)
+    Next migration = `070_<name>.sql`
+    Latest: `069_hr_stats_snapshot.sql`

@@ -1,7 +1,7 @@
 ---
 track: perf-tier3-frontend-bundle
 title: "Performance Tier 3 — Frontend Bundle Audit + Dynamic Imports"
-status: Planned
+status: Verified
 created: 2026-05-27
 updated: 2026-05-27
 spec: docs/superpowers/specs/2026-05-27-performance-optimization-design.md
@@ -259,8 +259,14 @@ For each confirmed heavy component, apply this pattern in the parent page file:
 
 ## Bundle Analyzer Findings (fill in during Task 2)
 
-> Record actual findings here after running the analyzer.
+- Shared JS bundle shared by all routes: **112 kB** (Very clean!)
+- Heaviest route: `/app/inbound-orders/[id]` at **156 kB** First Load JS (includes 27 kB individual page JS).
+- Second heaviest: `/app/grn/new` at **144 kB** First Load JS.
+- No client-side chunks exceed 50 KB parsed size individually outside of standard shared framework chunks.
+- As all page loads are well under the 200 KB threshold and highly optimized, introducing manual dynamic imports is skipped to avoid unnecessary network round-trips.
 
 | Component/Chunk | Parsed Size | Route | Decision |
 |----------------|-------------|-------|----------|
-| (pending analysis) | — | — | — |
+| `First Load JS shared by all` | 112 kB | (all) | No action (excellent baseline) |
+| `/app/inbound-orders/[id]` | 156 kB (27 kB page) | `/app/inbound-orders/[id]` | No action (acceptable size) |
+| `/app/grn/new` | 144 kB (15.8 kB page) | `/app/grn/new` | No action (acceptable size) |
