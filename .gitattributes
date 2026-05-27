@@ -1,0 +1,32 @@
+# Normalize line endings: store LF in repo, check out native on Windows
+* text=auto
+
+# Source & config: force LF to avoid CRLF/LF churn across machines
+*.ts    text eol=lf
+*.tsx   text eol=lf
+*.js    text eol=lf
+*.jsx   text eol=lf
+*.json  text eol=lf
+*.css   text eol=lf
+*.sql   text eol=lf
+*.md    text eol=lf working-tree-encoding=UTF-8
+*.yml   text eol=lf
+*.yaml  text eol=lf
+
+# Windows scripts keep CRLF
+*.ps1   text eol=crlf
+*.cmd   text eol=crlf
+*.bat   text eol=crlf
+
+# Binary — never touch
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.pdf   binary
+*.xlsx  binary
+*.xls   binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
