@@ -1,4 +1,4 @@
-# Track Plan: main-menu-ui-polish
+﻿# Track Plan: main-menu-ui-polish
 
 ปรับปรุงหน้าจอเมนูหลักของระบบ (Main Menu Hub) ให้ตรงตามดีไซน์ต้นแบบ (`docs/design/main-menu.html`) เพื่อมอบประสบการณ์การใช้งานที่สวยงาม Premium และรองรับ Module ใหม่ในอนาคต
 
@@ -15,7 +15,7 @@
 
 ### [Component] Main Menu Hub
 
-#### [MODIFY] [page.tsx](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/app/app/menu/page.tsx)
+#### [MODIFY] [page.tsx](file:///C:/dev/projectERP/app/app/menu/page.tsx)
 ปรับปรุงหน้าจอ `app/app/menu/page.tsx`
 - ปรับโครงสร้าง Layout จาก Grid แถวแนวนอนยาว เป็น Flex-Wrap Card Grid (กว้าง 172px ต่อการ์ด, แนวตั้งสูงสวยงาม) เหมือนตามต้นแบบ HTML
 - เพิ่มสีสันเฉพาะตัวสำหรับแต่ละโมดูล (Per-card accent color) โดยกำหนด CSS Variable `--accent` ให้กับการ์ดแต่ละใบ

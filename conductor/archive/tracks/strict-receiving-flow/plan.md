@@ -1,4 +1,4 @@
----
+﻿---
 track: strict-receiving-flow
 title: "Strict 5-Step Receiving Flow (PR -> PO -> BR -> GR -> Match)"
 status: Verified
@@ -38,7 +38,7 @@ Provide a strict, secure, and zero-variance receiving workflow divided into 5 cl
 
 ### Component 1 — Database Migrations [DONE]
 
-#### [NEW] [043_strict_receiving_flow.sql](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/migrations/043_strict_receiving_flow.sql)
+#### [NEW] [043_strict_receiving_flow.sql](file:///C:/dev/projectERP/migrations/043_strict_receiving_flow.sql)
 
 - Add new statuses to the `po_status` enum outside a transaction.
 - Wrap table creation in `BEGIN; ... COMMIT;`:
@@ -116,21 +116,21 @@ COMMIT;
 
 ### Component 2 — Backend API Endpoints
 
-#### [NEW] [route.ts](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/app/api/blind-receipts/route.ts)
+#### [NEW] [route.ts](file:///C:/dev/projectERP/app/api/blind-receipts/route.ts)
 - `POST /api/blind-receipts`: Creates a new BR document for a PO.
 - `GET /api/blind-receipts`: Lists BR documents. Staff can only see BRs they counted, or BRs for their assigned warehouses.
 
-#### [NEW] [[id]/route.ts](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/app/api/blind-receipts/[id]/route.ts)
+#### [NEW] [[id]/route.ts](file:///C:/dev/projectERP/app/api/blind-receipts/[id]/route.ts)
 - `GET /api/blind-receipts/[id]`: Returns BR details. If user's role is `staff`, **absolutely strip PO ordered quantity** details from the payload to prevent counting bias.
 - `PATCH /api/blind-receipts/[id]`: Updates BR quantities or changes status (`draft` -> `submitted`).
 
-#### [NEW] [acknowledge/route.ts](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/app/api/purchase-orders/[id]/acknowledge/route.ts)
+#### [NEW] [acknowledge/route.ts](file:///C:/dev/projectERP/app/api/purchase-orders/[id]/acknowledge/route.ts)
 - `POST /api/purchase-orders/[id]/acknowledge`: Transition PO status from `opened` to `pending_delivery` upon space acknowledgment by WMS team.
 
-#### [NEW] [merge/route.ts](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/app/api/grn/merge-brs/route.ts)
+#### [NEW] [merge/route.ts](file:///C:/dev/projectERP/app/api/grn/merge-brs/route.ts)
 - `POST /api/grn/merge-brs`: Supervisor endpoint to select multiple `submitted` BRs for a PO, sum up the quantities counted, and compile a single official GRN (`goods_receipt_notes` and `grn_line_items`). Link the BRs to this GRN.
 
-#### [NEW] [match-confirm/route.ts](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/app/api/ap/invoices/match-confirm/route.ts)
+#### [NEW] [match-confirm/route.ts](file:///C:/dev/projectERP/app/api/ap/invoices/match-confirm/route.ts)
 - `POST /api/ap/invoices/match-confirm`: Compares PO values, compiled GRN quantities, and supplier invoice values. If matched:
   1. Wrap in a strict database transaction.
   2. Transition `po_invoices.match_status` to `'matched'`.
@@ -141,25 +141,25 @@ COMMIT;
 
 ### Component 3 — Frontend UI Screens
 
-#### [MODIFY] [new/page.tsx](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/app/app/purchase-orders/new/page.tsx)
+#### [MODIFY] [new/page.tsx](file:///C:/dev/projectERP/app/app/purchase-orders/new/page.tsx)
 - Autocomplete logic to load `last_cost` from GET product detail endpoint and use it as default unit cost.
 - Save PO creates document with status `'opened'`.
 
-#### [NEW] [page.tsx (Handheld)](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/app/app/handheld/blind-receipts/page.tsx)
+#### [NEW] [page.tsx (Handheld)](file:///C:/dev/projectERP/app/app/handheld/blind-receipts/page.tsx)
 - Handheld-optimized list of POs waiting for delivery.
 - Create new BR counting sheet.
 
-#### [NEW] [[id]/page.tsx (Handheld)](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/app/app/handheld/blind-receipts/[id]/page.tsx)
+#### [NEW] [[id]/page.tsx (Handheld)](file:///C:/dev/projectERP/app/app/handheld/blind-receipts/[id]/page.tsx)
 - High-contrast handheld screen showing only fields: `sku, product_name, qty_counted, notes`.
 - Hides PO expected/ordered quantities absolutely.
 - Allows counting into a specific building/warehouse (e.g. W3, W4).
 - Submit action to finalize count.
 
-#### [NEW] [merge/page.tsx](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/app/app/grn/merge/page.tsx)
+#### [NEW] [merge/page.tsx](file:///C:/dev/projectERP/app/app/grn/merge/page.tsx)
 - Supervisor console. Shows PO detail with all associated submitted BRs.
 - Allows checkboxes to select BRs and compiles them into a single, merged official GRN with summed up quantities.
 
-#### [NEW] [match-details/page.tsx](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/app/app/ap/match/page.tsx)
+#### [NEW] [match-details/page.tsx](file:///C:/dev/projectERP/app/app/ap/match/page.tsx)
 - 3-Way Match verification page displaying side-by-side:
   - PO unit prices & total ordered value.
   - Merged official GR quantities & calculated value.

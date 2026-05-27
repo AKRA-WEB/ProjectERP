@@ -1,4 +1,4 @@
-# Track Plan: admin-hub
+﻿# Track Plan: admin-hub
 
 สร้างหน้าแดชบอร์ดหลักสำหรับผู้ดูแลระบบ (Admin Panel Hub) ที่หน้า `/app/admin/` ซึ่งเป็นหน้าศูนย์กลางสำหรับจัดการระบบ และดึงข้อมูลสถิติที่จำเป็นจาก API ของระบบที่มีอยู่เดิม มาโชว์อย่างสวยงาม
 
@@ -15,7 +15,7 @@
 
 ### [Admin Module]
 
-#### [NEW] [page.tsx](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/app/app/admin/page.tsx)
+#### [NEW] [page.tsx](file:///C:/dev/projectERP/app/app/admin/page.tsx)
 สร้างไฟล์หน้าหลักของผู้ดูแลระบบ `app/app/admin/page.tsx`
 - หน้าตาดีไซน์ใช้ธีมสีม่วง (Mauve Theme: `#7a5a7e`) เป็นหลัก
 - ใช้โครงสร้างและ Layout จากระบบดีไซน์ มีแถบหัวข้อชัดเจน "ผู้ดูแลระบบ · Admin Panel"
@@ -32,7 +32,7 @@
   - ดึงจำนวนหน่วยนับ: `GET /api/admin/uom`
 - บังคับใช้ Auth Guard ที่เข้มงวด โดยให้ผู้ใช้ที่เป็น Role `admin` เท่านั้นที่เข้าหน้านี้ได้ผ่านการเช็ค Session และ `assertRole(u, ['admin'])` (หากไม่ใช่ระบบจะรีไดเรกต์หรือคืนค่า Unauthorized/Forbidden)
 
-#### [MODIFY] [page.tsx (Main Menu)](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/app/app/menu/page.tsx)
+#### [MODIFY] [page.tsx (Main Menu)](file:///C:/dev/projectERP/app/app/menu/page.tsx)
 - เปลี่ยนลิงก์ปลายทางของการ์ด "ผู้ดูแลระบบ" (Admin Card) จากเดิมที่ระบุตรงไปยังหน้าจัดการผู้ใช้ `/app/admin/users` ให้มาเข้าหน้า Hub `/app/admin` แทน
 
 ---

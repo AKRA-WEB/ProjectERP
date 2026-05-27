@@ -1,4 +1,4 @@
----
+﻿---
 track: repack-order
 status: Completed
 aliases: ["UoM Phase 3 — Repack Order System"]
@@ -31,7 +31,7 @@ The "Repack Order" system is designed for Bakery Mart business to handle the pro
 
 ### 2. Type System (TypeScript)
 
-#### [MODIFY] [types/index.ts](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/types/index.ts)
+#### [MODIFY] [types/index.ts](file:///C:/dev/projectERP/types/index.ts)
 - Add interfaces: `RepackOrder`, `RepackOrderItem`, `RepackTemplate`, `RepackTemplateItem`.
 
 ### 3. API Layer (Next.js Routes)
@@ -69,7 +69,7 @@ The "Repack Order" system is designed for Bakery Mart business to handle the pro
 
 ### 5. Navigation
 
-#### [MODIFY] [components/layout/Sidebar.tsx](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/components/layout/Sidebar.tsx)
+#### [MODIFY] [components/layout/Sidebar.tsx](file:///C:/dev/projectERP/components/layout/Sidebar.tsx)
 - Add "Repack Orders" menu item under the Product/WMS category.
 
 ## Verification Plan

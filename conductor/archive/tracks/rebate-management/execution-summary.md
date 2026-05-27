@@ -1,4 +1,4 @@
-# Execution Summary — Rebate Management
+﻿# Execution Summary — Rebate Management
 
 Track Name: `rebate-management`
 Status: Verified
@@ -7,9 +7,9 @@ Validation: `npm run qa:verify` -> passed with 0 errors and 0 warnings.
 ## Tasks Completed
 
 ### Task 1 — Database & Type Declarations
-- **File changed:** [066_rebate_management.sql](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/migrations/066_rebate_management.sql) lines 1–45
+- **File changed:** [066_rebate_management.sql](file:///C:/dev/projectERP/migrations/066_rebate_management.sql) lines 1–45
 - **Key change:** Created enums `rebate_period_type`, `rebate_accrual_status`, and tables `vendor_rebate_contracts`, `vendor_rebate_accruals`. Seeded clearing account `1220` (Rebate Receivable) and `4300` (Rebate Income).
-- **File changed:** [types/db.ts](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/types/db.ts) lines 198–232
+- **File changed:** [types/db.ts](file:///C:/dev/projectERP/types/db.ts) lines 198–232
 - **Key change:** Appended type declarations for `VendorRebateContract`, `VendorRebateAccrual`, `RebatePeriodType`, and `RebateAccrualStatus`.
 - **Verify:** `npx tsc --noEmit` → 0 errors.
 
@@ -32,7 +32,7 @@ Validation: `npm run qa:verify` -> passed with 0 errors and 0 warnings.
 ### Task 4 — Interactive Frontend & Sidebar Navigation
 - **File changed:** `components/ui/StatusBadge.tsx`
 - **Key change:** Added beautiful custom badge configurations and labels for `accrued`, `realised`, and `expired` statuses.
-- **File changed:** [Sidebar.tsx](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/components/layout/Sidebar.tsx) lines 51, 230
+- **File changed:** [Sidebar.tsx](file:///C:/dev/projectERP/components/layout/Sidebar.tsx) lines 51, 230
 - **Key change:** Added `/app/rebate` path to WMS_PREFIXES list and added Rebate Contracts and Rebate Accruals navigation items under the WMS purchasing group.
 - **File changed:** `app/app/rebate/contracts/page.tsx`
 - **Key change:** Designed full-fidelity client page for listing, filtering, creating, and editing rebate contracts with clean dialog modals and validation checks.

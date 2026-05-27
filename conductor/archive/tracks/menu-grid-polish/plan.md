@@ -1,4 +1,4 @@
----
+﻿---
 status: Verified
 updated: 2026-05-22
 ---
@@ -11,7 +11,7 @@ Improve the layout, symmetry, and responsive styling of the Arun ERP Main Menu H
 
 ### Component: Main Menu Hub Page
 
-#### [MODIFY] [page.tsx](file:///c:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/app/app/menu/page.tsx)
+#### [MODIFY] [page.tsx](file:///C:/dev/projectERP/app/app/menu/page.tsx)
 - Reorganize the flexbox grid layout into a responsive CSS Grid with 12 columns to align card borders perfectly.
 - Create an adaptive layout system:
   - If 7 modules are visible: Row 1 spans 3 columns each (4 cards); Row 2 spans 4 columns each (3 cards). Left and right boundaries align perfectly!

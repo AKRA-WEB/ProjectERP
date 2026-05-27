@@ -1,4 +1,4 @@
-# Design — Chen Plan Enforcement (Architect Trigger Reliability)
+﻿# Design — Chen Plan Enforcement (Architect Trigger Reliability)
 
 **Date:** 2026-05-18  
 **Status:** Approved  
@@ -69,7 +69,7 @@ Atomic checklist — do not skip or reorder:
 
 - [ ] Step 1 — Create directory: PowerShell `New-Item -ItemType Directory -Force "<absolute-path>"`
 - [ ] Step 2 — Write tool → full absolute Windows path → `conductor/tracks/<name>/plan.md`
-         Path format: `C:\Users\AKRA-Panich-Front\OneDrive\Desktop\projectERP\conductor\tracks\<name>\plan.md`
+         Path format: `C:\dev\projectERP\conductor\tracks\<name>\plan.md`
 - [ ] Step 3 — Edit tool → `conductor/index.md` → append new row with `| [Name](./tracks/<name>/plan.md) | Active | <date> | <date> |`
 - [ ] Step 4 — Read tool → verify `plan.md` exists and is non-empty. If empty or missing → retry Step 2.
 - [ ] Step 5 — Read tool → verify `conductor/index.md` contains the new row. If missing → retry Step 3.

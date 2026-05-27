@@ -1,4 +1,4 @@
-# Claude-Gemini Collaboration Protocol
+﻿# Claude-Gemini Collaboration Protocol
 
 This directory serves as the synchronization point between **Claude (The Architect)** and **Gemini CLI (The Implementer)**.
 
@@ -63,7 +63,7 @@ This project uses **Obsidian** opened directly on this folder as a vault. All `.
 1. Billy performs the audit and outputs the full report as structured text in its response.
 2. Tell Billy: **"Do NOT echo file contents — output only findings as text, keep response under 30KB."**
 3. After Billy responds, **main thread Claude** writes the file using the native Write tool:
-   `C:\Users\AKRA-Panich-Front\OneDrive\02-2 - AKRA\projectERP\conductor\qa-reports\<track>.md`
+   `C:\dev\projectERP\conductor\qa-reports\<track>.md`
 
 ### Billy Output Rules
 - Label report `[DRAFT — Pending Chen Validation]`
@@ -75,7 +75,7 @@ This project uses **Obsidian** opened directly on this folder as a vault. All `.
 ### Spawning Billy (Claude's Responsibility)
 After Billy responds, Claude writes the report:
 ```
-Write tool → C:\Users\AKRA-Panich-Front\OneDrive\02-2 - AKRA\projectERP\conductor\qa-reports\<track>.md
+Write tool → C:\dev\projectERP\conductor\qa-reports\<track>.md
 ```
 
 ---
@@ -117,9 +117,9 @@ A plan task missing any of these ≠ ready for Gemini.
 
 Before writing any new file (plan.md, decision.md, etc.):
 ```bash
-mkdir -p "/c/Users/AKRA-Panich-Front/OneDrive/02-2 - AKRA/projectERP/<relative-path>"
+mkdir -p "/c/dev/projectERP/<relative-path>"
 ```
-Then use the Write tool with the Windows absolute path `C:\Users\AKRA-Panich-Front\OneDrive\02-2 - AKRA\projectERP\<relative-path>`.
+Then use the Write tool with the Windows absolute path `C:\dev\projectERP\<relative-path>`.
 
 `New-Item` → Bash says `command not found` → directory not created → Write tool fails silently. Always `mkdir -p`.
 

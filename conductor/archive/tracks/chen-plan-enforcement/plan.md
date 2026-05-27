@@ -1,4 +1,4 @@
----
+﻿---
 track: chen-plan-enforcement
 status: Completed
 owner: paku
@@ -83,7 +83,7 @@ exit 0
 - [x] **Step 2: Verify file created at correct path**
 
 ```powershell
-Test-Path "C:\Users\AKRA-Panich-Front\OneDrive\Desktop\projectERP\.claude\hooks\enforce-architect-spawn.ps1"
+Test-Path "C:\dev\projectERP\.claude\hooks\enforce-architect-spawn.ps1"
 ```
 
 Expected: `True`
@@ -112,7 +112,7 @@ In `.claude/settings.local.json`, find this exact block (end of the hooks object
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File C:\\Users\\AKRA-Panich-Front\\OneDrive\\Desktop\\projectERP\\.claude\\hooks\\obsidian-sync.ps1"
+            "command": "powershell -ExecutionPolicy Bypass -File C:\\dev\\projectERP\\.claude\\hooks\\obsidian-sync.ps1"
           }
         ]
       }
@@ -129,7 +129,7 @@ Replace with:
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File C:\\Users\\AKRA-Panich-Front\\OneDrive\\Desktop\\projectERP\\.claude\\hooks\\obsidian-sync.ps1"
+            "command": "powershell -ExecutionPolicy Bypass -File C:\\dev\\projectERP\\.claude\\hooks\\obsidian-sync.ps1"
           }
         ]
       }
@@ -139,7 +139,7 @@ Replace with:
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File C:\\Users\\AKRA-Panich-Front\\OneDrive\\Desktop\\projectERP\\.claude\\hooks\\enforce-architect-spawn.ps1"
+            "command": "powershell -ExecutionPolicy Bypass -File C:\\dev\\projectERP\\.claude\\hooks\\enforce-architect-spawn.ps1"
           }
         ]
       }
@@ -150,7 +150,7 @@ Replace with:
 - [x] **Step 3: Verify JSON is valid**
 
 ```powershell
-Get-Content "C:\Users\AKRA-Panich-Front\OneDrive\Desktop\projectERP\.claude\settings.local.json" | ConvertFrom-Json | Out-Null; Write-Output "JSON valid"
+Get-Content "C:\dev\projectERP\.claude\settings.local.json" | ConvertFrom-Json | Out-Null; Write-Output "JSON valid"
 ```
 
 Expected: `JSON valid` (no errors)
@@ -203,13 +203,13 @@ Replace the block above with:
 Atomic checklist — execute in order, never skip:
 
 - [x] **Step 1** — Create track directory (PowerShell tool):
-  `New-Item -ItemType Directory -Force "C:\Users\AKRA-Panich-Front\OneDrive\Desktop\projectERP\conductor\tracks\<feature-name>"`
+  `New-Item -ItemType Directory -Force "C:\dev\projectERP\conductor\tracks\<feature-name>"`
 
 - [x] **Step 2** — **Write tool** → full absolute Windows path:
-  `C:\Users\AKRA-Panich-Front\OneDrive\Desktop\projectERP\conductor\tracks\<feature-name>\plan.md`
+  `C:\dev\projectERP\conductor\tracks\<feature-name>\plan.md`
   Never use relative paths. Never use Unix-style paths.
 
-- [x] **Step 3** — **Edit tool** → `C:\Users\AKRA-Panich-Front\OneDrive\Desktop\projectERP\conductor\index.md`
+- [x] **Step 3** — **Edit tool** → `C:\dev\projectERP\conductor\index.md`
   Append new row in the All Tracks table:
   `| [<Track Name>](./tracks/<feature-name>/plan.md) | Active | <YYYY-MM-DD> | <YYYY-MM-DD> |`
 
@@ -300,7 +300,7 @@ Expected: No `⚠️ ARCHITECT TRIGGER` in context. Hook exits silently.
 - [x] **Step 4: Verify chen.agent.md Phase 3 is correct on disk**
 
 ```powershell
-Select-String -Path "C:\Users\AKRA-Panich-Front\OneDrive\Desktop\projectERP\.claude\agents\chen.agent.md" -Pattern "FAILURE STATE"
+Select-String -Path "C:\dev\projectERP\.claude\agents\chen.agent.md" -Pattern "FAILURE STATE"
 ```
 
 Expected: one match on the `❌ FAILURE STATE` line.
@@ -308,7 +308,7 @@ Expected: one match on the `❌ FAILURE STATE` line.
 - [x] **Step 5: Verify PROTOCOLS.md is correct on disk**
 
 ```powershell
-Select-String -Path "C:\Users\AKRA-Panich-Front\OneDrive\Desktop\projectERP\conductor\PROTOCOLS.md" -Pattern "Chen.*writes"
+Select-String -Path "C:\dev\projectERP\conductor\PROTOCOLS.md" -Pattern "Chen.*writes"
 ```
 
 Expected: one match on the updated boundary rule line.

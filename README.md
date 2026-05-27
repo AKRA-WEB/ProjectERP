@@ -1,4 +1,4 @@
-# 🚀 BUYMORE ERP (Thailand) — Next.js 15 + PostgreSQL Full ERP
+﻿# 🚀 BUYMORE ERP (Thailand) — Next.js 15 + PostgreSQL Full ERP
 
 ระบบการบริหารจัดการทรัพยากรองค์กร (ERP) แบบครบวงจรสำหรับ BUYMORE (THAILAND) COMPANY LIMITED ขับเคลื่อนด้วยสถาปัตยกรรม Next.js 15 (App Router), React 19, TypeScript และ PostgreSQL (raw `pg`)
 
@@ -9,9 +9,9 @@
 หากคุณเป็น AI Assistant (เช่น Codex, Claude Code, Gemini CLI, ChatGPT หรืออื่น ๆ) ที่เพิ่งเปิดบริบทเข้ามาร่วมงานใน Repository นี้ **กรุณาปฏิบัติตามคำแนะนำในการสวมบทบาทและทำความเข้าใจขั้นตอนทำงานดังต่อไปนี้ทันที:**
 
 ### 🚨 จุดเริ่มต้นการรับบรีฟ (Where to Start)
-1. **คิวปิดคู่มือการทำงานกลาง:** เปิดอ่านและสตรีมความรู้จาก [docs/AI_WORKFLOW_GUIDE.md](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/docs/AI_WORKFLOW_GUIDE.md) (หรือทักษะ [docs/skills/ai_workflow_rules.md](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/docs/skills/ai_workflow_rules.md)) เป็นอันดับแรกก่อนทำงาน เพื่อรับทราบกระบวนการ Pre-Flight Checklist, คำสั่งการสวมบทบาท และขั้นตอนจดบันทึก Obsidian
-2. **เช็คสถานะปัจจุบันของโครงการ:** เข้าไปอ่าน [_notes/02_Agent_Memory/current-state.md](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/_notes/02_Agent_Memory/current-state.md) เพื่อรับทราบข้อมูลตาราง/คอลัมน์ DB ล่าสุด, เส้นทาง API ที่เพิ่มขึ้น และหมายเลข Migration ล่าสุด เพื่อป้องกัน Context Loss
-3. **ศึกษาข้อห้ามและการทำงานที่ผิดพลาดในอดีต:** อ่าน [_notes/02_Agent_Memory/pitfalls.md](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/_notes/02_Agent_Memory/pitfalls.md) เพื่อทราบสิ่งแปลกปลอมในโค้ดและ Traps ด้านความปลอดภัย
+1. **คิวปิดคู่มือการทำงานกลาง:** เปิดอ่านและสตรีมความรู้จาก [docs/AI_WORKFLOW_GUIDE.md](file:///C:/dev/projectERP/docs/AI_WORKFLOW_GUIDE.md) (หรือทักษะ [docs/skills/ai_workflow_rules.md](file:///C:/dev/projectERP/docs/skills/ai_workflow_rules.md)) เป็นอันดับแรกก่อนทำงาน เพื่อรับทราบกระบวนการ Pre-Flight Checklist, คำสั่งการสวมบทบาท และขั้นตอนจดบันทึก Obsidian
+2. **เช็คสถานะปัจจุบันของโครงการ:** เข้าไปอ่าน [_notes/02_Agent_Memory/current-state.md](file:///C:/dev/projectERP/_notes/02_Agent_Memory/current-state.md) เพื่อรับทราบข้อมูลตาราง/คอลัมน์ DB ล่าสุด, เส้นทาง API ที่เพิ่มขึ้น และหมายเลข Migration ล่าสุด เพื่อป้องกัน Context Loss
+3. **ศึกษาข้อห้ามและการทำงานที่ผิดพลาดในอดีต:** อ่าน [_notes/02_Agent_Memory/pitfalls.md](file:///C:/dev/projectERP/_notes/02_Agent_Memory/pitfalls.md) เพื่อทราบสิ่งแปลกปลอมในโค้ดและ Traps ด้านความปลอดภัย
 
 ### 🔄 แผนผังคำสั่งสวมบทบาทสลับโหมด (Role-as-a-Skill)
 คุณสามารถสวมบทบาทและสลับโหมดการทำงานได้ด้วยคำสั่งทริกเกอร์เหล่านี้:

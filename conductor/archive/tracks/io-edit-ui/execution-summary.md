@@ -1,4 +1,4 @@
-# Execution Summary — Track: io-edit-ui
+﻿# Execution Summary — Track: io-edit-ui
 
 This track has been successfully implemented, and Billy's QA Audit findings (F-001 through F-009) have been comprehensively resolved and verified.
 
@@ -6,15 +6,15 @@ This track has been successfully implemented, and Billy's QA Audit findings (F-0
 
 ### F-001 — API Route Missing Entirely
 - **Status:** Resolved.
-- **Details:** The API route at [app/api/inbound-orders/[id]/route.ts](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/app/api/inbound-orders/%5Bid%5D/route.ts) is fully implemented with `GET` and `PATCH` methods. The endpoint supports all 4 action discriminants: `update_header`, `update_lines`, `change_warehouse`, and `update_costs`.
+- **Details:** The API route at [app/api/inbound-orders/[id]/route.ts](file:///C:/dev/projectERP/app/api/inbound-orders/%5Bid%5D/route.ts) is fully implemented with `GET` and `PATCH` methods. The endpoint supports all 4 action discriminants: `update_header`, `update_lines`, `change_warehouse`, and `update_costs`.
 
 ### F-002 — No PATCH/Mutation in page.tsx
 - **Status:** Resolved.
-- **Details:** Exposed 4 section-specific save handlers (`saveHeader`, `saveWarehouse`, `saveLines`, and `saveCosts`) inside [app/app/inbound-orders/[id]/page.tsx](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/app/app/inbound-orders/%5Bid%5D/page.tsx). Added inline editing form fields and transition-aware routers to update state smoothly.
+- **Details:** Exposed 4 section-specific save handlers (`saveHeader`, `saveWarehouse`, `saveLines`, and `saveCosts`) inside [app/app/inbound-orders/[id]/page.tsx](file:///C:/dev/projectERP/app/app/inbound-orders/%5Bid%5D/page.tsx). Added inline editing form fields and transition-aware routers to update state smoothly.
 
 ### F-003 — execution-summary.md Missing
 - **Status:** Resolved.
-- **Details:** Created and maintained [execution-summary.md](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/conductor/tracks/io-edit-ui/execution-summary.md) in the track folder.
+- **Details:** Created and maintained [execution-summary.md](file:///C:/dev/projectERP/conductor/tracks/io-edit-ui/execution-summary.md) in the track folder.
 
 ### F-004 — useTransition Imported from 'react'
 - **Status:** Resolved.

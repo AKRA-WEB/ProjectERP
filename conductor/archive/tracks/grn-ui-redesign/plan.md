@@ -1,4 +1,4 @@
-# Track Plan: grn-ui-redesign
+﻿# Track Plan: grn-ui-redesign
 
 ปรับปรุงระบบการรับสินค้า (Goods Received Note - GRN) ให้มี UI/UX ระดับพรีเมียม สวยงาม ทันสมัย และเป็นมิตรกับผู้ใช้งานสูงสุด ทั้งบน Desktop (ระบบหลังบ้านสำหรับ Admin) และ Mobile (ระบบสแกนรับสินค้าสำหรับเจ้าหน้าที่คลังสินค้า)
 
@@ -15,7 +15,7 @@
 
 ### [GRN Module]
 
-#### [MODIFY] [page.tsx (Desktop Admin List)](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/app/app/grn/page.tsx)
+#### [MODIFY] [page.tsx (Desktop Admin List)](file:///C:/dev/projectERP/app/app/grn/page.tsx)
 ปรับปรุงระบบ Desktop GRN List:
 - ปรับ Layout ส่วนหัว (Header bar) ให้จัดวางคลัสเตอร์ปุ่มอย่างพรีเมียม:
   - `Export CSV` (Ghost Button)
@@ -36,7 +36,7 @@
     - สถานะ `qc_passed` → แสดงปุ่ม `นำเข้าคลัง`
   - เมื่อคลิกปุ่ม Action ระบบจะส่งข้อมูลไปทาง PATCH `/api/grn/[id]` ตามโครงสร้าง `action` discriminant และทำการรีโหลดตารางในหน้าหลังทันที
 
-#### [MODIFY] [receiving-queue/page.tsx (Mobile Staff Queue)](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/app/app/grn/receiving-queue/page.tsx)
+#### [MODIFY] [receiving-queue/page.tsx (Mobile Staff Queue)](file:///C:/dev/projectERP/app/app/grn/receiving-queue/page.tsx)
 ปรับปรุงหน้าจอคิวการรับสินค้าบนมือถือของพนักงานคลังสินค้า:
 - เพิ่ม แถบสรุปสถานะการทำงาน (Summary Strip) แบ่งเป็น 3 บล็อกย่อย (`grid-cols-3`):
   - **ด่วนที่สุด:** ขอบสีส้ม Amber พร้อมไอคอนนาฬิกาทราย แสดงจำนวนใบรับที่เกิน 4 ชั่วโมง
@@ -48,7 +48,7 @@
   - โชว์เลขรหัสเอกสารอ้างอิงโดดเด่นสะดุดตา
   - เพิ่มปุ่ม CTA ด้านล่างสุดของการ์ด `เริ่มรับสินค้า` (สีเขียว `emerald-600` หรูหรากว้างเต็มจอสูง h-10) สำหรับเอกสารประเภท IO
 
-#### [MODIFY] [new/page.tsx (Mobile Scan & Receive)](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/app/app/grn/new/page.tsx)
+#### [MODIFY] [new/page.tsx (Mobile Scan & Receive)](file:///C:/dev/projectERP/app/app/grn/new/page.tsx)
 ปรับปรุงขั้นตอนสแกนรับสินค้าทีละชิ้นบนหน้าจอมือถือ:
 - หัวข้อบนสุด (Header): แสดงบาร์ความคืบหน้า (Progress bar) เป็นแถบสีเขียวเข้มพร้อมระบุยอดอัตราส่วนที่บันทึกแล้วสำเร็จ เช่น `2/6 รายการสำเร็จ`
 - กล่องสแกนสีเข้ม (Scan Banner): ดีไซน์เป็นกล่องสีดำสนิท มีไอคอนบาร์โค้ด และปุ่มเปิดกล้องถ่ายภาพเพื่อสแกนบาร์โค้ด

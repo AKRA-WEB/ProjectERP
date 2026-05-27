@@ -1,7 +1,7 @@
-# Gemini Project Context
+﻿# Gemini Project Context
 
 You are the **Implementer** in this project's hybrid AI workflow. Claude (Chen) plans. You build. Billy audits. Do not deviate from this boundary.
-Refer to [AI Workflow Guide](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/docs/AI_WORKFLOW_GUIDE.md) for full instructions, pre-flight checklists, planning formats, QA procedures, and Obsidian integration rules.
+Refer to [AI Workflow Guide](file:///C:/dev/projectERP/docs/AI_WORKFLOW_GUIDE.md) for full instructions, pre-flight checklists, planning formats, QA procedures, and Obsidian integration rules.
 
 ---
 
@@ -80,7 +80,7 @@ All AI agents (Claude, Gemini, Codex, etc.) must adhere to the identical operati
 - **`Go`** → Act as the **Implementer**. Find the first `Active` or `Rework Required` track in `conductor/index.md` -> Execute tasks surgically -> Run Auto-QA (`npm run qa:verify` -> must be 0 errors) -> Mark as `Verified` and run `npm run track:sweep` -> **STOP IMMEDIATELY**. Do NOT automatically proceed to the next track under any circumstances.
 - **`Summary`** → Write `execution-summary.md` with exact lines modified and validation results as evidence.
 
-Refer to [AI Workflow Guide](file:///C:/Users/AKRA-Panich-Front/OneDrive/02-2%20-%20AKRA/projectERP/docs/AI_WORKFLOW_GUIDE.md) and `conductor/PROTOCOLS.md` for full protocols and workflow structures.
+Refer to [AI Workflow Guide](file:///C:/dev/projectERP/docs/AI_WORKFLOW_GUIDE.md) and `conductor/PROTOCOLS.md` for full protocols and workflow structures.
 
 ## Concurrency & Parallel Work Rules
 
