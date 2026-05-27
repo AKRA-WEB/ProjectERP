@@ -17,6 +17,15 @@
 
 | Track | Status | Plan |
 | --- | --- | --- |
+| perf-tier1-connection-query | Active | [plan](tracks/perf-tier1-connection-query/plan.md) |
+
+## Performance Optimization Tracks (sequential — measure after each tier)
+
+| # | Track | Status | Plan |
+| --- | --- | --- | --- |
+| P1 | perf-tier1-connection-query | Active | [plan](tracks/perf-tier1-connection-query/plan.md) |
+| P2 | perf-tier2-materialized-views | Planned | [plan](tracks/perf-tier2-materialized-views/plan.md) |
+| P3 | perf-tier3-frontend-bundle | Planned | [plan](tracks/perf-tier3-frontend-bundle/plan.md) |
 
 ## Active Queue — V2.0 Orion Roadmap
 
