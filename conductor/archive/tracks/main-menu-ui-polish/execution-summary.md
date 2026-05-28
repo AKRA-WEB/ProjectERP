@@ -18,6 +18,6 @@ const MODULE_CONFIG: ModuleCard[] = [
 ---
 
 ## Verification Evidence
-- Layout updated from horizontal grid rows to clean flex-wrap card grid matching `docs/design/main-menu.html` mockup.
+- Layout updated from horizontal grid rows to clean flex-wrap card grid matching `_notes/99_Assets/design/main-menu.html` mockup.
 - Verified interactive mouse hover state transformations, scales, and shadow lifts.
 - Sales and Purchasing links present and intercept click event to trigger a system Toast warning.

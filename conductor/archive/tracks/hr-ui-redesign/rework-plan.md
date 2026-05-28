@@ -21,7 +21,7 @@
   **Fix:** Add the query to calculate the minimum days remaining for employees in probation (hired within 120 days).
 
 - [x] **MF-3 · Leave Calendar UI deviates from Design (Gantt Chart)**
-  The `app/app/hr/leave-requests/page.tsx` implements a classic 7-column monthly grid, but the architectural decision and design (`docs/design/hr-bundle/apps/hr-leave.jsx`) dictate a Gantt-chart style timeline: `gridTemplateColumns: 160px repeat(N, 30px)` with absolute-positioned leave bars.
+  The `app/app/hr/leave-requests/page.tsx` implements a classic 7-column monthly grid, but the architectural decision and design (`_notes/99_Assets/design/hr-bundle/apps/hr-leave.jsx`) dictate a Gantt-chart style timeline: `gridTemplateColumns: 160px repeat(N, 30px)` with absolute-positioned leave bars.
   **Fix:** Rewrite the Calendar section in `app/app/hr/leave-requests/page.tsx` to match the exact Gantt layout specified in the plan.
 
 ---

@@ -1,32 +1,18 @@
-# 🚀 BUYMORE ERP — Central AI Agent Workflow & Coordination Guide
+# 🚀 BUYMORE ERP — Unified AI Agent Workflow Guide
 
-คู่มือกลางสำหรับ AI Agents ทุกตัว (Claude/Chen, Gemini, Billy) เพื่อควบคุมการทำงานร่วมกัน ป้องกันภาวะ Context Loss และรักษามาตรฐานสถาปัตยกรรมของระบบ BUYMORE ERP (Next.js 15 + PostgreSQL)
+คู่มือกลางสำหรับ AI Agents ทุกระบบ (Gemini, Claude, Codex, etc.) เพื่อควบคุมการทำงานร่วมกันภายใต้ **Unified Agentic Architecture** เพื่อป้องกันภาวะ Context Loss และรักษามาตรฐานระดับสูงสุด
 
 ---
 
 ## 📌 1. Pre-Flight Checklist (ขั้นตอนการโหลด Context ก่อนเริ่มงาน)
-**ต้องทำเป็นสิ่งแรกก่อนเขียนโค้ดหรือวางแผนแม้แต่บรรทัดเดียว!**
+**ต้องทำเป็นสิ่งแรกก่อนเริ่มวางแผนหรือเขียนโค้ด!**
 
-1. **Sync Codebase:**
-   ```bash
-   git pull origin master
-   ```
-   *เหตุผล: ป้องกัน Push Conflict และป้องกันข้อมูลล้าสมัยจากการ Commit ของ AI ตัวอื่น*
-2. **Archiving Sweep:**
-   ```bash
-   npm run track:sweep
-   ```
-   *เหตุผล: ทำความสะอาด active track ที่ผ่านการ Verify แล้ว ย้ายเข้าสู่ Archive อย่างเป็นระเบียบ*
-3. **Read Agent Principles:** อ่าน `docs/skills/agent-principles.md` (รวม Karpathy Guidelines)
-4. **Read Agent Memory:** 
-   - อ่าน `_notes/02_Agent_Memory/current-state.md` เพื่อดู Active Work, การเปลี่ยนแปลง DB ล่าสุด, API routes ใหม่ และ Migration Number ล่าสุด
-   - อ่าน `_notes/02_Agent_Memory/pitfalls.md` เพื่อเรียนรู้ Workflow Traps ล่าสุด
-5. **Load Skills On-Demand:** โหลดเฉพาะคู่มือที่เกี่ยวกับเนื้องานหลักของ Task นั้น ๆ (ห้ามโหลดพร้อมกันหลายไฟล์เพื่อประหยัด Token):
-   - **Frontend UI / Tailwind:** `docs/skills/frontend_ui_rules.md`
-   - **Backend API / Zod:** `docs/skills/backend_api_rules.md`
-   - **Database SQL / pg:** `docs/skills/database_sql_rules.md`
-   - **QA Audit / Lint:** `docs/skills/qa_audit_rules.md`
-   - **Vercel / Serverless:** `docs/skills/vercel_rules.md`
+1. **Sync Codebase:** `git pull origin master` && `npm run track:sweep`
+2. **Master Brain:** อ่าน `docs/skills/universal_agent_rules.md` (มาตรฐานกลาง) และ `docs/SCHEMA.md` (ข้อมูลฐานข้อมูลล่าสุด)
+3. **Agent Memory:** 
+   - อ่าน `_notes/02_Agent_Memory/current-state.md` (สถานะงานและ API ล่าสุด)
+   - อ่าน `_notes/02_Agent_Memory/pitfalls.md` (กับดักที่ต้องระวัง)
+4. **Load Skills On-Demand:** โหลดกฎเฉพาะทางตามเนื้องาน (Frontend, Backend, SQL, etc.) จาก `docs/skills/`
 6. **File Exploration:** ตรวจสอบไฟล์ที่จะแก้ไขจริงด้วยการค้นหา/อ่านล่วงหน้า ห้ามอ้างอิงจากแผนอย่างเดียว
 
 ---
@@ -87,34 +73,47 @@ graph TD
 [พิมพ์ Go]
    │
    ▼
-1. ค้นหา Track แรกที่มีสถานะ 'Active' หรือ 'Rework Required' ใน conductor/index.md
+1. สร้าง Branch ใหม่สำหรับ Track: `git checkout -b feat/<track-id>`
    │
    ▼
-2. ดำเนินการแก้ไขโค้ด (Surgical Edit) ตาม Tasks ทั้งหมดใน plan.md
+2. ค้นหา Track แรกที่มีสถานะ 'Active' หรือ 'Rework Required' ใน conductor/index.md
    │
    ▼
-3. รันตรวจสอบ Auto-QA:
-   - รันตรวจสอบความถูกต้องผ่าน `npm run qa:verify` (Linter + TypeScript tsc --noEmit)
+3. ดำเนินการแก้ไขโค้ด (Surgical Edit) ตาม Tasks ทั้งหมดใน plan.md
+   │
+   ▼
+4. เขียน Unit Test สำหรับ Logic ที่สำคัญ (Vitest)
+   │
+   ▼
+5. รัน KNOWLEDGE ELEVATION (Context Protection):
+   - อัปเดต `_notes/02_Agent_Memory/current-state.md` (DB facts, API routes, Migration numbers)
+   - อัปเดต `_notes/02_Agent_Memory/pitfalls.md` (ถ้ามี trap ใหม่)
+   - อัปเดตไฟล์โมดูลใน `_notes/00_Project_Map/modules/`
+   │
+   ▼
+6. รันตรวจสอบ Auto-QA:
+   - รันตรวจสอบความถูกต้องผ่าน `npm run qa:verify` (Linter + TypeScript + Tests + check:notes)
+   - `check:notes` ต้องผ่าน 100% (ห้ามมี undocumented routes หรือ migration mismatch)
    - ตรวจสอบความถูกต้องกับ `docs/skills/qa_audit_rules.md`
    │
-   ├─► [มีข้อผิดพลาด/มีจุดเสีย/Lints/TypeScript Error]
+   ├─► [มีข้อผิดพลาด/มีจุดเสีย/Lints/TypeScript Error/Tests Fail/Doc Missing]
    │    │
    │    ▼
-   │    ดำเนินการแก้ไขทันที (Auto-Fix/Rework) -> วนกลับไปรัน Step 3 ใหม่ (จำกัดสูงสุด 3 รอบ)
+   │    ดำเนินการแก้ไขทันที (Auto-Fix/Rework) -> วนกลับไปรัน Step 5 ใหม่ (จำกัดสูงสุด 3 รอบ)
    │
-   └─► [สะอาด 100% - ไม่มี Error และไร้ร่องรอยคอมเมนต์ชั่วคราว เช่น // TODO]
+   └─► [สะอาด 100% - ไม่มี Error และยกระดับความรู้ลง Obsidian ครบถ้วน]
         │
         ▼
-4. ปิดงานและ Sweep:
+7. ปิดงานและ Sweep:
    - ปรับสถานะ Track ใน index.md และ frontmatter ของ plan.md เป็น 'Verified' หรือ 'Completed'
    - เขียนไฟล์ 'execution-summary.md' ตามรูปแบบที่กำหนด
    - รันคำสั่งกวาดเก็บแทร็ก `npm run track:sweep`
    │
    ▼
-5. 🚨 กฎเหล็กการหยุดทำงาน (STRICT STOP CONDITION):
+8. 🚨 กฎเหล็กการหยุดทำงาน (STRICT STOP CONDITION):
    - ห้ามก้าวไปทำ Track ถัดไปโดยพลการเด็ดขาด!
    - เขียน Session Report ส่งให้ผู้ใช้งาน และหยุดทำงาน (STOP) ทันที
-   - รอคำสั่ง 'Go' ครั้งถัดไปอย่างเป็นทางการจากผู้ใช้งานเท่านั้น
+   - แนะนำให้ผู้ใช้ "Reset Session" (ปิดแชทแล้วเปิดใหม่) เพื่อเริ่ม Track ถัดไปด้วย Context ที่สะอาด
 ```
 
 ### 🔹 คำสั่ง: `Summary`
@@ -147,13 +146,14 @@ updated: YYYY-MM-DD
 ```
 
 ### 2. Mandatory Architectural Gates
-งานแก้ไขที่เกี่ยวข้องกับ API หรือ Database จะต้องมี 5 ข้อนี้ระบุในงานเสมอ:
+งานแก้ไขที่เกี่ยวข้องกับ API หรือ Database จะต้องมี 6 ข้อนี้ระบุในงานเสมอ:
 1. **Transaction Boundary:** ระบุ `BEGIN` / `COMMIT` / `ROLLBACK` สำหรับทุก API ที่มีการเซฟข้อมูลหลายตาราง
 2. **Doc Number Generation:** เรียกใช้ฟังก์ชัน `next_doc_number('PREFIX', 'sequence_name')` จากฝั่ง PostgreSQL เท่านั้น ห้าม Gen ฝั่ง Application
 3. **Child Table Inserts:** หากมีข้อมูลหัวข้อหลักคู่กับรายการย่อย ต้องระบุโครงสร้างการทำงานแบบ:
    - INSERT Parent -> Get `parent_id` -> `FOR EACH` child: INSERT child พร้อม `parent_id`
-4. **Side Effects & Stock Integrity:** สำหรับการเปลี่ยนสถานะใดๆ ต้องระบุผลกระทบที่ตามมา เช่น การบันทึก `stock_ledger` (เป็นตาราง INSERT-ONLY ห้าม UPDATE/DELETE) และการอัปเดตยอดคงเหลือ
-5. **Response Shape:** ระบุ Zod Schema หรือ TypeScript Interface ของ Data ที่ส่งกลับจาก `apiSuccess()` หรือรับเข้าทาง Body อย่างชัดเจน
+4. **Side Effects & Stock Integrity:** สำหรับการเปลี่ยนสถานะใดๆ ต้องระบุผลกระทบที่ตามมา เช่น การบันทึก `stock_ledger` และการอัปเดตยอดคงเหลือ
+5. **Testing Strategy:** ระบุ Test Cases ที่ต้องเขียนเพื่อยืนยันความถูกต้องของ Business Logic (Vitest)
+6. **Response Shape:** ระบุ Zod Schema หรือ TypeScript Interface ของ Data ที่ส่งกลับจาก `apiSuccess()` หรือรับเข้าทาง Body อย่างชัดเจน
 
 ---
 

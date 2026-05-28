@@ -13,13 +13,13 @@ updated: 2026-05-13
 **Created:** 2026-05-13  
 **Status:** Ready for Gemini CLI  
 **Architect:** Claude  
-**Reference:** `docs/design/` — `styles.css`, `main-menu.html`, `components.jsx`, `views.jsx`, `pos.jsx`
+**Reference:** `_notes/99_Assets/design/` — `styles.css`, `main-menu.html`, `components.jsx`, `views.jsx`, `pos.jsx`
 
 ---
 
 ## Scope
 
-Implement design improvements based on `docs/design/` reference files. Design is already finalized — this plan translates HTML/JSX prototypes into production Next.js code.
+Implement design improvements based on `_notes/99_Assets/design/` reference files. Design is already finalized — this plan translates HTML/JSX prototypes into production Next.js code.
 
 **This track supersedes/extends:**
 - `main-menu` track — redesign to match actual design file
@@ -154,7 +154,7 @@ Each card:
 
 **SVG Icons** — inline, `viewBox="0 0 64 64"`, `stroke="currentColor"`, `stroke-width="1.25"`, `stroke-linecap="round"`, `stroke-linejoin="round"`:
 
-Copy exact SVG paths from `docs/design/main-menu.html`:
+Copy exact SVG paths from `_notes/99_Assets/design/main-menu.html`:
 - POS: storefront with awning + keyhole
 - WMS: stacked isometric crates
 - Accounting: ledger book with lines
@@ -403,7 +403,7 @@ components/ui/index.ts                 (edit — export SegControl, Tabs)
 - Design tokens in `globals.css` already match `styles.css` — no token changes needed
 - `localStorage` use is safe here (edit mode preference = non-critical UX state)
 - Main Menu paper bg color `#f6f4ef` is NOT in current design tokens — add as inline class or extend Tailwind config
-- SVG icons in main menu: copy paths verbatim from `docs/design/main-menu.html` — do NOT approximate
+- SVG icons in main menu: copy paths verbatim from `_notes/99_Assets/design/main-menu.html` — do NOT approximate
 - `⌘K` shortcut: on Windows = `Ctrl+K`, on Mac = `Cmd+K` — detect via `e.metaKey || e.ctrlKey`
 - Phase 6 (new components) is independent — can execute in parallel with Phases 3-5
 

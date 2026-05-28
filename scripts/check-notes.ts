@@ -65,6 +65,109 @@ function resolveLinkPath(link: string, currentFileDir: string, rootDir: string):
   }
 }
 
+async function verifyApiRoutes(rootDir: string): Promise<boolean> {
+  console.log('\n🔍 Checking API routes vs documentation...');
+  const apiDir = path.join(rootDir, 'app', 'api');
+  const currentStatePath = path.join(rootDir, '_notes', '02_Agent_Memory', 'current-state.md');
+  const modulesDir = path.join(rootDir, '_notes', '00_Project_Map', 'modules');
+
+  // 1. Get all actual API routes from filesystem
+  const actualRoutes: string[] = [];
+  async function scanApiDir(dir: string) {
+    const entries = await fs.readdir(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const resPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        await scanApiDir(resPath);
+      } else if (entry.name === 'route.ts' || entry.name === 'route.js') {
+        const relativePath = path.relative(apiDir, dir).replace(/\\/g, '/');
+        actualRoutes.push(relativePath);
+      }
+    }
+  }
+
+  try {
+    if (existsSync(apiDir)) {
+      await scanApiDir(apiDir);
+    }
+  } catch (err) {
+    console.error('❌ Error scanning API directory:', err);
+    return false;
+  }
+
+  // 2. Read current-state.md and all module files
+  let allDocContent = '';
+  try {
+    if (existsSync(currentStatePath)) {
+      allDocContent += await fs.readFile(currentStatePath, 'utf8');
+    }
+    if (existsSync(modulesDir)) {
+      const moduleFiles = await fs.readdir(modulesDir);
+      for (const file of moduleFiles) {
+        if (file.endsWith('.md')) {
+          allDocContent += await fs.readFile(path.join(modulesDir, file), 'utf8');
+        }
+      }
+    }
+  } catch (err) {
+    console.error('❌ Error reading documentation files:', err);
+    return false;
+  }
+
+  // 3. Check if each actual route is mentioned in any doc
+  let missingDocsCount = 0;
+  // Create a version of docs with all non-alphanumeric chars replaced with spaces for token search
+  const docTokens = allDocContent.toLowerCase().replace(/[^a-z0-9]/g, ' ');
+  const docLines = allDocContent.toLowerCase().split('\n');
+
+  for (const route of actualRoutes) {
+    const routeLower = route.toLowerCase();
+    const routeParts = routeLower.split('/');
+    
+    // 1. Precise match (e.g. "api/grn/[id]")
+    // 2. Placeholder match (e.g. "api/grn/:id")
+    const placeholderRoute = routeLower.replace(/\[([^\]]+)\]/g, ':$1');
+
+    let found = false;
+    if (allDocContent.toLowerCase().includes(routeLower) || 
+        allDocContent.toLowerCase().includes(placeholderRoute)) {
+      found = true;
+    } else {
+      // Check if all parts of the route are at least present in the doc tokens
+      // (This helps find cases where routes are documented in tables or lists)
+      const allPartsPresent = routeParts.every(part => {
+        if (part.startsWith('[') && part.endsWith(']')) return true; // skip dynamic parts
+        if (part.length < 3) return true; // skip short segments like "id"
+        return docTokens.includes(part);
+      });
+
+      if (allPartsPresent) {
+        // Double check with a line-by-line partial match
+        for (const line of docLines) {
+          if (routeParts.every(part => {
+            const cleanPart = part.replace(/\[|\]/g, '');
+            return cleanPart.length < 2 || line.includes(cleanPart);
+          })) {
+            found = true;
+            break;
+          }
+        }
+      }
+    }
+
+    if (!found) {
+      console.warn(`⚠️ Warning: API route "/api/${route}" might be undocumented.`);
+      missingDocsCount++;
+    }
+  }
+
+  if (missingDocsCount > 0) {
+    console.log(`💡 Suggestion: Document the ${missingDocsCount} API route(s) above in current-state.md or a module file.`);
+  }
+
+  return true; 
+}
+
 async function verifyMigrations(rootDir: string): Promise<boolean> {
   console.log('🔍 Checking database migrations vs current-state.md...');
   const migrationsDir = path.join(rootDir, 'migrations');
@@ -187,13 +290,12 @@ async function verifyMarkdownLinks(rootDir: string, autoFix: boolean): Promise<b
         if (!existsSync(resolvedPath)) {
           // If the link is in conductor/index.md and points to tracks/..., check if it was archived
           let isFixed = false;
-          if (autoFix && relativeFilePath === 'conductor\\index.md' && linkUrl.startsWith('tracks/')) {
+          if (autoFix && (relativeFilePath === 'conductor\\index.md' || relativeFilePath === 'conductor/index.md') && linkUrl.startsWith('tracks/')) {
             const archivedRelativeLink = linkUrl.replace('tracks/', 'archive/tracks/');
             const archivedResolvedPath = resolveLinkPath(archivedRelativeLink, fileDir, rootDir);
             
             if (archivedResolvedPath && existsSync(archivedResolvedPath)) {
               // Replace occurrences in the original content
-              // Be precise: replace exact match of the link
               const targetStr = `](${linkUrl})`;
               const replacementStr = `](${archivedRelativeLink})`;
               if (newFileContent.includes(targetStr)) {
@@ -245,9 +347,10 @@ async function main() {
   }
 
   const migrationsOk = await verifyMigrations(rootDir);
+  const apiOk = await verifyApiRoutes(rootDir);
   const linksOk = await verifyMarkdownLinks(rootDir, autoFix);
 
-  if (!migrationsOk || !linksOk) {
+  if (!migrationsOk || !apiOk || !linksOk) {
     console.error('💥 Verification FAILED. Please correct errors listed above.');
     process.exit(1);
   }

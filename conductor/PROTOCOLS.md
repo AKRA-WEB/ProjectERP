@@ -1,31 +1,36 @@
-﻿# Claude-Gemini Collaboration Protocol
+﻿# Unified AI Agent Collaboration Protocol
 
-This directory serves as the synchronization point between **Claude (The Architect)** and **Gemini CLI (The Implementer)**.
+This directory serves as the synchronization point for all AI Agents operating in **Planning, Implementation, or Auditor modes**.
 
-## Quick Start (Easy Mode)
+## Quick Start (Operational Modes)
 
-| Step | Actor | Command | Action |
+| Step | Mode | Command | Action |
 |------|-------|---------|--------|
-| **1. Plan** | Chen | `Architect: <task>` | Analyzes code, creates `plan.md`, updates `index.md`. |
-| **2. Build** | Gemini CLI | `Go` | Automatically finds the active plan and executes the **entire track**. |
-| **3. Report** | Gemini CLI | `Summary` | Generates `execution-summary.md`. |
-| **4. QA Draft** | Billy | `QA: <track-name>` | Runs lint/build, audits code vs `plan.md`, produces **Draft QA Report**. |
-| **4b. QA Validate** | Chen | `QA-Review: <track-name>` | Validates Billy's draft findings against real code. Produces final Validated Rework Plan. |
-| **5. Write Artifacts** | Claude | — | Writes `rework-plan.md` and updates `index.md` from Chen's validated output. |
-| **6. Rework** | Gemini CLI | — | Executes `rework-plan.md` 🔴 first, then 🟡. Re-triggers Billy QA. |
-| **7. Review** | Claude | — | Architectural review after Billy+Chen approve (status = `Verified`). |
+| **1. Plan** | **Architect** | `Architect: <task>` | Analyzes code, creates `plan.md`, updates `index.md`. |
+| **2. Build** | **Implementer** | `Go` | Automatically finds the active plan and executes the **entire track**. |
+| **3. Report** | **Implementer** | `Summary` | Generates `execution-summary.md`. |
+| **4. QA Audit**| **Auditor** | `QA: <track-name>` | Runs lint/build, audits code vs `plan.md`, produces **Draft QA Report**. |
+| **5. Rework** | **Implementer** | — | Executes `rework-plan.md` 🔴 first, then 🟡. |
+| **6. Finalize**| **Architect** | — | Final verification and status update to `Verified`. |
+
+---
+
+## Technical Standards
+
+All agents must adhere to the [Universal Agent Protocol](file:///C:/dev/projectERP/docs/skills/universal_agent_rules.md) and use the [Master Database Schema](file:///C:/dev/projectERP/docs/SCHEMA.md) for data integrity.
 
 ## The Workflow
 
 1.  **Requirement Analysis (Chen):** The user provides requirements. Chen analyzes the codebase, designs the solution, and breaks it down into a technical specification.
 2.  **Task Planning (Chen):** Chen creates a new "Track" in `conductor/tracks/<feature-name>/plan.md` including a QA Checklist.
 3.  **Implementation (Gemini CLI):** The user directs Gemini CLI to execute the plan. Gemini reads the plan, modifies the code, runs tests, and updates task checkboxes.
-4.  **Verification (Gemini CLI):** Gemini CLI creates an `execution-summary.md` in the track folder.
-5.  **QA Draft (Billy):** Trigger with `QA: <track-name>`. Billy runs `npm run lint` + `npm run build`, audits all modified files against `plan.md`, and produces a **Draft QA Report** labeled `[DRAFT — Pending Chen Validation]`. Billy does NOT write `rework-plan.md` or update `index.md`.
-6.  **QA Validation (Chen):** Claude routes Billy's draft to Chen via `QA-Review: <track-name>`. Chen reads the actual implementation files, validates each finding (Confirmed / Downgraded / Dismissed), and produces a **Validated Rework Plan**. Chen may add missed findings or flag scope drift.
-7.  **Write Artifacts (Claude):** Claude writes `conductor/tracks/<track-name>/rework-plan.md` from Chen's validated output. Claude updates `index.md` status: `Rework Required` · `Optimization Suggested` · `Verified`.
-8.  **Rework (Gemini CLI):** If `Rework Required`, Gemini executes `rework-plan.md` 🔴 items first, then 🟡. Re-triggers Billy QA → Chen validation cycle.
-9.  **Architectural Review (Claude):** Final review after status reaches `Verified`.
+4.  **Knowledge Elevation (Gemini CLI):** Before finalizing, Gemini MUST update `_notes/02_Agent_Memory/current-state.md`, `docs/SCHEMA.md`, and relevant module notes with all new technical facts (DB schema, API routes, logic traps).
+5.  **Verification (Gemini CLI):** Gemini CLI runs `npm run qa:verify` (which includes `check:notes`) to ensure documentation is in sync. Then creates an `execution-summary.md` in the track folder.
+6.  **QA Draft (Billy):** Trigger with `QA: <track-name>`. Billy runs `npm run lint` + `npm run build` + `npm run check:notes`, audits all modified files against `plan.md`, and produces a **Draft QA Report** labeled `[DRAFT — Pending Chen Validation]`. Billy does NOT write `rework-plan.md` or update `index.md`.
+7.  **QA Validation (Chen):** Claude routes Billy's draft to Chen via `QA-Review: <track-name>`. Chen reads the actual implementation files, validates each finding (Confirmed / Downgraded / Dismissed), and produces a **Validated Rework Plan**. Chen may add missed findings or flag scope drift.
+8.  **Write Artifacts (Claude):** Claude writes `conductor/tracks/<track-name>/rework-plan.md` from Chen's validated output. Claude updates `index.md` status: `Rework Required` · `Optimization Suggested` · `Verified`.
+9.  **Rework (Gemini CLI):** If `Rework Required`, Gemini executes `rework-plan.md` 🔴 items first, then 🟡. Re-triggers Billy QA → Chen validation cycle.
+10. **Architectural Review (Claude):** Final review after status reaches `Verified`.
 
 ## File Structure
 

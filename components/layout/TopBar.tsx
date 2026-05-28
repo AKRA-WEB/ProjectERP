@@ -27,6 +27,10 @@ export function TopBar({ onMenuToggle, sidebarOpen, userName, userRole, onSignOu
     'receiving': '/app/grn',
     'ap': '/app/ap',
     'inventory': '/app/inventory',
+    'purchasing': '/app/purchase-requests',
+    'rebate': '/app/rebate/contracts',
+    'analytics': '/app/analytics/sku-cut',
+    'sales': '/app/sales-quotations',
   };
 
   const breadcrumbs = segments.map((s, i) => {

@@ -10,7 +10,7 @@ updated: 2026-05-15
 # Track: UI Improvement — WMS Operations (GRN Tabs · QC KPIs · Receiving Queue)
 
 **Status:** Completed
-**Design Reference:** `docs/design/wms.jsx` → `GRNView`, `QCView`, `ReceivingQueueView`
+**Design Reference:** `_notes/99_Assets/design/wms.jsx` → `GRNView`, `QCView`, `ReceivingQueueView`
 **Goal:** Improve three WMS operational pages: list status categorization, visual QC performance metrics, and a dedicated receiving queue page.
 
 ---

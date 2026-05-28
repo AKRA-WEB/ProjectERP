@@ -1,10 +1,11 @@
 import { auth } from '@/auth';
 import { apiSuccess, apiError, apiValidationError } from '@/lib/api-response';
-import { buildWarehouseScopeClause, assertRole } from '@/lib/authz';
+import { assertRole } from '@/lib/authz';
 import pool, { query, queryOne } from '@/lib/db/client';
 import { z } from 'zod';
 import { DEFAULT_PAGE_SIZE } from '@/lib/constants';
 import type { SessionUser } from '@/types';
+import { getGRNPage } from '@/lib/queries/grn';
 
 const lineSchema = z.object({
   po_line_item_id: z.string().uuid().optional(),
@@ -63,48 +64,12 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const page = Math.max(1, Number(searchParams.get('page') ?? 1));
   const limit = Math.min(100, Number(searchParams.get('limit') ?? DEFAULT_PAGE_SIZE));
-  const offset = (page - 1) * limit;
-  const status = searchParams.get('status');
-  const warehouseId = searchParams.get('warehouse_id');
-  const poId = searchParams.get('po_id');
+  const status = searchParams.get('status') ?? undefined;
+  const warehouseId = searchParams.get('warehouse_id') ?? undefined;
+  const poId = searchParams.get('po_id') ?? undefined;
 
-  const conditions: string[] = [];
-  const params: unknown[] = [];
-  let idx = 1;
-
-  const scope = buildWarehouseScopeClause(u, 'g.warehouse_id', idx);
-  if (scope) { conditions.push(scope.clause); params.push(...scope.params); idx += scope.params.length; }
-
-  if (status) { conditions.push(`g.status = $${idx++}`); params.push(status); }
-  if (warehouseId) { conditions.push(`g.warehouse_id = $${idx++}`); params.push(warehouseId); }
-  if (poId) { conditions.push(`g.po_id = $${idx++}`); params.push(poId); }
-
-  const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
-  const [total] = await query<{ count: string }>(`SELECT COUNT(*) FROM goods_receipt_notes g ${where}`, params);
-
-  const rows = await query(
-    `SELECT g.id, g.grn_number, g.status, g.received_date, g.created_at,
-            g.split_from_grn_id,
-            po.po_number,
-            io.io_number,
-            g.po_id,
-            g.inbound_order_id,
-            w.code AS warehouse_code, w.name_th AS warehouse_name,
-            u.name_en AS received_by_name, COUNT(li.id) AS line_count
-     FROM goods_receipt_notes g
-     LEFT JOIN purchase_orders po ON po.id = g.po_id
-     LEFT JOIN inbound_orders io ON io.id = g.inbound_order_id
-     JOIN warehouses w ON w.id = g.warehouse_id
-     JOIN users u ON u.id = g.received_by
-     LEFT JOIN grn_line_items li ON li.grn_id = g.id
-     ${where}
-     GROUP BY g.id, po.po_number, io.io_number, w.code, w.name_th, u.name_en
-     ORDER BY g.created_at DESC
-     LIMIT $${idx++} OFFSET $${idx++}`,
-    [...params, limit, offset]
-  );
-
-  return apiSuccess({ data: rows, total: Number(total.count), page, limit, total_pages: Math.ceil(Number(total.count) / limit) });
+  const result = await getGRNPage(u, { page, limit, status, warehouse_id: warehouseId, po_id: poId });
+  return apiSuccess(result);
 }
 
 export async function POST(req: Request) {

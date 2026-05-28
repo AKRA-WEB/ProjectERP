@@ -10,7 +10,7 @@ updated: 2026-05-20
 # Track: UI Improvement — Inventory Stock Balances (Heatmap Matrix)
 
 **Status:** Completed
-**Design Reference:** `docs/design/wms.jsx` → `StockBalancesView`
+**Design Reference:** `_notes/99_Assets/design/wms.jsx` → `StockBalancesView`
 **Goal:** Redesign `app/app/inventory/page.tsx` from a plain flat table (old gray design system) into the design's warehouse × SKU heatmap matrix with warehouse summary cards.
 
 ---

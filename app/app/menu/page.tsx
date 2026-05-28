@@ -103,8 +103,8 @@ interface ModuleCard {
 
 const MODULE_CONFIG: ModuleCard[] = [
   { id: 'pos', nameTh: 'POS', nameEn: 'หน้าร้าน', icon: PosIcon, href: '/app/pos', permission: 'pos:cashier', accent: '#b85c3c' },
-  { id: 'sales', nameTh: 'ขาย', nameEn: 'Sales', icon: SalesIcon, href: '#', isStub: true, permission: 'sales:view', accent: '#3a7a7a' },
-  { id: 'purchasing', nameTh: 'จัดซื้อ', nameEn: 'Purchasing', icon: PurchasingIcon, href: '#', isStub: true, permission: 'purchasing:view', accent: '#4f5d8a' },
+  { id: 'sales', nameTh: 'ขาย', nameEn: 'Sales', icon: SalesIcon, href: '/app/sales-quotations', permission: 'sales:view', accent: '#3a7a7a' },
+  { id: 'purchasing', nameTh: 'จัดซื้อ', nameEn: 'Purchasing', icon: PurchasingIcon, href: '/app/purchase-requests', permission: 'purchasing:view', accent: '#4f5d8a' },
   { id: 'wms', nameTh: 'คลังสินค้า', nameEn: 'Warehouse', icon: WmsIcon, href: '/app/dashboard', permission: 'dashboard:view', accent: '#5b7a99' },
   { id: 'accounting', nameTh: 'บัญชี', nameEn: 'Accounting', icon: AccIcon, href: '/app/accounting/chart-of-accounts', permission: 'accounts:view', accent: '#a98038' },
   { id: 'hr', nameTh: 'บุคคล', nameEn: 'HR', icon: HrIcon, href: '/app/hr/employees', permission: 'hr:employees:view', accent: '#6b8e6f' },

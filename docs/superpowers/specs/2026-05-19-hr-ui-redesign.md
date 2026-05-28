@@ -1,13 +1,13 @@
 # HR Module UI Redesign Spec
 **Date:** 2026-05-19  
-**Source design:** `docs/design/hr-bundle/`  
+**Source design:** `_notes/99_Assets/design/hr-bundle/`  
 **Scope:** 4 redesigned pages + sidebar update + 13 stub routes + supporting APIs
 
 ---
 
 ## 1. Overview
 
-Redesign 4 HR pages to match the `docs/design/hr-bundle/` mockups:
+Redesign 4 HR pages to match the `_notes/99_Assets/design/hr-bundle/` mockups:
 - HR Dashboard (`/app/hr`)
 - Employees (`/app/hr/employees`)
 - Leave Requests (`/app/hr/leave-requests`)
