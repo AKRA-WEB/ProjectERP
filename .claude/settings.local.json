@@ -68,17 +68,6 @@
     ]
   },
   "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File C:\\dev\\projectERP\\.claude\\hooks\\obsidian-sync.ps1"
-          }
-        ]
-      }
-    ],
     "UserPromptSubmit": [
       {
         "hooks": [
