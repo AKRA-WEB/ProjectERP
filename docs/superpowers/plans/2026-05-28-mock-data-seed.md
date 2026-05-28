@@ -55,7 +55,7 @@
 **Files:**
 - Create: `lib/db/seed.js`
 
-- [ ] **Step 1: Create file with DB connection + helper functions**
+- [x] **Step 1: Create file with DB connection + helper functions**
 
 ```javascript
 'use strict';
@@ -138,7 +138,7 @@ async function main() {
 main();
 ```
 
-- [ ] **Step 2: Verify script can connect (no data yet)**
+- [x] **Step 2: Verify script can connect (no data yet)**
 
 ```bash
 npm run migrate:seed
@@ -153,7 +153,7 @@ Expected: error "No admin user found" OR "✅ Seed complete." depending on wheth
 **Files:**
 - Modify: `lib/db/seed.js` — add `seedCategories` and `seedProducts`
 
-- [ ] **Step 1: Add seedCategories**
+- [x] **Step 1: Add seedCategories**
 
 ```javascript
 async function seedCategories(users, wh, uoms) {
@@ -178,7 +178,7 @@ async function seedCategories(users, wh, uoms) {
 }
 ```
 
-- [ ] **Step 2: Add seedProducts**
+- [x] **Step 2: Add seedProducts**
 
 ```javascript
 async function seedProducts(users, wh, uoms) {
@@ -218,7 +218,7 @@ async function seedProducts(users, wh, uoms) {
 }
 ```
 
-- [ ] **Step 3: Run to verify**
+- [x] **Step 3: Run to verify**
 
 ```bash
 npm run migrate:seed
@@ -232,7 +232,7 @@ Expected output includes:
 
 Second run: both show `0 row(s)` (idempotent).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add lib/db/seed.js
@@ -246,7 +246,7 @@ git commit -m "feat(seed): add categories and products"
 **Files:**
 - Modify: `lib/db/seed.js` — add `seedVendors`
 
-- [ ] **Step 1: Add seedVendors**
+- [x] **Step 1: Add seedVendors**
 
 ```javascript
 async function seedVendors(users, wh, uoms) {
@@ -302,7 +302,7 @@ async function seedVendors(users, wh, uoms) {
 }
 ```
 
-- [ ] **Step 2: Run and verify**
+- [x] **Step 2: Run and verify**
 
 ```bash
 npm run migrate:seed
@@ -314,7 +314,7 @@ Expected:
   ✓ vendor_products: 10 row(s)
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add lib/db/seed.js
@@ -328,7 +328,7 @@ git commit -m "feat(seed): add vendors and vendor_products"
 **Files:**
 - Modify: `lib/db/seed.js` — add `seedCustomers`
 
-- [ ] **Step 1: Add seedCustomers**
+- [x] **Step 1: Add seedCustomers**
 
 ```javascript
 async function seedCustomers(users, wh, uoms) {
@@ -357,7 +357,7 @@ async function seedCustomers(users, wh, uoms) {
 }
 ```
 
-- [ ] **Step 2: Run and verify**
+- [x] **Step 2: Run and verify**
 
 ```bash
 npm run migrate:seed
@@ -365,7 +365,7 @@ npm run migrate:seed
 
 Expected: `✓ customers: 8 row(s)`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add lib/db/seed.js
@@ -379,7 +379,7 @@ git commit -m "feat(seed): add customers"
 **Files:**
 - Modify: `lib/db/seed.js` — add `seedPricingAndMembers`
 
-- [ ] **Step 1: Add seedPricingAndMembers**
+- [x] **Step 1: Add seedPricingAndMembers**
 
 ```javascript
 async function seedPricingAndMembers(users, wh, uoms) {
@@ -429,7 +429,7 @@ async function seedPricingAndMembers(users, wh, uoms) {
 }
 ```
 
-- [ ] **Step 2: Run and verify**
+- [x] **Step 2: Run and verify**
 
 ```bash
 npm run migrate:seed
@@ -441,7 +441,7 @@ Expected:
   ✓ pos_members: 3 row(s)
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add lib/db/seed.js
@@ -455,7 +455,7 @@ git commit -m "feat(seed): add product prices and POS members"
 **Files:**
 - Modify: `lib/db/seed.js` — add `seedStock`
 
-- [ ] **Step 1: Add seedStock**
+- [x] **Step 1: Add seedStock**
 
 ```javascript
 async function seedStock(users, wh, uoms) {
@@ -507,7 +507,7 @@ async function seedStock(users, wh, uoms) {
 }
 ```
 
-- [ ] **Step 2: Run and verify**
+- [x] **Step 2: Run and verify**
 
 ```bash
 npm run migrate:seed
@@ -525,7 +525,7 @@ WHERE w.code IN ('W1','W2','W3')
 ORDER BY p.sku, w.code;
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add lib/db/seed.js
@@ -539,7 +539,7 @@ git commit -m "feat(seed): add initial stock via stock_ledger"
 **Files:**
 - Modify: `lib/db/seed.js` — add `seedPurchaseFlow`
 
-- [ ] **Step 1: Add seedPurchaseFlow**
+- [x] **Step 1: Add seedPurchaseFlow**
 
 ```javascript
 async function seedPurchaseFlow(users, wh, uoms) {
@@ -702,7 +702,7 @@ async function seedPurchaseFlow(users, wh, uoms) {
 }
 ```
 
-- [ ] **Step 2: Run and verify**
+- [x] **Step 2: Run and verify**
 
 ```bash
 npm run migrate:seed
@@ -722,7 +722,7 @@ Expected output:
 Navigate to `/purchase-requests` — should see 2 PRs with approve buttons.  
 Navigate to `/grn` — should see 2 GRNs, one with QC button, one with Stock button.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add lib/db/seed.js
@@ -736,7 +736,7 @@ git commit -m "feat(seed): add purchase flow PR/PO/GRN"
 **Files:**
 - Modify: `lib/db/seed.js` — add `seedSalesFlow`
 
-- [ ] **Step 1: Add seedSalesFlow**
+- [x] **Step 1: Add seedSalesFlow**
 
 ```javascript
 async function seedSalesFlow(users, wh, uoms) {
@@ -846,7 +846,7 @@ async function seedSalesFlow(users, wh, uoms) {
 }
 ```
 
-- [ ] **Step 2: Run and verify**
+- [x] **Step 2: Run and verify**
 
 ```bash
 npm run migrate:seed
@@ -862,7 +862,7 @@ Expected:
 
 Navigate to `/sales-orders` — 2 orders visible. Navigate to `/delivery-orders` — 1 DO with Ship button.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add lib/db/seed.js
@@ -876,7 +876,7 @@ git commit -m "feat(seed): add sales flow SQ/SO/DO"
 **Files:**
 - Modify: `lib/db/seed.js` — add `seedPosSession`
 
-- [ ] **Step 1: Add seedPosSession**
+- [x] **Step 1: Add seedPosSession**
 
 ```javascript
 async function seedPosSession(users, wh, uoms) {
@@ -897,7 +897,7 @@ async function seedPosSession(users, wh, uoms) {
 }
 ```
 
-- [ ] **Step 2: Run and verify**
+- [x] **Step 2: Run and verify**
 
 ```bash
 npm run migrate:seed
@@ -907,7 +907,7 @@ Expected: `✓ pos_sessions (open): 1 row(s)`
 
 Navigate to `/pos/session/[id]` — session should be open, ready to sell.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add lib/db/seed.js
@@ -921,7 +921,7 @@ git commit -m "feat(seed): add open POS session"
 **Files:**
 - Modify: `lib/db/seed.js` — add `seedHR`
 
-- [ ] **Step 1: Add seedHR**
+- [x] **Step 1: Add seedHR**
 
 ```javascript
 async function seedHR(users, wh, uoms) {
@@ -1003,7 +1003,7 @@ async function seedHR(users, wh, uoms) {
 }
 ```
 
-- [ ] **Step 2: Run and verify**
+- [x] **Step 2: Run and verify**
 
 ```bash
 npm run migrate:seed
@@ -1020,7 +1020,7 @@ Expected:
 
 Navigate to `/hr` — leave requests visible, attendance for current month populated.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add lib/db/seed.js
@@ -1034,7 +1034,7 @@ git commit -m "feat(seed): add HR leave types, balances, requests, attendance"
 **Files:**
 - Modify: `lib/db/seed.js` — add `seedAccounting`
 
-- [ ] **Step 1: Add seedAccounting**
+- [x] **Step 1: Add seedAccounting**
 
 ```javascript
 async function seedAccounting(users, wh, uoms, accounts) {
@@ -1121,7 +1121,7 @@ async function seedAccounting(users, wh, uoms, accounts) {
 }
 ```
 
-- [ ] **Step 2: Run and verify**
+- [x] **Step 2: Run and verify**
 
 ```bash
 npm run migrate:seed
@@ -1136,7 +1136,7 @@ Expected:
 
 Navigate to `/accounting` — fiscal periods populated, 2 JEs visible.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add lib/db/seed.js
@@ -1150,7 +1150,7 @@ git commit -m "feat(seed): add accounting fiscal periods and journal entries"
 **Files:**
 - Modify: `lib/db/seed.js` — add `seedMisc`
 
-- [ ] **Step 1: Add seedMisc**
+- [x] **Step 1: Add seedMisc**
 
 ```javascript
 async function seedMisc(users, wh, uoms) {
@@ -1236,7 +1236,7 @@ async function seedMisc(users, wh, uoms) {
 }
 ```
 
-- [ ] **Step 2: Run and verify**
+- [x] **Step 2: Run and verify**
 
 ```bash
 npm run migrate:seed
@@ -1250,7 +1250,7 @@ Expected:
   ✓ cycle_counts (counting): 1 row(s)
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add lib/db/seed.js
@@ -1264,7 +1264,7 @@ git commit -m "feat(seed): add transfer, RMA, claim, cycle count"
 **Files:**
 - Modify: `lib/db/seed.js` — add `seedBomAndRebate`
 
-- [ ] **Step 1: Add seedBomAndRebate**
+- [x] **Step 1: Add seedBomAndRebate**
 
 ```javascript
 async function seedBomAndRebate(users, wh, uoms) {
@@ -1331,7 +1331,7 @@ async function seedBomAndRebate(users, wh, uoms) {
 }
 ```
 
-- [ ] **Step 2: Run full seed end-to-end**
+- [x] **Step 2: Run full seed end-to-end**
 
 ```bash
 npm run migrate:seed
@@ -1341,7 +1341,7 @@ Expected — all modules print row counts, final line: `✅ Seed complete.`
 
 Second run: all modules show `0 row(s)` (idempotent confirmed).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add lib/db/seed.js
@@ -1352,13 +1352,13 @@ git commit -m "feat(seed): add BOM and rebate contracts"
 
 ## Task 14: Smoke test all module pages
 
-- [ ] **Start dev server**
+- [x] **Start dev server**
 
 ```bash
 npm run dev
 ```
 
-- [ ] **Walk through each module and verify clickable actions**
+- [x] **Walk through each module and verify clickable actions**
 
 | URL | Expected |
 |-----|----------|
@@ -1382,7 +1382,7 @@ npm run dev
 | `/replenish` | Suggestions visible (if replenish job run) |
 | `/analytics/sku-performance` | SKU data visible |
 
-- [ ] **Run QA check**
+- [x] **Run QA check**
 
 ```bash
 npm run qa:verify
@@ -1390,7 +1390,7 @@ npm run qa:verify
 
 Expected: 0 errors (seed.js is JS, not TS — no tsc errors from it).
 
-- [ ] **Final commit**
+- [x] **Final commit**
 
 ```bash
 git add lib/db/seed.js
