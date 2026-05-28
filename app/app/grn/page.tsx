@@ -295,7 +295,7 @@ function GRNDetailModal({
 export default function GRNPage() {
   const { data: session } = useSession();
   const [data, setData] = useState<PaginatedResponse<GRN> | null>(null);
-  const [allGRNs, setAllGRNs] = useState<GRN[]>([]);
+  const [tabCounts, setTabCounts] = useState<Record<string, number>>({});
   const [page, setPage] = useState(1);
   const [tab, setTab] = useState('');
   const [loading, setLoading] = useState(true);
@@ -328,10 +328,10 @@ export default function GRNPage() {
     } finally { setLoading(false); }
   }, [page, tab, warehouseFilter]);
 
-  const fetchAllGRNsForStats = useCallback(async () => {
+  const fetchStatusCounts = useCallback(async () => {
     try {
-      const res = await get<PaginatedResponse<GRN>>('/api/grn?limit=1000');
-      setAllGRNs(res.data);
+      const counts = await get<Record<string, number>>('/api/grn/status-counts');
+      setTabCounts(counts);
     } catch {}
   }, []);
 
@@ -342,7 +342,7 @@ export default function GRNPage() {
   }, []);
 
   useEffect(() => { fetchGRNs(); }, [fetchGRNs]);
-  useEffect(() => { fetchAllGRNsForStats(); }, [fetchAllGRNsForStats, tab]);
+  useEffect(() => { fetchStatusCounts(); }, [fetchStatusCounts]);
 
   async function openModal(g: GRN) {
     setModalLoading(true);
@@ -390,20 +390,10 @@ export default function GRNPage() {
     }) ?? [];
   }, [data, search, receiverFilter, timeFilter]);
 
-  // Generate dynamic stats counter based on allGRNs list
-  const tabCounts = {
-    all: allGRNs.length,
-    draft: allGRNs.filter(g => g.status === 'draft').length,
-    received: allGRNs.filter(g => g.status === 'received').length,
-    qc_pending: allGRNs.filter(g => g.status === 'qc_pending').length,
-    qc_passed: allGRNs.filter(g => g.status === 'qc_passed').length,
-    qc_failed: allGRNs.filter(g => g.status === 'qc_failed').length,
-    verified: allGRNs.filter(g => g.status === 'verified').length,
-    stocked: allGRNs.filter(g => g.status === 'stocked').length,
-  };
+  const getTabCount = (status: string) => tabCounts[status] ?? 0;
 
   // Get dynamic unique receivers for filter dropdown
-  const uniqueReceivers = Array.from(new Set(allGRNs.map((g) => g.received_by_name))).filter(Boolean);
+  const uniqueReceivers = Array.from(new Set((data?.data ?? []).map((g) => g.received_by_name))).filter(Boolean);
 
   // Keyboard navigation logic
   useEffect(() => {
@@ -475,7 +465,9 @@ export default function GRNPage() {
         {/* 8 Status Tabs */}
         <div className="flex gap-0 border-b border-stone-200 overflow-x-auto scrollbar-none whitespace-nowrap">
           {TABS.map((t) => {
-            const count = tabCounts[t.id === '' ? 'all' : (t.id as keyof typeof tabCounts)] ?? 0;
+            const count = t.id === '' 
+              ? Object.values(tabCounts).reduce((a, b) => a + b, 0)
+              : getTabCount(t.id);
             const isQCPending = t.id === 'qc_pending';
             return (
               <button

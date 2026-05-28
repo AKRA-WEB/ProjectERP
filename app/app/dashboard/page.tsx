@@ -202,17 +202,19 @@ function AuditorDashboard() {
   useEffect(() => {
     async function fetchAuditorStats() {
       try {
-        const periods = await get<DashboardPeriod[]>('/api/accounting/fiscal-periods');
-        const activePeriods = periods.filter(p => p.status === 'open').length;
-        
-        const jeResponse = await get<{ data?: DashboardJournalEntry[] }>('/api/accounting/journal-entries?limit=5');
-        const jeList = jeResponse?.data || [];
-        
-        const whtResponse = await get<DashboardWhtResponse>('/api/ap/wht?limit=1');
-        const whtCount = whtResponse?.total ?? 0;
+        const [periods, jeResponse, whtResponse, apResponse] = await Promise.all([
+          get<DashboardPeriod[]>('/api/accounting/fiscal-periods'),
+          get<{ data?: DashboardJournalEntry[] }>('/api/accounting/journal-entries?limit=5'),
+          get<DashboardWhtResponse>('/api/ap/wht?limit=1'),
+          get<DashboardApResponse>('/api/ap/invoices?is_paid=false'),
+        ]);
 
-        const apResponse = await get<DashboardApResponse>('/api/ap/invoices?is_paid=false');
-        const outstandingAp = apResponse?.invoices?.reduce((sum: number, inv: DashboardInvoice) => sum + Number(inv.outstanding_amount), 0) ?? 0;
+        const activePeriods = periods.filter((p: DashboardPeriod) => p.status === 'open').length;
+        const jeList = jeResponse?.data || [];
+        const whtCount = whtResponse?.total ?? 0;
+        const outstandingAp = apResponse?.invoices?.reduce(
+          (sum: number, inv: DashboardInvoice) => sum + Number(inv.outstanding_amount), 0
+        ) ?? 0;
 
         setStats({
           periodsCount: activePeriods,
