@@ -4,6 +4,7 @@ import { assertRole } from '@/lib/authz';
 import { query, queryOne } from '@/lib/db/client';
 import { z } from 'zod';
 import type { SessionUser } from '@/lib/authz';
+import { getWarehouses } from '@/lib/queries/admin';
 
 const createSchema = z.object({
   code: z.string().min(1).max(20),
@@ -17,14 +18,7 @@ export async function GET() {
   const session = await auth();
   if (!session?.user) return apiError('Unauthorized', 401);
 
-  const warehouses = await query(
-    `SELECT w.*, COUNT(uwa.user_id) AS user_count
-     FROM warehouses w
-     LEFT JOIN user_warehouse_assignments uwa ON uwa.warehouse_id = w.id
-     WHERE w.code NOT LIKE 'V-%'
-     GROUP BY w.id
-     ORDER BY w.code`
-  );
+  const warehouses = await getWarehouses();
   return apiSuccess(warehouses);
 }
 
