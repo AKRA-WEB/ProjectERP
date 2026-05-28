@@ -6,11 +6,11 @@ updated_by: Gemini
 # Project Current State — Anti-Context-Loss Briefing
 
 ## Last 5 Completed Tracks
+- **mock-data-seed**: Implemented `lib/db/seed.js` script to populate all BUYMORE ERP database modules with highly realistic, bilingual Thai/English mock data, making all pages/actions fully functional and clickable without manual data entry. Confirmed 100% clean Next.js lint and `tsc --noEmit` validation results (2026-05-28)
 - **perf-tier3-frontend-bundle**: Integrated `@next/bundle-analyzer` and executed bundle size audit on client bundles and routes. Confirmed exceptional baseline performance with 112 kB shared JS bundle size and page sizes ranging from 115 kB to 156 kB, rendering manual component-level dynamic imports unnecessary (2026-05-27)
 - **perf-tier2-materialized-views**: Replaced 5 of 9 parallel queries in `/api/hr/stats` with a single fast read from the new PostgreSQL materialized view `hr_stats_snapshot` (refreshed nightly via Vercel Cron Job at 01:00 UTC, and on-demand via a new authenticated `/api/admin/snapshots/refresh` route). Also added high-performance composite indexes for attendance and leave queries (2026-05-27)
 - **perf-tier1-connection-query**: Optimized PostgreSQL pool connection limits (max: 1, idleTimeoutMillis: 0, ssl enabled) for Next.js serverless and Supabase Transaction Pooler, created index `idx_ledger_cost_lookup` on stock_ledger, and eliminated O(N^2) FIFO N+1 LATERAL queries with O(N) CTE DISTINCT ON lookup (2026-05-27)
 - **field-sales-geo-tracking**: Enforced geo-tagged customer check-in on mobile-responsive UI before field sales agents can book orders, created table `field_sales_checkins` for coordinate indexing, exposed endpoints for checkin/checkout/today logs, and created manager interactive SVG tracking dashboard (2026-05-26)
-- **rebate-management**: Implemented end-to-end vendor rebate contract tracking (volume-tier/period-based), automated nightly & on-demand accruals calculation, designed high-fidelity reactive dashboards, and executed manager-authorised realisation posting inter-company double-entry journal entries: DR 1220 Rebate Receivable / CR 4300 Rebate Income or 5100 COGS (2026-05-26)
 
 ## Active Work
 - None.
