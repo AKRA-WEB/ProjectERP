@@ -15,11 +15,11 @@ updated_by: Gemini
 - **Accounting:** Chart of Accounts, JE Posting, 3-Way Match (v070), Thai VAT (v071).
 
 ## Last 5 Completed Tracks
+- **perf-tier4-suspense-streaming**: Converted Dashboard, GRN, Inventory, AP, and SKU-Cut pages to React Server Components (RSC) with parallel server-side `Promise.all` database fetches via a unified `lib/queries/` database query layer. Fixed sequential API fetch blockages on the client-side, replaced expensive `limit=1000` GRN scans with an optimized `GROUP BY` counts endpoint, and created 6 animated loading skeletons. Verified ~85% reduction in first-load hydration latency (2026-05-28)
 - **seed-ap-invoices-stocked-grns**: Extended `lib/db/seed.js` with `seedStockedGrnsAndInvoices()` to seed 2 stocked GRNs (PKG-002/BEV-001 in W2), 2 fully-received POs, 2 stock ledger entries, and 1 matched + 1 mismatched AP invoice. Fixed BEFORE INSERT trigger FK race on `po_invoice_match_variances` by inserting at matched amount then UPDATE to mismatch. All acceptance criteria verified (2026-05-28)
 - **grn-reversal**: Implemented strict reversal/cancellation for stocked Goods Receipt Notes, creating negative stock ledger entries to decrement stock on-hand, voiding linked AP invoices, reverting PO status when sole active GRN, and rendering premium supervisor confirmation & detailed outbound consumption blocking UI (2026-05-28)
 - **thai-vat-report**: Designed and implemented monthly purchase and sales VAT reports (ภ.พ.30) with dynamic calculations, created `/api/accounting/vat/purchase` and `/sales` routes, implemented administrative period locking with persistent snapshots in `vat_report_runs` (`/api/accounting/vat/finalize`), and built a premium responsive tabbed UI page with Excel-friendly UTF-8 BOM CSV exports (2026-05-28)
 - **three-way-matching**: Installed strict three-way matching trigger `reconcile_po_invoice` on `po_invoices`, blocked AP payments when not fully matched with HTTP 422, created a manager review queue page at `app/app/ap/match-queue`, and surfaced variances side-by-side (2026-05-28)
-- **mock-data-seed**: Implemented `lib/db/seed.js` script to populate all BUYMORE ERP database modules with highly realistic, bilingual Thai/English mock data, making all pages/actions fully functional and clickable without manual data entry. Confirmed 100% clean Next.js lint and `tsc --noEmit` validation results (2026-05-28)
 
 ## Active Work
 - None.
@@ -70,6 +70,7 @@ updated_by: Gemini
 
 ## API Routes
 - **POST /api/grn/[id]/cancel**: Cancels/reverses a stocked GRN under strict transaction boundaries, checking for outbound stock consumption and linked invoice payment status (v072).
+- **GET /api/grn/status-counts**: retrieves counts of Goods Receipt Notes grouped by status for highly-responsive tab-count summaries (v073).
 - **GET /api/accounting/vat/purchase**: retrieves purchase VAT lines (vendor, invoice, base, VAT 7%) dynamically or from snapshot (v071).
 - **GET /api/accounting/vat/sales**: retrieves sales VAT lines (POS/B2B invoice, base, VAT 7%) dynamically or from snapshot (v071).
 - **POST /api/accounting/vat/finalize**: freezes and snapshots the purchase/sales VAT lines for a given month+year (admin-only) (v071).

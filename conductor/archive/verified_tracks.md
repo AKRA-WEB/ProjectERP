@@ -70,3 +70,4 @@
 | [seed-ap-invoices-stocked-grns — Seed: AP Invoices + Stocked GRNs](./tracks/seed-ap-invoices-stocked-grns/plan.md) | Verified | 2026-05-28 | 2026-05-28 |
 | [price-history-alert-pos — Price-History Alert at POS](./tracks/price-history-alert-pos/plan.md) | Verified | 2026-05-24 | 2026-05-28 |
 | [wholecase-strict-lock-akra — Whole-Case Strict Lock (AKRA Channel)](./tracks/wholecase-strict-lock-akra/plan.md) | Verified | 2026-05-24 | 2026-05-28 |
+| [perf-tier4-suspense-streaming — Performance Tier 4 — RSC Streaming + Parallel Fetch Fixes](./tracks/perf-tier4-suspense-streaming/plan.md) | Verified | 2026-05-28 | 2026-05-28 |

@@ -1,7 +1,7 @@
 ---
 track: perf-tier4-suspense-streaming
 title: "Performance Tier 4 — RSC Streaming + Parallel Fetch Fixes"
-status: Active
+status: Verified
 created: 2026-05-28
 updated: 2026-05-28
 spec: docs/superpowers/specs/2026-05-28-perf-tier4-suspense-streaming-design.md

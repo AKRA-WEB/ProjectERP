@@ -1,7 +1,7 @@
 import { auth } from '@/auth';
 import { apiSuccess, apiError, apiValidationError } from '@/lib/api-response';
 import { assertRole } from '@/lib/authz';
-import { query, queryOne } from '@/lib/db/client';
+import { queryOne } from '@/lib/db/client';
 import { z } from 'zod';
 import type { SessionUser } from '@/lib/authz';
 import { getWarehouses } from '@/lib/queries/admin';

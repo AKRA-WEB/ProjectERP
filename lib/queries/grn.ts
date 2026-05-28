@@ -75,7 +75,7 @@ export async function getGRNPage(
 
 export async function getGRNStatusCounts(user: SessionUser): Promise<Record<string, number>> {
   const qParams: unknown[] = [];
-  let idx = 1;
+  const idx = 1;
   const scope = buildWarehouseScopeClause(user, 'g.warehouse_id', idx);
   const where = scope ? `WHERE ${scope.clause}` : '';
   if (scope) { qParams.push(...scope.params); }
@@ -92,13 +92,13 @@ export async function getGRNStatusCounts(user: SessionUser): Promise<Record<stri
 export async function getGRNQueueCounts(user: SessionUser): Promise<{ io: number; po: number }> {
   const ioConditions: string[] = ["io.status IN ('open', 'receiving')"];
   const ioParams: unknown[] = [];
-  let ioIdx = 1;
+  const ioIdx = 1;
   const ioScope = buildWarehouseScopeClause(user, 'io.warehouse_id', ioIdx);
   if (ioScope) { ioConditions.push(ioScope.clause); ioParams.push(...ioScope.params); }
 
   const poConditions: string[] = ["po.status IN ('sent', 'partially_received')", 'li.qty_ordered > li.qty_received'];
   const poParams: unknown[] = [];
-  let poIdx = 1;
+  const poIdx = 1;
   const poScope = buildWarehouseScopeClause(user, 'po.warehouse_id', poIdx);
   if (poScope) { poConditions.push(poScope.clause); poParams.push(...poScope.params); }
 

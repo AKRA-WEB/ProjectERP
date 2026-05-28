@@ -1,6 +1,6 @@
 import { auth } from '@/auth';
 import { apiSuccess, apiError, apiValidationError } from '@/lib/api-response';
-import { buildWarehouseScopeClause, assertRole } from '@/lib/authz';
+import { assertRole } from '@/lib/authz';
 import pool, { query, queryOne } from '@/lib/db/client';
 import { z } from 'zod';
 import { DEFAULT_PAGE_SIZE } from '@/lib/constants';
