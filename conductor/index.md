@@ -17,6 +17,7 @@
 
 | Track | Status | Plan |
 | --- | --- | --- |
+| perf-tier4-suspense-streaming | Active | [plan](tracks/perf-tier4-suspense-streaming/plan.md) |
 
 ## Performance Optimization Tracks (sequential — measure after each tier)
 
@@ -94,6 +95,7 @@ Master plan: [erp-v2-orion-roadmap](tracks/erp-v2-orion-roadmap/plan.md)
 |-------|--------|---------|--------------|| [Whole-Case Strict Lock (AKRA Channel)](./archive/tracks/wholecase-strict-lock-akra/plan.md) | Verified | 2026-05-24 | 2026-05-28 |
 | [Price-History Alert at POS](./archive/tracks/price-history-alert-pos/plan.md) | Verified | 2026-05-24 | 2026-05-28 |
 
+| [perf-tier4-suspense-streaming](./tracks/perf-tier4-suspense-streaming/plan.md) | Active | 2026-05-28 | 2026-05-28 |
 | [Seed: AP invoices + stocked GRNs](./archive/tracks/seed-ap-invoices-stocked-grns/plan.md) | Verified| 2026-05-28 | 2026-05-28 |
 | [GRN Reversal (Cancel Stocked GRN)](./archive/tracks/grn-reversal/plan.md) | Verified | 2026-05-28 | 2026-05-28 |
 | [Thai VAT Report (ภ.พ.30)](./archive/tracks/thai-vat-report/plan.md) | Verified | 2026-05-28 | 2026-05-28 |
