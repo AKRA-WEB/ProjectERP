@@ -57,7 +57,13 @@
       "Bash(Get-ChildItem \"C:\\\\dev\\\\projectERP\\\\app\\\\grn\" -Recurse -ErrorAction SilentlyContinue)",
       "Bash(Format-Table Name, FullName)",
       "Bash(mkdir -p \"C:/dev/projectERP/app/api/customers/[id]/credit-status\")",
-      "Bash(mkdir -p \"C:/dev/projectERP/app/api/customers/[id]/credit-release\")"
+      "Bash(mkdir -p \"C:/dev/projectERP/app/api/customers/[id]/credit-release\")",
+      "Bash(npx skills *)",
+      "Bash(npx tsx *)",
+      "Bash(echo \"PID: $!\")",
+      "Bash(Start-Sleep -Seconds 8)",
+      "Bash(Invoke-WebRequest -Uri \"http://localhost:3000\" -MaximumRedirection 0 -ErrorAction SilentlyContinue)",
+      "Bash(Select-Object StatusCode, Headers)"
     ]
   },
   "hooks": {

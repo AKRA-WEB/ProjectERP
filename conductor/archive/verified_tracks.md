@@ -64,3 +64,6 @@
 | [perf-tier1-connection-query — Performance Tier 1 — Connection Layer + FIFO Query Fix](./tracks/perf-tier1-connection-query/plan.md) | Verified | 2026-05-27 | 2026-05-27 |
 | [perf-tier2-materialized-views — Performance Tier 2 — Materialized Views + HR Composite Indexes](./tracks/perf-tier2-materialized-views/plan.md) | Verified | 2026-05-27 | 2026-05-27 |
 | [perf-tier3-frontend-bundle — Performance Tier 3 — Frontend Bundle Audit + Selective Dynamic Imports](./tracks/perf-tier3-frontend-bundle/plan.md) | Verified | 2026-05-27 | 2026-05-27 |
+| [three-way-matching — Three-Way Matching (Strict Zero Variance)](./tracks/three-way-matching/plan.md) | Verified | 2026-05-28 | 2026-05-28 |
+| [thai-vat-report — Thai VAT Report (ภ.พ.30)](./tracks/thai-vat-report/plan.md) | Verified | 2026-05-28 | 2026-05-28 |
+| [grn-reversal — GRN Reversal (Cancel Stocked GRN)](./tracks/grn-reversal/plan.md) | Verified | 2026-05-28 | 2026-05-28 |

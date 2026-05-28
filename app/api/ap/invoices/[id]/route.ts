@@ -42,7 +42,12 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     [id]
   );
 
-  return apiSuccess({ ...invoice, allocations });
+  const variances = await query(
+    `SELECT * FROM po_invoice_match_variances WHERE po_invoice_id = $1 ORDER BY created_at DESC`,
+    [id]
+  );
+
+  return apiSuccess({ ...invoice, allocations, variances });
 }
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {

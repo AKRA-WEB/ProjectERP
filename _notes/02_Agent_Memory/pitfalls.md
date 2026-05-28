@@ -43,5 +43,14 @@ This file records generic workflow and agent-behavior pitfalls. Specific domain 
 * **Symptom:** Gemini registers database migrations (e.g., T1) and prematurely marks the entire track status as `Verified` and executes `track:sweep` while the subsequent back-end API realignments (T2) and UI tasks (T3) are completely un-implemented.
 * **Root Cause:** Evaluator misinterpreting T1 database migration success as track completion or prioritizing fast checkboxes closure over total feature delivery (Happy-path Syndrome).
 * **Fix:** Never tick any checklist items or mark the track status as completed/verified until **all** Tasks (T1 through TN) specified in `plan.md` have been fully implemented in the code, verified with linter/typescript compiler passing cleanly, and verified as functionally operational.
+### 9. AP Payment 3-Way Match Blocks
+* **Symptom:** AP payment postings fail with HTTP 422 "Three-way match failed".
+* **Root Cause:** AP invoices that are not 100% matched to PO totals and received GRN values (status != 'matched') are strictly blocked at the backend.
+* **Fix:** Surface the Match Queue to AP staff for reconciliation and verification prior to executing bulk payment runs.
+
+### 10. GRN Reversal Outbound Consumption Block
+* **Symptom:** GRN cancellation attempts return HTTP 422 `CONSUMPTION_EXISTS` or `INSUFFICIENT_STOCK`.
+* **Root Cause:** Reversal of a stocked GRN is strictly blocked if any outbound movement (`pos_sale`, `so_delivery`, `transfer_out`) occurred for the same product and warehouse after the GRN's `stocked_at` timestamp, or if current stock balances on-hand are lower than the reversed quantity.
+* **Fix:** Guide the user/accountant to manually post a correcting Journal Entry (JE) or perform appropriate stock corrections when reversing is blocked by consumption.
 
 

@@ -22,9 +22,9 @@
 
 | # | Track | Status | Plan |
 | --- | --- | --- | --- |
-| P1 | perf-tier1-connection-query | Verified | [plan](tracks/perf-tier1-connection-query/plan.md) |
-| P2 | perf-tier2-materialized-views | Verified | [plan](tracks/perf-tier2-materialized-views/plan.md) |
-| P3 | perf-tier3-frontend-bundle | Verified | [plan](tracks/perf-tier3-frontend-bundle/plan.md) |
+| P1 | perf-tier1-connection-query | Verified | [plan](archive/tracks/perf-tier1-connection-query/plan.md) |
+| P2 | perf-tier2-materialized-views | Verified | [plan](archive/tracks/perf-tier2-materialized-views/plan.md) |
+| P3 | perf-tier3-frontend-bundle | Verified | [plan](archive/tracks/perf-tier3-frontend-bundle/plan.md) |
 
 ## Active Queue — V2.0 Orion Roadmap
 
@@ -33,44 +33,54 @@ Master plan: [erp-v2-orion-roadmap](tracks/erp-v2-orion-roadmap/plan.md)
 ### Phase 1 — V2.0 Foundation (sequential)
 | # | Track | Status | Plan |
 | --- | --- | --- | --- |
-| 1 | multi-bu-foundation | Verified | [plan](tracks/multi-bu-foundation/plan.md) |
-| 2 | wms-virtual-warehouses | Verified | [plan](tracks/wms-virtual-warehouses/plan.md) |
-| 3 | pricing-engine | Verified | [plan](tracks/pricing-engine/plan.md) |
-| 4 | manager-override-pin | Verified | [plan](tracks/manager-override-pin/plan.md) |
-| 5 | min-price-hardstop | Verified | [plan](tracks/min-price-hardstop/plan.md) |
-| 6 | credit-control-engine | Verified | [plan](tracks/credit-control-engine/plan.md) |
-| 7 | channel-on-order-header | Verified | [plan](tracks/channel-on-order-header/plan.md) |
-| 8 | pos-draft-and-hybrid-flow | Verified | [plan](tracks/pos-draft-and-hybrid-flow/plan.md) |
-| 9 | pos-delta-slip-and-versioning | Verified | [plan](tracks/pos-delta-slip-and-versioning/plan.md) |
-| 10 | dispatch-check-exit-gate | Verified | [plan](tracks/dispatch-check-exit-gate/plan.md) |
-| 11 | fefo-enforcement | Verified | [plan](tracks/fefo-enforcement/plan.md) |
-| 12 | strict-receiving-flow | Verified | [plan](tracks/strict-receiving-flow/plan.md) |
-| 14 | adjust-warehouses-and-thermal-zones | Verified | [plan](tracks/adjust-warehouses-and-thermal-zones/plan.md) |
-| 15 | operation-core-sync-orion-2026-05-24 | Verified | [plan](tracks/operation-core-sync-orion-2026-05-24/plan.md) |
+| 1 | multi-bu-foundation | Verified | [plan](archive/tracks/multi-bu-foundation/plan.md) |
+| 2 | wms-virtual-warehouses | Verified | [plan](archive/tracks/wms-virtual-warehouses/plan.md) |
+| 3 | pricing-engine | Verified | [plan](archive/tracks/pricing-engine/plan.md) |
+| 4 | manager-override-pin | Verified | [plan](archive/tracks/manager-override-pin/plan.md) |
+| 5 | min-price-hardstop | Verified | [plan](archive/tracks/min-price-hardstop/plan.md) |
+| 6 | credit-control-engine | Verified | [plan](archive/tracks/credit-control-engine/plan.md) |
+| 7 | channel-on-order-header | Verified | [plan](archive/tracks/channel-on-order-header/plan.md) |
+| 8 | pos-draft-and-hybrid-flow | Verified | [plan](archive/tracks/pos-draft-and-hybrid-flow/plan.md) |
+| 9 | pos-delta-slip-and-versioning | Verified | [plan](archive/tracks/pos-delta-slip-and-versioning/plan.md) |
+| 10 | dispatch-check-exit-gate | Verified | [plan](archive/tracks/dispatch-check-exit-gate/plan.md) |
+| 11 | fefo-enforcement | Verified | [plan](archive/tracks/fefo-enforcement/plan.md) |
+| 12 | strict-receiving-flow | Verified | [plan](archive/tracks/strict-receiving-flow/plan.md) |
+| 14 | adjust-warehouses-and-thermal-zones | Verified | [plan](archive/tracks/adjust-warehouses-and-thermal-zones/plan.md) |
+| 15 | operation-core-sync-orion-2026-05-24 | Verified | [plan](archive/tracks/operation-core-sync-orion-2026-05-24/plan.md) |
 | 16 | wholecase-strict-lock-akra | Verified | [plan](tracks/wholecase-strict-lock-akra/plan.md) |
 | 17 | price-history-alert-pos | Verified | [plan](tracks/price-history-alert-pos/plan.md) |
 
 ### Phase 2 — V2.0 Compliance
 | # | Track | Status | Plan |
 | --- | --- | --- | --- |
-| 18 | moving-average-cost | Verified | [plan](tracks/moving-average-cost/plan.md) |
-| 19 | vendor-wht-and-form-50 | Verified | [plan](tracks/vendor-wht-and-form-50/plan.md) |
-| 20 | auditor-role-and-readonly-access | Verified | [plan](tracks/auditor-role-and-readonly-access/plan.md) |
-| 21 | accounting-export-adapters | Verified | [plan](tracks/accounting-export-adapters/plan.md) |
+| 18 | moving-average-cost | Verified | [plan](archive/tracks/moving-average-cost/plan.md) |
+| 19 | vendor-wht-and-form-50 | Verified | [plan](archive/tracks/vendor-wht-and-form-50/plan.md) |
+| 20 | auditor-role-and-readonly-access | Verified | [plan](archive/tracks/auditor-role-and-readonly-access/plan.md) |
+| 21 | accounting-export-adapters | Verified | [plan](archive/tracks/accounting-export-adapters/plan.md) |
 
 ### Phase 3 — V2.1 Integrations
 | # | Track | Status | Plan |
 | --- | --- | --- | --- |
-| 22 | hrzoft-integration | Verified | [plan](tracks/hrzoft-integration/plan.md) |
-| 23 | auto-replenishment-w1-w2 | Verified | [plan](tracks/auto-replenishment-w1-w2/plan.md) |
+| 22 | hrzoft-integration | Verified | [plan](archive/tracks/hrzoft-integration/plan.md) |
+| 23 | auto-replenishment-w1-w2 | Verified | [plan](archive/tracks/auto-replenishment-w1-w2/plan.md) |
 
 ### Phase 4 — V2.2 Analytics
 | # | Track | Status | Plan |
 | --- | --- | --- | --- |
-| 24 | ai-sku-cut-and-s-curve-forecasting | Verified | [plan](tracks/ai-sku-cut-and-s-curve-forecasting/plan.md) |
-| 25 | npd-trial-tracking | Verified | [plan](tracks/npd-trial-tracking/plan.md) |
-| 26 | rebate-management | Verified | [plan](tracks/rebate-management/plan.md) |
-| 27 | field-sales-geo-tracking | Verified | [plan](tracks/field-sales-geo-tracking/plan.md) |
+| 24 | ai-sku-cut-and-s-curve-forecasting | Verified | [plan](archive/tracks/ai-sku-cut-and-s-curve-forecasting/plan.md) |
+| 25 | npd-trial-tracking | Verified | [plan](archive/tracks/npd-trial-tracking/plan.md) |
+| 26 | rebate-management | Verified | [plan](archive/tracks/rebate-management/plan.md) |
+| 27 | field-sales-geo-tracking | Verified | [plan](archive/tracks/field-sales-geo-tracking/plan.md) |
+
+## Phase 5 — V2.3 Operations & Compliance (Planned)
+
+> Execute in order. Activate one at a time.
+
+| # | Track | Status | Plan |
+| --- | --- | --- | --- |
+| 28 | three-way-matching | Verified | [plan](archive/tracks/three-way-matching/plan.md) |
+| 29 | thai-vat-report | Verified | [plan](archive/tracks/thai-vat-report/plan.md) |
+| 30 | grn-reversal | Verified | [plan](archive/tracks/grn-reversal/plan.md) |
 
 ## Rework Required
 
@@ -81,7 +91,10 @@ Master plan: [erp-v2-orion-roadmap](tracks/erp-v2-orion-roadmap/plan.md)
 ## All Tracks
 
 | Track | Status | Created | Last Updated |
-|-------|--------|---------|--------------|| [Performance Tier 3 — Frontend Bundle Audit + Selective Dynamic Imports](./archive/tracks/perf-tier3-frontend-bundle/plan.md) | Verified | 2026-05-27 | 2026-05-27 |
+|-------|--------|---------|--------------|| [GRN Reversal (Cancel Stocked GRN)](./archive/tracks/grn-reversal/plan.md) | Verified | 2026-05-28 | 2026-05-28 |
+| [Thai VAT Report (ภ.พ.30)](./archive/tracks/thai-vat-report/plan.md) | Verified | 2026-05-28 | 2026-05-28 |
+| [Three-Way Matching (Strict Zero Variance)](./archive/tracks/three-way-matching/plan.md) | Verified | 2026-05-28 | 2026-05-28 |
+| [Performance Tier 3 — Frontend Bundle Audit + Selective Dynamic Imports](./archive/tracks/perf-tier3-frontend-bundle/plan.md) | Verified | 2026-05-27 | 2026-05-27 |
 | [Performance Tier 2 — Materialized Views + HR Composite Indexes](./archive/tracks/perf-tier2-materialized-views/plan.md) | Verified | 2026-05-27 | 2026-05-27 |
 | [Performance Tier 1 — Connection Layer + FIFO Query Fix](./archive/tracks/perf-tier1-connection-query/plan.md) | Verified | 2026-05-27 | 2026-05-27 |
 

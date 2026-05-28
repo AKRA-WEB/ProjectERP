@@ -2,9 +2,10 @@
 track: blind-receiving
 phase: V2.0-P1
 sequence: 12
-status: planned
+status: superseded
 owner: Chen
 created: 2026-05-23
+superseded_by: strict-receiving-flow
 depends_on: []
 estimate: M
 assigned_to: [Paku, Puka]

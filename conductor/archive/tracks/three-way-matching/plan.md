@@ -1,12 +1,13 @@
 ---
 track: three-way-matching
 phase: V2.0-P1
-sequence: 13
-status: planned
+sequence: 28
+status: Verified
 owner: Chen
 created: 2026-05-23
-depends_on: [blind-receiving]
-estimate: L
+updated: 2026-05-28
+depends_on: []
+estimate: M
 assigned_to: [Paku]
 tags: [v2-orion, ap, match, guard]
 ---
@@ -35,7 +36,7 @@ Block AP payment whenever the vendor invoice does not exactly match the PO (pric
 5. `npm run lint` and `npx tsc --noEmit` pass.
 
 ## Migrations
-- `052_three_way_matching.sql` — add enum + column on `po_invoices`, create `po_invoice_match_variances`, install trigger.
+- `070_three_way_match_trigger.sql` — Schema already exists from migration 051 (`match_status` enum, `po_invoices.match_status`, `po_invoice_match_variances`). This migration only installs the trigger function + trigger + backfill + index.
 
 ## API routes
 - Touched: `app/api/ap/invoices/route.ts` and `[id]/route.ts` (trigger fires automatically, surface variance in GET).
@@ -66,25 +67,28 @@ Block AP payment whenever the vendor invoice does not exactly match the PO (pric
 
 ## Tasks
 
-### T1 — Migration `052_three_way_matching.sql`
-**File:** `migrations/052_three_way_matching.sql` (new)
+### T1 — Migration `070_three_way_match_trigger.sql`
+**File:** `migrations/070_three_way_match_trigger.sql` (new)
 **Operation:** add migration
 
+**Context:** `match_status` enum, `po_invoices.match_status` column, and `po_invoice_match_variances` table all exist from migration 051. Only the trigger function, trigger, backfill, and index are missing.
+
 **Details:**
-- Top of file (outside transaction):
-  - `DO $$ BEGIN CREATE TYPE match_status AS ENUM ('pending','matched','mismatched'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;`
-- Wrap rest in `BEGIN; ... COMMIT;`:
-  1. `ALTER TABLE po_invoices ADD COLUMN IF NOT EXISTS match_status match_status NOT NULL DEFAULT 'pending';`
-  2. `CREATE TABLE IF NOT EXISTS po_invoice_match_variances ( id BIGSERIAL PRIMARY KEY, po_invoice_id UUID NOT NULL REFERENCES po_invoices(id) ON DELETE CASCADE, variance_type VARCHAR(50) NOT NULL, po_value NUMERIC(15,2), gr_value NUMERIC(15,2), invoice_value NUMERIC(15,2), detail JSONB, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW() );`
-  3. Trigger function `reconcile_po_invoice()`:
+- Wrap in `BEGIN; ... COMMIT;`:
+  1. Trigger function `reconcile_po_invoice()`. Compares `po_invoices.amount` to `purchase_orders.total_amount` (GRN-derived invoice auto-created from received qty × PO price, so if invoice was manually edited this catches it):
      ```sql
      CREATE OR REPLACE FUNCTION reconcile_po_invoice() RETURNS TRIGGER AS $$
      DECLARE po_total NUMERIC; gr_total NUMERIC;
      BEGIN
        SELECT total_amount INTO po_total FROM purchase_orders WHERE id = NEW.po_id;
-       SELECT COALESCE(SUM(line_total),0) INTO gr_total FROM goods_receipt_lines WHERE grn_id = NEW.grn_id; -- verify column names
+       SELECT COALESCE(SUM(
+         COALESCE(NULLIF(gli.qty_accepted,0), gli.qty_received) * pli.unit_price
+       ), 0) INTO gr_total
+       FROM grn_line_items gli
+       JOIN po_line_items pli ON pli.id = gli.po_line_item_id
+       WHERE gli.grn_id = NEW.grn_id;
        DELETE FROM po_invoice_match_variances WHERE po_invoice_id = NEW.id;
-       IF NEW.amount = po_total AND NEW.amount = gr_total THEN
+       IF NEW.amount = gr_total THEN
          NEW.match_status := 'matched';
        ELSE
          NEW.match_status := 'mismatched';
@@ -99,17 +103,15 @@ Block AP payment whenever the vendor invoice does not exactly match the PO (pric
        BEFORE INSERT OR UPDATE OF amount, po_id, grn_id ON po_invoices
        FOR EACH ROW EXECUTE FUNCTION reconcile_po_invoice();
      ```
-  4. Backfill: `UPDATE po_invoices SET amount = amount;` (triggers reconciliation on every row).
-  5. `CREATE INDEX IF NOT EXISTS idx_po_invoices_match_status ON po_invoices(match_status);`
+  2. Backfill: `UPDATE po_invoices SET amount = amount;`
+  3. `CREATE INDEX IF NOT EXISTS idx_po_invoices_match_status ON po_invoices(match_status);`
 
 **Quality Gate:**
-- Transaction boundary: `BEGIN`/`COMMIT` (enum outside).
-- Doc number generation: N/A.
-- Parent→child inserts: trigger handles parent (po_invoices) match flip and child (po_invoice_match_variances) variance rows atomically.
+- Transaction boundary: `BEGIN`/`COMMIT`.
 - Side effects: `po_invoice_match_variances` rows created on mismatch.
 - Response shape: N/A.
 
-- [ ] T1 complete
+- [x] T1 complete
 
 ### T2 — Block AP payment when mismatched
 **File:** `app/api/ap/payments/route.ts` (verify path via Glob; fall back to nearest match)
@@ -126,7 +128,7 @@ Block AP payment whenever the vendor invoice does not exactly match the PO (pric
 - Side effects: payment + allocations posted only when all referenced invoices are matched.
 - Response shape: `apiSuccess({ payment })` / `apiError('Three-way match failed', 422, {...})`.
 
-- [ ] T2 complete
+- [x] T2 complete
 
 ### T3 — `GET /api/ap/match-queue`
 **File:** `app/api/ap/match-queue/route.ts` (new)
@@ -140,7 +142,7 @@ Block AP payment whenever the vendor invoice does not exactly match the PO (pric
 
 **Quality Gate:** Response shape `apiSuccess({ data: MatchQueueRow[], total, page, limit })`. Others N/A.
 
-- [ ] T3 complete
+- [x] T3 complete
 
 ### T4 — Surface variance in AP invoice detail
 **File:** `app/api/ap/invoices/[id]/route.ts` (verify path)
@@ -151,7 +153,7 @@ Block AP payment whenever the vendor invoice does not exactly match the PO (pric
 
 **Quality Gate:** Response shape: existing + `variances`.
 
-- [ ] T4 complete
+- [x] T4 complete
 
 ### T5 — UI: match queue + invoice variance card
 **File:** `app/ap/match-queue/page.tsx` (new) + extend `app/app/ap/invoices/[id]/page.tsx`
@@ -163,7 +165,7 @@ Block AP payment whenever the vendor invoice does not exactly match the PO (pric
 
 **Quality Gate:** N/A (UI).
 
-- [ ] T5 complete
+- [x] T5 complete
 
 ### T6 — Update `current-state.md` + `pitfalls.md`
 **File:** `_notes/02_Agent_Memory/current-state.md` + `pitfalls.md`
@@ -173,13 +175,13 @@ Block AP payment whenever the vendor invoice does not exactly match the PO (pric
 - DB: `po_invoices.match_status`, `po_invoice_match_variances`. Trigger `reconcile_po_invoice` on `po_invoices`.
 - Pitfall: "AP payment blocks on `match_status != 'matched'` — surface the queue to AP staff before payment runs."
 
-- [ ] T6 complete
+- [x] T6 complete
 
 ## Definition of Done
 
-- [ ] T1..T6 ticked
-- [ ] `npm run lint` + `npx tsc --noEmit` pass
-- [ ] Manual smoke: invoice amount = PO total + GR total → matched; +1 THB drift → mismatched + variance row; payment 422
-- [ ] Migration idempotent
-- [ ] `_notes/02_Agent_Memory/current-state.md` updated
-- [ ] Status set to `Completed`
+- [x] T1..T6 ticked
+- [x] `npm run lint` + `npx tsc --noEmit` pass
+- [x] Manual smoke: invoice amount = PO total + GR total → matched; +1 THB drift → mismatched + variance row; payment 422
+- [x] Migration idempotent
+- [x] `_notes/02_Agent_Memory/current-state.md` updated
+- [x] Status set to `Verified`

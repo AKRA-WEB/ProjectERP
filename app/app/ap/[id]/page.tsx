@@ -18,8 +18,19 @@ interface Allocation {
   allocated_amount: number;
 }
 
+interface Variance {
+  id: string;
+  variance_type: string;
+  po_value: number | string;
+  gr_value: number | string;
+  invoice_value: number | string;
+  created_at: string;
+}
+
 interface ApInvoiceDetail extends ApInvoice {
   allocations: Allocation[];
+  match_status: 'pending' | 'matched' | 'mismatched';
+  variances: Variance[];
 }
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-[0_1px_0_rgba(15,23,42,.03),0_1px_2px_rgba(15,23,42,.04)]';
@@ -60,6 +71,20 @@ export default function ApInvoiceDetailPage() {
           <p className="text-sm text-stone-500">AP Invoice Detail</p>
         </div>
         <div className="flex items-center gap-3">
+          {invoice.match_status === 'matched' ? (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              ✓ Matched (3-Way)
+            </span>
+          ) : invoice.match_status === 'mismatched' ? (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
+              ⚠️ Mismatched (3-Way)
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] text-xs font-semibold bg-stone-100 text-stone-600 border border-stone-200">
+              ⏳ Pending Match
+            </span>
+          )}
+
           {invoice.is_paid ? (
             <StatusBadge status="paid" labelOverride="ชำระแล้ว" />
           ) : invoice.overdue_days > 0 ? (
@@ -113,6 +138,49 @@ export default function ApInvoiceDetailPage() {
               </div>
             </div>
           </div>
+
+
+          {/* Variance Warning & Card */}
+          {invoice.variances && invoice.variances.length > 0 && (
+            <div className={`${CARD} border-red-200 bg-red-50/10 overflow-hidden`}>
+              <div className="p-6 pb-2 border-b border-red-100 bg-red-50/20 flex justify-between items-center">
+                <h2 className="text-[15px] font-semibold text-red-950 flex items-center gap-2">
+                  <span>⚠️ รายการผลต่างความต่าง (3-Way Match Variance)</span>
+                </h2>
+                <span className="text-xs font-mono font-bold text-red-600 bg-red-100/50 px-2 py-0.5 rounded">
+                  STRICT BLOCK
+                </span>
+              </div>
+              <div className="p-6 space-y-4">
+                <p className="text-xs text-red-700 leading-relaxed">
+                  ระบบตรวจพบความแตกต่างระหว่างยอดเงินในใบแจ้งหนี้ (Invoice Amount) และยอดเงินรับจาก Goods Receipt Note (GRN Total) 
+                  การชำระเงินถูกระงับจนกว่าจะได้รับการแก้ไขหรืออนุมัติความคลาดเคลื่อนนี้
+                </p>
+                <table className="w-full border-collapse text-[13px]">
+                  <thead>
+                    <tr className="bg-stone-50 border-y border-stone-200">
+                      <th className="text-left py-2.5 px-4 font-medium text-stone-500">ประเภทความต่าง</th>
+                      <th className="text-right py-2.5 px-4 font-medium text-stone-500">ยอด PO</th>
+                      <th className="text-right py-2.5 px-4 font-medium text-stone-500">ยอด GR (รับสินค้า)</th>
+                      <th className="text-right py-2.5 px-4 font-medium text-stone-500">ยอดใน Invoice</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {invoice.variances.map((v) => (
+                      <tr key={v.id} className="border-b border-stone-50 last:border-0 hover:bg-stone-50/60">
+                        <td className="py-3 px-4 text-stone-800 font-medium">
+                          {v.variance_type === 'header_amount' ? 'ยอดรวมเอกสาร (Header Amount)' : v.variance_type}
+                        </td>
+                        <td className="py-3 px-4 text-right font-mono text-stone-500">{formatCurrency(v.po_value)}</td>
+                        <td className="py-3 px-4 text-right font-mono text-stone-500 font-semibold">{formatCurrency(v.gr_value)}</td>
+                        <td className="py-3 px-4 text-right font-mono text-red-600 font-bold">{formatCurrency(v.invoice_value)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
           {/* Payment History */}
           <div className={`${CARD} overflow-hidden`}>
@@ -172,13 +240,27 @@ export default function ApInvoiceDetailPage() {
             </div>
 
             {!invoice.is_paid && (
-              <div className="mt-8">
-                <Link
-                  href={`/app/ap/payments/new?vendor_id=${invoice.vendor_id}`}
-                  className="block w-full text-center h-10 px-4 rounded-[8px] bg-stone-950 text-white text-[13px] font-medium shadow-sm hover:bg-stone-800 transition-colors pt-2.5"
-                >
-                  ชำระเงิน →
-                </Link>
+              <div className="mt-8 space-y-2">
+                {invoice.match_status === 'matched' ? (
+                  <Link
+                    href={`/app/ap/payments/new?vendor_id=${invoice.vendor_id}`}
+                    className="block w-full text-center h-10 px-4 rounded-[8px] bg-stone-950 text-white text-[13px] font-medium shadow-sm hover:bg-stone-800 transition-colors pt-2.5"
+                  >
+                    ชำระเงิน →
+                  </Link>
+                ) : (
+                  <div className="space-y-2">
+                    <button
+                      disabled
+                      className="w-full h-10 px-4 rounded-[8px] bg-stone-200 text-stone-400 text-[13px] font-medium cursor-not-allowed border border-stone-300/40"
+                    >
+                      ชำระเงิน (ถูกระงับ 3-Way)
+                    </button>
+                    <p className="text-[11px] text-red-500 font-medium text-center">
+                      ⚠️ เอกสารมีผลต่าง (Mismatch) หรือยังตรวจรับไม่สมบูรณ์
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>

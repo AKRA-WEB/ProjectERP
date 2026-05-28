@@ -115,6 +115,12 @@ export default function GRNDetailPage() {
     lines: [] as { id: string; qty_received: number; storage_location: string }[],
   });
 
+  // Reversal States
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [blockingTransactions, setBlockingTransactions] = useState<Array<{ type: string; id: string }>>([]);
+  const [showConsumptionModal, setShowConsumptionModal] = useState(false);
+
   const fetchGRN = useCallback(async () => {
     setLoading(true);
     try {
@@ -237,6 +243,34 @@ export default function GRNDetailPage() {
     } catch (e: unknown) {
       const err = e as { message?: string };
       setError(err.message ?? 'เกิดข้อผิดพลาด');
+    } finally {
+      setActing(false);
+    }
+  }
+
+  async function handleCancel() {
+    setError('');
+    setActing(true);
+    try {
+      await post(`/api/grn/${id}/cancel`, { reason: cancelReason || undefined });
+      toast('success', 'ยกเลิก GRN และปรับลดยอดสต็อกเรียบร้อยแล้ว');
+      setShowCancelModal(false);
+      setCancelReason('');
+      await fetchGRN();
+    } catch (e: unknown) {
+      const err = e as { message?: string; status?: number; details?: unknown };
+      const details = err.details as { code?: string; blocking_transactions?: Array<{ type: string; id: string }> } | undefined;
+      
+      if (details?.code === 'CONSUMPTION_EXISTS') {
+        setShowCancelModal(false);
+        setBlockingTransactions(details.blocking_transactions ?? []);
+        setShowConsumptionModal(true);
+      } else if (details?.code === 'INVOICE_PAID') {
+        setShowCancelModal(false);
+        toast('error', err.message ?? 'ใบแจ้งหนี้ชำระแล้ว — กรุณาลงบัญชีแก้ไขผ่านสมุดรายวัน');
+      } else {
+        toast('error', err.message ?? 'เกิดข้อผิดพลาดในการยกเลิก GRN');
+      }
     } finally {
       setActing(false);
     }
@@ -806,6 +840,16 @@ export default function GRNDetailPage() {
             นำเข้าคลัง / Stock In
           </Button>
         )}
+
+        {grn.status === 'stocked' && isManager && (
+          <Button
+            onClick={() => setShowCancelModal(true)}
+            variant="outline"
+            className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300 flex items-center gap-2 flex-1 md:flex-initial min-h-[44px]"
+          >
+            <Trash2 className="w-4 h-4" /> ยกเลิก GRN / Cancel
+          </Button>
+        )}
       </div>
 
       {showVerify && (
@@ -857,6 +901,79 @@ export default function GRNDetailPage() {
           <ModalFooter>
             <Button variant="ghost" onClick={() => setShowCreatePO(false)} className="min-h-[44px]">ยกเลิก</Button>
             <Button onClick={handleCreatePO} loading={acting} className="bg-stone-900 text-white min-h-[44px]">ยืนยันสร้าง PO</Button>
+          </ModalFooter>
+        </Modal>
+      )}
+
+      {showCancelModal && (
+        <Modal open={showCancelModal} onClose={() => setShowCancelModal(false)} size="md">
+          <ModalHeader onClose={() => setShowCancelModal(false)}>ยืนยันการยกเลิกสินค้าเข้าคลัง / Cancel GRN</ModalHeader>
+          <ModalBody>
+            <div className="space-y-4">
+              <div className="p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-[7px] text-xs leading-relaxed">
+                <span className="font-bold block mb-1">คำเตือน: การกระทำนี้ไม่สามารถย้อนกลับได้</span>
+                ระบบจะสร้างรายการหักลบในสต็อก และยกเลิกใบแจ้งหนี้คู่ค้า (AP Invoice) ที่เชื่อมโยงอยู่โดยอัตโนมัติ 
+                ไม่สามารถยกเลิกได้หากมีการดึงยอดสินค้าไปขายหรือโอนย้ายแล้ว
+              </div>
+              <Input
+                label="ระบุเหตุผลการยกเลิก (Cancel Reason) *"
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                placeholder="ระบุเหตุผลในการยกเลิกรายการนี้..."
+                className="text-base"
+              />
+            </div>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="ghost" onClick={() => setShowCancelModal(false)} className="min-h-[44px]">ยกเลิก</Button>
+            <Button 
+              onClick={handleCancel} 
+              loading={acting} 
+              disabled={!cancelReason.trim()}
+              className="bg-red-600 hover:bg-red-700 text-white min-h-[44px]"
+            >
+              ยืนยันการยกเลิก GRN
+            </Button>
+          </ModalFooter>
+        </Modal>
+      )}
+
+      {showConsumptionModal && (
+        <Modal open={showConsumptionModal} onClose={() => setShowConsumptionModal(false)} size="md">
+          <ModalHeader onClose={() => setShowConsumptionModal(false)}>ไม่สามารถยกเลิก GRN ได้ / Cannot Cancel GRN</ModalHeader>
+          <ModalBody>
+            <div className="space-y-4">
+              <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-[7px] text-sm font-medium">
+                ไม่สามารถยกเลิกได้ — มีรายการเบิกจ่ายสินค้าหลังรับสินค้าเข้าคลัง (Outbound stock consumption exists after stocking)
+              </div>
+              <p className="text-sm text-stone-600 font-medium">รายการที่เบิกจ่ายเพื่อการอ้างอิง:</p>
+              <div className="border border-stone-200 rounded-[7px] overflow-hidden max-h-[250px] overflow-y-auto">
+                <table className="w-full text-sm text-left border-collapse">
+                  <thead>
+                    <tr className="bg-stone-50 border-b border-stone-200 text-stone-500 font-medium">
+                      <th className="p-2 pl-3">ประเภทรายการ (Type)</th>
+                      <th className="p-2 pr-3">รหัสรายการอ้างอิง (Reference ID / Number)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {blockingTransactions.map((tx, idx) => (
+                      <tr key={idx} className="border-b border-stone-100 last:border-0 hover:bg-stone-50">
+                        <td className="p-2 pl-3 font-semibold text-stone-700">
+                          {tx.type === 'pos_sale' ? 'POS Sale' : tx.type === 'so_delivery' ? 'SO Delivery' : tx.type === 'transfer_out' ? 'Transfer Out' : tx.type}
+                        </td>
+                        <td className="p-2 pr-3 font-mono text-stone-600">{tx.id}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-xs text-stone-500">
+                หมายเหตุ: กรุณาให้เจ้าหน้าที่บัญชีปรับปรุงบัญชีด้วยตนเองผ่านสมุดรายวันทั่วไป (General Journal)
+              </p>
+            </div>
+          </ModalBody>
+          <ModalFooter>
+            <Button onClick={() => setShowConsumptionModal(false)} className="min-h-[44px] w-full md:w-auto">ตกลง / Close</Button>
           </ModalFooter>
         </Modal>
       )}

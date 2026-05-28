@@ -269,6 +269,7 @@ export function Sidebar({ open, onClose, userRole, permissions, collapsed, onTog
         label: t('nav.ap'),
         items: [
           { href: '/app/ap',          label: t('page.ap_invoices'), icon: CreditCard, permission: 'vendors:view' },
+          { href: '/app/ap/match-queue', label: t('page.ap_match_queue'), icon: ListChecks, permission: 'vendors:view' },
           { href: '/app/ap/payments', label: t('page.ap_payments'), icon: History,    permission: 'vendors:view' },
           { href: '/app/ap/wht',      label: t('page.wht_certificates'), icon: FileText,   permission: 'vendors:view' },
           { href: '/app/ap/aging',    label: t('page.ap_aging'),    icon: Clock,      permission: 'vendors:view' },
@@ -335,6 +336,7 @@ export function Sidebar({ open, onClose, userRole, permissions, collapsed, onTog
           { href: '/app/accounting/reports/balance-sheet', label: t('page.balance_sheet'), icon: Landmark,    permission: 'reports:accounting' },
           { href: '/app/accounting/reports/ar-aging',      label: t('page.ar_aging'),      icon: Clock,       permission: 'reports:accounting' },
           { href: '/app/accounting/reports/ap-aging',      label: t('page.ap_aging_report'), icon: Banknote,  permission: 'reports:accounting' },
+          { href: '/app/accounting/vat-report',            label: t('page.vat_report'),    icon: FileText,    permission: 'reports:accounting' },
         ],
       },
     ],

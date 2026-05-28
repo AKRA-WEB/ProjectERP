@@ -85,9 +85,10 @@ export async function POST(req: Request) {
     await client.query('BEGIN');
 
     // 1. Validate allocations against invoices
+    const unmatchedInvoices: string[] = [];
     for (const alloc of allocations) {
-      const invoice = await client.query<{ vendor_id: string; amount: number; paid_amount: number; is_paid: boolean }>(
-        'SELECT vendor_id, amount, paid_amount, is_paid FROM po_invoices WHERE id = $1 FOR UPDATE',
+      const invoice = await client.query<{ vendor_id: string; amount: number; paid_amount: number; is_paid: boolean; match_status: string }>(
+        'SELECT vendor_id, amount, paid_amount, is_paid, match_status FROM po_invoices WHERE id = $1 FOR UPDATE',
         [alloc.invoice_id]
       );
       if (invoice.rows.length === 0) {
@@ -99,11 +100,19 @@ export async function POST(req: Request) {
         await client.query('ROLLBACK');
         return apiError(`Invoice ${alloc.invoice_id} does not belong to the selected vendor`, 400);
       }
+      if (inv.match_status !== 'matched') {
+        unmatchedInvoices.push(alloc.invoice_id);
+      }
       const outstanding = Number(inv.amount) - Number(inv.paid_amount);
       if (alloc.allocated_amount > outstanding + 0.01) { // small tolerance for floating point
         await client.query('ROLLBACK');
         return apiError(`Allocated amount ${alloc.allocated_amount} exceeds outstanding ${outstanding} for invoice ${alloc.invoice_id}`, 400);
       }
+    }
+
+    if (unmatchedInvoices.length > 0) {
+      await client.query('ROLLBACK');
+      return apiError('Three-way match failed', 422, { code: 'MATCH_REQUIRED', invoice_ids: unmatchedInvoices });
     }
 
     // Resolve vendor WHT details

@@ -82,9 +82,24 @@ app/
 ### Auth (every API route)
 
 ```typescript
+import { auth } from '@/auth';
+import { assertRole, buildWarehouseScopeClause } from '@/lib/authz';
+import type { SessionUser } from '@/types';
+
 const session = await auth(); if (!session) return apiError('Unauthorized', 401);
 const u = session.user as unknown as SessionUser;
 try { assertRole(u, ['manager', 'admin']); } catch { return apiError('Forbidden', 403); }
+```
+
+`UserRole` = `'admin' | 'manager' | 'staff' | 'auditor'`. Admins bypass all role and warehouse checks.
+
+#### Fine-grained permission checks
+
+```typescript
+import { assertPermission, assertWarehouseAccess } from '@/lib/authz';
+
+assertPermission(u, 'grn.approve');        // throws 403 if missing
+assertWarehouseAccess(u, warehouseId);     // throws 403 if not assigned
 ```
 
 ### Warehouse scope (every GET list)
@@ -94,9 +109,13 @@ const scope = buildWarehouseScopeClause(u, 'alias.warehouse_id', idx);
 if (scope) { conditions.push(scope.clause); params.push(...scope.params); idx += scope.params.length; }
 ```
 
+`buildWarehouseScopeClause` accounts for `u.businessUnitId` (BU-level filter) and `u.assignedWarehouseIds` (warehouse-level filter). Returns `null` for admins (no restriction).
+
 ### API responses
 
 ```typescript
+import { apiSuccess, apiError, apiValidationError } from '@/lib/api-response';
+
 return apiSuccess(data);        // 200
 return apiError('msg', 404);
 return apiValidationError(err); // 400
@@ -110,6 +129,7 @@ import pool from '@/lib/db/client';                   // default export — for 
 ```
 
 **`pool` is the default export** — `import { pool }` (named) fails.  
+**Pool is configured `max: 1` for Supabase Transaction Pooler** — do not raise this limit.  
 **Inside a transaction, use `client.query()` exclusively.** Global `query()`/`queryOne()` open new pool connections, bypassing the active transaction.
 
 Transaction pattern:
@@ -125,6 +145,19 @@ try {
   throw e;
 } finally { client.release(); }
 ```
+
+### Frontend — api-client
+
+```typescript
+import { apiClient } from '@/lib/api-client';
+
+await apiClient.get<T>(url);
+await apiClient.post<T>(url, body);
+await apiClient.patch<T>(url, body);
+await apiClient.delete<T>(url, body?);  // note: delete, not del
+```
+
+Errors throw `ApiError` (has `.status` and `.details`).
 
 ### PATCH discriminant
 
@@ -178,7 +211,7 @@ for (const item of items) {
 | `stock_ledger` | `id`, `product_id`, `warehouse_id`, `entry_type`, `qty_change`, `reference_id` |
 | `stock_balances` | `product_id`, `warehouse_id`, `qty_on_hand`, `qty_reserved`, `qty_available` (generated) |
 
-Current migration: **067**. Next file: `068_<name>.sql`.
+Current migration: **069**. Next file: `070_<name>.sql`.
 
 ### Enum gotchas
 
@@ -187,7 +220,7 @@ Current migration: **067**. Next file: `068_<name>.sql`.
 
 ## Frontend Patterns
 
-- All pages `'use client'`. No RSC data fetching on client — use `lib/api-client.ts` (`get`/`post`/`patch`/`del`) only, never `fetch()` directly.
+- All pages `'use client'`. No RSC data fetching on client — use `lib/api-client.ts` (`apiClient`) only, never `fetch()` directly.
 - Components from `components/ui/index.ts`: `Button`, `Input`, `Select`, `Modal`, `Table`, `Badge`, `StatusBadge`, `Pagination`. Read `interface Props` before use — never guess prop names.
 - `formatDate()` / `formatCurrency()` / `formatDatetime()` from `lib/format.ts`. No `.toLocaleDateString()` or template literals for THB.
 - **View Transitions:** use `lib/react-vts.tsx` bridge — never import `ViewTransition` from `react` directly. `transitionTypes` prop on `<Link>` requires augmentation in `types/next.d.ts`.
@@ -203,6 +236,17 @@ State machines + business rules → `_notes/00_Project_Map/state-machines.md`
 - PO auto-updates (`partially_received` / `fully_received`) after GRN stocking.
 - Cycle count approval: stored proc `apply_cycle_count()` only.
 - Status transitions: validate state machine BEFORE opening transaction; all side effects (stock ledger, PO updates) inside single transaction.
+
+### Background Jobs
+
+Nightly jobs live in `lib/jobs/` and are invoked by Vercel Cron (`vercel.json`) or via admin API routes:
+
+| Job | Schedule | Trigger route |
+|-----|----------|---------------|
+| `hr_stats_snapshot` refresh | 01:00 UTC daily | `/api/admin/snapshots/refresh?target=hr_stats` |
+| SKU performance refresh | on-demand | `/api/analytics/sku-performance/refresh` |
+| Replenishment sweep | on-demand | `/api/admin/replenish/run-now` |
+| Rebate accruals | on-demand | `POST /api/rebate/accruals` |
 
 ## Zero-Tolerance Rules
 

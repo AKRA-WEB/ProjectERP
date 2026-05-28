@@ -6,11 +6,11 @@ updated_by: Gemini
 # Project Current State — Anti-Context-Loss Briefing
 
 ## Last 5 Completed Tracks
+- **grn-reversal**: Implemented strict reversal/cancellation for stocked Goods Receipt Notes, creating negative stock ledger entries to decrement stock on-hand, voiding linked AP invoices, reverting PO status when sole active GRN, and rendering premium supervisor confirmation & detailed outbound consumption blocking UI (2026-05-28)
+- **thai-vat-report**: Designed and implemented monthly purchase and sales VAT reports (ภ.พ.30) with dynamic calculations, created `/api/accounting/vat/purchase` and `/sales` routes, implemented administrative period locking with persistent snapshots in `vat_report_runs` (`/api/accounting/vat/finalize`), and built a premium responsive tabbed UI page with Excel-friendly UTF-8 BOM CSV exports (2026-05-28)
+- **three-way-matching**: Installed strict three-way matching trigger `reconcile_po_invoice` on `po_invoices`, blocked AP payments when not fully matched with HTTP 422, created a manager review queue page at `app/app/ap/match-queue`, and surfaced variances side-by-side (2026-05-28)
 - **mock-data-seed**: Implemented `lib/db/seed.js` script to populate all BUYMORE ERP database modules with highly realistic, bilingual Thai/English mock data, making all pages/actions fully functional and clickable without manual data entry. Confirmed 100% clean Next.js lint and `tsc --noEmit` validation results (2026-05-28)
 - **perf-tier3-frontend-bundle**: Integrated `@next/bundle-analyzer` and executed bundle size audit on client bundles and routes. Confirmed exceptional baseline performance with 112 kB shared JS bundle size and page sizes ranging from 115 kB to 156 kB, rendering manual component-level dynamic imports unnecessary (2026-05-27)
-- **perf-tier2-materialized-views**: Replaced 5 of 9 parallel queries in `/api/hr/stats` with a single fast read from the new PostgreSQL materialized view `hr_stats_snapshot` (refreshed nightly via Vercel Cron Job at 01:00 UTC, and on-demand via a new authenticated `/api/admin/snapshots/refresh` route). Also added high-performance composite indexes for attendance and leave queries (2026-05-27)
-- **perf-tier1-connection-query**: Optimized PostgreSQL pool connection limits (max: 1, idleTimeoutMillis: 0, ssl enabled) for Next.js serverless and Supabase Transaction Pooler, created index `idx_ledger_cost_lookup` on stock_ledger, and eliminated O(N^2) FIFO N+1 LATERAL queries with O(N) CTE DISTINCT ON lookup (2026-05-27)
-- **field-sales-geo-tracking**: Enforced geo-tagged customer check-in on mobile-responsive UI before field sales agents can book orders, created table `field_sales_checkins` for coordinate indexing, exposed endpoints for checkin/checkout/today logs, and created manager interactive SVG tracking dashboard (2026-05-26)
 
 ## Active Work
 - None.
@@ -18,6 +18,12 @@ updated_by: Gemini
 ---
 
 ## DB Facts
+- **grn_reversal_log**: table tracking full GRN reversals, logging reason, author, original stocked timestamp, and cancellation timestamp (v072).
+- **po_invoices.voided**: boolean column flagging voided AP invoices after GRN cancellation (v072).
+- **vat_report_runs**: table tracking locked and finalized VAT report rounds (purchase/sales) with persistent JSONB snapshots and period unique constraints (v071).
+- **po_invoices.match_status**: enum status (`pending`, `matched`, `mismatched`) to check three-way match resolution (v070).
+- **po_invoice_match_variances**: table storing detailed variances between PO/GRN values and the invoice header amount (v070).
+- **trg_po_invoice_match**: BEFORE INSERT OR UPDATE trigger on `po_invoices` executing `reconcile_po_invoice()` (v070).
 - **hr_stats_snapshot**: materialized view storing slow-changing HR aggregates, enabling high-performance read scaling (v069).
 - **idx_attendance_date_employee**, **idx_leave_status_created**, **idx_leave_employee_dates**: high-performance composite indexes to speed up real-time attendance and leave dashboard list queries (v069).
 - **idx_ledger_cost_lookup**: covering index on `stock_ledger(product_id, warehouse_id, created_at DESC) WHERE entry_type = 'grn_receipt'` to optimize FIFO inventory valuation (v068).
@@ -54,6 +60,11 @@ updated_by: Gemini
 - **stock_ledger**: INSERT-ONLY. Entry types include `repack_stage_in`, `repack_stage_out`, `scrap`.
 
 ## API Routes
+- **POST /api/grn/[id]/cancel**: Cancels/reverses a stocked GRN under strict transaction boundaries, checking for outbound stock consumption and linked invoice payment status (v072).
+- **GET /api/accounting/vat/purchase**: retrieves purchase VAT lines (vendor, invoice, base, VAT 7%) dynamically or from snapshot (v071).
+- **GET /api/accounting/vat/sales**: retrieves sales VAT lines (POS/B2B invoice, base, VAT 7%) dynamically or from snapshot (v071).
+- **POST /api/accounting/vat/finalize**: freezes and snapshots the purchase/sales VAT lines for a given month+year (admin-only) (v071).
+- **GET /api/ap/match-queue**: retrieves a list of all mismatched AP invoices with their variances for manager review (v070).
 - **POST /api/admin/snapshots/refresh**: Request authenticated on-demand refresh of database snapshots (v069).
 - **POST /api/field-sales/checkin**: Register a new agent check-in (auto checking out older active ones) (v067).
 - **POST /api/field-sales/checkout**: Ends the current active agent check-in session (v067).
@@ -91,9 +102,10 @@ updated_by: Gemini
 ## Project Standards
 - **Repack Flow**: Stock moves BLK -> V-PACK (Staging) -> RTL (Retail). Loss moves V-PACK -> V-KILL (Scrap).
 - **Accounting**: Yield loss > 0 triggers auto-JE: DR 5910 (Waste), CR 1300 (Inventory).
+- **Obsidian Linter & QA**: Running `npm run qa:verify` automatically runs `npm run check:notes` to enforce alignment of database migrations with `current-state.md` and check for broken local markdown links. Run `npm run check:notes -- --fix` to auto-repair broken archive link paths in `conductor/index.md`.
 
 ---
 
-## Migration Numbers (latest: 069)
-    Next migration = `070_<name>.sql`
-    Latest: `069_hr_stats_snapshot.sql`
+## Migration Numbers (latest: 072)
+    Next migration = `073_<name>.sql`
+    Latest: `072_grn_reversal.sql`
