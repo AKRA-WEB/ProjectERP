@@ -29,10 +29,11 @@ load-when: "QA, audit, rework-plan, lint, build, review"
 
 1. **อ่าน `plan.md`** ของ track ที่ต้องตรวจ
 2. **ตรวจทุก checkbox** — verify file exists + implementation matches spec
-3. **รัน `npm run lint`** — ต้องผ่านก่อน mark ว่า pass
-4. **ทำ Deep Code Review** — ตรวจสอบ logic, performance, และ maintainability ตาม checklist ด้านล่าง
-5. **สร้าง Draft QA Report** เขียนรายงานผลตรวจสอบโดยตรงไปที่ `conductor/qa-reports/<track-name>.md` (ห้ามสร้างไฟล์ `rework-plan.md` เองเด็ดขาด เพราะเป็นสิทธิ์และหน้าที่เฉพาะของ Chen/Claude)
-6. **ส่งต่อรายงานให้ Chen/Claude เพื่อทำการ Validate** ซึ่ง Chen/Claude จะวิเคราะห์โค้ดจริงเพื่อออก `rework-plan.md` และปรับเปลี่ยนสถานะใน `conductor/index.md` ตามลำดับ
+3. **รัน `npm run lint` และ `npm run check:notes`** — ต้องผ่าน 100% ไม่มี undocumented routes หรือ migration mismatch
+4. **ตรวจ Knowledge Elevation** — ตรวจสอบว่า DB columns/tables และ API routes ใหม่ ถูกจดบันทึกใน `current-state.md` หรือ module notes แล้วจริง
+5. **ทำ Deep Code Review** — ตรวจสอบ logic, performance, และ maintainability ตาม checklist ด้านล่าง
+6. **สร้าง Draft QA Report** เขียนรายงานผลตรวจสอบโดยตรงไปที่ `conductor/qa-reports/<track-name>.md` (ห้ามสร้างไฟล์ `rework-plan.md` เองเด็ดขาด เพราะเป็นสิทธิ์และหน้าที่เฉพาะของ Chen/Claude)
+7. **ส่งต่อรายงานให้ Chen/Claude เพื่อทำการ Validate** ซึ่ง Chen/Claude จะวิเคราะห์โค้ดจริงเพื่อออก `rework-plan.md` และปรับเปลี่ยนสถานะใน `conductor/index.md` ตามลำดับ
 
 ## Severity Classification
 

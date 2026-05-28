@@ -47,8 +47,8 @@ Master plan: [erp-v2-orion-roadmap](tracks/erp-v2-orion-roadmap/plan.md)
 | 12 | strict-receiving-flow | Verified | [plan](archive/tracks/strict-receiving-flow/plan.md) |
 | 14 | adjust-warehouses-and-thermal-zones | Verified | [plan](archive/tracks/adjust-warehouses-and-thermal-zones/plan.md) |
 | 15 | operation-core-sync-orion-2026-05-24 | Verified | [plan](archive/tracks/operation-core-sync-orion-2026-05-24/plan.md) |
-| 16 | wholecase-strict-lock-akra | Verified | [plan](tracks/wholecase-strict-lock-akra/plan.md) |
-| 17 | price-history-alert-pos | Verified | [plan](tracks/price-history-alert-pos/plan.md) |
+| 16 | wholecase-strict-lock-akra | Verified | [plan](archive/tracks/wholecase-strict-lock-akra/plan.md) |
+| 17 | price-history-alert-pos | Verified | [plan](archive/tracks/price-history-alert-pos/plan.md) |
 
 ### Phase 2 — V2.0 Compliance
 | # | Track | Status | Plan |
@@ -91,7 +91,9 @@ Master plan: [erp-v2-orion-roadmap](tracks/erp-v2-orion-roadmap/plan.md)
 ## All Tracks
 
 | Track | Status | Created | Last Updated |
-|-------|--------|---------|--------------|
+|-------|--------|---------|--------------|| [Whole-Case Strict Lock (AKRA Channel)](./archive/tracks/wholecase-strict-lock-akra/plan.md) | Verified | 2026-05-24 | 2026-05-28 |
+| [Price-History Alert at POS](./archive/tracks/price-history-alert-pos/plan.md) | Verified | 2026-05-24 | 2026-05-28 |
+
 | [Seed: AP invoices + stocked GRNs](./archive/tracks/seed-ap-invoices-stocked-grns/plan.md) | Verified| 2026-05-28 | 2026-05-28 |
 | [GRN Reversal (Cancel Stocked GRN)](./archive/tracks/grn-reversal/plan.md) | Verified | 2026-05-28 | 2026-05-28 |
 | [Thai VAT Report (ภ.พ.30)](./archive/tracks/thai-vat-report/plan.md) | Verified | 2026-05-28 | 2026-05-28 |

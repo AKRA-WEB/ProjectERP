@@ -10,7 +10,7 @@ updated: 2026-05-20
 # Track: UI Improvement — POS Terminal UI Polish
 
 **Status:** Completed
-**Design Reference:** `docs/design/pos.jsx` → `POSView`, `MemberLookupModal`, `CloseSessionModal`, `ReceiptModal`
+**Design Reference:** `_notes/99_Assets/design/pos.jsx` → `POSView`, `MemberLookupModal`, `CloseSessionModal`, `ReceiptModal`
 **Goal:** Polish the POS terminal with member tiering colors, stock lock timers, redesigned close session, and high-fidelity thermal receipt styling.
 
 ---

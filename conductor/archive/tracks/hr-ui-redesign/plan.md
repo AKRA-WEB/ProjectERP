@@ -13,11 +13,11 @@ updated: 2026-05-20
 **Status:** Completed
 **Architect:** Chen
 
-**Goal:** Redesign 4 HR pages (Dashboard, Employees, Leave Requests, Payroll Detail) to match `docs/design/hr-bundle/` mockups; update sidebar HR nav to full 8-group layout; add 13 stub pages for new routes; extend 4 API routes with new data.
+**Goal:** Redesign 4 HR pages (Dashboard, Employees, Leave Requests, Payroll Detail) to match `_notes/99_Assets/design/hr-bundle/` mockups; update sidebar HR nav to full 8-group layout; add 13 stub pages for new routes; extend 4 API routes with new data.
 
-**Architecture:** Page-by-page implementation. Each task is self-contained. API extensions and UI redesigns are paired per page. No new DB migrations — all data comes from existing tables. Design source files: `docs/design/hr-bundle/apps/hr-dashboard.jsx`, `hr-employees.jsx`, `hr-leave.jsx`, `hr-payroll.jsx`.
+**Architecture:** Page-by-page implementation. Each task is self-contained. API extensions and UI redesigns are paired per page. No new DB migrations — all data comes from existing tables. Design source files: `_notes/99_Assets/design/hr-bundle/apps/hr-dashboard.jsx`, `hr-employees.jsx`, `hr-leave.jsx`, `hr-payroll.jsx`.
 
-**Design Reference:** Read `docs/design/hr-bundle/apps/hr-*.jsx` files before implementing each task to understand exact layout. Mock data structure is in `docs/design/hr-bundle/apps/hr-mock-data.jsx`.
+**Design Reference:** Read `_notes/99_Assets/design/hr-bundle/apps/hr-*.jsx` files before implementing each task to understand exact layout. Mock data structure is in `_notes/99_Assets/design/hr-bundle/apps/hr-mock-data.jsx`.
 
 **Tech Stack:** Next.js 15 App Router · TypeScript strict · PostgreSQL (raw pg) · Tailwind CSS · `useT()` from `lib/i18n/index.tsx`
 
@@ -389,7 +389,7 @@ Return shape to add to existing `apiSuccess({...existing, attendanceFeed, pendin
 
 **File:** `app/app/hr/page.tsx`
 
-Full redesign. Reference: `docs/design/hr-bundle/apps/hr-dashboard.jsx`
+Full redesign. Reference: `_notes/99_Assets/design/hr-bundle/apps/hr-dashboard.jsx`
 
 ### Layout structure:
 ```
@@ -634,7 +634,7 @@ export async function GET() {
 
 **File:** `app/app/hr/employees/page.tsx`
 
-Reference: `docs/design/hr-bundle/apps/hr-employees.jsx`
+Reference: `_notes/99_Assets/design/hr-bundle/apps/hr-employees.jsx`
 
 Structure:
 ```
@@ -797,7 +797,7 @@ if (body.action === 'approve') {
 
 **File:** `app/app/hr/leave-requests/page.tsx`
 
-Reference: `docs/design/hr-bundle/apps/hr-leave.jsx`
+Reference: `_notes/99_Assets/design/hr-bundle/apps/hr-leave.jsx`
 
 Structure:
 ```
@@ -1006,7 +1006,7 @@ if (body.action === 'submit_review') {
 
 **File:** `app/app/hr/payroll/[id]/page.tsx`
 
-Reference: `docs/design/hr-bundle/apps/hr-payroll.jsx`
+Reference: `_notes/99_Assets/design/hr-bundle/apps/hr-payroll.jsx`
 
 Structure:
 ```

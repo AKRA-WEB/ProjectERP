@@ -5,7 +5,7 @@ Global UI/UX reference files for the ERP platform.
 ## Usage
 
 Place design assets here. When asking Chen/Claude to plan UI improvements, reference this folder:
-> "Analyze `docs/design/<filename>` and plan UI improvements"
+> "Analyze `_notes/99_Assets/design/<filename>` and plan UI improvements"
 
 ## Files
 

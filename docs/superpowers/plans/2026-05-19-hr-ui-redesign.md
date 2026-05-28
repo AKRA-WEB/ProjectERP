@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Redesign 4 HR pages to match `docs/design/hr-bundle/` mockups, update sidebar nav, and add 13 stub routes.
+**Goal:** Redesign 4 HR pages to match `_notes/99_Assets/design/hr-bundle/` mockups, update sidebar nav, and add 13 stub routes.
 
 **Architecture:** Page-by-page — each task delivers a complete, working screen. APIs extended alongside their consuming UI. Stub pages added first so sidebar links never 404.
 

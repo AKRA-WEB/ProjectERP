@@ -1,27 +1,27 @@
 # BUYMORE (THAILAND) COMPANY LIMITED — ERP Hub
 
-## Quick Nav
-- [[_notes/dashboard|📊 Project Dashboard]] — Dataview: status ทุก track
-- [[conductor/index|📋 Track Index]] — conductor tracks ทั้งหมด
-- [[_notes/02_Agent_Memory/current-state|🧠 Current State]] — **อ่านก่อนเริ่มงานทุกครั้ง** (active tracks, DB facts, traps)
-- [[_notes/02_Agent_Memory/pitfalls|⚠️ Pitfalls]] — traps ที่ agent เจอบ่อย
-- [[_notes/00_Project_Map/module-map|🗺️ Module Map]] — Canvas: dependency ระหว่าง modules
-- [[_notes/00_Project_Map/state-machines|⚙️ State Machines]] — Mermaid diagrams ทุก document flow
-- [[_notes/02_Agent_Memory/agents-index|📚 Agents & Skills Index]] — agents, triggers, skill files
-- [[_notes/skill-changelog|📝 Skill Changelog]] — auto-log ทุก trap/pattern ใหม่
-- [[PROGRESS|📈 Progress Log]]
-- [[CLAUDE|⚙️ Architecture Rules]]
+## 🗺️ Atlas & Maps (MOC)
+- [[_notes/00_ATLAS/MASTER_MOC|🛰️ Master Map of Content]] — **ศูนย์กลางการเชื่อมโยงข้อมูล**
+- [[_notes/00_ATLAS/TRACK_ARCHIVE_MOC|📚 Track Archive (Phased)]] — ประวัติงานแยกตาม Phase
+- [[_notes/00_ATLAS/API_CATALOG|🔌 API Route Catalog]] — รวมทุุก API Endpoints
+- [[_notes/00_Project_Map/module-map|🗺️ Module Map (Canvas)]] — Dependency ระหว่าง modules
+
+## 🏗️ Core Context
+- [[CLAUDE|🛠️ Universal Rules]] — กฎการพัฒนา
+- [[_notes/02_Agent_Memory/current-state|🧠 Current State]] — **อ่านก่อนเริ่มงานทุกครั้ง**
+- [[docs/SCHEMA|📊 Master Schema]] — โครงสร้าง DB ล่าสุด
+- [[_notes/02_Agent_Memory/pitfalls|⚠️ Pitfalls]] — Traps ที่ต้องระวัง
 
 ---
 
-## Vault Structure
+## Vault Folders
 | โฟลเดอร์ | ใช้สำหรับ |
 |---------|----------|
+| [[_notes/00_ATLAS/MASTER_MOC\|00_ATLAS]] | **MOCs, Indexes, Catalogs (The Atlas)** |
 | [[_notes/00_Project_Map/README\|00_Project_Map]] | ภาพรวมระบบ, module map, state machines |
 | [[_notes/01_Decisions/README\|01_Decisions]] | Decision log — ทำไมเลือกทางนี้ |
 | [[_notes/02_Agent_Memory/README\|02_Agent_Memory]] | สิ่งที่ agent ควรรู้ก่อนเริ่มงาน, pitfalls |
-| [[_notes/03_Prompts/README\|03_Prompts]] | Prompts ที่ใช้ซ้ำ |
-| [[_notes/04_Debug_Log/README\|04_Debug_Log]] | Bug log, root cause, วิธีแก้ |
+| [[_notes/99_Assets/README\|99_Assets]] | Static images, design artifacts, references |
 
 
 ---

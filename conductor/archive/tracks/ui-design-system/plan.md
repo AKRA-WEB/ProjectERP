@@ -14,7 +14,7 @@ updated: 2026-05-13
 **Created:** 2026-05-12  
 **Status:** Active  
 **Architect:** Claude  
-**Reference:** `docs/design/ERP/` — อรุณ design system (Notion/Stripe aesthetic)
+**Reference:** `_notes/99_Assets/design/ERP/` — อรุณ design system (Notion/Stripe aesthetic)
 
 **Goal:** Align the entire ERP UI to the อรุณ design reference — IBM Plex Sans Thai typography, emerald accent token system, collapsible sidebar, glassmorphism topbar, pill badges, and Stripe-style tables.
 

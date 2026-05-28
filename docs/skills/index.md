@@ -1,9 +1,14 @@
 # Skill Modules Index
 
-## ⚡ Shared Principles — อ่านก่อนทุกครั้ง (ทุก Agent)
+## 🧠 The Master Brain — อ่านก่อนทุกครั้ง (ทุก Agent)
  
-- อ่าน `[[agent-principles|docs/skills/agent-principles.md]]` ก่อนเริ่มงานทุกครั้ง — กฎเหล็ก 10 ข้อ (รวม Andrej Karpathy Guidelines) เพื่อลดความผิดพลาดและรักษามาตรฐานโปรเจกต์
-- อ่าน `[[AI_WORKFLOW_GUIDE|docs/AI_WORKFLOW_GUIDE.md]]` — คู่มือและกติกาการประสานงานกลาง (Architect, Go, QA, Summary และการบันทึก Obsidian)
+- **Universal Rules**: `[[universal_agent_rules|docs/skills/universal_agent_rules.md]]` — มาตรฐานทางเทคนิคและหลักการทำงานร่วมกันสำหรับทุก AI (Zero-Tolerance, Karpathy, Modes)
+- **Master Schema**: `[[SCHEMA|docs/SCHEMA.md]]` — แผนผังฐานข้อมูลฉบับสมบูรณ์ (Single Source of Truth) **ห้ามเดาชื่อคอลัมน์เด็ดขาด**
+- **Shared Principles**: `[[agent-principles|docs/skills/agent-principles.md]]` — กฎเหล็ก 10 ข้อเพื่อลดความผิดพลาด
+
+## 🚀 Coordination & Workflow
+- **Workflow Guide**: `[[AI_WORKFLOW_GUIDE|docs/AI_WORKFLOW_GUIDE.md]]` — คู่มือการประสานงานกลาง (Architect, Go, QA, Summary)
+- **Protocols**: `[[PROTOCOLS|conductor/PROTOCOLS.md]]` — ข้อตกลงทางเทคนิคในการส่งต่องานระหว่างโหมดต่างๆ
  
 ---
  

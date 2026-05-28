@@ -10,7 +10,7 @@ updated: 2026-05-16
 # Track: UI Improvement — Dashboard (Multi-Module Overview)
 
 **Status:** Completed
-**Design Reference:** `docs/design/views.jsx` → `DashboardView`, `components.jsx` → `KpiCard`, `SalesChart`
+**Design Reference:** `_notes/99_Assets/design/views.jsx` → `DashboardView`, `components.jsx` → `KpiCard`, `SalesChart`
 **Goal:** Expand the WMS-only dashboard into a true multi-module ERP overview page showing Sales + POS + WMS signals.
 
 ---
@@ -72,7 +72,7 @@ Current `app/app/dashboard/page.tsx` shows only WMS KPIs (PR, PO, GRN, low-stock
   (SELECT 'so' AS type, so_number AS ref, status AS action, updated_at FROM sales_orders ORDER BY updated_at DESC LIMIT 4)
   ORDER BY created_at DESC LIMIT 8
   ```
-- [x] **T-10** Render activity feed below warehouse performance: timestamp, type pill (GRN/SO/POS), reference, action label. Use the avatar + colored dot pattern from `docs/design/views.jsx` DashboardView.
+- [x] **T-10** Render activity feed below warehouse performance: timestamp, type pill (GRN/SO/POS), reference, action label. Use the avatar + colored dot pattern from `_notes/99_Assets/design/views.jsx` DashboardView.
 
 ### Phase 5 — Visual Polish
 - [x] **T-11** Ensure inventory alerts section (low-stock items) has amber highlight matching design: icon + product name + warehouse + qty available vs reorder point

@@ -1,6 +1,6 @@
 ﻿# Track Plan: main-menu-ui-polish
 
-ปรับปรุงหน้าจอเมนูหลักของระบบ (Main Menu Hub) ให้ตรงตามดีไซน์ต้นแบบ (`docs/design/main-menu.html`) เพื่อมอบประสบการณ์การใช้งานที่สวยงาม Premium และรองรับ Module ใหม่ในอนาคต
+ปรับปรุงหน้าจอเมนูหลักของระบบ (Main Menu Hub) ให้ตรงตามดีไซน์ต้นแบบ (`_notes/99_Assets/design/main-menu.html`) เพื่อมอบประสบการณ์การใช้งานที่สวยงาม Premium และรองรับ Module ใหม่ในอนาคต
 
 ---
 

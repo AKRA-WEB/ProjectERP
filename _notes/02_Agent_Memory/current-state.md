@@ -1,9 +1,18 @@
 ---
-updated: 2026-05-26
+updated: 2026-05-28
 updated_by: Gemini
 ---
 
 # Project Current State — Anti-Context-Loss Briefing
+
+## 🏛️ Stable Modules (Core Foundations)
+- **Atlas (MOC):** Master Map of Content (00_ATLAS) serving as the hub for all documentation, phased track archives, and API catalogs (v073).
+- **Core (IAM):** Multi-BU ready, RBAC system, Warehouse assignments.
+- **Inventory:** Insert-only ledger, Real-time balances, Multi-UOM engine (v026).
+- **WMS:** Strict Receiving (GRN), Inbound Orders (IO), Split GRN, Reversal (v072).
+- **POS:** Price tiers, Member points, Hybrid draft flow, Picking slips.
+- **Sales:** SQ -> SO -> DO -> SI full cycle, AKRA channel locking.
+- **Accounting:** Chart of Accounts, JE Posting, 3-Way Match (v070), Thai VAT (v071).
 
 ## Last 5 Completed Tracks
 - **seed-ap-invoices-stocked-grns**: Extended `lib/db/seed.js` with `seedStockedGrnsAndInvoices()` to seed 2 stocked GRNs (PKG-002/BEV-001 in W2), 2 fully-received POs, 2 stock ledger entries, and 1 matched + 1 mismatched AP invoice. Fixed BEFORE INSERT trigger FK race on `po_invoice_match_variances` by inserting at matched amount then UPDATE to mismatch. All acceptance criteria verified (2026-05-28)

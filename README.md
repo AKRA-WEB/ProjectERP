@@ -4,26 +4,20 @@
 
 ---
 
-## 🤖 1. AI Agents Onboarding Portal (สำหรับ AI ทุกระบบที่เข้ามาร่วมพัฒนา)
+## 🤖 1. AI Agents Onboarding Portal (Unified Brain Architecture)
 
-หากคุณเป็น AI Assistant (เช่น Codex, Claude Code, Gemini CLI, ChatGPT หรืออื่น ๆ) ที่เพิ่งเปิดบริบทเข้ามาร่วมงานใน Repository นี้ **กรุณาปฏิบัติตามคำแนะนำในการสวมบทบาทและทำความเข้าใจขั้นตอนทำงานดังต่อไปนี้ทันที:**
+หากคุณเป็น AI Assistant (Codex, Claude, Gemini, Antigravity, etc.) กรุณาปฏิบัติตาม **Universal Brain Architecture** ดังนี้:
 
-### 🚨 จุดเริ่มต้นการรับบรีฟ (Where to Start)
-1. **คิวปิดคู่มือการทำงานกลาง:** เปิดอ่านและสตรีมความรู้จาก [docs/AI_WORKFLOW_GUIDE.md](file:///C:/dev/projectERP/docs/AI_WORKFLOW_GUIDE.md) (หรือทักษะ [docs/skills/ai_workflow_rules.md](file:///C:/dev/projectERP/docs/skills/ai_workflow_rules.md)) เป็นอันดับแรกก่อนทำงาน เพื่อรับทราบกระบวนการ Pre-Flight Checklist, คำสั่งการสวมบทบาท และขั้นตอนจดบันทึก Obsidian
-2. **เช็คสถานะปัจจุบันของโครงการ:** เข้าไปอ่าน [_notes/02_Agent_Memory/current-state.md](file:///C:/dev/projectERP/_notes/02_Agent_Memory/current-state.md) เพื่อรับทราบข้อมูลตาราง/คอลัมน์ DB ล่าสุด, เส้นทาง API ที่เพิ่มขึ้น และหมายเลข Migration ล่าสุด เพื่อป้องกัน Context Loss
-3. **ศึกษาข้อห้ามและการทำงานที่ผิดพลาดในอดีต:** อ่าน [_notes/02_Agent_Memory/pitfalls.md](file:///C:/dev/projectERP/_notes/02_Agent_Memory/pitfalls.md) เพื่อทราบสิ่งแปลกปลอมในโค้ดและ Traps ด้านความปลอดภัย
+### 🚨 จุดเริ่มต้น (READ FIRST)
+1. **Universal Protocol:** โหลดสติปัญญาจาก [docs/skills/universal_agent_rules.md](file:///C:/dev/projectERP/docs/skills/universal_agent_rules.md) เป็นอันดับแรก
+2. **Master Schema:** ใช้ [docs/SCHEMA.md](file:///C:/dev/projectERP/docs/SCHEMA.md) เป็น Source of Truth สำหรับ Database เสมอ (ห้ามเดาชื่อ Column)
+3. **Workflow Guide:** ทำความเข้าใจวงจรทำงานที่ [docs/AI_WORKFLOW_GUIDE.md](file:///C:/dev/projectERP/docs/AI_WORKFLOW_GUIDE.md)
 
-### 🔄 แผนผังคำสั่งสวมบทบาทสลับโหมด (Role-as-a-Skill)
-คุณสามารถสวมบทบาทและสลับโหมดการทำงานได้ด้วยคำสั่งทริกเกอร์เหล่านี้:
-
-* **คำสั่ง `Init` (สั่งเป็นคำแรกสุดเมื่อเริ่มเซสชันแชทใหม่):**
-  สั่งให้ AI รัน Pre-Flight Checklist เต็มรูปแบบทันที (Git sync, sweep แทร็กเก่า, โหลดความจำ `current-state.md` + pitfalls และนำเสนอรายงานสรุปความพร้อมของระบบ)
-* **คำสั่ง `Architect: <requirement>` (สวมบท Chen / Architect):**
-  คุณต้องวิเคราะห์โค้ดตามความต้องการของ User และสร้างโฟลเดอร์แทร็กพร้อมแผนปฏิบัติงานที่ `conductor/tracks/<feature-name>/plan.md` และลงทะเบียนบนกระดานดัชนี `conductor/index.md`
-* **คำสั่ง `Go` (สวมบท Gemini / Implementer):**
-  คุณต้องอ่านแผนงาน `plan.md` ในแทร็กที่เป็น `Active` ดำเนินการเขียนโค้ด ทดสอบ ตรวจสอบ Auto-QA และ Rework โค้ดจนเสร็จสมบูรณ์ 100%
-* **คำสั่ง `QA: <track-name>` (สวมบท Billy / QA Auditor):**
-  คุณต้องรัน Static checks (`npm run lint` + `npx tsc --noEmit`) และทำ Deep Review เพื่อเขียนรายงานตรวจสอบความเสี่ยงไปที่ `conductor/qa-reports/<track-name>.md`
+### 🔄 Command Triggers (โหมดการทำงาน)
+* **`Init`**: เตรียมความพร้อมระบบ (Checklist + Memory)
+* **`Architect: <req>`**: เข้าสู่ **Architect Mode** (วางแผนงานลงใน `plan.md`)
+* **`Go`**: เข้าสู่ **Implementer Mode** (ลงมือโค้ด + Auto-QA จนสะอาด 100%)
+* **`QA: <track>`**: เข้าสู่ **Auditor Mode** (ตรวจสอบความเสี่ยงเชิงลึก)
 
 ---
 
