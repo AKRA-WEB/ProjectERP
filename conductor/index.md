@@ -17,7 +17,6 @@
 
 | Track | Status | Plan |
 | --- | --- | --- |
-| seed-ap-invoices-stocked-grns | Completed | [plan](tracks/seed-ap-invoices-stocked-grns/plan.md) |
 
 ## Performance Optimization Tracks (sequential — measure after each tier)
 
@@ -93,7 +92,7 @@ Master plan: [erp-v2-orion-roadmap](tracks/erp-v2-orion-roadmap/plan.md)
 
 | Track | Status | Created | Last Updated |
 |-------|--------|---------|--------------|
-| [Seed: AP invoices + stocked GRNs](./tracks/seed-ap-invoices-stocked-grns/plan.md) | Verified | 2026-05-28 | 2026-05-28 |
+| [Seed: AP invoices + stocked GRNs](./archive/tracks/seed-ap-invoices-stocked-grns/plan.md) | Verified| 2026-05-28 | 2026-05-28 |
 | [GRN Reversal (Cancel Stocked GRN)](./archive/tracks/grn-reversal/plan.md) | Verified | 2026-05-28 | 2026-05-28 |
 | [Thai VAT Report (ภ.พ.30)](./archive/tracks/thai-vat-report/plan.md) | Verified | 2026-05-28 | 2026-05-28 |
 | [Three-Way Matching (Strict Zero Variance)](./archive/tracks/three-way-matching/plan.md) | Verified | 2026-05-28 | 2026-05-28 |

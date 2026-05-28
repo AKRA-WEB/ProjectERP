@@ -67,3 +67,4 @@
 | [three-way-matching — Three-Way Matching (Strict Zero Variance)](./tracks/three-way-matching/plan.md) | Verified | 2026-05-28 | 2026-05-28 |
 | [thai-vat-report — Thai VAT Report (ภ.พ.30)](./tracks/thai-vat-report/plan.md) | Verified | 2026-05-28 | 2026-05-28 |
 | [grn-reversal — GRN Reversal (Cancel Stocked GRN)](./tracks/grn-reversal/plan.md) | Verified | 2026-05-28 | 2026-05-28 |
+| [seed-ap-invoices-stocked-grns — Seed: AP Invoices + Stocked GRNs](./tracks/seed-ap-invoices-stocked-grns/plan.md) | Verified | 2026-05-28 | 2026-05-28 |
