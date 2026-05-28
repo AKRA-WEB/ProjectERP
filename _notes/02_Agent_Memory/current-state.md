@@ -6,11 +6,11 @@ updated_by: Gemini
 # Project Current State — Anti-Context-Loss Briefing
 
 ## Last 5 Completed Tracks
+- **seed-ap-invoices-stocked-grns**: Extended `lib/db/seed.js` with `seedStockedGrnsAndInvoices()` to seed 2 stocked GRNs (PKG-002/BEV-001 in W2), 2 fully-received POs, 2 stock ledger entries, and 1 matched + 1 mismatched AP invoice. Fixed BEFORE INSERT trigger FK race on `po_invoice_match_variances` by inserting at matched amount then UPDATE to mismatch. All acceptance criteria verified (2026-05-28)
 - **grn-reversal**: Implemented strict reversal/cancellation for stocked Goods Receipt Notes, creating negative stock ledger entries to decrement stock on-hand, voiding linked AP invoices, reverting PO status when sole active GRN, and rendering premium supervisor confirmation & detailed outbound consumption blocking UI (2026-05-28)
 - **thai-vat-report**: Designed and implemented monthly purchase and sales VAT reports (ภ.พ.30) with dynamic calculations, created `/api/accounting/vat/purchase` and `/sales` routes, implemented administrative period locking with persistent snapshots in `vat_report_runs` (`/api/accounting/vat/finalize`), and built a premium responsive tabbed UI page with Excel-friendly UTF-8 BOM CSV exports (2026-05-28)
 - **three-way-matching**: Installed strict three-way matching trigger `reconcile_po_invoice` on `po_invoices`, blocked AP payments when not fully matched with HTTP 422, created a manager review queue page at `app/app/ap/match-queue`, and surfaced variances side-by-side (2026-05-28)
 - **mock-data-seed**: Implemented `lib/db/seed.js` script to populate all BUYMORE ERP database modules with highly realistic, bilingual Thai/English mock data, making all pages/actions fully functional and clickable without manual data entry. Confirmed 100% clean Next.js lint and `tsc --noEmit` validation results (2026-05-28)
-- **perf-tier3-frontend-bundle**: Integrated `@next/bundle-analyzer` and executed bundle size audit on client bundles and routes. Confirmed exceptional baseline performance with 112 kB shared JS bundle size and page sizes ranging from 115 kB to 156 kB, rendering manual component-level dynamic imports unnecessary (2026-05-27)
 
 ## Active Work
 - None.

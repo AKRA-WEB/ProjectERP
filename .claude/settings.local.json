@@ -63,7 +63,8 @@
       "Bash(echo \"PID: $!\")",
       "Bash(Start-Sleep -Seconds 8)",
       "Bash(Invoke-WebRequest -Uri \"http://localhost:3000\" -MaximumRedirection 0 -ErrorAction SilentlyContinue)",
-      "Bash(Select-Object StatusCode, Headers)"
+      "Bash(Select-Object StatusCode, Headers)",
+      "Bash(python3 *)"
     ]
   },
   "hooks": {
