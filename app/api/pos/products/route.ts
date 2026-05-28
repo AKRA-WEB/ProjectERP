@@ -39,10 +39,12 @@ export async function GET(req: Request) {
   const products = await query(
     `SELECT p.id, p.sku, p.barcode, p.name_th, p.name_en, p.selling_price, 
             p.image_url, p.reorder_point, p.category_id,
-            sb.qty_available, uom.code AS uom_code
+            sb.qty_available, uom.code AS uom_code,
+            pc.name_th AS category
      FROM products p
      JOIN stock_balances sb ON sb.product_id = p.id
      LEFT JOIN units_of_measure uom ON uom.id = p.uom_id
+     LEFT JOIN product_categories pc ON pc.id = p.category_id
      WHERE ${conditions.join(' AND ')}
      ORDER BY p.name_th ASC
      LIMIT $${idx}`,

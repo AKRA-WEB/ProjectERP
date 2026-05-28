@@ -390,20 +390,49 @@ export default function POSSessionPage() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [sessionRes, productsRes] = await Promise.all([
-        fetch(`/api/pos/sessions/${sessionId}`),
-        fetch(`/api/pos/sessions/${sessionId}/products`),
-      ]);
+      const sessionRes = await fetch(`/api/pos/sessions/${sessionId}`);
+      let warehouseId = '';
       if (sessionRes.ok) {
         const sj = await sessionRes.json();
-        setSession(sj.data ?? sj);
+        const sessionData = sj.data ?? sj;
+        setSession(sessionData);
+        warehouseId = sessionData.warehouse_id;
       }
-      if (productsRes.ok) {
-        const pj = await productsRes.json();
-        const prods: Product[] = pj.data ?? pj;
-        setProducts(prods);
-        const cats = Array.from(new Set(prods.map((p) => p.category).filter(Boolean)));
-        setCategories(cats);
+
+      if (warehouseId) {
+        const productsRes = await fetch(`/api/pos/products?warehouse_id=${warehouseId}`);
+        if (productsRes.ok) {
+          const pj = await productsRes.json();
+          const rawProds = pj.data ?? pj;
+          interface ApiProduct {
+            id: string;
+            sku: string;
+            barcode?: string;
+            name_th: string;
+            name_en: string;
+            selling_price?: string | number;
+            price?: number;
+            qty_available?: string | number;
+            stock_qty?: number;
+            reorder_point?: string | number;
+            image_url: string | null;
+            category?: string;
+          }
+          const prods: Product[] = rawProds.map((p: ApiProduct) => ({
+            id: p.id,
+            sku: p.sku,
+            name_th: p.name_th,
+            name_en: p.name_en,
+            price: Number(p.selling_price || p.price || 0),
+            category: p.category || '',
+            stock_qty: Number(p.qty_available || p.stock_qty || 0),
+            reorder_point: Number(p.reorder_point || 0),
+            image_url: p.image_url || null,
+          }));
+          setProducts(prods);
+          const cats = Array.from(new Set(prods.map((p) => p.category).filter(Boolean)));
+          setCategories(cats);
+        }
       }
       await fetchHeldCarts();
     } catch {
