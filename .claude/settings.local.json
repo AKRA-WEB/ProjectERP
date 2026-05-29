@@ -64,7 +64,10 @@
       "Bash(Start-Sleep -Seconds 8)",
       "Bash(Invoke-WebRequest -Uri \"http://localhost:3000\" -MaximumRedirection 0 -ErrorAction SilentlyContinue)",
       "Bash(Select-Object StatusCode, Headers)",
-      "Bash(python3 *)"
+      "Bash(python3 *)",
+      "Bash(xargs grep -l \"^[[:space:]]*<h\\\\|^[[:space:]]*<p\\\\|^[[:space:]]*<span\\\\|^[[:space:]]*<div\\\\|^[[:space:]]*<label\")",
+      "Bash(xargs grep \"[ก-๙]\")",
+      "Bash(xargs grep -L \"useT\\\\|useLanguage\")"
     ]
   },
   "hooks": {
