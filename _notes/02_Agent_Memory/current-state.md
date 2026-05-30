@@ -1,6 +1,6 @@
 ---
-updated: 2026-05-28
-updated_by: Gemini
+updated: 2026-05-30
+updated_by: Claude
 ---
 
 # Project Current State — Anti-Context-Loss Briefing
@@ -21,8 +21,15 @@ updated_by: Gemini
 - **thai-vat-report**: Implemented monthly purchase/sales VAT reports (ภ.พ.30) with calculations, `/api/accounting/vat/*` routes, administrative period locking, and CSV exports (2026-05-28)
 - **three-way-matching**: Installed strict three-way matching trigger `reconcile_po_invoice` on `po_invoices`, blocked AP payments when not fully matched, and created match-queue review UI (2026-05-28)
 
+## Last 5 Completed Tracks
+- **i18n-t1-prevention**: Installed `eslint-plugin-local-rules`, created `no-hardcoded-thai` ESLint rule (warn), added scaffold template `scripts/new-page-template.tsx`, wrote `docs/i18n.md`, updated CLAUDE.md Knowledge Base + QA loop (2026-05-30)
+- **perf-tier4-suspense-streaming**: Converted Dashboard, GRN, Inventory, AP, and SKU-Cut pages to React Server Components (RSC) with parallel database fetches. Replaced expensive `limit=1000` GRN scans with an optimized count endpoint. ~85% reduction in hydration latency (2026-05-28)
+- **seed-ap-invoices-stocked-grns**: Extended `lib/db/seed.js` to seed stocked GRNs, fully-received POs, stock ledger entries, and matched/mismatched AP invoices. Fixed BEFORE INSERT trigger FK race on `po_invoice_match_variances` (2026-05-28)
+- **grn-reversal**: Implemented strict reversal for stocked Goods Receipt Notes, creating negative stock ledger entries, voiding linked AP invoices, and reverting PO status (2026-05-28)
+- **thai-vat-report**: Implemented monthly purchase/sales VAT reports (ภ.พ.30) with calculations, `/api/accounting/vat/*` routes, administrative period locking, and CSV exports (2026-05-28)
+
 ## Active Work
-- None.
+- i18n-t2-keys through i18n-t6-menu-remaining (pending, need fresh session each)
 
 ---
 
