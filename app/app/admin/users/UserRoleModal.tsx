@@ -5,6 +5,7 @@ import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Badge } from '@/com
 import { get, post, del } from '@/lib/api-client';
 import { formatDate } from '@/lib/format';
 import type { User, EmployeeRole } from '@/types';
+import { useT } from '@/lib/i18n';
 
 interface UserRoleAssignment {
   id: string;
@@ -22,6 +23,7 @@ interface Props {
 }
 
 export default function UserRoleModal({ user, onClose }: Props) {
+  const t = useT();
   const [assignedRoles, setAssignedRoles] = useState<UserRoleAssignment[]>([]);
   const [allRoles, setAllRoles] = useState<EmployeeRole[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,7 +59,7 @@ export default function UserRoleModal({ user, onClose }: Props) {
   }
 
   async function handleRemove(roleId: string) {
-    if (!confirm('ยืนยันการถอนบทบาทนี้?')) return;
+    if (!confirm(t('users.role_modal.confirm_revoke'))) return;
     setSaving(true);
     try {
       await del(`/api/admin/users/${user.id}/roles`, { role_id: roleId });
@@ -73,22 +75,22 @@ export default function UserRoleModal({ user, onClose }: Props) {
     <Modal open onClose={onClose} size="md">
       <ModalHeader>
         <div className="flex items-center gap-3">
-          <span>บทบาทของ: {user.name_th ?? user.name_en}</span>
+          <span>{t('users.role_modal.title_prefix')} {user.name_th ?? user.name_en}</span>
           <Badge variant="blue">{user.role}</Badge>
         </div>
       </ModalHeader>
       <ModalBody>
         <div className="space-y-6">
           <div className="bg-yellow-50 border border-yellow-100 rounded-lg p-3 text-xs text-yellow-800">
-            หมายเหตุ: การเปลี่ยนบทบาทจะมีผลหลังจากผู้ใช้ล็อกอินใหม่ (New session required)
+            {t('users.role_modal.note')}
           </div>
 
           <section>
-            <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wider">บทบาทปัจจุบัน / Assigned Roles</h3>
+            <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wider">{t('users.role_modal.assigned_section')}</h3>
             {loading ? (
-              <p className="py-4 text-center text-sm text-gray-600">กำลังโหลด...</p>
+              <p className="py-4 text-center text-sm text-gray-600">{t('users.role_modal.loading')}</p>
             ) : assignedRoles.length === 0 ? (
-              <p className="py-4 text-center text-sm text-gray-400 italic">ยังไม่มีบทบาทที่กำหนดเฉพาะ</p>
+              <p className="py-4 text-center text-sm text-gray-400 italic">{t('users.role_modal.no_roles')}</p>
             ) : (
               <div className="space-y-2">
                 {assignedRoles.map((r) => (
@@ -98,14 +100,14 @@ export default function UserRoleModal({ user, onClose }: Props) {
                         <span className="text-sm font-bold text-gray-900">{r.name_th}</span>
                         <span className="font-mono text-[10px] text-gray-400 bg-gray-100 px-1 rounded uppercase">{r.code}</span>
                       </div>
-                      <p className="text-[10px] text-gray-400 mt-0.5">กำหนดโดย {r.assigned_by_name} เมื่อ {formatDate(r.assigned_at)}</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5">{t('users.role_modal.assigned_by')} {r.assigned_by_name} · {formatDate(r.assigned_at)}</p>
                     </div>
                     <button
                       onClick={() => handleRemove(r.id)}
                       className="text-xs text-red-600 hover:underline"
                       disabled={saving}
                     >
-                      ถอนสิทธิ์
+                      {t('users.role_modal.revoke')}
                     </button>
                   </div>
                 ))}
@@ -114,25 +116,25 @@ export default function UserRoleModal({ user, onClose }: Props) {
           </section>
 
           <section className="pt-4 border-t">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">เพิ่มบทบาทใหม่</h3>
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('users.role_modal.add_section')}</h3>
             <div className="flex gap-2">
               <select
                 className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
                 value={selectedRoleId}
                 onChange={(e) => setSelectedRoleId(e.target.value)}
               >
-                <option value="">เลือกบทบาท...</option>
+                <option value="">{t('users.role_modal.select_role')}</option>
                 {unassigned.map((r) => (
                   <option key={r.id} value={r.id}>{r.name_th} ({r.code})</option>
                 ))}
               </select>
-              <Button size="sm" onClick={handleAdd} disabled={!selectedRoleId || saving} loading={saving}>เพิ่ม</Button>
+              <Button size="sm" onClick={handleAdd} disabled={!selectedRoleId || saving} loading={saving}>{t('users.role_modal.add_btn')}</Button>
             </div>
           </section>
         </div>
       </ModalBody>
       <ModalFooter>
-        <Button variant="ghost" onClick={onClose}>ปิด</Button>
+        <Button variant="ghost" onClick={onClose}>{t('users.role_modal.close')}</Button>
       </ModalFooter>
     </Modal>
   );

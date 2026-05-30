@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { get } from '@/lib/api-client';
 import { Table, Thead, Tbody, Th, Td, Button, Select, Input, Pagination, Badge, Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/ui';
-import { useLanguage } from '@/lib/i18n';
+import { useT } from '@/lib/i18n';
 import { formatDatetime } from '@/lib/utils';
 import { DirectionalTransition } from '@/components/ui/directional-transition';
 
@@ -39,7 +39,7 @@ interface Authorizer {
 }
 
 export default function OverridesAuditPage() {
-  const { lang } = useLanguage();
+  const t = useT();
   const [data, setData] = useState<PaginatedResponse<OverrideLog> | null>(null);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -98,18 +98,16 @@ export default function OverridesAuditPage() {
   };
 
   const getReasonLabel = (code: string) => {
-    const labels: Record<string, { th: string; en: string }> = {
-      PRICE_MATCH: { th: 'ปรับราคาตามคู่แข่ง', en: 'Price Match' },
-      PROMOTION: { th: 'โปรโมชันพิเศษ', en: 'Special Promotion' },
-      CUSTOMER_SATISFACTION: { th: 'ความพึงพอใจลูกค้า', en: 'Customer Satisfaction' },
-      FEFO_VIOLATION: { th: 'ข้ามลำดับสินค้า FEFO', en: 'FEFO Violation' },
-      EXCESS_CREDIT: { th: 'วงเงินเครดิตเกินกำหนด', en: 'Excess Credit' },
-      REPACK_LOSS: { th: 'การสูญเสียบรรจุใหม่', en: 'Repack Yield Loss' },
-      OTHER: { th: 'เหตุผลอื่นๆ', en: 'Other Reason' },
+    const labels: Record<string, string> = {
+      PRICE_MATCH: t('audit.reason.price_match'),
+      PROMOTION: t('audit.reason.promotion'),
+      CUSTOMER_SATISFACTION: t('audit.reason.customer_satisfaction'),
+      FEFO_VIOLATION: t('audit.reason.fefo_violation'),
+      EXCESS_CREDIT: t('audit.reason.excess_credit'),
+      REPACK_LOSS: t('audit.reason.repack_loss'),
+      OTHER: t('audit.reason.other'),
     };
-    const row = labels[code];
-    if (!row) return code;
-    return lang === 'th' ? row.th : row.en;
+    return labels[code] ?? code;
   };
 
   const formatJSON = (val: unknown) => {
@@ -126,29 +124,20 @@ export default function OverridesAuditPage() {
     <DirectionalTransition>
       <div className="max-w-[1440px] mx-auto pb-12">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">
-            {lang === 'th' ? 'บันทึกประวัติการอนุมัติสิทธิ์' : 'Supervisor Overrides Audit Log'}
-          </h1>
-          <p className="text-sm text-gray-500">
-            {lang === 'th'
-              ? 'ประวัติเหตุการณ์ที่ได้รับอนุมัติข้ามขั้นตอนพิเศษโดยผู้จัดการหรือแอดมิน'
-              : 'Audit history of special actions authorized in-app using supervisor PINs.'}
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('audit.page.title')}</h1>
+          <p className="text-sm text-gray-500">{t('audit.page.subtitle')}</p>
         </div>
 
         {/* Filters Panel */}
         <div className="mb-6 p-5 bg-white rounded-xl border border-gray-100 shadow-sm space-y-4">
-          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-            {lang === 'th' ? 'ตัวกรองประวัติ / Filter Logs' : 'Filter Logs'}
-          </h3>
+          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t('audit.filter.title')}</h3>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            {/* Filter by Supervisor */}
             <Select
-              label={lang === 'th' ? 'ผู้อนุมัติ' : 'Authorizer'}
+              label={t('audit.filter.authorizer')}
               value={selectedUserId}
               onChange={(e) => { setSelectedUserId(e.target.value); setPage(1); }}
               options={[
-                { value: '', label: lang === 'th' ? 'แสดงทั้งหมด' : 'Show All' },
+                { value: '', label: t('audit.filter.show_all') },
                 ...authorizers.map((a) => ({
                   value: a.id,
                   label: `${a.name_en} (${a.role.toUpperCase()})`,
@@ -156,39 +145,35 @@ export default function OverridesAuditPage() {
               ]}
             />
 
-            {/* Filter by Action */}
             <Select
-              label={lang === 'th' ? 'ประเภทการอนุมัติ' : 'Action Type'}
+              label={t('audit.filter.action_type')}
               value={selectedAction}
               onChange={(e) => { setSelectedAction(e.target.value); setPage(1); }}
               options={[
-                { value: '', label: lang === 'th' ? 'แสดงทั้งหมด' : 'Show All' },
-                { value: 'below_min_price', label: lang === 'th' ? 'ขายต่ำกว่าราคาขั้นต่ำ' : 'Below Min Price' },
-                { value: 'fefo_violation', label: lang === 'th' ? 'ข้ามลำดับสินค้า FEFO' : 'FEFO Violation' },
-                { value: 'credit_limit', label: lang === 'th' ? 'อนุมัติวงเงินเครดิตเกิน' : 'Credit Limit Override' },
-                { value: 'repack_loss', label: lang === 'th' ? 'การสูญเสียใน Repack' : 'Repack Yield Loss' },
+                { value: '', label: t('audit.filter.show_all') },
+                { value: 'below_min_price', label: t('audit.filter.below_min_price') },
+                { value: 'fefo_violation', label: t('audit.filter.fefo_violation') },
+                { value: 'credit_limit', label: t('audit.filter.credit_limit') },
+                { value: 'repack_loss', label: t('audit.filter.repack_loss') },
               ]}
             />
 
-            {/* Filter by Table */}
             <Input
-              label={lang === 'th' ? 'ตารางฐานข้อมูล' : 'Target Table'}
+              label={t('audit.filter.target_table')}
               placeholder="e.g. sales_orders"
               value={selectedTable}
               onChange={(e) => { setSelectedTable(e.target.value); setPage(1); }}
             />
 
-            {/* Date From */}
             <Input
-              label={lang === 'th' ? 'จากวันที่' : 'From Date'}
+              label={t('audit.filter.from_date')}
               type="date"
               value={fromDate}
               onChange={(e) => { setFromDate(e.target.value); setPage(1); }}
             />
 
-            {/* Date To */}
             <Input
-              label={lang === 'th' ? 'ถึงวันที่' : 'To Date'}
+              label={t('audit.filter.to_date')}
               type="date"
               value={toDate}
               onChange={(e) => { setToDate(e.target.value); setPage(1); }}
@@ -196,12 +181,8 @@ export default function OverridesAuditPage() {
           </div>
 
           <div className="flex justify-end gap-2 pt-2 border-t border-gray-50">
-            <Button variant="secondary" onClick={handleResetFilters}>
-              {lang === 'th' ? 'ล้างตัวกรอง' : 'Clear Filters'}
-            </Button>
-            <Button variant="primary" onClick={fetchLogs}>
-              {lang === 'th' ? 'ค้นหา' : 'Search'}
-            </Button>
+            <Button variant="secondary" onClick={handleResetFilters}>{t('audit.filter.clear')}</Button>
+            <Button variant="primary" onClick={fetchLogs}>{t('audit.filter.search')}</Button>
           </div>
         </div>
 
@@ -210,11 +191,11 @@ export default function OverridesAuditPage() {
           <Table>
             <Thead>
               <tr>
-                <Th>{lang === 'th' ? 'วันเวลาที่อนุมัติ' : 'Date & Time'}</Th>
-                <Th>{lang === 'th' ? 'ผู้อนุมัติ' : 'Authorized By'}</Th>
-                <Th>{lang === 'th' ? 'การกระทำที่ข้ามขั้นตอน' : 'Overridden Action'}</Th>
-                <Th>{lang === 'th' ? 'เหตุผล' : 'Reason'}</Th>
-                <Th>{lang === 'th' ? 'แหล่งข้อมูล' : 'Resource Context'}</Th>
+                <Th>{t('audit.col.datetime')}</Th>
+                <Th>{t('audit.col.authorized_by')}</Th>
+                <Th>{t('audit.col.action')}</Th>
+                <Th>{t('audit.col.reason')}</Th>
+                <Th>{t('audit.col.resource')}</Th>
                 <Th className="text-right"></Th>
               </tr>
             </Thead>
@@ -222,28 +203,24 @@ export default function OverridesAuditPage() {
               {loading ? (
                 <tr>
                   <Td colSpan={6}>
-                    <div className="py-12 text-center text-gray-500 font-sans">
-                      {lang === 'th' ? 'กำลังโหลดบันทึก...' : 'Loading audit logs...'}
-                    </div>
+                    <div className="py-12 text-center text-gray-500 font-sans">{t('audit.loading')}</div>
                   </Td>
                 </tr>
               ) : data?.data.length === 0 ? (
                 <tr>
                   <Td colSpan={6}>
-                    <div className="py-12 text-center text-gray-400 italic font-sans">
-                      {lang === 'th' ? 'ไม่พบประวัติการอนุมัติข้ามขั้นตอนตามตัวกรองนี้' : 'No override logs found matching criteria.'}
-                    </div>
+                    <div className="py-12 text-center text-gray-400 italic font-sans">{t('audit.no_data')}</div>
                   </Td>
                 </tr>
               ) : (
                 data?.data.map((log) => (
                   <tr key={log.id} className="hover:bg-gray-50">
                     <Td className="font-mono text-[13px] text-gray-600">
-                      {formatDatetime(log.created_at, lang)}
+                      {formatDatetime(log.created_at)}
                     </Td>
                     <Td>
                       <div className="text-sm font-medium text-gray-900">
-                        {lang === 'th' && log.user_name_th ? log.user_name_th : log.user_name_en}
+                        {log.user_name_th ?? log.user_name_en}
                       </div>
                       <div className="text-xs text-gray-400 font-mono">{log.user_email}</div>
                     </Td>
@@ -264,12 +241,8 @@ export default function OverridesAuditPage() {
                       </div>
                     </Td>
                     <Td className="text-right">
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => setActiveLog(log)}
-                      >
-                        {lang === 'th' ? 'เปรียบเทียบข้อมูล' : 'View Details'}
+                      <Button variant="secondary" size="sm" onClick={() => setActiveLog(log)}>
+                        {t('audit.view_details')}
                       </Button>
                     </Td>
                   </tr>
@@ -281,9 +254,7 @@ export default function OverridesAuditPage() {
           {data && data.total_pages > 1 && (
             <div className="p-4 border-t border-gray-50 flex items-center justify-between">
               <span className="text-xs text-gray-500">
-                {lang === 'th'
-                  ? `แสดง ${data.data.length} จากทั้งหมด ${data.total} รายการ`
-                  : `Showing ${data.data.length} of ${data.total} logs`}
+                {t('audit.showing')} {data.data.length} {t('audit.of')} {data.total} {t('audit.logs_suffix')}
               </span>
               <Pagination
                 currentPage={page}
@@ -303,23 +274,17 @@ export default function OverridesAuditPage() {
           size="lg"
         >
           <ModalHeader onClose={() => setActiveLog(null)}>
-            {lang === 'th' ? 'เปรียบเทียบข้อมูลการข้ามสิทธิ์' : 'Override Value Comparison Details'}
+            {t('audit.modal.title')}
           </ModalHeader>
           <ModalBody>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4 text-xs font-sans bg-gray-50 p-3 rounded-lg border border-gray-100">
                 <div>
-                  <span className="font-bold text-gray-500 uppercase block mb-1">
-                    {lang === 'th' ? 'วันเวลา' : 'Timestamp'}
-                  </span>
-                  <span className="text-gray-900 font-mono">
-                    {formatDatetime(activeLog.created_at, lang)}
-                  </span>
+                  <span className="font-bold text-gray-500 uppercase block mb-1">{t('audit.modal.timestamp')}</span>
+                  <span className="text-gray-900 font-mono">{formatDatetime(activeLog.created_at)}</span>
                 </div>
                 <div>
-                  <span className="font-bold text-gray-500 uppercase block mb-1">
-                    {lang === 'th' ? 'ผู้อนุมัติ' : 'Authorizer'}
-                  </span>
+                  <span className="font-bold text-gray-500 uppercase block mb-1">{t('audit.modal.authorizer')}</span>
                   <span className="text-gray-900 font-medium">
                     {activeLog.user_name_en} ({activeLog.user_email})
                   </span>
@@ -328,21 +293,15 @@ export default function OverridesAuditPage() {
 
               {/* Side by side JSON Diff Box */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Original Value Panel */}
                 <div className="flex flex-col">
-                  <span className="text-xs font-bold text-gray-600 mb-1">
-                    {lang === 'th' ? 'มูลค่า/ข้อมูลดั้งเดิม (Original Value)' : 'Original Value'}
-                  </span>
+                  <span className="text-xs font-bold text-gray-600 mb-1">{t('audit.modal.original_value')}</span>
                   <pre className="flex-1 min-h-[250px] p-4 bg-gray-900 text-green-400 font-mono text-xs rounded-xl overflow-auto border border-gray-800 leading-relaxed">
                     {formatJSON(activeLog.original_value)}
                   </pre>
                 </div>
 
-                {/* Overridden Value Panel */}
                 <div className="flex flex-col">
-                  <span className="text-xs font-bold text-red-600 mb-1">
-                    {lang === 'th' ? 'ข้อมูลอนุมัติพิเศษ (Override Value)' : 'Override Value'}
-                  </span>
+                  <span className="text-xs font-bold text-red-600 mb-1">{t('audit.modal.override_value')}</span>
                   <pre className="flex-1 min-h-[250px] p-4 bg-gray-900 text-red-400 font-mono text-xs rounded-xl overflow-auto border border-gray-800 leading-relaxed">
                     {formatJSON(activeLog.override_value)}
                   </pre>
@@ -351,9 +310,7 @@ export default function OverridesAuditPage() {
             </div>
           </ModalBody>
           <ModalFooter>
-            <Button variant="primary" onClick={() => setActiveLog(null)}>
-              {lang === 'th' ? 'ปิด' : 'Close'}
-            </Button>
+            <Button variant="primary" onClick={() => setActiveLog(null)}>{t('audit.modal.close')}</Button>
           </ModalFooter>
         </Modal>
       )}

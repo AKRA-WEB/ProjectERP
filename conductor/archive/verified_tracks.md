@@ -74,4 +74,5 @@
 | [i18n-t1-prevention — i18n Track 1 — Prevention Infrastructure](./tracks/i18n-t1-prevention/plan.md) | Verified | 2026-05-30 | 2026-05-30 |
 | [i18n-t2-keys — i18n Track 2 — Translation Keys Expansion](./tracks/i18n-t2-keys/plan.md) | Verified | 2026-05-30 | 2026-05-30 |
 | [i18n-t3-accounting — i18n Track 3 — Accounting Module Fix](./tracks/i18n-t3-accounting/plan.md) | Verified | 2026-05-30 | 2026-05-30 |
+| [i18n-t5-admin-wms — i18n Track 5 — Admin + WMS Fix](./tracks/i18n-t5-admin-wms/plan.md) | Verified | 2026-05-30 | 2026-06-03 |
 | [i18n-t4-grn-purchasing — i18n Track 4 — GRN + Purchase Orders Fix](./tracks/i18n-t4-grn-purchasing/plan.md) | Verified | 2026-06-03 | 2026-06-03 |

@@ -3,9 +3,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { 
-  Tag, 
-  ArrowLeft, 
+import {
+  Tag,
+  ArrowLeft,
   Loader2,
   Calendar,
   Percent,
@@ -17,14 +17,17 @@ import { useToast } from '@/components/ui/Toast';
 import { DirectionalTransition } from '@/components/ui/directional-transition';
 import type { Product, CustomerPriceContract, Customer } from '@/types';
 import { cn } from '@/lib/utils';
+import { useT } from '@/lib/i18n';
 
 // ProductSearch component for autocomplete
 interface ProductSearchProps {
   onSelect: (product: Product | null) => void;
   selectedProduct: Product | null;
+  searchPlaceholder: string;
+  searchingText: string;
 }
 
-function ProductSearch({ onSelect, selectedProduct }: ProductSearchProps) {
+function ProductSearch({ onSelect, selectedProduct, searchPlaceholder, searchingText }: ProductSearchProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Product[]>([]);
   const [open, setOpen] = useState(false);
@@ -55,14 +58,14 @@ function ProductSearch({ onSelect, selectedProduct }: ProductSearchProps) {
       setOpen(false);
       return;
     }
-    const t = setTimeout(async () => {
+    const timer = setTimeout(async () => {
       setLoading(true);
       try {
         const res = await get<{ data: Product[] }>(
           `/api/products?search=${encodeURIComponent(query)}&limit=10`
         );
-        const products = Array.isArray(res) 
-          ? res 
+        const products = Array.isArray(res)
+          ? res
           : (res && typeof res === 'object' && 'data' in res ? (res as { data: Product[] }).data : []);
         setResults(products);
         setOpen(products.length > 0);
@@ -72,7 +75,7 @@ function ProductSearch({ onSelect, selectedProduct }: ProductSearchProps) {
         setLoading(false);
       }
     }, 300);
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, [query, selectedProduct]);
 
   return (
@@ -81,7 +84,7 @@ function ProductSearch({ onSelect, selectedProduct }: ProductSearchProps) {
         <input
           type="text"
           className="w-full rounded border border-[#e4e0d6] px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#7a5a7e] focus:ring-1 focus:ring-[#7a5a7e] min-h-[38px] pr-8"
-          placeholder="ค้นหาสินค้าเพื่อล็อคราคาเฉพาะรายการ (ไม่ใส่ = ใช้กับทุกสินค้า)..."
+          placeholder={searchPlaceholder}
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
@@ -102,7 +105,7 @@ function ProductSearch({ onSelect, selectedProduct }: ProductSearchProps) {
       {open && results.length > 0 && (
         <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-[#e4e0d6] rounded-md shadow-lg max-h-52 overflow-y-auto">
           {loading && (
-            <p className="px-3 py-2 text-xs text-gray-400">กำลังค้นหา...</p>
+            <p className="px-3 py-2 text-xs text-gray-400">{searchingText}</p>
           )}
           {!loading && results.map((p) => (
             <button
@@ -131,6 +134,7 @@ export default function CustomerPriceContractsPage() {
   const { id } = useParams() as { id: string };
   const router = useRouter();
   const toast = useToast();
+  const t = useT();
 
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [contracts, setContracts] = useState<(CustomerPriceContract & { product_sku?: string; product_name_th?: string })[]>([]);
@@ -156,7 +160,7 @@ export default function CustomerPriceContractsPage() {
       ]);
 
       if (!customerRes) {
-        toast('error', 'ไม่พบข้อมูลลูกค้า');
+        toast('error', t('price_contract.error_not_found'));
         router.push('/app/customers');
         return;
       }
@@ -165,11 +169,11 @@ export default function CustomerPriceContractsPage() {
       setContracts(contractsRes?.data || []);
     } catch (err) {
       console.error('Failed to load contract details:', err);
-      toast('error', 'เกิดข้อผิดพลาดในการโหลดข้อมูลสัญญา');
+      toast('error', t('price_contract.error_load'));
     } finally {
       setLoading(false);
     }
-  }, [id, router, toast]);
+  }, [id, router, toast, t]);
 
   useEffect(() => {
     fetchCustomerAndContracts();
@@ -177,28 +181,28 @@ export default function CustomerPriceContractsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     let lockedPrice: number | null = null;
     let discountPct: number | null = null;
 
     if (contractMode === 'price') {
       const val = Number(priceVal);
       if (isNaN(val) || val < 0 || priceVal === '') {
-        toast('error', 'กรุณาระบุราคาล็อคที่ถูกต้อง');
+        toast('error', t('price_contract.error_invalid_price'));
         return;
       }
       lockedPrice = val;
     } else {
       const val = Number(discountVal);
       if (isNaN(val) || val < 0 || val > 100 || discountVal === '') {
-        toast('error', 'กรุณาระบุเปอร์เซ็นต์ส่วนลดระหว่าง 0 ถึง 100');
+        toast('error', t('price_contract.error_invalid_discount'));
         return;
       }
       discountPct = val;
     }
 
     if (validTo && validTo < validFrom) {
-      toast('error', 'วันที่สิ้นสุดสัญญาต้องไม่น้อยกว่าวันที่เริ่มต้น');
+      toast('error', t('price_contract.error_date_range'));
       return;
     }
 
@@ -214,19 +218,17 @@ export default function CustomerPriceContractsPage() {
       });
 
       if (res) {
-        toast('success', 'เพิ่มสัญญาราคาสำเร็จ');
-        // Reset form inputs
+        toast('success', t('price_contract.success'));
         setSelectedProduct(null);
         setPriceVal('');
         setDiscountVal('');
         setValidTo('');
-        // Reload list
         fetchCustomerAndContracts();
       }
     } catch (err) {
       const error = err as Error;
       console.error(error);
-      toast('error', error.message || 'บันทึกสัญญาราคาล้มเหลว');
+      toast('error', error.message || t('price_contract.error_save'));
     } finally {
       setSubmitting(false);
     }
@@ -234,14 +236,14 @@ export default function CustomerPriceContractsPage() {
 
   const formatMoney = (val: number | string | null) => {
     if (val === null) return '-';
-    return Number(val).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' บาท';
+    return Number(val).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + t('price_contract.money_suffix');
   };
 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-40">
         <Loader2 className="w-10 h-10 text-[#7a5a7e] animate-spin mb-4" />
-        <span className="text-sm text-stone-500 font-medium">กำลังโหลดข้อมูลและราคาสัญญา...</span>
+        <span className="text-sm text-stone-500 font-medium">{t('price_contract.loading')}</span>
       </div>
     );
   }
@@ -251,7 +253,7 @@ export default function CustomerPriceContractsPage() {
   return (
     <DirectionalTransition>
       <div className="max-w-[1000px] mx-auto min-h-[calc(100vh-140px)] font-sans px-4 py-8">
-        
+
         {/* Style tweaks */}
         <style dangerouslySetInnerHTML={{ __html: `
           .premium-card {
@@ -265,8 +267,8 @@ export default function CustomerPriceContractsPage() {
         {/* Back and Title */}
         <div className="mb-8 flex items-center justify-between border-b border-[#e4e0d6] pb-6">
           <div className="flex items-center gap-4">
-            <Link 
-              href={`/app/customers/${id}`} 
+            <Link
+              href={`/app/customers/${id}`}
               className="w-9 h-9 rounded-full border border-[#e4e0d6] flex items-center justify-center hover:bg-stone-50 text-[#78716c] hover:text-[#1c1917] transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -275,37 +277,37 @@ export default function CustomerPriceContractsPage() {
               <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-[#7a5a7e] font-semibold mb-1">
                 <span>B2B CUSTOMERS</span>
                 <span className="w-1.5 h-1.5 rounded-full bg-[#7a5a7e]/40" />
-                <span>การจัดการสัญญาซื้อขาย</span>
+                <span>{t('price_contract.breadcrumb')}</span>
               </div>
               <h1 className="font-display text-[26px] font-semibold tracking-tight text-[#1c1917] m-0">
-                สัญญาราคาพิเศษ: {customer.name_th}
+                {t('price_contract.page.title_prefix')} {customer.name_th}
               </h1>
-              <p className="text-stone-500 font-mono text-xs mt-1">รหัสลูกค้า: {customer.code}</p>
+              <p className="text-stone-500 font-mono text-xs mt-1">{t('price_contract.page.customer_code_prefix')} {customer.code}</p>
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
+
           {/* Left 2 Columns: Contract List */}
           <div className="lg:col-span-2 space-y-6">
             <div className="premium-card p-6">
-              <h3 className="text-base font-semibold text-[#1c1917] mb-4">สัญญาซื้อขายที่มีผลใช้งานอยู่</h3>
-              
+              <h3 className="text-base font-semibold text-[#1c1917] mb-4">{t('price_contract.contracts_title')}</h3>
+
               {contracts.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 border border-dashed border-[#e4e0d6] rounded-md">
                   <Tag className="w-10 h-10 text-stone-300 mb-4" />
-                  <span className="text-sm text-stone-500 font-medium">ยังไม่มีสัญญาราคาพิเศษตั้งค่าไว้สำหรับลูกค้ารายนี้</span>
-                  <span className="text-xs text-stone-400 mt-1">ราคาของสินค้าจะใช้ราคาช่องทาง TRD ปกติ</span>
+                  <span className="text-sm text-stone-500 font-medium">{t('price_contract.no_contracts')}</span>
+                  <span className="text-xs text-stone-400 mt-1">{t('price_contract.no_contracts_hint')}</span>
                 </div>
               ) : (
                 <div className="overflow-x-auto rounded border border-[#e4e0d6]">
                   <Table className="min-w-full divide-y divide-[#e4e0d6]">
                     <Thead>
                       <tr>
-                        <Th className="text-left font-semibold text-xs py-2.5 px-3 text-stone-600">สินค้า</Th>
-                        <Th className="text-center font-semibold text-xs py-2.5 px-3 text-stone-600">เงื่อนไขราคา</Th>
-                        <Th className="text-center font-semibold text-xs py-2.5 px-3 text-stone-600">ช่วงเวลาที่มีผล</Th>
+                        <Th className="text-left font-semibold text-xs py-2.5 px-3 text-stone-600">{t('price_contract.col.product')}</Th>
+                        <Th className="text-center font-semibold text-xs py-2.5 px-3 text-stone-600">{t('price_contract.col.condition')}</Th>
+                        <Th className="text-center font-semibold text-xs py-2.5 px-3 text-stone-600">{t('price_contract.col.period')}</Th>
                       </tr>
                     </Thead>
                     <Tbody>
@@ -319,7 +321,7 @@ export default function CustomerPriceContractsPage() {
                               </div>
                             ) : (
                               <span className="italic text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded">
-                                ทุกสินค้าในระบบ (Global Contract)
+                                {t('price_contract.global_contract')}
                               </span>
                             )}
                           </Td>
@@ -327,12 +329,12 @@ export default function CustomerPriceContractsPage() {
                             {c.locked_price !== null ? (
                               <span className="inline-flex items-center gap-1 bg-[#7a5a7e]/5 text-[#7a5a7e] px-2 py-1 rounded font-semibold font-mono">
                                 <Lock className="w-3.5 h-3.5" />
-                                ล็อคราคา {formatMoney(c.locked_price)}
+                                {t('price_contract.locked_price_prefix')} {formatMoney(c.locked_price)}
                               </span>
                             ) : (
                               <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded font-semibold font-mono">
                                 <Percent className="w-3.5 h-3.5" />
-                                ส่วนลด {c.discount_pct}%
+                                {t('price_contract.discount_prefix')} {c.discount_pct}%
                               </span>
                             )}
                           </Td>
@@ -341,7 +343,7 @@ export default function CustomerPriceContractsPage() {
                               <Calendar className="w-3.5 h-3.5 text-stone-400" />
                               <span>{c.valid_from}</span>
                               <span>→</span>
-                              <span>{c.valid_to || 'ตลอดไป'}</span>
+                              <span>{c.valid_to || t('price_contract.forever')}</span>
                             </div>
                           </Td>
                         </tr>
@@ -355,25 +357,27 @@ export default function CustomerPriceContractsPage() {
 
           {/* Right Column: Add Contract Form */}
           <div className="premium-card p-6 h-fit">
-            <h3 className="text-base font-semibold text-[#1c1917] border-b border-[#e4e0d6] pb-3 mb-4">เพิ่มสัญญาใหม่</h3>
-            
+            <h3 className="text-base font-semibold text-[#1c1917] border-b border-[#e4e0d6] pb-3 mb-4">{t('price_contract.add_title')}</h3>
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-2">
-                  สินค้าเป้าหมาย
+                  {t('price_contract.target_product_label')}
                 </label>
-                <ProductSearch 
-                  onSelect={setSelectedProduct} 
+                <ProductSearch
+                  onSelect={setSelectedProduct}
                   selectedProduct={selectedProduct}
+                  searchPlaceholder={t('price_contract.search_placeholder')}
+                  searchingText={t('price_contract.searching')}
                 />
                 <span className="text-[10px] text-stone-400 mt-1 block">
-                  * ปล่อยว่างหากต้องการให้สัญญาครอบคลุมสินค้าทุกรายการ (Global Contract)
+                  * {t('price_contract.target_hint')}
                 </span>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-2">
-                  ประเภทเงื่อนไขสัญญา
+                  {t('price_contract.condition_label')}
                 </label>
                 <div className="grid grid-cols-2 gap-2 p-1 bg-stone-100 rounded-md">
                   <button
@@ -384,7 +388,7 @@ export default function CustomerPriceContractsPage() {
                     )}
                     onClick={() => { setContractMode('price'); setDiscountVal(''); }}
                   >
-                    ล็อคราคา (Locked Price)
+                    {t('price_contract.locked_price_btn')}
                   </button>
                   <button
                     type="button"
@@ -394,7 +398,7 @@ export default function CustomerPriceContractsPage() {
                     )}
                     onClick={() => { setContractMode('discount'); setPriceVal(''); }}
                   >
-                    ส่วนลด % (Discount)
+                    {t('price_contract.discount_btn')}
                   </button>
                 </div>
               </div>
@@ -402,7 +406,7 @@ export default function CustomerPriceContractsPage() {
               {contractMode === 'price' ? (
                 <div>
                   <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1.5">
-                    ราคาขายล็อคพิเศษ (Locked Price - THB)
+                    {t('price_contract.locked_price_label')}
                   </label>
                   <div className="relative">
                     <input
@@ -414,13 +418,13 @@ export default function CustomerPriceContractsPage() {
                       value={priceVal}
                       onChange={(e) => setPriceVal(e.target.value)}
                     />
-                    <span className="absolute right-3 top-2 text-xs font-semibold text-stone-400">บาท</span>
+                    <span className="absolute right-3 top-2 text-xs font-semibold text-stone-400">{t('label.baht')}</span>
                   </div>
                 </div>
               ) : (
                 <div>
                   <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1.5">
-                    เปอร์เซ็นต์ส่วนลด (Discount Percentage)
+                    {t('price_contract.discount_label')}
                   </label>
                   <div className="relative">
                     <input
@@ -429,7 +433,7 @@ export default function CustomerPriceContractsPage() {
                       max="100"
                       step="0.01"
                       className="w-full rounded border border-[#e4e0d6] px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#7a5a7e]"
-                      placeholder="เช่น 5 หรือ 10"
+                      placeholder="e.g. 5 or 10"
                       value={discountVal}
                       onChange={(e) => setDiscountVal(e.target.value)}
                     />
@@ -440,7 +444,7 @@ export default function CustomerPriceContractsPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1.5">
-                  วันที่เริ่มมีผล (Valid From)
+                  {t('price_contract.valid_from_label')}
                 </label>
                 <input
                   type="date"
@@ -452,7 +456,7 @@ export default function CustomerPriceContractsPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1.5">
-                  วันที่สิ้นสุด (Valid To - ปล่อยว่างถ้าไม่มีกำหนด)
+                  {t('price_contract.valid_to_label')}
                 </label>
                 <input
                   type="date"
@@ -468,7 +472,7 @@ export default function CustomerPriceContractsPage() {
                 className="w-full mt-4 py-2.5 bg-[#7a5a7e] hover:bg-[#6b4e6f] text-white font-medium rounded text-sm transition-colors flex items-center justify-center gap-2"
               >
                 {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                สร้างสัญญาซื้อขาย
+                {t('price_contract.submit_btn')}
               </Button>
             </form>
           </div>

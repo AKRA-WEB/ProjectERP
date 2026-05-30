@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Input, Select } from '@/components/ui';
 import { post, patch, get } from '@/lib/api-client';
-import { useLanguage, localeName } from '@/lib/i18n';
+import { useLanguage, localeName, useT } from '@/lib/i18n';
 import type { User, BusinessUnit } from '@/types';
 
 interface Props {
@@ -15,6 +15,7 @@ interface Props {
 export default function UserFormModal({ user, onClose, onSaved }: Props) {
   const isEdit = !!user;
   const { lang } = useLanguage();
+  const t = useT();
   const [businessUnits, setBusinessUnits] = useState<BusinessUnit[]>([]);
 
   useEffect(() => {
@@ -54,10 +55,10 @@ export default function UserFormModal({ user, onClose, onSaved }: Props) {
     setSavingPin(true);
     try {
       await patch(`/api/admin/users/${user.id}/override-pin`, { pin: newPin });
-      setPinMessage(lang === 'en' ? 'Override PIN updated successfully!' : 'อัปเดตรหัส PIN อนุมัติสำเร็จแล้ว!');
+      setPinMessage(t('users.form.pin_updated'));
       setNewPin('');
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาดในการอัปเดตรหัส PIN');
+      setError(e instanceof Error ? e.message : t('users.form.error_update_pin'));
     } finally {
       setSavingPin(false);
     }
@@ -83,12 +84,12 @@ export default function UserFormModal({ user, onClose, onSaved }: Props) {
       if (isEdit) {
         await patch(`/api/admin/users/${user.id}`, payload);
       } else {
-        if (!form.password) { setError('กรุณาระบุรหัสผ่าน'); setSaving(false); return; }
+        if (!form.password) { setError(t('users.form.password_required')); setSaving(false); return; }
         await post('/api/admin/users', { ...payload, email: form.email, password: form.password });
       }
       onSaved();
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
+      setError(e instanceof Error ? e.message : t('users.form.error_generic'));
     } finally {
       setSaving(false);
     }
@@ -96,36 +97,36 @@ export default function UserFormModal({ user, onClose, onSaved }: Props) {
 
   return (
     <Modal open onClose={onClose} size="lg">
-      <ModalHeader>{isEdit ? 'แก้ไขผู้ใช้' : 'เพิ่มผู้ใช้ใหม่'}</ModalHeader>
+      <ModalHeader>{isEdit ? t('users.form.edit_title') : t('users.form.create_title')}</ModalHeader>
       <ModalBody>
         <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input label="อีเมล / Email *" type="email" value={form.email} onChange={(e) => set('email', e.target.value)} disabled={isEdit} />
+            <Input label={`${t('label.email')} *`} type="email" value={form.email} onChange={(e) => set('email', e.target.value)} disabled={isEdit} />
             <Select
-              label="บทบาทพื้นฐาน / Base Role *"
+              label={`${t('label.role')} *`}
               value={form.role}
               onChange={(e) => set('role', e.target.value)}
               options={[
-                { value: 'admin', label: 'ผู้ดูแลระบบ / Admin' },
-                { value: 'manager', label: 'ผู้จัดการ / Manager' },
-                { value: 'staff', label: 'พนักงาน / Staff' },
-                { value: 'auditor', label: 'ผู้ตรวจสอบระบบ / Auditor' },
+                { value: 'admin', label: `${t('users.filter.admin')} (Admin)` },
+                { value: 'manager', label: `${t('users.filter.manager')} (Manager)` },
+                { value: 'staff', label: `${t('users.filter.staff')} (Staff)` },
+                { value: 'auditor', label: `${t('users.filter.auditor')} (Auditor)` },
               ]}
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input label="ชื่อภาษาไทย" value={form.name_th} onChange={(e) => set('name_th', e.target.value)} />
+            <Input label={`${t('label.name')} (TH)`} value={form.name_th} onChange={(e) => set('name_th', e.target.value)} />
             <Input label="Name (English) *" value={form.name_en} onChange={(e) => set('name_en', e.target.value)} />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Select
-              label="หน่วยธุรกิจ / Business Unit"
+              label={t('label.department')}
               value={form.business_unit_id}
               onChange={(e) => set('business_unit_id', e.target.value)}
               options={[
-                { value: '', label: lang === 'en' ? 'All BUs (Cross-BU)' : 'ทุกหน่วยธุรกิจ (Cross-BU)' },
+                { value: '', label: lang === 'en' ? 'All BUs (Cross-BU)' : t('users.label_bu_all') },
                 ...businessUnits.map((bu) => ({
                   value: bu.id,
                   label: `${bu.code} — ${localeName(bu.name_th, bu.name_en, lang)}`
@@ -135,37 +136,37 @@ export default function UserFormModal({ user, onClose, onSaved }: Props) {
           </div>
 
           {!isEdit && (
-            <Input label="รหัสผ่าน / Password *" type="password" value={form.password} onChange={(e) => set('password', e.target.value)} helperText="อย่างน้อย 8 ตัวอักษร" />
+            <Input label={`${t('label.phone')} / Password *`} type="password" value={form.password} onChange={(e) => set('password', e.target.value)} helperText="At least 8 characters" />
           )}
 
           <div className="border-t pt-4">
-            <h3 className="text-xs font-bold text-gray-600 uppercase mb-4 tracking-widest">ข้อมูลพนักงาน / Employee Info</h3>
+            <h3 className="text-xs font-bold text-gray-600 uppercase mb-4 tracking-widest">{t('users.form.edit_title')} Info</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Input label="รหัสพนักงาน / Employee ID" value={form.employee_id} onChange={(e) => set('employee_id', e.target.value)} placeholder="เช่น EMP001" />
-              <Input label="ตำแหน่ง / Position" value={form.position} onChange={(e) => set('position', e.target.value)} />
-              <Input label="แผนก / Department" value={form.department} onChange={(e) => set('department', e.target.value)} />
-              <Input label="เบอร์โทรศัพท์ / Phone" value={form.phone} onChange={(e) => set('phone', e.target.value)} />
-              <Input label="วันที่เริ่มงาน / Hired Date" type="date" value={form.hired_date} onChange={(e) => set('hired_date', e.target.value)} />
+              <Input label={`${t('label.employee')} ID`} value={form.employee_id} onChange={(e) => set('employee_id', e.target.value)} placeholder="e.g. EMP001" />
+              <Input label={t('label.position')} value={form.position} onChange={(e) => set('position', e.target.value)} />
+              <Input label={t('label.department')} value={form.department} onChange={(e) => set('department', e.target.value)} />
+              <Input label={t('label.phone')} value={form.phone} onChange={(e) => set('phone', e.target.value)} />
+              <Input label="Hired Date" type="date" value={form.hired_date} onChange={(e) => set('hired_date', e.target.value)} />
             </div>
           </div>
 
-           {isEdit && (form.role === 'manager' || form.role === 'admin') && (
+          {isEdit && (form.role === 'manager' || form.role === 'admin') && (
             <div className="border-t pt-4">
               <h3 className="text-xs font-bold text-gray-600 uppercase mb-4 tracking-widest">
-                รหัสผ่านอนุมัติ / Supervisor Override PIN
+                Supervisor Override PIN
               </h3>
               <div className="flex items-end gap-3">
                 <div className="flex-1">
                   <Input
-                    label="รหัส PIN ใหม่ (ตัวเลข 4-6 หลัก)"
-                    placeholder={user?.override_pin_hash ? "มีรหัส PIN แล้ว (เว้นว่างไว้หากไม่ต้องการเปลี่ยน)" : "ยังไม่มีรหัส PIN"}
+                    label="New PIN (4-6 digits)"
+                    placeholder={user?.override_pin_hash ? t('users.label_pin_has') : t('users.label_pin_none')}
                     type="password"
                     maxLength={6}
                     pattern="[0-9]*"
                     inputMode="numeric"
                     value={newPin}
                     onChange={(e) => setNewPin(e.target.value.replace(/[^0-9]/g, ''))}
-                    helperText="ป้อนตัวเลข 4 ถึง 6 หลักเพื่อทำหน้าที่เป็นผู้มีอำนาจอนุมัติ / Enter 4-6 digits for authorization role"
+                    helperText="Enter 4-6 digits for authorization role"
                   />
                 </div>
                 <Button
@@ -175,7 +176,7 @@ export default function UserFormModal({ user, onClose, onSaved }: Props) {
                   loading={savingPin}
                   disabled={!newPin || newPin.length < 4}
                 >
-                  อัปเดตรหัส PIN
+                  Update PIN
                 </Button>
               </div>
               {pinMessage && <p className="mt-2 text-sm text-green-600 font-medium">{pinMessage}</p>}
@@ -185,7 +186,7 @@ export default function UserFormModal({ user, onClose, onSaved }: Props) {
           {isEdit && (
             <label className="flex items-center gap-2 text-sm pt-2">
               <input type="checkbox" className="rounded" checked={form.is_active} onChange={(e) => set('is_active', e.target.checked)} />
-              บัญชีเปิดใช้งาน / Active Account
+              {t('users.label_active')} / Active Account
             </label>
           )}
 
@@ -193,8 +194,8 @@ export default function UserFormModal({ user, onClose, onSaved }: Props) {
         </div>
       </ModalBody>
       <ModalFooter>
-        <Button variant="ghost" onClick={onClose}>ยกเลิก</Button>
-        <Button onClick={handleSave} loading={saving}>{isEdit ? 'บันทึก' : 'สร้างบัญชี'}</Button>
+        <Button variant="ghost" onClick={onClose}>{t('action.cancel')}</Button>
+        <Button onClick={handleSave} loading={saving}>{isEdit ? t('users.form.save_btn') : t('users.form.create_btn')}</Button>
       </ModalFooter>
     </Modal>
   );
