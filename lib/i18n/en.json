@@ -280,5 +280,18 @@
   "month.sep": "September",
   "month.oct": "October",
   "month.nov": "November",
-  "month.dec": "December"
+  "month.dec": "December",
+
+  "action.refresh": "Refresh",
+  "action.finalize": "Finalize",
+  "label.month": "Month",
+  "label.year": "Year",
+  "label.seq": "Seq",
+  "label.tax_invoice_no": "Tax Invoice No.",
+  "label.totals": "TOTALS",
+  "label.records": "records",
+  "msg.locked_finalized": "LOCKED & FINALIZED:",
+  "msg.locked_finalized_desc": "This tax period is locked and finalized. Data is loaded directly from a snapshot and will not change with future transactions.",
+  "msg.live_run": "LIVE RUN:",
+  "msg.live_run_desc": "This table is showing live real-time data. Once verified, an administrator can click \"Finalize\" to freeze the records for PP.30 filing."
 }

@@ -7,6 +7,7 @@ import { formatDate, formatCurrency } from '@/lib/format';
 import { Button, Table, Thead, Tbody, Th, Td } from '@/components/ui';
 import { FileText, Download, Lock, RefreshCw, Calendar } from 'lucide-react';
 import { DirectionalTransition } from '@/components/ui/directional-transition';
+import { useT, useLanguage } from '@/lib/i18n';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-[0_1px_0_rgba(15,23,42,.03),0_1px_2px_rgba(15,23,42,.04)]';
 
@@ -24,6 +25,8 @@ interface VATLine {
 }
 
 export default function VATReportPage() {
+  const t = useT();
+  const { lang } = useLanguage();
   const { data: session } = useSession();
   const isAdmin = (session?.user as { role?: string })?.role === 'admin';
 
@@ -62,18 +65,18 @@ export default function VATReportPage() {
   const handleFinalize = async () => {
     if (!isAdmin) return;
     const confirmMessage = tab === 'purchase' 
-      ? `คุณแน่ใจหรือไม่ที่จะล็อก "ภาษีซื้อ" ประจำรอบ ${month}/${year}? เมื่อล็อกแล้วจะไม่สามารถย้อนกลับหรือแก้ไขได้`
-      : `คุณแน่ใจหรือไม่ที่จะล็อก "ภาษีขาย" ประจำรอบ ${month}/${year}? เมื่อล็อกแล้วจะไม่สามารถย้อนกลับหรือแก้ไขได้`;
+      ? `${t('confirm.finalize_purchase_vat')} ${month}/${year}? ${t('confirm.irreversible')}`
+      : `${t('confirm.finalize_sales_vat')} ${month}/${year}? ${t('confirm.irreversible')}`;
     
     if (!confirm(confirmMessage)) return;
 
     setLocking(true);
     try {
       await post('/api/accounting/vat/finalize', { year, month, type: tab });
-      alert('ล็อกรายงานและสร้างบันทึกประวัติสำเร็จเรียบร้อยแล้ว');
+      alert(t('msg.lock_report_success'));
       fetchReport();
     } catch (err: unknown) {
-      alert((err as Error).message || 'เกิดข้อผิดพลาดในการล็อกรายงาน');
+      alert((err as Error).message || t('msg.lock_report_error'));
     } finally {
       setLocking(false);
     }
@@ -86,6 +89,7 @@ export default function VATReportPage() {
     let csvContent = '\uFEFF';
     
     // Header row
+    // eslint-disable-next-line local-rules/no-hardcoded-thai
     const headers = ['ลำดับ', 'วันที่', 'เลขที่ใบกำกับ/ใบเสร็จ', 'ชื่อผู้ซื้อ/ผู้ขาย', 'เลขประจำตัวผู้เสียภาษี', 'มูลค่าสินค้า (ฐานภาษี)', 'ภาษีมูลค่าเพิ่ม 7%'];
     csvContent += headers.join(',') + '\n';
     
@@ -130,9 +134,9 @@ export default function VATReportPage() {
           <div>
             <h1 className="text-2xl font-bold text-stone-900 flex items-center gap-2">
               <FileText className="w-6 h-6 text-stone-900" />
-              <span>รายงานภาษีมูลค่าเพิ่ม / VAT Report</span>
+              <span>{t('page.vat_report')}</span>
             </h1>
-            <p className="text-sm text-stone-500">รายงานภาษีซื้อและภาษีขายประจำเดือน เพื่อยื่นสรรพากร (ภ.พ.30)</p>
+            <p className="text-sm text-stone-500">{t('page.vat_report_desc')}</p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -144,7 +148,7 @@ export default function VATReportPage() {
               className="flex items-center gap-1.5"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-              <span>รีเฟรช / Refresh</span>
+              <span>{t('action.refresh')}</span>
             </Button>
           </div>
         </div>
@@ -155,7 +159,7 @@ export default function VATReportPage() {
             <div className="flex-1 min-w-[200px] grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-stone-500 mb-1.5 uppercase tracking-wide">
-                  เดือน / Month
+                  {t('label.month')}
                 </label>
                 <select
                   value={month}
@@ -164,14 +168,14 @@ export default function VATReportPage() {
                 >
                   {Array.from({ length: 12 }, (_, i) => (
                     <option key={i + 1} value={i + 1}>
-                      {new Date(2026, i).toLocaleString('th-TH', { month: 'long' })}
+                      {new Date(2026, i).toLocaleString(lang === 'th' ? 'th-TH' : 'en-US', { month: 'long' })}
                     </option>
                   ))}
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-semibold text-stone-500 mb-1.5 uppercase tracking-wide">
-                  ปี (ค.ศ.) / Year
+                  {t('label.year')}
                 </label>
                 <input
                   type="number"
@@ -188,14 +192,14 @@ export default function VATReportPage() {
                 onClick={() => setTab('purchase')}
                 className="h-10 text-[13px] font-medium"
               >
-                ภาษีซื้อ / Purchase VAT
+                {t('label.purchase_vat')}
               </Button>
               <Button
                 variant={tab === 'sales' ? 'primary' : 'outline'}
                 onClick={() => setTab('sales')}
                 className="h-10 text-[13px] font-medium"
               >
-                ภาษีขาย / Sales VAT
+                {t('label.sales_vat')}
               </Button>
             </div>
           </div>
@@ -206,18 +210,16 @@ export default function VATReportPage() {
           <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-[10px] text-sm text-emerald-800 leading-relaxed flex items-start gap-3">
             <Lock className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
             <div>
-              <span className="font-bold text-emerald-900">ปิดบัญชีและล็อกรายงานแล้ว (LOCKED & FINALIZED):</span>{' '}
-              รายงานรอบภาษีนี้ได้ถูกส่งตรวจอนุมัติและล็อกประวัติไว้แล้ว ข้อมูลในตารางโหลดโดยตรงจาก Snapshot
-              และจะไม่เปลี่ยนแปลงตามธุรกรรมภายหลัง เพื่อให้ตรงกับเอกสารที่ยื่นส่งกรมสรรพากรจริง
+              <span className="font-bold text-emerald-900">{t('msg.locked_finalized')}</span>{' '}
+              {t('msg.locked_finalized_desc')}
             </div>
           </div>
         ) : (
           <div className="p-4 bg-stone-50 border border-stone-200 rounded-[10px] text-sm text-stone-600 leading-relaxed flex items-start gap-3">
             <Calendar className="w-5 h-5 text-stone-500 shrink-0 mt-0.5" />
             <div>
-              <span className="font-bold text-stone-800">ช่วงเวลาดึงข้อมูลแบบไดนามิก (LIVE RUN):</span>{' '}
-              ตารางนี้กำลังแสดงข้อมูลจริง ณ ปัจจุบัน เมื่อตรวจสอบความถูกต้องเรียบร้อยแล้ว ผู้ดูแลระบบ (Admin)
-              สามารถคลิกที่ปุ่ม &quot;ล็อกรายงาน / Finalize&quot; เพื่อตรึงบันทึกสำหรับยื่น ภ.พ.30
+              <span className="font-bold text-stone-800">{t('msg.live_run')}</span>{' '}
+              {t('msg.live_run_desc')}
             </div>
           </div>
         )}
@@ -226,7 +228,7 @@ export default function VATReportPage() {
         <div className={CARD}>
           <div className="px-6 py-4 border-b border-stone-100 bg-stone-50/50 flex flex-wrap justify-between items-center gap-4">
             <h2 className="text-[13px] font-bold text-stone-400 uppercase tracking-wider">
-              {tab === 'purchase' ? 'ภาษีซื้อ' : 'ภาษีขาย'} ({data.length} รายการ)
+              {tab === 'purchase' ? t('label.purchase_vat') : t('label.sales_vat')} ({data.length} {t('label.records')})
             </h2>
 
             <div className="flex items-center gap-3">
@@ -238,7 +240,7 @@ export default function VATReportPage() {
                 className="flex items-center gap-1.5 text-xs h-8"
               >
                 <Download className="w-3.5 h-3.5" />
-                <span>ส่งออก CSV / Export</span>
+                <span>{t('action.export')} CSV</span>
               </Button>
 
               {isAdmin && !isFinalized && (
@@ -250,7 +252,7 @@ export default function VATReportPage() {
                   className="flex items-center gap-1.5 text-xs text-red-600 hover:text-red-700 border-red-200 hover:bg-red-50/30 h-8"
                 >
                   <Lock className="w-3.5 h-3.5" />
-                  <span>ล็อกรายงาน / Finalize</span>
+                  <span>{t('action.finalize')}</span>
                 </Button>
               )}
             </div>
@@ -260,26 +262,26 @@ export default function VATReportPage() {
             <Table>
               <Thead>
                 <tr>
-                  <Th className="w-16">ลำดับ</Th>
-                  <Th>วันที่ / Date</Th>
-                  <Th>เลขที่ใบกำกับภาษี / Doc No.</Th>
-                  <Th>{tab === 'purchase' ? 'ผู้จำหน่าย / Vendor' : 'ลูกค้า / Customer'}</Th>
-                  <Th>เลขประจำตัวผู้เสียภาษี / Tax ID</Th>
-                  <Th className="text-right">มูลค่าสินค้า / Base</Th>
-                  <Th className="text-right">ภาษีมูลค่าเพิ่ม / VAT 7%</Th>
+                  <Th className="w-16">{t('label.seq')}</Th>
+                  <Th>{t('label.date')}</Th>
+                  <Th>{t('label.tax_invoice_no')}</Th>
+                  <Th>{tab === 'purchase' ? t('label.vendor') : t('label.customer')}</Th>
+                  <Th>{t('label.tax_id')}</Th>
+                  <Th className="text-right">{t('label.tax_base')}</Th>
+                  <Th className="text-right">{t('label.vat_7pct')}</Th>
                 </tr>
               </Thead>
               <Tbody>
                 {loading ? (
                   <tr>
                     <td colSpan={7} className="py-12 text-center text-stone-400">
-                      กำลังโหลดข้อมูล...
+                      {t('msg.loading_data')}
                     </td>
                   </tr>
                 ) : data.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="py-12 text-center text-stone-400 italic">
-                      ไม่พบข้อมูลรายงานภาษีในรอบเวลาที่เลือก
+                      {t('msg.no_records')}
                     </td>
                   </tr>
                 ) : (
@@ -308,7 +310,7 @@ export default function VATReportPage() {
                     {/* Totals Row */}
                     <tr className="bg-stone-50 border-t-2 border-stone-200 font-semibold">
                       <Td colSpan={5} className="text-right text-stone-900 font-bold">
-                        ยอดรวมทั้งสิ้น / TOTALS
+                        {t('label.totals')}
                       </Td>
                       <Td className="text-right font-mono tabular-nums text-stone-900 font-bold">
                         {formatCurrency(totalBase)}
