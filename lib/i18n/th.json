@@ -1279,7 +1279,6 @@
   "label.this_month": "เดือนนี้",
   "label.last_month": "เดือนที่แล้ว",
   "label.times": "ครั้ง",
-  "label.items": "รายการ",
   "label.bills": "บิล",
 
   "dashboard.below_reorder": "ต่ำกว่า reorder point",
@@ -1340,10 +1339,7 @@
   "dashboard.auditor.recent_je_heading": "บันทึกสมุดรายวันล่าสุด",
   "dashboard.auditor.recent_je_desc": "ตรวจสอบใบสำคัญบัญชีล่าสุดที่ผ่านการบันทึกรายการเข้าระบบ",
   "dashboard.auditor.col_je_no": "เลขที่",
-  "dashboard.auditor.col_date": "วันที่",
-  "dashboard.auditor.col_type": "ประเภท",
   "dashboard.auditor.col_description": "คำอธิบายรายการ",
   "dashboard.auditor.col_debit": "จำนวนเงินเดบิต",
-  "dashboard.auditor.col_status": "สถานะ",
   "dashboard.auditor.no_je": "ไม่พบรายการสมุดรายวันล่าสุด"
 }

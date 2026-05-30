@@ -240,11 +240,11 @@ export function AuditorDashboardClient({ initialData, session: serverSession }: 
               <thead>
                 <tr className="border-b border-stone-200 text-stone-500 font-semibold uppercase">
                   <th className="py-3 px-2">{t('dashboard.auditor.col_je_no')}</th>
-                  <th className="py-3 px-2">{t('dashboard.auditor.col_date')}</th>
-                  <th className="py-3 px-2">{t('dashboard.auditor.col_type')}</th>
+                  <th className="py-3 px-2">{t('label.date')}</th>
+                  <th className="py-3 px-2">{t('label.type')}</th>
                   <th className="py-3 px-2">{t('dashboard.auditor.col_description')}</th>
                   <th className="py-3 px-2 text-right">{t('dashboard.auditor.col_debit')}</th>
-                  <th className="py-3 px-2">{t('dashboard.auditor.col_status')}</th>
+                  <th className="py-3 px-2">{t('label.status')}</th>
                 </tr>
               </thead>
               <tbody>

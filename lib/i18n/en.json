@@ -1279,7 +1279,6 @@
   "label.this_month": "This Month",
   "label.last_month": "Last Month",
   "label.times": "times",
-  "label.items": "items",
   "label.bills": "bills",
 
   "dashboard.below_reorder": "Below reorder point",
@@ -1340,10 +1339,7 @@
   "dashboard.auditor.recent_je_heading": "Recent Journal Entries",
   "dashboard.auditor.recent_je_desc": "Latest accounting vouchers recorded in the system",
   "dashboard.auditor.col_je_no": "JE No.",
-  "dashboard.auditor.col_date": "Date",
-  "dashboard.auditor.col_type": "Type",
   "dashboard.auditor.col_description": "Description",
   "dashboard.auditor.col_debit": "Total Debit",
-  "dashboard.auditor.col_status": "Status",
   "dashboard.auditor.no_je": "No recent journal entries found"
 }

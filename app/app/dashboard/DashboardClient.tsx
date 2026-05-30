@@ -267,7 +267,7 @@ export function DashboardClient({ initialKpi, initialWarehouses, session: server
             <div className="grid grid-cols-3 border-t border-stone-100">
               {[
                 { l: t('dashboard.stat_received_month'), v: loading ? '—' : String(kpi?.grn?.stocked_this_month ?? '—'), u: ' ' + t('label.times') },
-                { l: t('dashboard.stat_grn_pending'),    v: loading ? '—' : String(kpi?.grn?.pending ?? '—'),              u: ' ' + t('label.items') },
+                { l: t('dashboard.stat_grn_pending'),    v: loading ? '—' : String(kpi?.grn?.pending ?? '—'),              u: ' ' + t('label.items_suffix') },
                 { l: t('dashboard.stat_qc_failed'),      v: loading ? '—' : String(kpi?.grn?.qc_failed ?? '—'),            u: ' ' + t('label.times') },
               ].map((s, i) => (
                 <div key={i} className={`px-[18px] py-3.5${i < 2 ? ' border-r border-stone-100' : ''}`}>
