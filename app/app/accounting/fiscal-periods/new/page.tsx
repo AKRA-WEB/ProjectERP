@@ -7,10 +7,12 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import Link from 'next/link';
+import { useT } from '@/lib/i18n';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden';
 
 export default function NewFiscalPeriodPage() {
+  const t = useT();
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   
@@ -51,20 +53,20 @@ export default function NewFiscalPeriodPage() {
     <div className="max-w-xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
         <Link href="/app/accounting/fiscal-periods" className="text-stone-600 hover:text-stone-600">←</Link>
-        <h1 className="text-2xl font-semibold text-stone-900">สร้างรอบบัญชีใหม่ / New Period</h1>
+        <h1 className="text-2xl font-semibold text-stone-900">{t('page.new_period')}</h1>
       </div>
 
       <form onSubmit={handleSubmit} className={`${CARD} p-6 space-y-6`}>
         <div className="grid grid-cols-2 gap-4">
           <Input
-            label="ปี / Year (AD)"
+            label={t('label.year')}
             type="number"
             value={formData.year}
             onChange={(e) => setFormData({ ...formData, year: Number(e.target.value) })}
             required
           />
           <Select
-            label="เดือน / Month"
+            label={t('label.month')}
             value={formData.month}
             onChange={(e) => setFormData({ ...formData, month: Number(e.target.value) })}
             required
@@ -77,13 +79,13 @@ export default function NewFiscalPeriodPage() {
 
         <div className="space-y-4">
           <Input
-            label="ชื่อรอบ (TH) / Display Name (TH) (Optional)"
+            label={`${t('label.display_name')} (TH)`}
             value={formData.name_th}
             onChange={(e) => setFormData({ ...formData, name_th: e.target.value })}
             placeholder="มกราคม 2569"
           />
           <Input
-            label="ชื่อรอบ (EN) / Display Name (EN) (Optional)"
+            label={`${t('label.display_name')} (EN)`}
             value={formData.name_en}
             onChange={(e) => setFormData({ ...formData, name_en: e.target.value })}
             placeholder="January 2026"
@@ -92,14 +94,14 @@ export default function NewFiscalPeriodPage() {
 
         <div className="grid grid-cols-2 gap-4">
           <Input
-            label="วันที่เริ่มต้น / Start Date"
+            label={t('label.start_date')}
             type="date"
             value={formData.start_date}
             onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
             required
           />
           <Input
-            label="วันที่สิ้นสุด / End Date"
+            label={t('label.end_date')}
             type="date"
             value={formData.end_date}
             onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
@@ -109,9 +111,9 @@ export default function NewFiscalPeriodPage() {
 
         <div className="flex justify-end gap-2 pt-4">
           <Link href="/app/accounting/fiscal-periods">
-            <Button type="button" variant="outline" disabled={submitting}>ยกเลิก / Cancel</Button>
+            <Button type="button" variant="outline" disabled={submitting}>{t('action.cancel')}</Button>
           </Link>
-          <Button type="submit" loading={submitting}>ยืนยันการสร้าง / Create</Button>
+          <Button type="submit" loading={submitting}>{t('action.create_period')}</Button>
         </div>
       </form>
     </div>

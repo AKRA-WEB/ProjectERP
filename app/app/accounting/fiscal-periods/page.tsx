@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Table } from '@/components/ui/Table';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import Link from 'next/link';
-import { useLanguage } from '@/lib/i18n';
+import { useLanguage, useT } from '@/lib/i18n';
 import type { FiscalPeriod } from '@/types';
 import { useSession } from 'next-auth/react';
 
@@ -15,6 +15,7 @@ const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-sm overflow
 export default function FiscalPeriodsPage() {
   const { data: session } = useSession();
   const role = (session?.user as { role?: string } | undefined)?.role;
+  const t = useT();
   const { lang } = useLanguage();
   const [periods, setPeriods] = useState<FiscalPeriod[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,12 +54,12 @@ export default function FiscalPeriodsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-stone-900">รอบบัญชี / Fiscal Periods</h1>
-          <p className="text-stone-500 text-sm">จัดการสถานะเปิด/ปิดการบันทึกรายการรายเดือน</p>
+          <h1 className="text-2xl font-semibold text-stone-900">{t('page.fiscal_periods')}</h1>
+          <p className="text-stone-500 text-sm">{t('page.fiscal_periods_desc')}</p>
         </div>
         {role !== 'auditor' && (
           <Link href="/app/accounting/fiscal-periods/new">
-            <Button>+ สร้างรอบใหม่ / New Period</Button>
+            <Button>{t('action.new_period')}</Button>
           </Link>
         )}
       </div>
@@ -67,12 +68,12 @@ export default function FiscalPeriodsPage() {
         <Table
           loading={loading}
           headers={[
-            'ปี / Year',
-            'เดือน / Month',
-            'ชื่อรอบ / Period Name',
-            'ช่วงเวลา / Dates',
-            'สถานะ / Status',
-            'จำนวนรายการ / Entries',
+            t('label.year'),
+            t('label.month'),
+            t('label.period_name'),
+            t('label.dates'),
+            t('label.status'),
+            t('label.entries_count'),
             '',
           ]}
         >
@@ -92,16 +93,16 @@ export default function FiscalPeriodsPage() {
                 <div className="flex justify-end gap-2">
                   {role !== 'auditor' && p.status === 'open' && (
                     <Button variant="outline" size="sm" onClick={() => handleAction(p.id, 'close')} loading={actioning === p.id} className="text-red-600 border-red-100 hover:bg-red-50">
-                      ปิดรอบ / Close
+                      {t('action.close')}
                     </Button>
                   )}
                   {role !== 'auditor' && p.status === 'closed' && (
                     <>
                       <Button variant="outline" size="sm" onClick={() => handleAction(p.id, 'reopen')} loading={actioning === p.id}>
-                        เปิดใหม่ / Reopen
+                        {t('action.reopen')}
                       </Button>
                       <Button variant="outline" size="sm" onClick={() => handleAction(p.id, 'lock')} loading={actioning === p.id} className="text-red-600 bg-red-50">
-                        ล็อก / Lock
+                        {t('action.lock')}
                       </Button>
                     </>
                   )}
@@ -110,7 +111,7 @@ export default function FiscalPeriodsPage() {
             </tr>
           ))}
           {periods.length === 0 && !loading && (
-            <tr><td colSpan={7} className="px-5 py-12 text-center text-stone-600 italic">ยังไม่มีรอบบัญชีในระบบ</td></tr>
+            <tr><td colSpan={7} className="px-5 py-12 text-center text-stone-600 italic">{t('msg.no_fiscal_periods')}</td></tr>
           )}
         </Table>
       </div>
