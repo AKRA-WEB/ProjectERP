@@ -407,6 +407,7 @@ export interface GeneralLedgerRow {
 
 export interface ArAgingRow {
   customer_name_th: string;
+  customer_name_en?: string;
   si_number: string;
   invoice_date: string;
   due_date: string;
@@ -417,6 +418,7 @@ export interface ArAgingRow {
 
 export interface ApInvoiceAgingRow {
   vendor_name_th: string;
+  vendor_name_en?: string;
   invoice_number: string;
   invoice_date: string;
   due_date: string;
