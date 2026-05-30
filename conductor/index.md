@@ -17,7 +17,6 @@
 
 | Track | Status | Plan |
 | --- | --- | --- |
-| i18n-t1-prevention | Verified | [plan](tracks/i18n-t1-prevention/plan.md) |
 | i18n-t2-keys | Active | [plan](tracks/i18n-t2-keys/plan.md) |
 | i18n-t3-accounting | Active | [plan](tracks/i18n-t3-accounting/plan.md) |
 | i18n-t4-grn-purchasing | Active | [plan](tracks/i18n-t4-grn-purchasing/plan.md) |
@@ -108,7 +107,8 @@ Master plan: [erp-v2-orion-roadmap](tracks/erp-v2-orion-roadmap/plan.md)
 ## All Tracks
 
 | Track | Status | Created | Last Updated |
-|-------|--------|---------|--------------|| [Whole-Case Strict Lock (AKRA Channel)](./archive/tracks/wholecase-strict-lock-akra/plan.md) | Verified | 2026-05-24 | 2026-05-28 |
+|-------|--------|---------|--------------|| [i18n Track 1 — Prevention Infrastructure](./archive/tracks/i18n-t1-prevention/plan.md) | Verified | 2026-05-30 | 2026-05-30 |
+| [Whole-Case Strict Lock (AKRA Channel)](./archive/tracks/wholecase-strict-lock-akra/plan.md) | Verified | 2026-05-24 | 2026-05-28 |
 | [Price-History Alert at POS](./archive/tracks/price-history-alert-pos/plan.md) | Verified | 2026-05-24 | 2026-05-28 |
 
 | [perf-tier4-suspense-streaming](./archive/tracks/perf-tier4-suspense-streaming/plan.md) | Verified| 2026-05-28 | 2026-05-28 |

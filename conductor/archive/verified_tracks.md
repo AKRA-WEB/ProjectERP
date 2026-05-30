@@ -71,3 +71,4 @@
 | [price-history-alert-pos — Price-History Alert at POS](./tracks/price-history-alert-pos/plan.md) | Verified | 2026-05-24 | 2026-05-28 |
 | [wholecase-strict-lock-akra — Whole-Case Strict Lock (AKRA Channel)](./tracks/wholecase-strict-lock-akra/plan.md) | Verified | 2026-05-24 | 2026-05-28 |
 | [perf-tier4-suspense-streaming — Performance Tier 4 — RSC Streaming + Parallel Fetch Fixes](./tracks/perf-tier4-suspense-streaming/plan.md) | Verified | 2026-05-28 | 2026-05-28 |
+| [i18n-t1-prevention — i18n Track 1 — Prevention Infrastructure](./tracks/i18n-t1-prevention/plan.md) | Verified | 2026-05-30 | 2026-05-30 |

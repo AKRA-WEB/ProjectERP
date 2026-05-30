@@ -67,7 +67,8 @@
       "Bash(python3 *)",
       "Bash(xargs grep -l \"^[[:space:]]*<h\\\\|^[[:space:]]*<p\\\\|^[[:space:]]*<span\\\\|^[[:space:]]*<div\\\\|^[[:space:]]*<label\")",
       "Bash(xargs grep \"[ก-๙]\")",
-      "Bash(xargs grep -L \"useT\\\\|useLanguage\")"
+      "Bash(xargs grep -L \"useT\\\\|useLanguage\")",
+      "Bash(npm install *)"
     ]
   },
   "hooks": {
