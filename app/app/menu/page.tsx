@@ -5,6 +5,7 @@ import Link from 'next/link';
 import React, { useState, useEffect } from 'react';
 import { ViewTransition } from '@/lib/react-vts';
 import { useToast } from '@/components/ui';
+import { useT, useLanguage } from '@/lib/i18n';
 
 // SVG components for modules
 const PosIcon = () => (
@@ -120,9 +121,17 @@ function initials(name: string) {
   return name.substring(0, 2).toUpperCase();
 }
 
+const MONTH_KEYS = [
+  'month.jan', 'month.feb', 'month.mar', 'month.apr',
+  'month.may', 'month.jun', 'month.jul', 'month.aug',
+  'month.sep', 'month.oct', 'month.nov', 'month.dec',
+] as const;
+
 export default function MainMenuPage() {
   const { data: session, status } = useSession();
   const toast = useToast();
+  const t = useT();
+  const { lang } = useLanguage();
   const loading = status === 'loading';
   const [isMounted, setIsMounted] = useState(false);
   const [currentThaiMonth, setCurrentThaiMonth] = useState('');
@@ -130,12 +139,9 @@ export default function MainMenuPage() {
   useEffect(() => {
     setIsMounted(true);
     const now = new Date();
-    const thaiMonths = [
-      'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
-      'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
-    ];
-    setCurrentThaiMonth(`${thaiMonths[now.getMonth()]} ${now.getFullYear() + 543}`);
-  }, []);
+    const monthKey = MONTH_KEYS[now.getMonth()];
+    setCurrentThaiMonth(`${t(monthKey)} ${lang === 'th' ? now.getFullYear() + 543 : now.getFullYear()}`);
+  }, [t, lang]);
 
   const user = session?.user as { role: string; permissions: string[]; name: string } | undefined;
   const role = user?.role ?? '';
@@ -190,7 +196,7 @@ export default function MainMenuPage() {
   };
 
   if (loading || !isMounted) {
-    return <div className="min-h-screen bg-[#f6f4ef] flex items-center justify-center text-[#78716c]">กำลังโหลด...</div>;
+    return <div className="min-h-screen bg-[#f6f4ef] flex items-center justify-center text-[#78716c]">{t('msg.loading_data')}</div>;
   }
 
   return (
@@ -284,14 +290,14 @@ export default function MainMenuPage() {
             <div className="w-7 h-7 rounded-full bg-[#1c1917] text-[#f6f4ef] grid place-items-center text-[13px] font-semibold">อ</div>
             <span className="text-[11.5px] uppercase tracking-[0.18em] text-[#44403c] font-medium">Arun · ERP</span>
           </div>
-          <h1 className="font-display text-[34px] font-medium tracking-[-0.025em] text-[#1c1917] m-0">เลือกระบบงาน</h1>
+          <h1 className="font-display text-[34px] font-medium tracking-[-0.025em] text-[#1c1917] m-0">{t('page.select_module')}</h1>
           <div className="text-[13px] text-[#78716c] mt-2.5 tracking-[0.02em]">Choose a workspace to continue</div>
         </div>
 
         <nav className="mm-grid" aria-label="ระบบงาน">
           {visibleModules.length === 0 ? (
             <div className="w-full py-20 text-center text-[#78716c]">
-              <p>ขออภัย คุณยังไม่มีสิทธิ์เข้าถึงระบบใดๆ</p>
+              <p>{t('msg.no_access')}</p>
             </div>
           ) : (
             visibleModules.map((mod, index) => (
