@@ -2,7 +2,7 @@
 track: i18n-t1-prevention
 phase: i18n-compliance
 sequence: 1
-status: Active
+status: Verified
 owner: Chen
 created: 2026-05-29
 depends_on: []

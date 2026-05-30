@@ -17,7 +17,7 @@
 
 | Track | Status | Plan |
 | --- | --- | --- |
-| i18n-t1-prevention | Active | [plan](tracks/i18n-t1-prevention/plan.md) |
+| i18n-t1-prevention | Verified | [plan](tracks/i18n-t1-prevention/plan.md) |
 | i18n-t2-keys | Active | [plan](tracks/i18n-t2-keys/plan.md) |
 | i18n-t3-accounting | Active | [plan](tracks/i18n-t3-accounting/plan.md) |
 | i18n-t4-grn-purchasing | Active | [plan](tracks/i18n-t4-grn-purchasing/plan.md) |
@@ -28,7 +28,7 @@
 
 | # | Track | Depends On | Status | Plan |
 | --- | --- | --- | --- | --- |
-| I-1 | i18n-t1-prevention | — | Active | [plan](tracks/i18n-t1-prevention/plan.md) |
+| I-1 | i18n-t1-prevention | — | Verified | [plan](tracks/i18n-t1-prevention/plan.md) |
 | I-2 | i18n-t2-keys | I-1 | Active | [plan](tracks/i18n-t2-keys/plan.md) |
 | I-3 | i18n-t3-accounting | I-2 | Active | [plan](tracks/i18n-t3-accounting/plan.md) |
 | I-4 | i18n-t4-grn-purchasing | I-2 | Active | [plan](tracks/i18n-t4-grn-purchasing/plan.md) |
