@@ -13,8 +13,11 @@ export async function GET(req: NextRequest) {
   const monthStart = new Date(year, mon - 1, 1);
   const monthEnd = new Date(year, mon, 0); // last day of month
 
+  // eslint-disable-next-line local-rules/no-hardcoded-thai
   const LEAVE_COLORS: Record<string, string> = {
+    // eslint-disable-next-line local-rules/no-hardcoded-thai
     'ลาป่วย': '#ef4444', 'ลากิจ': '#f59e0b', 'ลาพักร้อน': '#10b981',
+    // eslint-disable-next-line local-rules/no-hardcoded-thai
     'ลาคลอด': '#8b5cf6', 'ลาทหาร': '#06b6d4',
   };
 

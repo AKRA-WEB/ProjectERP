@@ -48,6 +48,15 @@ interface HrStatsSnapshot {
   latest_payroll: { run_number: string; period_month: number; period_year: number; status: string; total_net: string } | null;
 }
 
+// eslint-disable-next-line local-rules/no-hardcoded-thai
+const DEFAULT_SHIFT_LABEL = 'กะมาตรฐาน 08:00-17:00';
+// eslint-disable-next-line local-rules/no-hardcoded-thai
+const ANNIV_LABEL = 'ครบรอบทำงาน';
+// eslint-disable-next-line local-rules/no-hardcoded-thai
+const ANNIV_SUB_PREFIX = 'ครบ ';
+// eslint-disable-next-line local-rules/no-hardcoded-thai
+const ANNIV_SUB_SUFFIX = ' ปี';
+
 export async function GET() {
   const session = await auth();
   if (!session?.user) return apiError('Unauthorized', 401);
@@ -104,7 +113,7 @@ export async function GET() {
           THEN EXTRACT(EPOCH FROM (ar.clock_in::time - COALESCE(ws.shift_start, '08:00:00')::time)) / 60
           ELSE 0
         END::int AS late_minutes,
-        COALESCE(ws.name_th, 'กะมาตรฐาน 08:00-17:00') AS shift_label,
+        COALESCE(ws.name_th, $1) AS shift_label,
         lt.name_th AS leave_type_name_th
       FROM users u
       LEFT JOIN work_schedules ws ON ws.id = u.work_schedule_id
@@ -119,7 +128,7 @@ export async function GET() {
       WHERE u.is_active = TRUE AND u.role NOT IN ('admin', 'superadmin')
       ORDER BY ar.clock_in ASC NULLS LAST
       LIMIT 10`,
-      []
+      [DEFAULT_SHIFT_LABEL]
     ),
 
     // 5. Pending leave queue (real-time — 4 rows for dashboard widget)
@@ -153,8 +162,8 @@ export async function GET() {
         u.name_th,
         TO_CHAR(u.hired_date, 'MM-DD') AS event_date,
         'anniv' AS kind,
-        'ครบรอบทำงาน' AS label,
-        'ครบ ' || (EXTRACT(YEAR FROM AGE(u.hired_date))::int + 1) || ' ปี' AS sub
+        $1 AS label,
+        $2 || (EXTRACT(YEAR FROM AGE(u.hired_date))::int + 1) || $3 AS sub
       FROM users u
       WHERE u.is_active = TRUE
         AND u.hired_date IS NOT NULL
@@ -167,7 +176,7 @@ export async function GET() {
         )
       ORDER BY TO_CHAR(u.hired_date, 'MM-DD') ASC
       LIMIT 10`,
-      []
+      [ANNIV_LABEL, ANNIV_SUB_PREFIX, ANNIV_SUB_SUFFIX]
     )
   ]);
 

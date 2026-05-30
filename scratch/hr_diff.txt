@@ -1,0 +1,537 @@
+﻿diff --git a/app/app/hr/attendance/my/page.tsx b/app/app/hr/attendance/my/page.tsx
+index e887f70..07d6780 100644
+--- a/app/app/hr/attendance/my/page.tsx
++++ b/app/app/hr/attendance/my/page.tsx
+@@ -5,0 +6 @@ import { formatDate } from '@/lib/format';
++import { useT } from '@/lib/i18n';
+@@ -10,0 +12 @@ export default function MyAttendancePage() {
++  const t = useT();
+@@ -43 +45 @@ export default function MyAttendancePage() {
+-      alert(e instanceof Error ? e.message : 'α╣Çα╕üα╕┤α╕öα╕éα╣ëα╕¡α╕£α╕┤α╕öα╕₧α╕Ñα╕▓α╕ö');
++      alert(e instanceof Error ? e.message : t('error.server'));
+@@ -54 +56 @@ export default function MyAttendancePage() {
+-      alert(e instanceof Error ? e.message : 'α╣Çα╕üα╕┤α╕öα╕éα╣ëα╕¡α╕£α╕┤α╕öα╕₧α╕Ñα╕▓α╕ö');
++      alert(e instanceof Error ? e.message : t('error.server'));
+@@ -58 +60 @@ export default function MyAttendancePage() {
+-  if (loading) return <div className="py-12 text-center text-stone-400">α╕üα╕│α╕Ñα╕▒α╕çα╣éα╕½α╕Ñα╕ö...</div>;
++  if (loading) return <div className="py-12 text-center text-stone-400">{t('label.loading')}</div>;
+@@ -63 +65 @@ export default function MyAttendancePage() {
+-        <h1 className="text-[24px] font-semibold tracking-tight text-stone-950">α╕Ñα╕çα╣Çα╕ºα╕Ñα╕▓α╣Çα╕éα╣ëα╕▓α╕çα╕▓α╕Ö / Attendance</h1>
++        <h1 className="text-[24px] font-semibold tracking-tight text-stone-950">{t('hr.my_attendance.title')}</h1>
+@@ -76 +78 @@ export default function MyAttendancePage() {
+-            <p className="text-[14px] text-stone-500 uppercase tracking-widest">α╕ºα╕▒α╕Öα╕Öα╕╡α╣ë / Today</p>
++            <p className="text-[14px] text-stone-500 uppercase tracking-widest">{t('hr.my_attendance.today')}</p>
+@@ -82 +84 @@ export default function MyAttendancePage() {
+-              <p className="text-[12px] text-stone-400 uppercase font-semibold">α╣Çα╕éα╣ëα╕▓α╕çα╕▓α╕Ö (In)</p>
++              <p className="text-[12px] text-stone-400 uppercase font-semibold">{t('hr.attendance.clock_in')}</p>
+@@ -86 +88 @@ export default function MyAttendancePage() {
+-              <p className="text-[12px] text-stone-400 uppercase font-semibold">α╕¡α╕¡α╕üα╕çα╕▓α╕Ö (Out)</p>
++              <p className="text-[12px] text-stone-400 uppercase font-semibold">{t('hr.attendance.clock_out')}</p>
+@@ -100 +102 @@ export default function MyAttendancePage() {
+-                <span className="text-[13px] opacity-80">α╕Ñα╕çα╣Çα╕ºα╕Ñα╕▓α╣Çα╕éα╣ëα╕▓α╕çα╕▓α╕Ö</span>
++                <span className="text-[13px] opacity-80">{t('hr.my_attendance.clock_in_action')}</span>
+@@ -110 +112 @@ export default function MyAttendancePage() {
+-                <span className="text-[13px] opacity-80">α╕Ñα╕çα╣Çα╕ºα╕Ñα╕▓α╕¡α╕¡α╕üα╕çα╕▓α╕Ö</span>
++                <span className="text-[13px] opacity-80">{t('hr.my_attendance.clock_out_action')}</span>
+@@ -115 +117 @@ export default function MyAttendancePage() {
+-                α╕Üα╕▒α╕Öα╕ùα╕╢α╕üα╣Çα╕ºα╕Ñα╕▓α╕éα╕¡α╕çα╕ºα╕▒α╕Öα╕Öα╕╡α╣ëα╣Çα╕úα╕╡α╕óα╕Üα╕úα╣ëα╕¡α╕óα╣üα╕Ñα╣ëα╕º
++                {t('hr.my_attendance.day_recorded')}
+@@ -125 +127 @@ export default function MyAttendancePage() {
+-          <h3 className="text-[16px] font-semibold text-stone-950 mb-4">α╕¢α╕úα╕░α╕ºα╕▒α╕òα╕┤α╕üα╕▓α╕úα╣Çα╕éα╣ëα╕▓α╕çα╕▓α╕Öα╣âα╕Öα╣Çα╕öα╕╖α╕¡α╕Öα╕Öα╕╡α╣ë</h3>
++          <h3 className="text-[16px] font-semibold text-stone-950 mb-4">{t('hr.my_attendance.history_this_month')}</h3>
+@@ -130,5 +132,5 @@ export default function MyAttendancePage() {
+-                  <th className="text-left py-2 px-3 text-stone-400 font-medium uppercase tracking-wider">α╕ºα╕▒α╕Öα╕ùα╕╡α╣ê</th>
+-                  <th className="text-left py-2 px-3 text-stone-400 font-medium uppercase tracking-wider">α╣Çα╕éα╣ëα╕▓α╕çα╕▓α╕Ö</th>
+-                  <th className="text-left py-2 px-3 text-stone-400 font-medium uppercase tracking-wider">α╕¡α╕¡α╕üα╕çα╕▓α╕Ö</th>
+-                  <th className="text-left py-2 px-3 text-stone-400 font-medium uppercase tracking-wider text-right">OT (α╕èα╕▒α╣êα╕ºα╣éα╕íα╕ç)</th>
+-                  <th className="text-left py-2 px-3 text-stone-400 font-medium uppercase tracking-wider text-right">α╕¬α╕ûα╕▓α╕Öα╕░</th>
++                  <th className="text-left py-2 px-3 text-stone-400 font-medium uppercase tracking-wider">{t('label.date')}</th>
++                  <th className="text-left py-2 px-3 text-stone-400 font-medium uppercase tracking-wider">{t('hr.attendance.clock_in')}</th>
++                  <th className="text-left py-2 px-3 text-stone-400 font-medium uppercase tracking-wider">{t('hr.attendance.clock_out')}</th>
++                  <th className="text-left py-2 px-3 text-stone-400 font-medium uppercase tracking-wider text-right">{t('hr.attendance.ot_hours_col')}</th>
++                  <th className="text-left py-2 px-3 text-stone-400 font-medium uppercase tracking-wider text-right">{t('label.status')}</th>
+@@ -150 +152 @@ export default function MyAttendancePage() {
+-                        {r.status === 'present' ? 'α╕¢α╕üα╕òα╕┤' : r.status === 'late' ? 'α╕¬α╕▓α╕ó' : r.status === 'absent' ? 'α╕éα╕▓α╕öα╕çα╕▓α╕Ö' : r.status}
++                        {r.status === 'present' ? t('hr.attendance.status.normal') : r.status === 'late' ? t('hr.attendance.status.late') : r.status === 'absent' ? t('hr.attendance.status.absent') : r.status}
+@@ -156 +158 @@ export default function MyAttendancePage() {
+-                  <tr><td colSpan={5} className="py-12 text-center text-stone-400">α╣äα╕íα╣êα╕₧α╕Üα╕¢α╕úα╕░α╕ºα╕▒α╕òα╕┤α╣âα╕Öα╣Çα╕öα╕╖α╕¡α╕Öα╕Öα╕╡α╣ë</td></tr>
++                  <tr><td colSpan={5} className="py-12 text-center text-stone-400">{t('hr.my_attendance.no_history')}</td></tr>
+diff --git a/app/app/hr/attendance/page.tsx b/app/app/hr/attendance/page.tsx
+index a25a041..94377d9 100644
+--- a/app/app/hr/attendance/page.tsx
++++ b/app/app/hr/attendance/page.tsx
+@@ -7 +7 @@ import { formatDate } from '@/lib/utils';
+-import { useLanguage } from '@/lib/i18n';
++import { useLanguage, useT } from '@/lib/i18n';
+@@ -19,0 +20 @@ export default function AdminAttendancePage() {
++  const t = useT();
+@@ -58,2 +59,2 @@ export default function AdminAttendancePage() {
+-            <h1 className="text-2xl font-bold text-stone-900">α╕üα╕▓α╕úα╣Çα╕éα╣ëα╕▓α╕çα╕▓α╕Öα╕éα╕¡α╕çα╕₧α╕Öα╕▒α╕üα╕çα╕▓α╕Ö / Attendance</h1>
+-            <p className="text-sm text-stone-500">{data?.total ?? 0} α╕úα╕▓α╕óα╕üα╕▓α╕úα╣âα╕Öα╣Çα╕öα╕╖α╕¡α╕Öα╕Öα╕╡α╣ë</p>
++            <h1 className="text-2xl font-bold text-stone-900">{t('hr.attendance.page_title')}</h1>
++            <p className="text-sm text-stone-500">{data?.total ?? 0} {t('hr.attendance.records_this_month')}</p>
+@@ -67 +68 @@ export default function AdminAttendancePage() {
+-              <option value="">α╕ùα╕╕α╕üα╕äα╕Ö</option>
++              <option value="">{t('hr.attendance.all_employees')}</option>
+@@ -84,7 +85,7 @@ export default function AdminAttendancePage() {
+-                  <th className="text-left py-3 px-4 text-stone-500 font-semibold uppercase tracking-wider">α╕ºα╕▒α╕Öα╕ùα╕╡α╣ê</th>
+-                  <th className="text-left py-3 px-4 text-stone-500 font-semibold uppercase tracking-wider">α╕₧α╕Öα╕▒α╕üα╕çα╕▓α╕Ö</th>
+-                  <th className="text-left py-3 px-4 text-stone-500 font-semibold uppercase tracking-wider text-center">α╣Çα╕éα╣ëα╕▓α╕çα╕▓α╕Ö</th>
+-                  <th className="text-left py-3 px-4 text-stone-500 font-semibold uppercase tracking-wider text-center">α╕¡α╕¡α╕üα╕çα╕▓α╕Ö</th>
+-                  <th className="text-left py-3 px-4 text-stone-500 font-semibold uppercase tracking-wider text-center">OT (α╕èα╕í.)</th>
+-                  <th className="text-left py-3 px-4 text-stone-500 font-semibold uppercase tracking-wider text-center">α╕¬α╕ûα╕▓α╕Öα╕░</th>
+-                  <th className="text-left py-3 px-4 text-stone-500 font-semibold uppercase tracking-wider">α╕½α╕íα╕▓α╕óα╣Çα╕½α╕òα╕╕</th>
++                  <th className="text-left py-3 px-4 text-stone-500 font-semibold uppercase tracking-wider">{t('label.date')}</th>
++                  <th className="text-left py-3 px-4 text-stone-500 font-semibold uppercase tracking-wider">{t('label.employee')}</th>
++                  <th className="text-left py-3 px-4 text-stone-500 font-semibold uppercase tracking-wider text-center">{t('hr.attendance.clock_in')}</th>
++                  <th className="text-left py-3 px-4 text-stone-500 font-semibold uppercase tracking-wider text-center">{t('hr.attendance.clock_out')}</th>
++                  <th className="text-left py-3 px-4 text-stone-500 font-semibold uppercase tracking-wider text-center">{t('hr.attendance.ot_hours')}</th>
++                  <th className="text-left py-3 px-4 text-stone-500 font-semibold uppercase tracking-wider text-center">{t('label.status')}</th>
++                  <th className="text-left py-3 px-4 text-stone-500 font-semibold uppercase tracking-wider">{t('label.note')}</th>
+@@ -95 +96 @@ export default function AdminAttendancePage() {
+-                  <tr><td colSpan={7} className="py-12 text-center text-stone-400">α╕üα╕│α╕Ñα╕▒α╕çα╣éα╕½α╕Ñα╕ö...</td></tr>
++                  <tr><td colSpan={7} className="py-12 text-center text-stone-400">{t('label.loading')}</td></tr>
+@@ -97 +98 @@ export default function AdminAttendancePage() {
+-                  <tr><td colSpan={7} className="py-12 text-center text-stone-400">α╣äα╕íα╣êα╕₧α╕Üα╕éα╣ëα╕¡α╕íα╕╣α╕Ñ</td></tr>
++                  <tr><td colSpan={7} className="py-12 text-center text-stone-400">{t('label.no_data')}</td></tr>
+@@ -118 +119 @@ export default function AdminAttendancePage() {
+-                        {r.status === 'present' ? 'α╕¢α╕üα╕òα╕┤' : r.status === 'late' ? 'α╕¬α╕▓α╕ó' : r.status === 'absent' ? 'α╕éα╕▓α╕öα╕çα╕▓α╕Ö' : r.status}
++                        {r.status === 'present' ? t('hr.attendance.status.normal') : r.status === 'late' ? t('hr.attendance.status.late') : r.status === 'absent' ? t('hr.attendance.status.absent') : r.status}
+diff --git a/app/app/hr/candidates/page.tsx b/app/app/hr/candidates/page.tsx
+index ccdb5e3..f268ff2 100644
+--- a/app/app/hr/candidates/page.tsx
++++ b/app/app/hr/candidates/page.tsx
+@@ -2,0 +3 @@ import Link from 'next/link';
++import { useT } from '@/lib/i18n';
+@@ -4,0 +6 @@ export default function CandidatesPage() {
++  const t = useT();
+@@ -8 +10 @@ export default function CandidatesPage() {
+-        <h1 className="font-display text-2xl font-semibold text-stone-900">α╕£α╕╣α╣ëα╕¬α╕íα╕▒α╕äα╕ú</h1>
++        <h1 className="font-display text-2xl font-semibold text-stone-900">{t('hr.candidates.title')}</h1>
+@@ -11 +13 @@ export default function CandidatesPage() {
+-          α╕üα╕│α╕Ñα╕▒α╕çα╕₧α╕▒α╕Æα╕Öα╕▓ / Coming soon
++          {t('hr.coming_soon')}
+@@ -15 +17 @@ export default function CandidatesPage() {
+-            ΓåÉ α╕üα╕Ñα╕▒α╕Üα╕½α╕Öα╣ëα╕▓ HR Dashboard
++            {t('hr.back_to_dashboard')}
+diff --git a/app/app/hr/departments/page.tsx b/app/app/hr/departments/page.tsx
+index a627c09..5c7bf00 100644
+--- a/app/app/hr/departments/page.tsx
++++ b/app/app/hr/departments/page.tsx
+@@ -5,0 +6 @@ import { get, post, patch } from '@/lib/api-client';
++import { useT } from '@/lib/i18n';
+@@ -8,0 +10 @@ export default function HrDepartmentsPage() {
++  const t = useT();
+@@ -76 +78 @@ export default function HrDepartmentsPage() {
+-      setError(e instanceof Error ? e.message : 'α╣Çα╕üα╕┤α╕öα╕éα╣ëα╕¡α╕£α╕┤α╕öα╕₧α╕Ñα╕▓α╕ö');
++      setError(e instanceof Error ? e.message : t('error.server'));
+@@ -89,2 +91,2 @@ export default function HrDepartmentsPage() {
+-          <h1 className="text-2xl font-bold text-stone-900">α╣üα╕£α╕Öα╕ü / Departments</h1>
+-          <p className="text-sm text-stone-500">{departments.length} α╣üα╕£α╕Öα╕ü</p>
++          <h1 className="text-2xl font-bold text-stone-900">{t('hr.departments.title')}</h1>
++          <p className="text-sm text-stone-500">{departments.length} {t('hr.departments.count_suffix')}</p>
+@@ -92 +94 @@ export default function HrDepartmentsPage() {
+-        <Button onClick={openCreate} className="w-full sm:w-auto">+ α╣Çα╕₧α╕┤α╣êα╕íα╣üα╕£α╕Öα╕ü</Button>
++        <Button onClick={openCreate} className="w-full sm:w-auto">+ {t('hr.departments.add')}</Button>
+@@ -99,2 +101,2 @@ export default function HrDepartmentsPage() {
+-              <Th>α╕úα╕½α╕▒α╕¬</Th>
+-              <Th>α╕èα╕╖α╣êα╕¡α╣üα╕£α╕Öα╕ü (TH)</Th>
++              <Th>{t('label.code')}</Th>
++              <Th>{t('hr.departments.col.name_th')}</Th>
+@@ -102,2 +104,2 @@ export default function HrDepartmentsPage() {
+-              <Th className="hidden md:table-cell">α╕½α╕▒α╕ºα╕½α╕Öα╣ëα╕▓α╣üα╕£α╕Öα╕ü</Th>
+-              <Th>α╕¬α╕ûα╕▓α╕Öα╕░</Th>
++              <Th className="hidden md:table-cell">{t('hr.departments.col.manager')}</Th>
++              <Th>{t('label.status')}</Th>
+@@ -109 +111 @@ export default function HrDepartmentsPage() {
+-              <tr><Td colSpan={6}><div className="py-12 text-center text-stone-400">α╕üα╕│α╕Ñα╕▒α╕çα╣éα╕½α╕Ñα╕ö...</div></Td></tr>
++              <tr><Td colSpan={6}><div className="py-12 text-center text-stone-400">{t('label.loading')}</div></Td></tr>
+@@ -111 +113 @@ export default function HrDepartmentsPage() {
+-              <tr><Td colSpan={6}><div className="py-12 text-center text-stone-400">α╣äα╕íα╣êα╕₧α╕Üα╕éα╣ëα╕¡α╕íα╕╣α╕Ñ</div></Td></tr>
++              <tr><Td colSpan={6}><div className="py-12 text-center text-stone-400">{t('label.no_data')}</div></Td></tr>
+@@ -121 +123 @@ export default function HrDepartmentsPage() {
+-                      {d.is_active ? 'α╣âα╕èα╣ëα╕çα╕▓α╕Ö' : 'α╕¢α╕┤α╕ö'}
++                      {d.is_active ? t('hr.departments.status.active') : t('hr.departments.status.inactive')}
+@@ -125 +127 @@ export default function HrDepartmentsPage() {
+-                    <button className="text-sm text-stone-400 hover:text-stone-950 transition-colors" onClick={() => openEdit(d)}>α╣üα╕üα╣ëα╣äα╕é</button>
++                    <button className="text-sm text-stone-400 hover:text-stone-950 transition-colors" onClick={() => openEdit(d)}>{t('action.edit')}</button>
+@@ -136 +138 @@ export default function HrDepartmentsPage() {
+-          <ModalHeader>{isEdit ? 'α╣üα╕üα╣ëα╣äα╕éα╣üα╕£α╕Öα╕ü' : 'α╣Çα╕₧α╕┤α╣êα╕íα╣üα╕£α╕Öα╕üα╣âα╕½α╕íα╣ê'}</ModalHeader>
++          <ModalHeader>{isEdit ? t('hr.departments.modal.edit') : t('hr.departments.modal.create')}</ModalHeader>
+@@ -139 +141 @@ export default function HrDepartmentsPage() {
+-              <Input label="α╕úα╕½α╕▒α╕¬α╣üα╕£α╕Öα╕ü *" value={form.code} onChange={(e) => setF('code', e.target.value)} disabled={isEdit} />
++              <Input label={t('hr.departments.form.code')} value={form.code} onChange={(e) => setF('code', e.target.value)} disabled={isEdit} />
+@@ -141 +143 @@ export default function HrDepartmentsPage() {
+-                <Input label="α╕èα╕╖α╣êα╕¡α╣üα╕£α╕Öα╕ü (TH) *" value={form.name_th} onChange={(e) => setF('name_th', e.target.value)} />
++                <Input label={t('hr.departments.form.name_th')} value={form.name_th} onChange={(e) => setF('name_th', e.target.value)} />
+@@ -144 +146 @@ export default function HrDepartmentsPage() {
+-              
++
+@@ -146 +148 @@ export default function HrDepartmentsPage() {
+-                <label className="text-sm font-medium text-stone-700">α╕½α╕▒α╕ºα╕½α╕Öα╣ëα╕▓α╣üα╕£α╕Öα╕ü</label>
++                <label className="text-sm font-medium text-stone-700">{t('hr.departments.form.manager')}</label>
+@@ -152 +154 @@ export default function HrDepartmentsPage() {
+-                  <option value="">α╣Çα╕Ñα╕╖α╕¡α╕üα╕₧α╕Öα╕▒α╕üα╕çα╕▓α╕Ö</option>
++                  <option value="">{t('hr.departments.form.select_employee')}</option>
+@@ -158 +160 @@ export default function HrDepartmentsPage() {
+-                <label className="text-sm font-medium text-stone-700">α╣üα╕£α╕Öα╕üα╣üα╕íα╣ê (α╕ûα╣ëα╕▓α╕íα╕╡)</label>
++                <label className="text-sm font-medium text-stone-700">{t('hr.departments.form.parent')}</label>
+@@ -164 +166 @@ export default function HrDepartmentsPage() {
+-                  <option value="">α╣äα╕íα╣êα╕íα╕╡</option>
++                  <option value="">{t('hr.departments.form.no_parent')}</option>
+@@ -173,2 +175,2 @@ export default function HrDepartmentsPage() {
+-            <Button variant="ghost" onClick={() => { setShowCreate(false); setEditDept(null); }}>α╕óα╕üα╣Çα╕Ñα╕┤α╕ü</Button>
+-            <Button onClick={handleSave} loading={saving}>{isEdit ? 'α╕Üα╕▒α╕Öα╕ùα╕╢α╕ü' : 'α╕¬α╕úα╣ëα╕▓α╕çα╣üα╕£α╕Öα╕ü'}</Button>
++            <Button variant="ghost" onClick={() => { setShowCreate(false); setEditDept(null); }}>{t('action.cancel')}</Button>
++            <Button onClick={handleSave} loading={saving}>{isEdit ? t('action.save') : t('hr.departments.form.create_btn')}</Button>
+diff --git a/app/app/hr/employees/page.tsx b/app/app/hr/employees/page.tsx
+index e26062d..ebf7ecf 100644
+--- a/app/app/hr/employees/page.tsx
++++ b/app/app/hr/employees/page.tsx
+@@ -156 +156 @@ export default function EmployeesPage() {
+-              α╕êα╕▒α╕öα╕üα╕▓α╕úα╕éα╣ëα╕¡α╕íα╕╣α╕Ñα╕₧α╕Öα╕▒α╕üα╕çα╕▓α╕Ö α╕¬α╕▒α╕ìα╕ìα╕▓α╕êα╣ëα╕▓α╕ç α╣üα╕Ñα╕░α╕üα╕▓α╕úα╕¬α╕▒α╕çα╕üα╕▒α╕öα╣üα╕£α╕Öα╕ü
++              {t('hr.employees.subtitle')}
+@@ -162 +162 @@ export default function EmployeesPage() {
+-                α╕Öα╕│α╣Çα╕éα╣ëα╕▓α╕êα╕▓α╕ü Excel
++                {t('hr.employees.import_excel')}
+@@ -177 +177 @@ export default function EmployeesPage() {
+-            label="α╕₧α╕Öα╕▒α╕üα╕çα╕▓α╕Öα╕ùα╕▒α╣ëα╕çα╕½α╕íα╕ö"
++            label={t('hr.employees.kpi.total')}
+@@ -179 +179 @@ export default function EmployeesPage() {
+-            sub="α╕₧α╕Öα╕▒α╕üα╕çα╕▓α╕Öα╕ùα╕╡α╣êα╕íα╕╡α╕¬α╕ûα╕▓α╕Öα╕░α╕¢α╕üα╕òα╕┤"
++            sub={t('hr.employees.kpi.total_sub')}
+@@ -183 +183 @@ export default function EmployeesPage() {
+-            label="α╕₧α╕Öα╕▒α╕üα╕çα╕▓α╕Öα╣âα╕½α╕íα╣êα╣Çα╕öα╕╖α╕¡α╕Öα╕Öα╕╡α╣ë"
++            label={t('hr.employees.kpi.new_this_month')}
+@@ -185 +185 @@ export default function EmployeesPage() {
+-            sub="α╣Çα╕úα╕┤α╣êα╕íα╕çα╕▓α╕Öα╣âα╕Öα╣Çα╕öα╕╖α╕¡α╕Öα╕¢α╕▒α╕êα╕êα╕╕α╕Üα╕▒α╕Ö"
++            sub={t('hr.employees.kpi.new_this_month_sub')}
+@@ -190 +190 @@ export default function EmployeesPage() {
+-            label="α╕¡α╕▒α╕òα╕úα╕▓α╕üα╕▓α╕úα╕Ñα╕▓α╕¡α╕¡α╕ü (3α╕ö.)"
++            label={t('hr.employees.kpi.turnover')}
+@@ -192 +192 @@ export default function EmployeesPage() {
+-            sub="α╣Çα╕ùα╕╡α╕óα╕Üα╕üα╕▒α╕Üα╕êα╕│α╕Öα╕ºα╕Öα╕₧α╕Öα╕▒α╕üα╕çα╕▓α╕Öα╕ùα╕▒α╣ëα╕çα╕½α╕íα╕ö"
++            sub={t('hr.employees.kpi.turnover_sub')}
+@@ -197,3 +197,3 @@ export default function EmployeesPage() {
+-            label="α╕¡α╕▓α╕óα╕╕α╕çα╕▓α╕Öα╣Çα╕ëα╕Ñα╕╡α╣êα╕ó"
+-            value={stats ? `${stats.avg_tenure_years} α╕¢α╕╡` : '0 α╕¢α╕╡'}
+-            sub={`α╕₧α╕Öα╕▒α╕üα╕çα╕▓α╕Öα╕ùα╕╡α╣êα╣Çα╕üα╣êα╕▓α╣üα╕üα╣êα╕ùα╕╡α╣êα╕¬α╕╕α╕ö: ${stats?.oldest_tenure_years ?? 0} α╕¢α╕╡`}
++            label={t('hr.employees.kpi.avg_tenure')}
++            value={stats ? `${stats.avg_tenure_years} ${t('hr.tenure.years')}` : `0 ${t('hr.tenure.years')}`}
++            sub={`${t('hr.employees.kpi.oldest_tenure')}: ${stats?.oldest_tenure_years ?? 0} ${t('hr.tenure.years')}`}
+@@ -223 +223 @@ export default function EmployeesPage() {
+-            <option value="">α╕ùα╕╕α╕üα╣üα╕£α╕Öα╕ü</option>
++            <option value="">{t('hr.employees.filter.all_depts')}</option>
+@@ -234 +234 @@ export default function EmployeesPage() {
+-            <option value="">α╕ùα╕╕α╕üα╕¬α╕▓α╕éα╕▓ / α╕äα╕Ñα╕▒α╕ç</option>
++            <option value="">{t('hr.employees.filter.all_branches')}</option>
+diff --git a/app/app/hr/jobs/page.tsx b/app/app/hr/jobs/page.tsx
+index 84d67c2..4935c02 100644
+--- a/app/app/hr/jobs/page.tsx
++++ b/app/app/hr/jobs/page.tsx
+@@ -2,0 +3 @@ import Link from 'next/link';
++import { useT } from '@/lib/i18n';
+@@ -4,0 +6 @@ export default function JobsPage() {
++  const t = useT();
+@@ -8 +10 @@ export default function JobsPage() {
+-        <h1 className="font-display text-2xl font-semibold text-stone-900">α╕òα╕│α╣üα╕½α╕Öα╣êα╕çα╕ùα╕╡α╣êα╣Çα╕¢α╕┤α╕öα╕úα╕▒α╕Ü</h1>
++        <h1 className="font-display text-2xl font-semibold text-stone-900">{t('hr.jobs.title')}</h1>
+@@ -11 +13 @@ export default function JobsPage() {
+-          α╕üα╕│α╕Ñα╕▒α╕çα╕₧α╕▒α╕Æα╕Öα╕▓ / Coming soon
++          {t('hr.coming_soon')}
+@@ -15 +17 @@ export default function JobsPage() {
+-            ΓåÉ α╕üα╕Ñα╕▒α╕Üα╕½α╕Öα╣ëα╕▓ HR Dashboard
++            {t('hr.back_to_dashboard')}
+diff --git a/app/app/hr/leave/calendar/page.tsx b/app/app/hr/leave/calendar/page.tsx
+index 3cffad2..5a0eb2c 100644
+--- a/app/app/hr/leave/calendar/page.tsx
++++ b/app/app/hr/leave/calendar/page.tsx
+@@ -2,0 +3 @@ import Link from 'next/link';
++import { useT } from '@/lib/i18n';
+@@ -4,0 +6 @@ export default function LeaveCalendarPage() {
++  const t = useT();
+@@ -8 +10 @@ export default function LeaveCalendarPage() {
+-        <h1 className="font-display text-2xl font-semibold text-stone-900">α╕¢α╕Åα╕┤α╕ùα╕┤α╕Öα╕ùα╕╡α╕í</h1>
++        <h1 className="font-display text-2xl font-semibold text-stone-900">{t('hr.leave_calendar.title')}</h1>
+@@ -11 +13 @@ export default function LeaveCalendarPage() {
+-          α╕üα╕│α╕Ñα╕▒α╕çα╕₧α╕▒α╕Æα╕Öα╕▓ / Coming soon
++          {t('hr.coming_soon')}
+@@ -15 +17 @@ export default function LeaveCalendarPage() {
+-            ΓåÉ α╕üα╕Ñα╕▒α╕Üα╕½α╕Öα╣ëα╕▓ HR Dashboard
++            {t('hr.back_to_dashboard')}
+diff --git a/app/app/hr/leave/quota/page.tsx b/app/app/hr/leave/quota/page.tsx
+index ae1710e..9c63cb6 100644
+--- a/app/app/hr/leave/quota/page.tsx
++++ b/app/app/hr/leave/quota/page.tsx
+@@ -2,0 +3 @@ import Link from 'next/link';
++import { useT } from '@/lib/i18n';
+@@ -4,0 +6 @@ export default function LeaveQuotaPage() {
++  const t = useT();
+@@ -8 +10 @@ export default function LeaveQuotaPage() {
+-        <h1 className="font-display text-2xl font-semibold text-stone-900">α╣éα╕äα╕ºα╕òα╣ëα╕▓α╕ºα╕▒α╕Öα╕Ñα╕▓</h1>
++        <h1 className="font-display text-2xl font-semibold text-stone-900">{t('hr.leave_quota.title')}</h1>
+@@ -11 +13 @@ export default function LeaveQuotaPage() {
+-          α╕üα╕│α╕Ñα╕▒α╕çα╕₧α╕▒α╕Æα╕Öα╕▓ / Coming soon
++          {t('hr.coming_soon')}
+@@ -15 +17 @@ export default function LeaveQuotaPage() {
+-            ΓåÉ α╕üα╕Ñα╕▒α╕Üα╕½α╕Öα╣ëα╕▓ HR Dashboard
++            {t('hr.back_to_dashboard')}
+diff --git a/app/app/hr/onboarding/page.tsx b/app/app/hr/onboarding/page.tsx
+index e82eb83..48ab75b 100644
+--- a/app/app/hr/onboarding/page.tsx
++++ b/app/app/hr/onboarding/page.tsx
+@@ -2,0 +3 @@ import Link from 'next/link';
++import { useT } from '@/lib/i18n';
+@@ -4,0 +6 @@ export default function OnboardingPage() {
++  const t = useT();
+@@ -8 +10 @@ export default function OnboardingPage() {
+-        <h1 className="font-display text-2xl font-semibold text-stone-900">α╕₧α╕Öα╕▒α╕üα╕çα╕▓α╕Öα╣âα╕½α╕íα╣ê</h1>
++        <h1 className="font-display text-2xl font-semibold text-stone-900">{t('hr.onboarding.title')}</h1>
+@@ -11 +13 @@ export default function OnboardingPage() {
+-          α╕üα╕│α╕Ñα╕▒α╕çα╕₧α╕▒α╕Æα╕Öα╕▓ / Coming soon
++          {t('hr.coming_soon')}
+@@ -15 +17 @@ export default function OnboardingPage() {
+-            ΓåÉ α╕üα╕Ñα╕▒α╕Üα╕½α╕Öα╣ëα╕▓ HR Dashboard
++            {t('hr.back_to_dashboard')}
+diff --git a/app/app/hr/org/page.tsx b/app/app/hr/org/page.tsx
+index 7355ec9..1f06f0f 100644
+--- a/app/app/hr/org/page.tsx
++++ b/app/app/hr/org/page.tsx
+@@ -2,0 +3 @@ import Link from 'next/link';
++import { useT } from '@/lib/i18n';
+@@ -4,0 +6 @@ export default function OrgChartPage() {
++  const t = useT();
+@@ -8 +10 @@ export default function OrgChartPage() {
+-        <h1 className="font-display text-2xl font-semibold text-stone-900">α╣éα╕äα╕úα╕çα╕¬α╕úα╣ëα╕▓α╕çα╕¡α╕çα╕äα╣îα╕üα╕ú</h1>
++        <h1 className="font-display text-2xl font-semibold text-stone-900">{t('hr.org.title')}</h1>
+@@ -11 +13 @@ export default function OrgChartPage() {
+-          α╕üα╕│α╕Ñα╕▒α╕çα╕₧α╕▒α╕Æα╕Öα╕▓ / Coming soon
++          {t('hr.coming_soon')}
+@@ -15 +17 @@ export default function OrgChartPage() {
+-            ΓåÉ α╕üα╕Ñα╕▒α╕Üα╕½α╕Öα╣ëα╕▓ HR Dashboard
++            {t('hr.back_to_dashboard')}
+diff --git a/app/app/hr/overtime/page.tsx b/app/app/hr/overtime/page.tsx
+index f10cf25..2ef6969 100644
+--- a/app/app/hr/overtime/page.tsx
++++ b/app/app/hr/overtime/page.tsx
+@@ -2,0 +3 @@ import Link from 'next/link';
++import { useT } from '@/lib/i18n';
+@@ -4,0 +6 @@ export default function OvertimePage() {
++  const t = useT();
+@@ -8 +10 @@ export default function OvertimePage() {
+-        <h1 className="font-display text-2xl font-semibold text-stone-900">α╕Ñα╣êα╕ºα╕çα╣Çα╕ºα╕Ñα╕▓</h1>
++        <h1 className="font-display text-2xl font-semibold text-stone-900">{t('hr.overtime.title')}</h1>
+@@ -11 +13 @@ export default function OvertimePage() {
+-          α╕üα╕│α╕Ñα╕▒α╕çα╕₧α╕▒α╕Æα╕Öα╕▓ / Coming soon
++          {t('hr.coming_soon')}
+@@ -15 +17 @@ export default function OvertimePage() {
+-            ΓåÉ α╕üα╕Ñα╕▒α╕Üα╕½α╕Öα╣ëα╕▓ HR Dashboard
++            {t('hr.back_to_dashboard')}
+diff --git a/app/app/hr/page.tsx b/app/app/hr/page.tsx
+index e3afae6..bdbf51c 100644
+--- a/app/app/hr/page.tsx
++++ b/app/app/hr/page.tsx
+@@ -7 +7 @@ import { formatCurrency, formatDate } from '@/lib/utils';
+-import { useLanguage } from '@/lib/i18n';
++import { useLanguage, useT } from '@/lib/i18n';
+@@ -51,2 +51,5 @@ const STATUS_BADGE: Record<string, string> = {
+-const STATUS_LABEL: Record<string, string> = {
+-  present: 'α╣Çα╕éα╣ëα╕▓α╕çα╕▓α╕Ö', late: 'α╕¬α╕▓α╕ó', on_leave: 'α╕Ñα╕▓', absent: 'α╕éα╕▓α╕ö',
++const STATUS_LABEL_KEYS: Record<string, string> = {
++  present: 'hr.attendance.status.present',
++  late: 'hr.attendance.status.late',
++  on_leave: 'hr.attendance.status.on_leave',
++  absent: 'hr.attendance.status.absent',
+@@ -55,0 +59 @@ function StatusBadge({ status, lateMinutes }: { status: string; lateMinutes: num
++  const t = useT();
+@@ -58 +62 @@ function StatusBadge({ status, lateMinutes }: { status: string; lateMinutes: num
+-      {STATUS_LABEL[status] ?? status}{status === 'late' && lateMinutes > 0 ? ` ${lateMinutes}α╕Ö.` : ''}
++      {t(STATUS_LABEL_KEYS[status] ?? status)}{status === 'late' && lateMinutes > 0 ? ` ${lateMinutes}${t('hr.attendance.minutes_suffix')}` : ''}
+@@ -131,0 +136 @@ export default function HrDashboardPage() {
++  const t = useT();
+@@ -142 +147 @@ export default function HrDashboardPage() {
+-      <div className="flex-1 p-8 text-stone-400 text-sm">α╕üα╕│α╕Ñα╕▒α╕çα╣éα╕½α╕Ñα╕ö...</div>
++      <div className="flex-1 p-8 text-stone-400 text-sm">{t('label.loading')}</div>
+@@ -155 +160 @@ export default function HrDashboardPage() {
+-              α╕áα╕▓α╕₧α╕úα╕ºα╕íα╕Üα╕╕α╕äα╕Ñα╕▓α╕üα╕ú <span className="text-stone-400 font-normal">/ HR Dashboard</span>
++              {t('page.hr_dashboard')} <span className="text-stone-400 font-normal">/ HR Dashboard</span>
+@@ -161 +166 @@ export default function HrDashboardPage() {
+-              α╕úα╕▓α╕óα╕çα╕▓α╕Öα╕¢α╕úα╕░α╕êα╕│α╣Çα╕öα╕╖α╕¡α╕Ö
++              {t('hr.dashboard.monthly_report')}
+@@ -164 +169 @@ export default function HrDashboardPage() {
+-              + α╣Çα╕₧α╕┤α╣êα╕íα╕₧α╕Öα╕▒α╕üα╕çα╕▓α╕Ö
++              + {t('hr.dashboard.add_employee')}
+@@ -172 +177 @@ export default function HrDashboardPage() {
+-            label="α╕₧α╕Öα╕▒α╕üα╕çα╕▓α╕Öα╕ùα╕▒α╣ëα╕çα╕½α╕íα╕ö"
++            label={t('hr.dashboard.kpi.total_employees')}
+@@ -174 +179 @@ export default function HrDashboardPage() {
+-            sub={`${stats.probationCount} α╕ùα╕öα╕Ñα╕¡α╕çα╕çα╕▓α╕Ö ┬╖ ${stats.resignedThisMonth} α╕¡α╕¡α╕üα╣Çα╕öα╕╖α╕¡α╕Öα╕Öα╕╡α╣ë`}
++            sub={`${stats.probationCount} ${t('hr.dashboard.kpi.probation')} ┬╖ ${stats.resignedThisMonth} ${t('hr.dashboard.kpi.resigned_month')}`}
+@@ -177 +182 @@ export default function HrDashboardPage() {
+-            label="α╣Çα╕éα╣ëα╕▓α╕çα╕▓α╕Öα╕ºα╕▒α╕Öα╕Öα╕╡α╣ë"
++            label={t('hr.dashboard.kpi.present_today')}
+@@ -179 +184 @@ export default function HrDashboardPage() {
+-            sub={`α╕òα╕úα╕çα╣Çα╕ºα╕Ñα╕▓ ${onTimeCount} ┬╖ α╕¬α╕▓α╕ó ${stats.lateCount}`}
++            sub={`${t('hr.dashboard.kpi.on_time')} ${onTimeCount} ┬╖ ${t('hr.attendance.status.late')} ${stats.lateCount}`}
+@@ -182 +187 @@ export default function HrDashboardPage() {
+-            label="α╕äα╕│α╕éα╕¡α╕Ñα╕▓α╕ùα╕╡α╣êα╕äα╣ëα╕▓α╕ç"
++            label={t('hr.dashboard.kpi.pending_leave')}
+@@ -184 +189 @@ export default function HrDashboardPage() {
+-            sub="α╕òα╣ëα╕¡α╕çα╕¡α╕Öα╕╕α╕íα╕▒α╕òα╕┤α╕áα╕▓α╕óα╣âα╕Ö 24 α╕èα╕í."
++            sub={t('hr.dashboard.kpi.pending_leave_sub')}
+@@ -188 +193 @@ export default function HrDashboardPage() {
+-            label="α╣Çα╕çα╕┤α╕Öα╣Çα╕öα╕╖α╕¡α╕Öα╕çα╕ºα╕öα╕Öα╕╡α╣ë"
++            label={t('hr.dashboard.kpi.payroll_this_period')}
+@@ -190 +195 @@ export default function HrDashboardPage() {
+-            sub={stats.latestPayrollDate ? `α╕çα╕ºα╕öα╣Çα╕öα╕╖α╕¡α╕Ö ${stats.latestPayrollDate}` : 'α╕óα╕▒α╕çα╣äα╕íα╣êα╕íα╕╡α╕éα╣ëα╕¡α╕íα╕╣α╕Ñ'}
++            sub={stats.latestPayrollDate ? `${t('hr.dashboard.kpi.payroll_period')} ${stats.latestPayrollDate}` : t('hr.dashboard.kpi.no_data')}
+@@ -200,2 +205,2 @@ export default function HrDashboardPage() {
+-              <h2 className="font-semibold text-stone-900 text-[15px]">α╕üα╕▓α╕úα╣Çα╕éα╣ëα╕▓α╕çα╕▓α╕Öα╕ºα╕▒α╕Öα╕Öα╕╡α╣ë</h2>
+-              <Link href="/app/hr/attendance" className="text-[12.5px] text-stone-500 hover:text-stone-900">α╕öα╕╣α╕ùα╕▒α╣ëα╕çα╕½α╕íα╕ö ΓåÆ</Link>
++              <h2 className="font-semibold text-stone-900 text-[15px]">{t('hr.dashboard.attendance_today')}</h2>
++              <Link href="/app/hr/attendance" className="text-[12.5px] text-stone-500 hover:text-stone-900">{t('hr.dashboard.view_all')} ΓåÆ</Link>
+@@ -206,5 +211,5 @@ export default function HrDashboardPage() {
+-                  <th className="px-4 py-2.5">α╕₧α╕Öα╕▒α╕üα╕çα╕▓α╕Ö</th>
+-                  <th className="px-4 py-2.5">α╣üα╕£α╕Öα╕ü</th>
+-                  <th className="px-4 py-2.5">α╣Çα╕éα╣ëα╕▓α╕çα╕▓α╕Ö</th>
+-                  <th className="px-4 py-2.5">α╕¡α╕¡α╕üα╕çα╕▓α╕Ö</th>
+-                  <th className="px-4 py-2.5">α╕¬α╕ûα╕▓α╕Öα╕░</th>
++                  <th className="px-4 py-2.5">{t('label.employee')}</th>
++                  <th className="px-4 py-2.5">{t('label.department')}</th>
++                  <th className="px-4 py-2.5">{t('hr.attendance.clock_in')}</th>
++                  <th className="px-4 py-2.5">{t('hr.attendance.clock_out')}</th>
++                  <th className="px-4 py-2.5">{t('label.status')}</th>
+@@ -235 +240 @@ export default function HrDashboardPage() {
+-                    <td colSpan={5} className="px-4 py-8 text-center text-[13px] text-stone-400 italic">α╣äα╕íα╣êα╕íα╕╡α╕éα╣ëα╕¡α╕íα╕╣α╕Ñα╕üα╕▓α╕úα╣Çα╕éα╣ëα╕▓α╕çα╕▓α╕Öα╕ºα╕▒α╕Öα╕Öα╕╡α╣ë</td>
++                    <td colSpan={5} className="px-4 py-8 text-center text-[13px] text-stone-400 italic">{t('hr.dashboard.no_attendance_today')}</td>
+@@ -245,2 +250,2 @@ export default function HrDashboardPage() {
+-              <h2 className="font-semibold text-stone-900 text-[15px]">α╕äα╕│α╕éα╕¡α╕Ñα╕▓α╕úα╕¡α╕¡α╕Öα╕╕α╕íα╕▒α╕òα╕┤</h2>
+-              <Link href="/app/hr/leave-requests" className="text-[12.5px] text-stone-500 hover:text-stone-900">α╕öα╕╣α╕ùα╕▒α╣ëα╕çα╕½α╕íα╕ö ΓåÆ</Link>
++              <h2 className="font-semibold text-stone-900 text-[15px]">{t('hr.dashboard.pending_leave_title')}</h2>
++              <Link href="/app/hr/leave-requests" className="text-[12.5px] text-stone-500 hover:text-stone-900">{t('hr.dashboard.view_all')} ΓåÆ</Link>
+@@ -256 +261 @@ export default function HrDashboardPage() {
+-                          <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-500 text-white uppercase">α╣Çα╕úα╣êα╕çα╕öα╣êα╕ºα╕Ö</span>
++                          <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-500 text-white uppercase">{t('hr.leave.urgent')}</span>
+@@ -259 +264 @@ export default function HrDashboardPage() {
+-                      <div className="text-[11.5px] text-stone-500 mt-0.5">{req.leave_type_name_th} ┬╖ {req.days_requested} α╕ºα╕▒α╕Ö</div>
++                      <div className="text-[11.5px] text-stone-500 mt-0.5">{req.leave_type_name_th} ┬╖ {req.days_requested} {t('hr.leave.days')}</div>
+@@ -262 +267 @@ export default function HrDashboardPage() {
+-                    <Link href="/app/hr/leave-requests" className="text-[11px] text-stone-400 hover:text-stone-900 underline">α╕òα╕úα╕ºα╕êα╕¬α╕¡α╕Ü</Link>
++                    <Link href="/app/hr/leave-requests" className="text-[11px] text-stone-400 hover:text-stone-900 underline">{t('hr.dashboard.review')}</Link>
+@@ -267 +272 @@ export default function HrDashboardPage() {
+-                <div className="px-5 py-12 text-center text-[13px] text-stone-400 italic">α╣äα╕íα╣êα╕íα╕╡α╕äα╕│α╕éα╕¡α╕Ñα╕▓α╕ùα╕╡α╣êα╕äα╣ëα╕▓α╕çα╕¡α╕óα╕╣α╣ê</div>
++                <div className="px-5 py-12 text-center text-[13px] text-stone-400 italic">{t('hr.dashboard.no_pending_leave')}</div>
+@@ -277 +282 @@ export default function HrDashboardPage() {
+-            <h2 className="font-semibold text-stone-900 mb-4 text-[15px]">α╕êα╕│α╕Öα╕ºα╕Öα╕₧α╕Öα╕▒α╕üα╕çα╕▓α╕Öα╕òα╕▓α╕íα╣üα╕£α╕Öα╕ü</h2>
++            <h2 className="font-semibold text-stone-900 mb-4 text-[15px]">{t('hr.dashboard.headcount_by_dept')}</h2>
+@@ -293 +298 @@ export default function HrDashboardPage() {
+-                <div className="py-12 text-center text-[13px] text-stone-400 italic">α╕óα╕▒α╕çα╣äα╕íα╣êα╕íα╕╡α╕éα╣ëα╕¡α╕íα╕╣α╕Ñα╕₧α╕Öα╕▒α╕üα╕çα╕▓α╕Ö</div>
++                <div className="py-12 text-center text-[13px] text-stone-400 italic">{t('hr.dashboard.no_employee_data')}</div>
+@@ -300 +305 @@ export default function HrDashboardPage() {
+-            <h2 className="font-semibold text-stone-900 mb-4 text-[15px]">α╕üα╕┤α╕êα╕üα╕úα╕úα╕íα╕ùα╕╡α╣êα╕üα╕│α╕Ñα╕▒α╕çα╕êα╕░α╕íα╕▓α╕ûα╕╢α╕ç (7 α╕ºα╕▒α╕Ö)</h2>
++            <h2 className="font-semibold text-stone-900 mb-4 text-[15px]">{t('hr.dashboard.upcoming_events')}</h2>
+@@ -303 +308 @@ export default function HrDashboardPage() {
+-                <p className="text-[12.5px] text-stone-400 italic py-12 text-center">α╣äα╕íα╣êα╕íα╕╡α╕üα╕┤α╕êα╕üα╕úα╕úα╕íα╣âα╕Öα╕èα╣êα╕ºα╕ç 7 α╕ºα╕▒α╕Ö</p>
++                <p className="text-[12.5px] text-stone-400 italic py-12 text-center">{t('hr.dashboard.no_upcoming_events')}</p>
+diff --git a/app/app/hr/payroll/slips/page.tsx b/app/app/hr/payroll/slips/page.tsx
+index 0f00cad..e13241b 100644
+--- a/app/app/hr/payroll/slips/page.tsx
++++ b/app/app/hr/payroll/slips/page.tsx
+@@ -2,0 +3 @@ import Link from 'next/link';
++import { useT } from '@/lib/i18n';
+@@ -4,0 +6 @@ export default function PayrollSlipsPage() {
++  const t = useT();
+@@ -8 +10 @@ export default function PayrollSlipsPage() {
+-        <h1 className="font-display text-2xl font-semibold text-stone-900">α╕¬α╕Ñα╕┤α╕¢α╣Çα╕çα╕┤α╕Öα╣Çα╕öα╕╖α╕¡α╕Ö</h1>
++        <h1 className="font-display text-2xl font-semibold text-stone-900">{t('hr.payroll_slips.title')}</h1>
+@@ -11 +13 @@ export default function PayrollSlipsPage() {
+-          α╕üα╕│α╕Ñα╕▒α╕çα╕₧α╕▒α╕Æα╕Öα╕▓ / Coming soon
++          {t('hr.coming_soon')}
+@@ -15 +17 @@ export default function PayrollSlipsPage() {
+-            ΓåÉ α╕üα╕Ñα╕▒α╕Üα╕½α╕Öα╣ëα╕▓ HR Dashboard
++            {t('hr.back_to_dashboard')}
+diff --git a/app/app/hr/payroll/tax/page.tsx b/app/app/hr/payroll/tax/page.tsx
+index e9a8ff3..fcd8144 100644
+--- a/app/app/hr/payroll/tax/page.tsx
++++ b/app/app/hr/payroll/tax/page.tsx
+@@ -2,0 +3 @@ import Link from 'next/link';
++import { useT } from '@/lib/i18n';
+@@ -4,0 +6 @@ export default function PayrollTaxPage() {
++  const t = useT();
+@@ -8 +10 @@ export default function PayrollTaxPage() {
+-        <h1 className="font-display text-2xl font-semibold text-stone-900">α╕áα╕▓α╕⌐α╕╡ & α╕¢α╕úα╕░α╕üα╕▒α╕Öα╕¬α╕▒α╕çα╕äα╕í</h1>
++        <h1 className="font-display text-2xl font-semibold text-stone-900">{t('hr.payroll_tax.title')}</h1>
+@@ -11 +13 @@ export default function PayrollTaxPage() {
+-          α╕üα╕│α╕Ñα╕▒α╕çα╕₧α╕▒α╕Æα╕Öα╕▓ / Coming soon
++          {t('hr.coming_soon')}
+@@ -15 +17 @@ export default function PayrollTaxPage() {
+-            ΓåÉ α╕üα╕Ñα╕▒α╕Üα╕½α╕Öα╣ëα╕▓ HR Dashboard
++            {t('hr.back_to_dashboard')}
+diff --git a/app/app/hr/performance/page.tsx b/app/app/hr/performance/page.tsx
+index f785b51..0582799 100644
+--- a/app/app/hr/performance/page.tsx
++++ b/app/app/hr/performance/page.tsx
+@@ -2,0 +3 @@ import Link from 'next/link';
++import { useT } from '@/lib/i18n';
+@@ -4,0 +6 @@ export default function PerformancePage() {
++  const t = useT();
+@@ -8 +10 @@ export default function PerformancePage() {
+-        <h1 className="font-display text-2xl font-semibold text-stone-900">α╕¢α╕úα╕░α╣Çα╕íα╕┤α╕Öα╕£α╕Ñ</h1>
++        <h1 className="font-display text-2xl font-semibold text-stone-900">{t('hr.performance.title')}</h1>
+@@ -11 +13 @@ export default function PerformancePage() {
+-          α╕üα╕│α╕Ñα╕▒α╕çα╕₧α╕▒α╕Æα╕Öα╕▓ / Coming soon
++          {t('hr.coming_soon')}
+@@ -15 +17 @@ export default function PerformancePage() {
+-            ΓåÉ α╕üα╕Ñα╕▒α╕Üα╕½α╕Öα╣ëα╕▓ HR Dashboard
++            {t('hr.back_to_dashboard')}
+diff --git a/app/app/hr/positions/page.tsx b/app/app/hr/positions/page.tsx
+index e40d296..4dc44c6 100644
+--- a/app/app/hr/positions/page.tsx
++++ b/app/app/hr/positions/page.tsx
+@@ -2,0 +3 @@ import Link from 'next/link';
++import { useT } from '@/lib/i18n';
+@@ -4,0 +6 @@ export default function PositionsPage() {
++  const t = useT();
+@@ -8 +10 @@ export default function PositionsPage() {
+-        <h1 className="font-display text-2xl font-semibold text-stone-900">α╕òα╕│α╣üα╕½α╕Öα╣êα╕çα╕çα╕▓α╕Ö</h1>
++        <h1 className="font-display text-2xl font-semibold text-stone-900">{t('hr.positions.title')}</h1>
+@@ -11 +13 @@ export default function PositionsPage() {
+-          α╕üα╕│α╕Ñα╕▒α╕çα╕₧α╕▒α╕Æα╕Öα╕▓ / Coming soon
++          {t('hr.coming_soon')}
+@@ -15 +17 @@ export default function PositionsPage() {
+-            ΓåÉ α╕üα╕Ñα╕▒α╕Üα╕½α╕Öα╣ëα╕▓ HR Dashboard
++            {t('hr.back_to_dashboard')}
+diff --git a/app/app/hr/shifts/page.tsx b/app/app/hr/shifts/page.tsx
+index 009b554..6e63c15 100644
+--- a/app/app/hr/shifts/page.tsx
++++ b/app/app/hr/shifts/page.tsx
+@@ -2,0 +3 @@ import Link from 'next/link';
++import { useT } from '@/lib/i18n';
+@@ -4,0 +6 @@ export default function ShiftsPage() {
++  const t = useT();
+@@ -8 +10 @@ export default function ShiftsPage() {
+-        <h1 className="font-display text-2xl font-semibold text-stone-900">α╕òα╕▓α╕úα╕▓α╕çα╕üα╕░</h1>
++        <h1 className="font-display text-2xl font-semibold text-stone-900">{t('hr.shifts.title')}</h1>
+@@ -11 +13 @@ export default function ShiftsPage() {
+-          α╕üα╕│α╕Ñα╕▒α╕çα╕₧α╕▒α╕Æα╕Öα╕▓ / Coming soon
++          {t('hr.coming_soon')}
+@@ -15 +17 @@ export default function ShiftsPage() {
+-            ΓåÉ α╕üα╕Ñα╕▒α╕Üα╕½α╕Öα╣ëα╕▓ HR Dashboard
++            {t('hr.back_to_dashboard')}
+diff --git a/app/app/hr/training/page.tsx b/app/app/hr/training/page.tsx
+index 8413682..6c10f25 100644
+--- a/app/app/hr/training/page.tsx
++++ b/app/app/hr/training/page.tsx
+@@ -2,0 +3 @@ import Link from 'next/link';
++import { useT } from '@/lib/i18n';
+@@ -4,0 +6 @@ export default function TrainingPage() {
++  const t = useT();
+@@ -8 +10 @@ export default function TrainingPage() {
+-        <h1 className="font-display text-2xl font-semibold text-stone-900">α╕¥α╕╢α╕üα╕¡α╕Üα╕úα╕í</h1>
++        <h1 className="font-display text-2xl font-semibold text-stone-900">{t('hr.training.title')}</h1>
+@@ -11 +13 @@ export default function TrainingPage() {
+-          α╕üα╕│α╕Ñα╕▒α╕çα╕₧α╕▒α╕Æα╕Öα╕▓ / Coming soon
++          {t('hr.coming_soon')}
+@@ -15 +17 @@ export default function TrainingPage() {
+-            ΓåÉ α╕üα╕Ñα╕▒α╕Üα╕½α╕Öα╣ëα╕▓ HR Dashboard
++            {t('hr.back_to_dashboard')}

@@ -153,13 +153,13 @@ export default function EmployeesPage() {
               {t('page.employees')}
             </h1>
             <p className="text-[13.5px] text-stone-500 mt-1">
-              จัดการข้อมูลพนักงาน สัญญาจ้าง และการสังกัดแผนก
+              {t('hr.employees.subtitle')}
             </p>
           </div>
           <div className="flex gap-2">
             {user?.role === 'admin' && (
               <button className="h-9 px-3.5 rounded-md text-[13px] font-medium text-stone-700 bg-white border border-stone-200 hover:bg-stone-50 transition-colors">
-                นำเข้าจาก Excel
+                {t('hr.employees.import_excel')}
               </button>
             )}
             <button
@@ -174,29 +174,29 @@ export default function EmployeesPage() {
         {/* KPI Strip */}
         <div className="flex bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden">
           <KpiCard
-            label="พนักงานทั้งหมด"
+            label={t('hr.employees.kpi.total')}
             value={stats?.total ?? 0}
-            sub="พนักงานที่มีสถานะปกติ"
+            sub={t('hr.employees.kpi.total_sub')}
             loading={statsLoading}
           />
           <KpiCard
-            label="พนักงานใหม่เดือนนี้"
+            label={t('hr.employees.kpi.new_this_month')}
             value={stats?.new_this_month ?? 0}
-            sub="เริ่มงานในเดือนปัจจุบัน"
+            sub={t('hr.employees.kpi.new_this_month_sub')}
             accent="text-indigo-600"
             loading={statsLoading}
           />
           <KpiCard
-            label="อัตราการลาออก (3ด.)"
+            label={t('hr.employees.kpi.turnover')}
             value={stats ? `${stats.turnover_3m_pct}%` : '0%'}
-            sub="เทียบกับจำนวนพนักงานทั้งหมด"
+            sub={t('hr.employees.kpi.turnover_sub')}
             accent="text-amber-600"
             loading={statsLoading}
           />
           <KpiCard
-            label="อายุงานเฉลี่ย"
-            value={stats ? `${stats.avg_tenure_years} ปี` : '0 ปี'}
-            sub={`พนักงานที่เก่าแก่ที่สุด: ${stats?.oldest_tenure_years ?? 0} ปี`}
+            label={t('hr.employees.kpi.avg_tenure')}
+            value={stats ? `${stats.avg_tenure_years} ${t('hr.tenure.years')}` : `0 ${t('hr.tenure.years')}`}
+            sub={`${t('hr.employees.kpi.oldest_tenure')}: ${stats?.oldest_tenure_years ?? 0} ${t('hr.tenure.years')}`}
             loading={statsLoading}
           />
         </div>
@@ -220,7 +220,7 @@ export default function EmployeesPage() {
             onChange={(e) => { setDeptFilter(e.target.value); setPage(1); }}
             className="h-9 px-3 rounded-lg border border-stone-200 bg-white text-[13px] text-stone-700 outline-none hover:border-stone-300"
           >
-            <option value="">ทุกแผนก</option>
+            <option value="">{t('hr.employees.filter.all_depts')}</option>
             {departments.map(d => (
               <option key={d.id} value={d.id}>{localeName(d.name_th, d.name_en, lang)}</option>
             ))}
@@ -231,7 +231,7 @@ export default function EmployeesPage() {
             onChange={(e) => { setBranchFilter(e.target.value); setPage(1); }}
             className="h-9 px-3 rounded-lg border border-stone-200 bg-white text-[13px] text-stone-700 outline-none hover:border-stone-300"
           >
-            <option value="">ทุกสาขา / คลัง</option>
+            <option value="">{t('hr.employees.filter.all_branches')}</option>
             {warehouses.map(w => (
               <option key={w.id} value={w.id}>{localeName(w.name_th, w.name_en, lang)}</option>
             ))}

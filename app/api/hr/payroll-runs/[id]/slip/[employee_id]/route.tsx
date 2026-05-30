@@ -48,6 +48,7 @@ export async function GET(
 
   const allowances: { name_th: string; amount: number }[] = JSON.parse(line.allowances || '[]');
 
+  /* eslint-disable local-rules/no-hardcoded-thai */
   const SlipDoc = () => (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -84,6 +85,7 @@ export async function GET(
       </Page>
     </Document>
   );
+  /* eslint-enable local-rules/no-hardcoded-thai */
 
   const buffer = await renderToBuffer(<SlipDoc />);
   return new NextResponse(new Uint8Array(buffer), {

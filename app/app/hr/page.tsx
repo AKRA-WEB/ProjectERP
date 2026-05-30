@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { get } from '@/lib/api-client';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { useLanguage } from '@/lib/i18n';
+import { useLanguage, useT } from '@/lib/i18n';
 import { DirectionalTransition } from '@/components/ui/directional-transition';
 
 // --- Shared Components ---
@@ -48,14 +48,18 @@ const STATUS_BADGE: Record<string, string> = {
   absent: 'bg-red-50 text-red-700 border border-red-200',
 };
 
-const STATUS_LABEL: Record<string, string> = {
-  present: 'เข้างาน', late: 'สาย', on_leave: 'ลา', absent: 'ขาด',
+const STATUS_LABEL_KEYS: Record<string, string> = {
+  present: 'hr.attendance.status.present',
+  late: 'hr.attendance.status.late',
+  on_leave: 'hr.attendance.status.on_leave',
+  absent: 'hr.attendance.status.absent',
 };
 
 function StatusBadge({ status, lateMinutes }: { status: string; lateMinutes: number }) {
+  const t = useT();
   return (
     <span className={`px-2 py-0.5 rounded-full text-[10.5px] font-medium border ${STATUS_BADGE[status] ?? ''}`}>
-      {STATUS_LABEL[status] ?? status}{status === 'late' && lateMinutes > 0 ? ` ${lateMinutes}น.` : ''}
+      {t(STATUS_LABEL_KEYS[status] ?? status)}{status === 'late' && lateMinutes > 0 ? ` ${lateMinutes}${t('hr.attendance.minutes_suffix')}` : ''}
     </span>
   );
 }
@@ -129,6 +133,7 @@ interface HRStats {
 
 export default function HrDashboardPage() {
   const { lang } = useLanguage();
+  const t = useT();
   const [stats, setStats] = useState<HRStats | null>(null);
   const [loading, setLoading] = useState(true);
   const formattedDate = formatDate(new Date(), lang);
@@ -139,7 +144,7 @@ export default function HrDashboardPage() {
 
   if (loading || !stats) {
     return (
-      <div className="flex-1 p-8 text-stone-400 text-sm">กำลังโหลด...</div>
+      <div className="flex-1 p-8 text-stone-400 text-sm">{t('label.loading')}</div>
     );
   }
 
@@ -152,16 +157,16 @@ export default function HrDashboardPage() {
         <div className="flex items-end justify-between gap-4">
           <div>
             <h1 className="font-display text-[26px] font-semibold tracking-tight text-stone-900">
-              ภาพรวมบุคลากร <span className="text-stone-400 font-normal">/ HR Dashboard</span>
+              {t('page.hr_dashboard')} <span className="text-stone-400 font-normal">/ HR Dashboard</span>
             </h1>
             <p className="text-[13.5px] text-stone-500 mt-1">{formattedDate}</p>
           </div>
           <div className="flex gap-2">
             <button className="h-9 px-3.5 rounded-md text-[13px] font-medium text-stone-700 bg-white border border-stone-200 hover:bg-stone-50">
-              รายงานประจำเดือน
+              {t('hr.dashboard.monthly_report')}
             </button>
             <Link href="/app/hr/employees/new" className="h-9 px-3.5 rounded-md text-[13px] font-medium text-white bg-stone-900 hover:bg-stone-800 inline-flex items-center gap-1.5">
-              + เพิ่มพนักงาน
+              + {t('hr.dashboard.add_employee')}
             </Link>
           </div>
         </div>
@@ -169,25 +174,25 @@ export default function HrDashboardPage() {
         {/* KPI Strip */}
         <div className="flex bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden">
           <KpiCard
-            label="พนักงานทั้งหมด"
+            label={t('hr.dashboard.kpi.total_employees')}
             value={stats.totalEmployees}
-            sub={`${stats.probationCount} ทดลองงาน · ${stats.resignedThisMonth} ออกเดือนนี้`}
+            sub={`${stats.probationCount} ${t('hr.dashboard.kpi.probation')} · ${stats.resignedThisMonth} ${t('hr.dashboard.kpi.resigned_month')}`}
           />
           <KpiCard
-            label="เข้างานวันนี้"
+            label={t('hr.dashboard.kpi.present_today')}
             value={`${stats.presentToday} / ${stats.totalEmployees - stats.onLeaveToday}`}
-            sub={`ตรงเวลา ${onTimeCount} · สาย ${stats.lateCount}`}
+            sub={`${t('hr.dashboard.kpi.on_time')} ${onTimeCount} · ${t('hr.attendance.status.late')} ${stats.lateCount}`}
           />
           <KpiCard
-            label="คำขอลาที่ค้าง"
+            label={t('hr.dashboard.kpi.pending_leave')}
             value={stats.pendingLeaveCount}
-            sub="ต้องอนุมัติภายใน 24 ชม."
+            sub={t('hr.dashboard.kpi.pending_leave_sub')}
             accent={stats.pendingLeaveCount > 0 ? 'text-amber-600' : 'text-stone-900'}
           />
           <KpiCard
-            label="เงินเดือนงวดนี้"
+            label={t('hr.dashboard.kpi.payroll_this_period')}
             value={stats.latestPayrollNet ? formatCurrency(stats.latestPayrollNet, lang) : '—'}
-            sub={stats.latestPayrollDate ? `งวดเดือน ${stats.latestPayrollDate}` : 'ยังไม่มีข้อมูล'}
+            sub={stats.latestPayrollDate ? `${t('hr.dashboard.kpi.payroll_period')} ${stats.latestPayrollDate}` : t('hr.dashboard.kpi.no_data')}
             accent="text-emerald-700"
           />
         </div>
@@ -197,17 +202,17 @@ export default function HrDashboardPage() {
           {/* Attendance Feed Table */}
           <div className="lg:col-span-7 bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden">
             <div className="px-5 py-4 border-b border-stone-100 flex items-center justify-between">
-              <h2 className="font-semibold text-stone-900 text-[15px]">การเข้างานวันนี้</h2>
-              <Link href="/app/hr/attendance" className="text-[12.5px] text-stone-500 hover:text-stone-900">ดูทั้งหมด →</Link>
+              <h2 className="font-semibold text-stone-900 text-[15px]">{t('hr.dashboard.attendance_today')}</h2>
+              <Link href="/app/hr/attendance" className="text-[12.5px] text-stone-500 hover:text-stone-900">{t('hr.dashboard.view_all')} →</Link>
             </div>
             <table className="w-full text-left border-collapse">
               <thead className="bg-stone-50 border-b border-stone-100">
                 <tr className="text-[10.5px] font-semibold text-stone-500 uppercase tracking-wider">
-                  <th className="px-4 py-2.5">พนักงาน</th>
-                  <th className="px-4 py-2.5">แผนก</th>
-                  <th className="px-4 py-2.5">เข้างาน</th>
-                  <th className="px-4 py-2.5">ออกงาน</th>
-                  <th className="px-4 py-2.5">สถานะ</th>
+                  <th className="px-4 py-2.5">{t('label.employee')}</th>
+                  <th className="px-4 py-2.5">{t('label.department')}</th>
+                  <th className="px-4 py-2.5">{t('hr.attendance.clock_in')}</th>
+                  <th className="px-4 py-2.5">{t('hr.attendance.clock_out')}</th>
+                  <th className="px-4 py-2.5">{t('label.status')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-50">
@@ -232,7 +237,7 @@ export default function HrDashboardPage() {
                 ))}
                 {(!stats.attendanceFeed || stats.attendanceFeed.length === 0) && (
                   <tr>
-                    <td colSpan={5} className="px-4 py-8 text-center text-[13px] text-stone-400 italic">ไม่มีข้อมูลการเข้างานวันนี้</td>
+                    <td colSpan={5} className="px-4 py-8 text-center text-[13px] text-stone-400 italic">{t('hr.dashboard.no_attendance_today')}</td>
                   </tr>
                 )}
               </tbody>
@@ -242,8 +247,8 @@ export default function HrDashboardPage() {
           {/* Pending Leave Queue */}
           <div className="lg:col-span-5 bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden">
             <div className="px-5 py-4 border-b border-stone-100 flex items-center justify-between">
-              <h2 className="font-semibold text-stone-900 text-[15px]">คำขอลารออนุมัติ</h2>
-              <Link href="/app/hr/leave-requests" className="text-[12.5px] text-stone-500 hover:text-stone-900">ดูทั้งหมด →</Link>
+              <h2 className="font-semibold text-stone-900 text-[15px]">{t('hr.dashboard.pending_leave_title')}</h2>
+              <Link href="/app/hr/leave-requests" className="text-[12.5px] text-stone-500 hover:text-stone-900">{t('hr.dashboard.view_all')} →</Link>
             </div>
             <div className="divide-y divide-stone-100">
               {stats.pendingLeaveQueue?.map((req) => (
@@ -253,18 +258,18 @@ export default function HrDashboardPage() {
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-[13px] text-stone-900">{req.employee_name_th}</span>
                         {req.is_urgent && (
-                          <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-500 text-white uppercase">เร่งด่วน</span>
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-500 text-white uppercase">{t('hr.leave.urgent')}</span>
                         )}
                       </div>
-                      <div className="text-[11.5px] text-stone-500 mt-0.5">{req.leave_type_name_th} · {req.days_requested} วัน</div>
+                      <div className="text-[11.5px] text-stone-500 mt-0.5">{req.leave_type_name_th} · {req.days_requested} {t('hr.leave.days')}</div>
                       <div className="text-[11px] text-stone-400 font-mono mt-0.5">{req.start_date} – {req.end_date}</div>
                     </div>
-                    <Link href="/app/hr/leave-requests" className="text-[11px] text-stone-400 hover:text-stone-900 underline">ตรวจสอบ</Link>
+                    <Link href="/app/hr/leave-requests" className="text-[11px] text-stone-400 hover:text-stone-900 underline">{t('hr.dashboard.review')}</Link>
                   </div>
                 </div>
               ))}
               {(!stats.pendingLeaveQueue || stats.pendingLeaveQueue.length === 0) && (
-                <div className="px-5 py-12 text-center text-[13px] text-stone-400 italic">ไม่มีคำขอลาที่ค้างอยู่</div>
+                <div className="px-5 py-12 text-center text-[13px] text-stone-400 italic">{t('hr.dashboard.no_pending_leave')}</div>
               )}
             </div>
           </div>
@@ -274,7 +279,7 @@ export default function HrDashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Headcount Bar Chart */}
           <div className="lg:col-span-7 bg-white border border-stone-200 rounded-[10px] shadow-sm p-5">
-            <h2 className="font-semibold text-stone-900 mb-4 text-[15px]">จำนวนพนักงานตามแผนก</h2>
+            <h2 className="font-semibold text-stone-900 mb-4 text-[15px]">{t('hr.dashboard.headcount_by_dept')}</h2>
             <div className="space-y-3">
               {stats.headcountByDept?.map((d) => {
                 const maxCount = Math.max(...(stats.headcountByDept?.map((x) => x.count) ?? [1]));
@@ -290,17 +295,17 @@ export default function HrDashboardPage() {
                 );
               })}
               {(!stats.headcountByDept || stats.headcountByDept.length === 0) && (
-                <div className="py-12 text-center text-[13px] text-stone-400 italic">ยังไม่มีข้อมูลพนักงาน</div>
+                <div className="py-12 text-center text-[13px] text-stone-400 italic">{t('hr.dashboard.no_employee_data')}</div>
               )}
             </div>
           </div>
 
           {/* Upcoming Events */}
           <div className="lg:col-span-5 bg-white border border-stone-200 rounded-[10px] shadow-sm p-5">
-            <h2 className="font-semibold text-stone-900 mb-4 text-[15px]">กิจกรรมที่กำลังจะมาถึง (7 วัน)</h2>
+            <h2 className="font-semibold text-stone-900 mb-4 text-[15px]">{t('hr.dashboard.upcoming_events')}</h2>
             <div className="space-y-3">
               {(!stats.upcoming || stats.upcoming.length === 0) && (
-                <p className="text-[12.5px] text-stone-400 italic py-12 text-center">ไม่มีกิจกรรมในช่วง 7 วัน</p>
+                <p className="text-[12.5px] text-stone-400 italic py-12 text-center">{t('hr.dashboard.no_upcoming_events')}</p>
               )}
               {stats.upcoming?.map((ev) => (
                 <div key={`${ev.employee_id}-${ev.kind}`} className="flex items-center gap-3 p-2 rounded-lg hover:bg-stone-50 transition-colors">

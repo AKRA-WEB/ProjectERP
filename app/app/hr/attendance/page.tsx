@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { get } from '@/lib/api-client';
 import type { AttendanceRecord, HrEmployee } from '@/types';
 import { formatDate } from '@/lib/utils';
-import { useLanguage } from '@/lib/i18n';
+import { useLanguage, useT } from '@/lib/i18n';
 import { Pagination } from '@/components/ui/Pagination';
 import { DirectionalTransition } from '@/components/ui/directional-transition';
 
@@ -17,6 +17,7 @@ interface PaginatedAttendance {
 
 export default function AdminAttendancePage() {
   const { lang } = useLanguage();
+  const t = useT();
   const [data, setData] = useState<PaginatedAttendance | null>(null);
   const [employees, setEmployees] = useState<HrEmployee[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,8 +56,8 @@ export default function AdminAttendancePage() {
       <div className="max-w-[1200px] mx-auto pb-12 space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-stone-900">การเข้างานของพนักงาน / Attendance</h1>
-            <p className="text-sm text-stone-500">{data?.total ?? 0} รายการในเดือนนี้</p>
+            <h1 className="text-2xl font-bold text-stone-900">{t('hr.attendance.page_title')}</h1>
+            <p className="text-sm text-stone-500">{data?.total ?? 0} {t('hr.attendance.records_this_month')}</p>
           </div>
           <div className="flex gap-2">
             <select
@@ -64,7 +65,7 @@ export default function AdminAttendancePage() {
               onChange={(e) => { setEmpId(e.target.value); setPage(1); }}
               className="h-9 px-3 rounded-md border border-stone-200 bg-white text-sm outline-none"
             >
-              <option value="">ทุกคน</option>
+              <option value="">{t('hr.attendance.all_employees')}</option>
               {employees.map(e => <option key={e.id} value={e.id}>{e.name_th || e.name_en}</option>)}
             </select>
             <input
@@ -81,20 +82,20 @@ export default function AdminAttendancePage() {
             <table className="w-full border-collapse text-[13px]">
               <thead>
                 <tr className="bg-stone-50 border-b border-stone-200">
-                  <th className="text-left py-3 px-4 text-stone-500 font-semibold uppercase tracking-wider">วันที่</th>
-                  <th className="text-left py-3 px-4 text-stone-500 font-semibold uppercase tracking-wider">พนักงาน</th>
-                  <th className="text-left py-3 px-4 text-stone-500 font-semibold uppercase tracking-wider text-center">เข้างาน</th>
-                  <th className="text-left py-3 px-4 text-stone-500 font-semibold uppercase tracking-wider text-center">ออกงาน</th>
-                  <th className="text-left py-3 px-4 text-stone-500 font-semibold uppercase tracking-wider text-center">OT (ชม.)</th>
-                  <th className="text-left py-3 px-4 text-stone-500 font-semibold uppercase tracking-wider text-center">สถานะ</th>
-                  <th className="text-left py-3 px-4 text-stone-500 font-semibold uppercase tracking-wider">หมายเหตุ</th>
+                  <th className="text-left py-3 px-4 text-stone-500 font-semibold uppercase tracking-wider">{t('label.date')}</th>
+                  <th className="text-left py-3 px-4 text-stone-500 font-semibold uppercase tracking-wider">{t('label.employee')}</th>
+                  <th className="text-left py-3 px-4 text-stone-500 font-semibold uppercase tracking-wider text-center">{t('hr.attendance.clock_in')}</th>
+                  <th className="text-left py-3 px-4 text-stone-500 font-semibold uppercase tracking-wider text-center">{t('hr.attendance.clock_out')}</th>
+                  <th className="text-left py-3 px-4 text-stone-500 font-semibold uppercase tracking-wider text-center">{t('hr.attendance.ot_hours')}</th>
+                  <th className="text-left py-3 px-4 text-stone-500 font-semibold uppercase tracking-wider text-center">{t('label.status')}</th>
+                  <th className="text-left py-3 px-4 text-stone-500 font-semibold uppercase tracking-wider">{t('label.note')}</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={7} className="py-12 text-center text-stone-400">กำลังโหลด...</td></tr>
+                  <tr><td colSpan={7} className="py-12 text-center text-stone-400">{t('label.loading')}</td></tr>
                 ) : !data || data.data.length === 0 ? (
-                  <tr><td colSpan={7} className="py-12 text-center text-stone-400">ไม่พบข้อมูล</td></tr>
+                  <tr><td colSpan={7} className="py-12 text-center text-stone-400">{t('label.no_data')}</td></tr>
                 ) : data.data.map((r) => (
                   <tr key={r.id} className="border-b border-stone-50 last:border-0 hover:bg-stone-50/50 transition-colors">
                     <td className="py-3 px-4 font-medium text-stone-900">{formatDate(r.work_date, lang)}</td>
@@ -115,7 +116,7 @@ export default function AdminAttendancePage() {
                           r.status === 'late' ? 'text-amber-700 border-amber-200 bg-amber-50' : 
                           r.status === 'absent' ? 'text-red-700 border-red-200 bg-red-50' :
                           'text-stone-500 border-stone-200 bg-stone-50'}`}>
-                        {r.status === 'present' ? 'ปกติ' : r.status === 'late' ? 'สาย' : r.status === 'absent' ? 'ขาดงาน' : r.status}
+                        {r.status === 'present' ? t('hr.attendance.status.normal') : r.status === 'late' ? t('hr.attendance.status.late') : r.status === 'absent' ? t('hr.attendance.status.absent') : r.status}
                       </span>
                     </td>
                     <td className="py-3 px-4 text-stone-400 italic text-[12px]">{r.note || '—'}</td>

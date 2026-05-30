@@ -3,11 +3,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { get, post } from '@/lib/api-client';
 import { formatDate } from '@/lib/format';
+import { useT } from '@/lib/i18n';
 import type { AttendanceRecord } from '@/types';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-[0_1px_0_rgba(15,23,42,.03),0_1px_2px_rgba(15,23,42,.04)]';
 
 export default function MyAttendancePage() {
+  const t = useT();
   const [todayRecord, setTodayRecord] = useState<AttendanceRecord | null>(null);
   const [history, setHistory] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,7 +42,7 @@ export default function MyAttendancePage() {
       await fetchToday();
       await fetchHistory();
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
+      alert(e instanceof Error ? e.message : t('error.server'));
     } finally { setActing(false); }
   }
 
@@ -51,16 +53,16 @@ export default function MyAttendancePage() {
       await fetchToday();
       await fetchHistory();
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
+      alert(e instanceof Error ? e.message : t('error.server'));
     } finally { setActing(false); }
   }
 
-  if (loading) return <div className="py-12 text-center text-stone-400">กำลังโหลด...</div>;
+  if (loading) return <div className="py-12 text-center text-stone-400">{t('label.loading')}</div>;
 
   return (
     <div className="max-w-[800px] mx-auto pb-12 space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-[24px] font-semibold tracking-tight text-stone-950">ลงเวลาเข้างาน / Attendance</h1>
+        <h1 className="text-[24px] font-semibold tracking-tight text-stone-950">{t('hr.my_attendance.title')}</h1>
         <input
           type="month"
           value={month}
@@ -73,17 +75,17 @@ export default function MyAttendancePage() {
       <div className={CARD}>
         <div className="p-8 text-center space-y-6">
           <div className="space-y-1">
-            <p className="text-[14px] text-stone-500 uppercase tracking-widest">วันนี้ / Today</p>
+            <p className="text-[14px] text-stone-500 uppercase tracking-widest">{t('hr.my_attendance.today')}</p>
             <p className="text-[32px] font-bold text-stone-950">{formatDate(new Date())}</p>
           </div>
 
           <div className="flex justify-center gap-12">
             <div className="space-y-1">
-              <p className="text-[12px] text-stone-400 uppercase font-semibold">เข้างาน (In)</p>
+              <p className="text-[12px] text-stone-400 uppercase font-semibold">{t('hr.attendance.clock_in')}</p>
               <p className="text-[20px] font-mono text-stone-900">{todayRecord?.clock_in ? new Date(todayRecord.clock_in).toLocaleTimeString('th-TH') : '--:--'}</p>
             </div>
             <div className="space-y-1">
-              <p className="text-[12px] text-stone-400 uppercase font-semibold">ออกงาน (Out)</p>
+              <p className="text-[12px] text-stone-400 uppercase font-semibold">{t('hr.attendance.clock_out')}</p>
               <p className="text-[20px] font-mono text-stone-900">{todayRecord?.clock_out ? new Date(todayRecord.clock_out).toLocaleTimeString('th-TH') : '--:--'}</p>
             </div>
           </div>
@@ -97,7 +99,7 @@ export default function MyAttendancePage() {
               >
                 <div className="text-4xl">📥</div>
                 <span className="text-xl font-bold uppercase tracking-wider">Clock In</span>
-                <span className="text-[13px] opacity-80">ลงเวลาเข้างาน</span>
+                <span className="text-[13px] opacity-80">{t('hr.my_attendance.clock_in_action')}</span>
               </button>
             ) : !todayRecord.clock_out ? (
               <button
@@ -107,12 +109,12 @@ export default function MyAttendancePage() {
               >
                 <div className="text-4xl">📤</div>
                 <span className="text-xl font-bold uppercase tracking-wider">Clock Out</span>
-                <span className="text-[13px] opacity-80">ลงเวลาออกงาน</span>
+                <span className="text-[13px] opacity-80">{t('hr.my_attendance.clock_out_action')}</span>
               </button>
             ) : (
               <div className="bg-emerald-50 px-6 py-3 rounded-full border border-emerald-100 text-emerald-700 font-medium flex items-center gap-2">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
-                บันทึกเวลาของวันนี้เรียบร้อยแล้ว
+                {t('hr.my_attendance.day_recorded')}
               </div>
             )}
           </div>
@@ -122,16 +124,16 @@ export default function MyAttendancePage() {
       {/* Monthly History */}
       <div className={CARD}>
         <div className="p-6">
-          <h3 className="text-[16px] font-semibold text-stone-950 mb-4">ประวัติการเข้างานในเดือนนี้</h3>
+          <h3 className="text-[16px] font-semibold text-stone-950 mb-4">{t('hr.my_attendance.history_this_month')}</h3>
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-[13px]">
               <thead>
                 <tr>
-                  <th className="text-left py-2 px-3 text-stone-400 font-medium uppercase tracking-wider">วันที่</th>
-                  <th className="text-left py-2 px-3 text-stone-400 font-medium uppercase tracking-wider">เข้างาน</th>
-                  <th className="text-left py-2 px-3 text-stone-400 font-medium uppercase tracking-wider">ออกงาน</th>
-                  <th className="text-left py-2 px-3 text-stone-400 font-medium uppercase tracking-wider text-right">OT (ชั่วโมง)</th>
-                  <th className="text-left py-2 px-3 text-stone-400 font-medium uppercase tracking-wider text-right">สถานะ</th>
+                  <th className="text-left py-2 px-3 text-stone-400 font-medium uppercase tracking-wider">{t('label.date')}</th>
+                  <th className="text-left py-2 px-3 text-stone-400 font-medium uppercase tracking-wider">{t('hr.attendance.clock_in')}</th>
+                  <th className="text-left py-2 px-3 text-stone-400 font-medium uppercase tracking-wider">{t('hr.attendance.clock_out')}</th>
+                  <th className="text-left py-2 px-3 text-stone-400 font-medium uppercase tracking-wider text-right">{t('hr.attendance.ot_hours_col')}</th>
+                  <th className="text-left py-2 px-3 text-stone-400 font-medium uppercase tracking-wider text-right">{t('label.status')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -147,13 +149,13 @@ export default function MyAttendancePage() {
                           r.status === 'late' ? 'text-amber-700 border-amber-200 bg-amber-50' : 
                           r.status === 'absent' ? 'text-red-700 border-red-200 bg-red-50' :
                           'text-stone-500 border-stone-200 bg-stone-50'}`}>
-                        {r.status === 'present' ? 'ปกติ' : r.status === 'late' ? 'สาย' : r.status === 'absent' ? 'ขาดงาน' : r.status}
+                        {r.status === 'present' ? t('hr.attendance.status.normal') : r.status === 'late' ? t('hr.attendance.status.late') : r.status === 'absent' ? t('hr.attendance.status.absent') : r.status}
                       </span>
                     </td>
                   </tr>
                 ))}
                 {history.length === 0 && (
-                  <tr><td colSpan={5} className="py-12 text-center text-stone-400">ไม่พบประวัติในเดือนนี้</td></tr>
+                  <tr><td colSpan={5} className="py-12 text-center text-stone-400">{t('hr.my_attendance.no_history')}</td></tr>
                 )}
               </tbody>
             </table>
