@@ -2,7 +2,7 @@
 module: Accounting
 type: module-summary
 status: Stable
-updated: 2026-05-19
+updated: 2026-05-30
 ---
 
 # Accounting — ระบบบัญชี
@@ -36,10 +36,14 @@ GRN → AP Invoice → Vendor Payment
 - Profit & Loss (P&L)
 - Balance Sheet
 - AP Aging Report
+- AR Aging Report
+- General Ledger Report
+- VAT Report (PP.30)
 
 ## Business Rules
 - VAT rate 7% (`VAT_RATE = 0.07` in `lib/constants.ts`) — ห้าม hardcode
 - Every JE must balance (total debit = total credit)
+- Every transaction under i18n supports dynamic language selection (EN ↔ TH)
 - AP Invoice auto-created from GRN stocking (`POST /api/grn/[id]/stock`)
 - AP Payment marks invoice as `paid` or `partial`
 - Vendor bank accounts required before payment
@@ -47,12 +51,14 @@ GRN → AP Invoice → Vendor Payment
 
 ## Technical Notes
 - JE lines use account codes from CoA — validate account exists before insert
-- AP aging buckets: current / 30 / 60 / 90+ days
+- AP/AR aging buckets: current / 30 / 60 / 90+ days
 - All monetary values in THB (no multi-currency)
+- Integrated full frontend i18n switcher in all pages and reports
 
 ## Tracks
 - `accounting-module` — Completed
 - `accounts-payable` — Verified (vendor bank, AP invoices, aging, payments)
+- `i18n-t3-accounting` — Verified (full compliance for all accounting pages & reports)
 
 ```dataview
 TABLE status, updated
