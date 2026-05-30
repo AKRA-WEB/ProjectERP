@@ -17,7 +17,6 @@
 
 | Track | Status | Plan |
 | --- | --- | --- |
-| i18n-t2-keys | Verified | [plan](tracks/i18n-t2-keys/plan.md) |
 | i18n-t3-accounting | Active | [plan](tracks/i18n-t3-accounting/plan.md) |
 | i18n-t4-grn-purchasing | Active | [plan](tracks/i18n-t4-grn-purchasing/plan.md) |
 | i18n-t5-admin-wms | Active | [plan](tracks/i18n-t5-admin-wms/plan.md) |
@@ -107,7 +106,8 @@ Master plan: [erp-v2-orion-roadmap](tracks/erp-v2-orion-roadmap/plan.md)
 ## All Tracks
 
 | Track | Status | Created | Last Updated |
-|-------|--------|---------|--------------|| [i18n Track 1 — Prevention Infrastructure](./archive/tracks/i18n-t1-prevention/plan.md) | Verified | 2026-05-30 | 2026-05-30 |
+|-------|--------|---------|--------------|| [i18n Track 2 — Translation Keys Expansion](./archive/tracks/i18n-t2-keys/plan.md) | Verified | 2026-05-30 | 2026-05-30 |
+| [i18n Track 1 — Prevention Infrastructure](./archive/tracks/i18n-t1-prevention/plan.md) | Verified | 2026-05-30 | 2026-05-30 |
 | [Whole-Case Strict Lock (AKRA Channel)](./archive/tracks/wholecase-strict-lock-akra/plan.md) | Verified | 2026-05-24 | 2026-05-28 |
 | [Price-History Alert at POS](./archive/tracks/price-history-alert-pos/plan.md) | Verified | 2026-05-24 | 2026-05-28 |
 
