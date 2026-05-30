@@ -1,5 +1,8 @@
+'use client';
+
 import { ReactNode, ThHTMLAttributes, TdHTMLAttributes } from 'react';
 import { cn } from '@/lib/utils';
+import { useT } from '@/lib/i18n';
 
 interface TableProps {
   children: ReactNode;
@@ -9,6 +12,7 @@ interface TableProps {
 }
 
 export function Table({ children, className, loading, headers }: TableProps) {
+  const t = useT();
   // If high-level props are provided, use them
   if (headers || loading !== undefined) {
     return (
@@ -31,7 +35,7 @@ export function Table({ children, className, loading, headers }: TableProps) {
                 <td colSpan={headers?.length || 10} className="py-20 text-center text-ink-3">
                   <div className="flex flex-col items-center gap-3">
                     <div className="w-6 h-6 border-2 border-accent/20 border-t-accent rounded-full animate-spin" />
-                    <span>กำลังโหลดข้อมูล...</span>
+                    <span>{t('msg.loading_data')}</span>
                   </div>
                 </td>
               </tr>

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { get } from '@/lib/api-client';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { useLanguage, useT } from '@/lib/i18n';
+import { useLanguage, useT, type DictKey } from '@/lib/i18n';
 import { DirectionalTransition } from '@/components/ui/directional-transition';
 
 // --- Shared Components ---
@@ -48,7 +48,7 @@ const STATUS_BADGE: Record<string, string> = {
   absent: 'bg-red-50 text-red-700 border border-red-200',
 };
 
-const STATUS_LABEL_KEYS: Record<string, string> = {
+const STATUS_LABEL_KEYS: Record<string, DictKey> = {
   present: 'hr.attendance.status.present',
   late: 'hr.attendance.status.late',
   on_leave: 'hr.attendance.status.on_leave',
@@ -57,9 +57,11 @@ const STATUS_LABEL_KEYS: Record<string, string> = {
 
 function StatusBadge({ status, lateMinutes }: { status: string; lateMinutes: number }) {
   const t = useT();
+  const key = STATUS_LABEL_KEYS[status];
+  const label = key ? t(key) : status;
   return (
     <span className={`px-2 py-0.5 rounded-full text-[10.5px] font-medium border ${STATUS_BADGE[status] ?? ''}`}>
-      {t(STATUS_LABEL_KEYS[status] ?? status)}{status === 'late' && lateMinutes > 0 ? ` ${lateMinutes}${t('hr.attendance.minutes_suffix')}` : ''}
+      {label}{status === 'late' && lateMinutes > 0 ? ` ${lateMinutes}${t('hr.attendance.minutes_suffix')}` : ''}
     </span>
   );
 }

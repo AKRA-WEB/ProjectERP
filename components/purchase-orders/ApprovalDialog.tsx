@@ -1,5 +1,6 @@
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from '@/components/ui';
 import { formatCurrency } from '@/lib/format';
+import { useT } from '@/lib/i18n';
 
 interface LineItem {
   product_id: string;
@@ -38,13 +39,14 @@ export function ApprovalDialog({
   onConfirm,
   loading = false,
 }: ApprovalDialogProps) {
+  const t = useT();
   return (
     <Modal open={open} onClose={onClose}>
-      <ModalHeader onClose={onClose}>ยืนยันการอนุมัติและรับเข้าคลังทันที</ModalHeader>
+      <ModalHeader onClose={onClose}>{t('po.approve.confirm_title')}</ModalHeader>
       <ModalBody>
         <div className="space-y-6">
           <div>
-            <p className="text-sm text-gray-500 mb-1">ผู้จำหน่าย</p>
+            <p className="text-sm text-gray-500 mb-1">{t('label.vendor')}</p>
             <p className="font-semibold text-gray-900">{vendorName}</p>
           </div>
 
@@ -52,11 +54,11 @@ export function ApprovalDialog({
             <table className="w-full text-xs">
               <thead className="bg-gray-50 sticky top-0">
                 <tr>
-                  <th className="text-left p-2 font-medium text-gray-600">สินค้า</th>
-                  <th className="text-right p-2 font-medium text-gray-600">จำนวน</th>
-                  <th className="text-right p-2 font-medium text-gray-600">ราคา/หน่วย</th>
-                  <th className="text-right p-2 font-medium text-gray-600">ส่วนลด</th>
-                  <th className="text-right p-2 font-medium text-gray-600">รวม</th>
+                  <th className="text-left p-2 font-medium text-gray-600">{t('label.product')}</th>
+                  <th className="text-right p-2 font-medium text-gray-600">{t('label.qty')}</th>
+                  <th className="text-right p-2 font-medium text-gray-600">{t('label.unit_price')}</th>
+                  <th className="text-right p-2 font-medium text-gray-600">{t('label.discount')}</th>
+                  <th className="text-right p-2 font-medium text-gray-600">{t('label.total')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -80,50 +82,50 @@ export function ApprovalDialog({
 
           <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-500">ยอดรวมสินค้า (ก่อนหัก):</span>
+              <span className="text-gray-500">{t('label.subtotal')}:</span>
               <span className="font-mono">{formatCurrency(summary.subtotal)}</span>
             </div>
             {summary.totalLineDiscount > 0 && (
               <div className="flex justify-between text-red-600">
-                <span>ส่วนลดรวมรายการ:</span>
+                <span>{t('label.discount_total')}:</span>
                 <span className="font-mono">-{formatCurrency(summary.totalLineDiscount)}</span>
               </div>
             )}
             {summary.billDiscount > 0 && (
               <div className="flex justify-between text-red-600">
-                <span>ส่วนลดท้ายบิล:</span>
+                <span>{t('label.bill_discount')}:</span>
                 <span className="font-mono">-{formatCurrency(summary.billDiscount)}</span>
               </div>
             )}
             {summary.nonVatAmount > 0 && (
               <div className="flex justify-between">
-                <span className="text-gray-500">ยอดไม่เสียภาษี:</span>
+                <span className="text-gray-500">{t('label.non_vat_amount')}:</span>
                 <span className="font-mono">{formatCurrency(summary.nonVatAmount)}</span>
               </div>
             )}
             <div className="flex justify-between font-medium pt-2 border-t">
-              <span>ยอดก่อนภาษี:</span>
+              <span>{t('label.pre_vat_amount')}:</span>
               <span className="font-mono">{formatCurrency(summary.preVat)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">ภาษีมูลค่าเพิ่ม (7%):</span>
+              <span className="text-gray-500">{t('label.vat')}:</span>
               <span className="font-mono">{formatCurrency(summary.vat)}</span>
             </div>
             <div className="flex justify-between text-lg font-bold text-blue-700 pt-1">
-              <span>ยอดสุทธิ:</span>
+              <span>{t('label.net_total')}:</span>
               <span className="font-mono">{formatCurrency(summary.netTotal)}</span>
             </div>
           </div>
 
           <p className="text-xs text-amber-600 bg-amber-50 p-3 rounded border border-amber-100">
-            * การอนุมัตินี้จะสร้างใบรับสินค้า (GRN) และเพิ่มสต็อกเข้าคลังทันที ไม่สามารถแก้ไขย้อนหลังได้
+            {t('po.approve.warning')}
           </p>
         </div>
       </ModalBody>
       <ModalFooter>
         <div className="flex gap-3 justify-end">
-          <Button variant="secondary" onClick={onClose} disabled={loading}>ยกเลิก</Button>
-          <Button onClick={onConfirm} loading={loading}>ยืนยันการอนุมัติ</Button>
+          <Button variant="secondary" onClick={onClose} disabled={loading}>{t('action.cancel')}</Button>
+          <Button onClick={onConfirm} loading={loading}>{t('action.confirm_approve')}</Button>
         </div>
       </ModalFooter>
     </Modal>

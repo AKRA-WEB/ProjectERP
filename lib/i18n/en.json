@@ -121,6 +121,7 @@
   "action.remove": "Remove",
   "action.view": "View",
   "action.close": "Close",
+  "action.view_all": "View All",
   "label.status": "Status",
   "label.date": "Date",
   "label.amount": "Amount",
@@ -1430,5 +1431,11 @@
   "hr.dashboard.kpi.on_time": "On Time",
   "hr.dashboard.kpi.pending_leave": "Pending Leave",
   "hr.dashboard.kpi.pending_leave_sub": "Approve within 24h",
-  "hr.dashboard.kpi.payroll_this_period": "Payroll This Period"
+  "hr.dashboard.kpi.payroll_this_period": "Payroll This Period",
+  "msg.under_development": "Module {name} is under development",
+  "label.user": "User",
+  "msg.feature_coming_soon": "This feature will be available soon",
+  "po.approve.confirm_title": "Confirm Approval & Immediate Receiving",
+  "po.approve.warning": "* This approval will create a Goods Receipt Note (GRN) and increase stock immediately. It cannot be reversed.",
+  "action.confirm_approve": "Confirm Approval"
 }

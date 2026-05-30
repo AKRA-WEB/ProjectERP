@@ -121,6 +121,7 @@
   "action.remove": "ลบออก",
   "action.view": "ดู",
   "action.close": "ปิด",
+  "action.view_all": "ดูทั้งหมด",
   "label.status": "สถานะ",
   "label.date": "วันที่",
   "label.amount": "จำนวนเงิน",
@@ -1430,5 +1431,11 @@
   "hr.dashboard.kpi.on_time": "ตรงเวลา",
   "hr.dashboard.kpi.pending_leave": "คำขอลาที่ค้าง",
   "hr.dashboard.kpi.pending_leave_sub": "ต้องอนุมัติภายใน 24 ชม.",
-  "hr.dashboard.kpi.payroll_this_period": "เงินเดือนงวดนี้"
+  "hr.dashboard.kpi.payroll_this_period": "เงินเดือนงวดนี้",
+  "msg.under_development": "โมดูล {name} อยู่ในระหว่างการพัฒนา",
+  "label.user": "ผู้ใช้งาน",
+  "msg.feature_coming_soon": "ฟีเจอร์นี้จะเปิดให้ใช้งานเร็วๆ นี้",
+  "po.approve.confirm_title": "ยืนยันการอนุมัติและรับเข้าคลังทันที",
+  "po.approve.warning": "* การอนุมัตินี้จะสร้างใบรับสินค้า (GRN) และเพิ่มสต็อกเข้าคลังทันที ไม่สามารถแก้ไขย้อนหลังได้",
+  "action.confirm_approve": "ยืนยันการอนุมัติ"
 }

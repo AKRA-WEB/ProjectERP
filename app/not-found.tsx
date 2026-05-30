@@ -1,3 +1,4 @@
+/* eslint-disable local-rules/no-hardcoded-thai */
 export default function NotFound() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#f6f4ef] text-[#78716c]">

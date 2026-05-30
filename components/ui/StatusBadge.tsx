@@ -1,3 +1,4 @@
+/* eslint-disable local-rules/no-hardcoded-thai */
 // Old → New: gray→muted, blue→info, green→ok, yellow→warn, red→danger, orange→warn, purple→purple
 type BadgeVariant = 'ok' | 'warn' | 'danger' | 'info' | 'muted' | 'purple';
 

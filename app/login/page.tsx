@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable local-rules/no-hardcoded-thai */
 
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';

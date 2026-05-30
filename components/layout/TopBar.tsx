@@ -136,7 +136,7 @@ export function TopBar({ onMenuToggle, sidebarOpen, userName, userRole, onSignOu
             <div className="p-8 text-center text-stone-500">
               <Search className="w-12 h-12 mx-auto text-stone-300 mb-4" />
               <h3 className="text-lg font-semibold text-stone-900 mb-1">Global Search</h3>
-              <p className="text-sm">ฟีเจอร์นี้จะเปิดให้ใช้งานเร็วๆ นี้</p>
+              <p className="text-sm">{t('msg.feature_coming_soon')}</p>
             </div>
           </ModalBody>
         </Modal>

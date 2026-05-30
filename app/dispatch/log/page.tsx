@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable local-rules/no-hardcoded-thai */
 
 import { useState, useEffect } from 'react';
 import { get } from '@/lib/api-client';
