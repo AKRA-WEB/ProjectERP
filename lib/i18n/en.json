@@ -311,6 +311,7 @@
   "label.revenue": "Revenue",
   "label.expense": "Expense",
   "label.account_name": "Account Name",
+  "label.normal_balance": "Normal Balance",
   "label.allows_direct": "Allows Direct Posting",
   "action.save_changes": "Save Changes",
   "page.new_account": "New Account",

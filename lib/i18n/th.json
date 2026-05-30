@@ -311,6 +311,7 @@
   "label.revenue": "รายได้",
   "label.expense": "ค่าใช้จ่าย",
   "label.account_name": "ชื่อบัญชี",
+  "label.normal_balance": "ยอดปกติ",
   "label.allows_direct": "อนุญาตให้บันทึกรายการโดยตรง",
   "action.save_changes": "บันทึกการเปลี่ยนแปลง",
   "page.new_account": "เพิ่มบัญชีใหม่",
