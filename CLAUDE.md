@@ -47,6 +47,7 @@ Execute **ONE track**. Never auto-proceed.
    - Update relevant module files in `_notes/00_Project_Map/modules/`.
 3. Auto-QA: `npm run qa:verify` (0 errors) + deep audit vs `docs/skills/qa_audit_rules.md`.
    - `check:notes` must pass with 0 errors and valid links.
+   - **i18n check:** No Thai text in JSX strings or function args outside `*Th` data properties. New keys must be in both `en.json` and `th.json`.
 4. **Fail:** write `rework-plan.md` → set `Rework Required` → fix 🔴🟡 items → retry (max 3).
 5. **Pass:** set status to `Verified` → `npm run track:sweep`.
 6. STOP. Print SESSION REPORT.
@@ -62,5 +63,6 @@ Execute **ONE track**. Never auto-proceed.
 | `docs/SCHEMA.md` | Before any SQL or Data change |
 | `_notes/02_Agent_Memory/pitfalls.md` | Start of every task (mandatory) |
 | `conductor/tracks/<track>/plan.md` | Start of every task (full read) |
+| `docs/i18n.md` | Before adding any UI text or new module |
 
 **Notes:** `_notes/00_Project_Map/` modules · `_notes/01_Decisions/` ADRs · `_notes/02_Agent_Memory/` memory · `_notes/04_Debug_Log/` logs.
