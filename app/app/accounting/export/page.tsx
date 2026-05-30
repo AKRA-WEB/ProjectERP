@@ -3,10 +3,12 @@
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import { useT } from '@/lib/i18n';
 
 const CARD = 'bg-white border border-stone-200 rounded-[12px] shadow-sm hover:border-stone-400 transition-all p-6 cursor-pointer relative overflow-hidden';
 
 export default function AccountingExportPage() {
+  const t = useT();
   const { data: session } = useSession();
   const role = (session?.user as { role?: string } | undefined)?.role;
 
@@ -17,7 +19,7 @@ export default function AccountingExportPage() {
 
   const handleExport = () => {
     if (!fromDate || !toDate) {
-      alert('กรุณาเลือกช่วงเวลาให้ครบถ้วน / Please select both from and to dates');
+      alert(t('msg.select_date_range'));
       return;
     }
     setExporting(true);
@@ -29,7 +31,7 @@ export default function AccountingExportPage() {
       window.location.href = url;
     } catch (e) {
       console.error(e);
-      alert('การส่งออกข้อมูลล้มเหลว / Export failed');
+      alert(t('msg.export_failed'));
     } finally {
       setTimeout(() => setExporting(false), 2000);
     }
@@ -41,12 +43,12 @@ export default function AccountingExportPage() {
     return (
       <div className="max-w-md mx-auto my-16 bg-white border border-red-200 rounded-2xl p-8 text-center space-y-4 shadow-sm">
         <div className="text-4xl text-red-500">🚫</div>
-        <h1 className="text-xl font-bold text-stone-900">ไม่มีสิทธิ์การเข้าถึง / Access Denied</h1>
+        <h1 className="text-xl font-bold text-stone-900">{t('error.unauthorized')}</h1>
         <p className="text-stone-500 text-sm">
-          เฉพาะผู้ตรวจสอบบัญชี (Auditor) หรือผู้ดูแลระบบ (Admin) เท่านั้นที่สามารถดาวน์โหลดข้อมูลแยกประเภทบัญชีได้
+          {t('msg.only_auditor_admin')}
         </p>
         <Link href="/app/dashboard" className="inline-flex h-9 px-4 rounded-lg bg-stone-900 text-white text-xs font-semibold items-center justify-center hover:bg-stone-850">
-          กลับหน้าหลัก
+          {t('action.back')}
         </Link>
       </div>
     );
@@ -58,9 +60,9 @@ export default function AccountingExportPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-stone-200 pb-5">
         <div>
           <span className="text-xs font-semibold text-emerald-600 uppercase tracking-widest">Accounting Exporter</span>
-          <h1 className="text-2xl font-bold text-stone-900 mt-1">ส่งออกข้อมูลบัญชี / Accounting Export Adapters</h1>
+          <h1 className="text-2xl font-bold text-stone-900 mt-1">{t('page.accounting_export')}</h1>
           <p className="text-stone-500 text-sm mt-0.5">
-            ส่งออกใบสำคัญรายวันทั่วไป (General Ledger Voucher) สำหรับระบบบัญชีภายนอกยอดนิยมในไทย
+            {t('page.accounting_export_desc')}
           </p>
         </div>
         <div className="flex gap-2">
@@ -68,13 +70,13 @@ export default function AccountingExportPage() {
             href="/app/accounting/export/jobs"
             className="h-8 px-4 rounded-lg text-xs font-semibold text-stone-600 bg-stone-50 border border-stone-200 hover:bg-stone-100 flex items-center gap-1.5 shadow-[0_1px_0_rgba(15,23,42,.03)]"
           >
-            📋 ดูประวัติการส่งออก / View Logs
+            📋 {t('action.view_logs')}
           </Link>
           <Link
             href="/app/dashboard"
             className="h-8 px-3 rounded-lg text-xs font-semibold text-stone-600 bg-white border border-stone-200 hover:bg-stone-50 flex items-center gap-1 shadow-[0_1px_0_rgba(15,23,42,.03)]"
           >
-            ← กลับหน้าหลัก
+            ← {t('page.dashboard')}
           </Link>
         </div>
       </div>
@@ -82,28 +84,28 @@ export default function AccountingExportPage() {
       {/* Step 1: Format Selection */}
       <div className="space-y-3">
         <h2 className="text-sm font-bold text-stone-900 uppercase tracking-wider">
-          ขั้นตอนที่ 1: เลือกรูปแบบโปรแกรมบัญชี / Step 1: Select Accounting Software
+          {t('page.step1_select_software')}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
             {
               id: 'express',
               name: 'Express Accounting',
-              desc: 'ระบบบัญชีดั้งเดิมยอดนิยมของไทย ส่งออกไฟล์แยกประเภทแบบ .CSV (TRN import format) จัดหน้าแบบ TH-TH ด้วย BOM UTF-8',
+              desc: t('desc.express'),
               color: 'from-emerald-50 to-emerald-100/30 border-emerald-400 text-emerald-950',
               logo: '🟩',
             },
             {
               id: 'flowaccount',
               name: 'FlowAccount',
-              desc: 'ระบบบัญชีคลาวด์สำหรับสตาร์ทอัพยุคใหม่ ส่งออกใบสำคัญแบบ Excel CSV ตามโครงสร้างเทมเพลตมาตรฐานของ FlowAccount',
+              desc: t('desc.flowaccount'),
               color: 'from-blue-50 to-blue-100/30 border-blue-400 text-blue-950',
               logo: '🟦',
             },
             {
               id: 'peak',
               name: 'PEAK Account',
-              desc: 'ระบบบัญชีคลาวด์ขนาดกลางถึงใหญ่ในไทย ส่งออกคอลัมน์มาตรฐานครบถ้วนเพื่อทำการอัปโหลดเข้าระบบ PEAK อย่างไร้รอยต่อ',
+              desc: t('desc.peak'),
               color: 'from-indigo-50 to-indigo-100/30 border-indigo-400 text-indigo-950',
               logo: '🟪',
             },
@@ -136,12 +138,12 @@ export default function AccountingExportPage() {
       {/* Step 2: Date Filters & Export Button */}
       <div className="bg-stone-50 border border-stone-200 rounded-2xl p-6 md:p-8 space-y-6">
         <h2 className="text-sm font-bold text-stone-900 uppercase tracking-wider">
-          ขั้นตอนที่ 2: เลือกช่วงเวลาและทำการส่งออก / Step 2: Choose Range & Download
+          {t('page.step2_choose_range')}
         </h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-xs font-bold text-stone-600 uppercase mb-2">ตั้งแต่วันที่ / From Date</label>
+            <label className="block text-xs font-bold text-stone-600 uppercase mb-2">{t('label.from_date')}</label>
             <input
               type="date"
               value={fromDate}
@@ -150,7 +152,7 @@ export default function AccountingExportPage() {
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-stone-600 uppercase mb-2">ถึงวันที่ / To Date</label>
+            <label className="block text-xs font-bold text-stone-600 uppercase mb-2">{t('label.to_date')}</label>
             <input
               type="date"
               value={toDate}
@@ -172,11 +174,11 @@ export default function AccountingExportPage() {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                กำลังสร้างไฟล์ส่งออก...
+                {t('msg.generating_export')}
               </>
             ) : (
               <>
-                📥 ดาวน์โหลดไฟล์แยกประเภทบัญชี ({format.toUpperCase()})
+                📥 {t('action.download_gl_file').replace('{format}', format.toUpperCase())}
               </>
             )}
           </button>

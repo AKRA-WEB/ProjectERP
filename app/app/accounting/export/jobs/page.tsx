@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { get } from '@/lib/api-client';
 import { formatDate } from '@/lib/format';
 import Link from 'next/link';
+import { useT, useLanguage } from '@/lib/i18n';
 
 interface ExportJob {
   id: string;
@@ -34,6 +35,8 @@ interface JobsResponse {
 const CARD = 'bg-white border border-stone-200 rounded-[12px] shadow-sm overflow-hidden';
 
 export default function AccountingExportJobsPage() {
+  const t = useT();
+  const { lang } = useLanguage();
   const [data, setData] = useState<JobsResponse | null>(null);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -96,9 +99,9 @@ export default function AccountingExportJobsPage() {
       <div className="flex items-center justify-between border-b border-stone-200 pb-5">
         <div>
           <span className="text-xs font-semibold text-emerald-600 uppercase tracking-widest">Audit Trails</span>
-          <h1 className="text-2xl font-bold text-stone-900 mt-1">ประวัติการส่งออกข้อมูลบัญชี / Export Logs</h1>
+          <h1 className="text-2xl font-bold text-stone-900 mt-1">{t('page.export_logs')}</h1>
           <p className="text-stone-500 text-sm mt-0.5">
-            บันทึกการส่งออกไฟล์ข้อมูลแยกประเภทบัญชีทั่วไปเพื่อใช้ในการสอบทานความปลอดภัยและการตรวจสอบระบบ (Audit logs)
+            {t('page.export_logs_desc')}
           </p>
         </div>
         <div className="flex gap-2">
@@ -106,13 +109,13 @@ export default function AccountingExportJobsPage() {
             href="/app/accounting/export"
             className="h-8 px-4 rounded-lg text-xs font-semibold text-stone-600 bg-stone-50 border border-stone-200 hover:bg-stone-100 flex items-center gap-1.5 shadow-[0_1px_0_rgba(15,23,42,.03)]"
           >
-            📥 ส่งออกข้อมูล / New Export
+            📥 {t('action.new_export')}
           </Link>
           <Link
             href="/app/dashboard"
             className="h-8 px-3 rounded-lg text-xs font-semibold text-stone-600 bg-white border border-stone-200 hover:bg-stone-50 flex items-center gap-1 shadow-[0_1px_0_rgba(15,23,42,.03)]"
           >
-            ← กลับแดชบอร์ด
+            ← {t('page.dashboard')}
           </Link>
         </div>
       </div>
@@ -122,20 +125,20 @@ export default function AccountingExportJobsPage() {
         <table className="w-full text-left text-xs border-collapse">
           <thead>
             <tr className="border-b border-stone-200 text-stone-600 bg-stone-50/70 font-semibold">
-              <th className="py-3 px-5">หมายเลขงาน / Job ID</th>
-              <th className="py-3 px-5">วันเวลาที่ขอ / Requested At</th>
-              <th className="py-3 px-5">ระบบบัญชี / Software</th>
-              <th className="py-3 px-5">ช่วงข้อมูล / Date Range</th>
-              <th className="py-3 px-5">ผู้ดึงข้อมูล / Requested By</th>
-              <th className="py-3 px-5">สถานะ / Status</th>
-              <th className="py-3 px-5">รายละเอียด / Metadata</th>
+              <th className="py-3 px-5">{t('label.job_id')}</th>
+              <th className="py-3 px-5">{t('label.requested_at')}</th>
+              <th className="py-3 px-5">{t('label.software')}</th>
+              <th className="py-3 px-5">{t('label.date_range')}</th>
+              <th className="py-3 px-5">{t('label.requested_by_user')}</th>
+              <th className="py-3 px-5">{t('label.status')}</th>
+              <th className="py-3 px-5">{t('label.metadata')}</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={7} className="py-12 text-center text-stone-400 italic">กำลังโหลดประวัติการส่งออก...</td></tr>
+              <tr><td colSpan={7} className="py-12 text-center text-stone-400 italic">{t('msg.loading_history')}</td></tr>
             ) : !data?.jobs?.length ? (
-              <tr><td colSpan={7} className="py-12 text-center text-stone-400 italic">ไม่พบประวัติการส่งออกในระบบ</td></tr>
+              <tr><td colSpan={7} className="py-12 text-center text-stone-400 italic">{t('msg.no_history')}</td></tr>
             ) : (
               data.jobs.map((job) => (
                 <tr key={job.id} className="border-b border-stone-100 hover:bg-stone-50/30 transition-colors">
@@ -143,11 +146,11 @@ export default function AccountingExportJobsPage() {
                     {job.id.substring(0, 8)}...
                   </td>
                   <td className="py-3.5 px-5 text-stone-500 font-mono">
-                    {new Date(job.requested_at).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' })}
+                    {new Date(job.requested_at).toLocaleString(lang === 'th' ? 'th-TH' : 'en-US', { dateStyle: 'medium', timeStyle: 'short' })}
                   </td>
                   <td className="py-3.5 px-5">{getFormatBadge(job.format)}</td>
                   <td className="py-3.5 px-5 font-mono text-stone-600">
-                    {formatDate(job.range_from)} ถึง {formatDate(job.range_to)}
+                    {formatDate(job.range_from)} {lang === 'th' ? 'ถึง' : 'to'} {formatDate(job.range_to)}
                   </td>
                   <td className="py-3.5 px-5 font-medium text-stone-850">
                     {job.requester_name}
@@ -160,7 +163,7 @@ export default function AccountingExportJobsPage() {
                           📁 {job.output_meta.filename}
                         </span>
                         <span className="text-[10px] text-stone-400">
-                          {job.output_meta.record_count?.toLocaleString('th-TH')} แถว · {formatBytes(job.output_meta.size_bytes)}
+                          {job.output_meta.record_count?.toLocaleString(lang === 'th' ? 'th-TH' : 'en-US')} {lang === 'th' ? ' แถว' : ' rows'} · {formatBytes(job.output_meta.size_bytes)}
                         </span>
                       </div>
                     ) : job.status === 'failed' && job.output_meta?.error_message ? (
@@ -178,21 +181,21 @@ export default function AccountingExportJobsPage() {
         {/* Pagination */}
         {data && data.total_pages > 1 && (
           <div className="px-5 py-4 border-t border-stone-100 flex items-center justify-between text-xs text-stone-500 bg-stone-50/20">
-            <span>หน้า {page} จาก {data.total_pages}</span>
+            <span>{t('label.page_of').replace('{page}', String(page)).replace('{totalPages}', String(data.total_pages))}</span>
             <div className="flex gap-1.5">
               <button
                 onClick={() => fetchJobs(page - 1)}
                 disabled={page === 1}
                 className="h-8 px-3 rounded-lg border border-stone-200 bg-white hover:bg-stone-50 disabled:opacity-40 disabled:pointer-events-none"
               >
-                ← ก่อนหน้า
+                ← {t('action.previous')}
               </button>
               <button
                 onClick={() => fetchJobs(page + 1)}
                 disabled={page === data.total_pages}
                 className="h-8 px-3 rounded-lg border border-stone-200 bg-white hover:bg-stone-50 disabled:opacity-40 disabled:pointer-events-none"
               >
-                ถัดไป →
+                {t('action.next')} →
               </button>
             </div>
           </div>
