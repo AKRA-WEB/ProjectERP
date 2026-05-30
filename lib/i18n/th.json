@@ -425,5 +425,6 @@
   "label.total_tax": "รวมภาษี / Total Tax",
   "page.trial_balance_title": "งบทดลอง / Trial Balance",
   "page.trial_balance_subtitle": "ตรวจสอบความสมดุลของบัญชีแยกประเภทรายเดือน",
-  "msg.no_transactions_in_period": "ไม่มีรายการเคลื่อนไหวในรอบบัญชีนี้"
+  "msg.no_transactions_in_period": "ไม่มีรายการเคลื่อนไหวในรอบบัญชีนี้",
+  "label.for_the_period": "สำหรับช่วงเวลา {from} ถึง {to}"
 }
