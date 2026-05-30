@@ -8,10 +8,13 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Table } from '@/components/ui/Table';
 import type { Account, GeneralLedgerRow } from '@/types';
+import { useT, useLanguage } from '@/lib/i18n';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden';
 
 export default function GeneralLedgerPage() {
+  const t = useT();
+  const { lang } = useLanguage();
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [accountId, setAccountId] = useState('');
   const [fromDate, setFromDate] = useState(new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0]);
@@ -49,34 +52,34 @@ export default function GeneralLedgerPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-stone-900">แยกประเภท / General Ledger</h1>
-          <p className="text-stone-500 text-sm">ตรวจสอบรายการเคลื่อนไหวของแต่ละบัญชี</p>
+          <h1 className="text-2xl font-semibold text-stone-900">{t('page.general_ledger_title')}</h1>
+          <p className="text-stone-500 text-sm">{t('page.general_ledger_subtitle')}</p>
         </div>
         <div className="flex gap-2">
-           <Button variant="outline" onClick={() => window.print()}>พิมพ์ / Print</Button>
+           <Button variant="outline" onClick={() => window.print()}>{t('action.print_report')}</Button>
         </div>
       </div>
 
       <div className={`${CARD} p-4 flex gap-4 items-end no-print`}>
         <div className="flex-1">
           <Select
-            label="เลือกบัญชี / Account"
+            label={t('label.select_account_label')}
             value={accountId}
             onChange={(e) => setAccountId(e.target.value)}
           >
-            <option value="">-- เลือกบัญชี --</option>
+            <option value="">{t('placeholder.select_account')}</option>
             {accounts.map(a => (
-              <option key={a.id} value={a.id}>{a.account_code} - {a.name_th}</option>
+              <option key={a.id} value={a.id}>{a.account_code} - {lang === 'th' ? a.name_th : (a.name_en || a.name_th)}</option>
             ))}
           </Select>
         </div>
         <div className="w-48">
-          <Input label="เริ่มจาก / From" type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} />
+          <Input label={t('label.from')} type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} />
         </div>
         <div className="w-48">
-          <Input label="ถึงวันที่ / To" type="date" value={toDate} onChange={e => setToDate(e.target.value)} />
+          <Input label={t('label.to')} type="date" value={toDate} onChange={e => setToDate(e.target.value)} />
         </div>
-        <Button onClick={fetchReport} loading={loading} disabled={!accountId}>แสดงรายงาน</Button>
+        <Button onClick={fetchReport} loading={loading} disabled={!accountId}>{t('action.show_report')}</Button>
       </div>
 
       {accountId && data ? (
@@ -84,36 +87,36 @@ export default function GeneralLedgerPage() {
           <Table
             loading={loading}
             headers={[
-              'วันที่ / Date',
-              'เลขที่ / Ref',
-              'คำอธิบาย / Description',
-              'เดบิต / Debit',
-              'เครดิต / Credit',
-              'ยอดสะสม / Balance',
+              t('label.date'),
+              t('label.ref'),
+              t('label.description'),
+              t('label.debit'),
+              t('label.credit'),
+              t('label.balance'),
             ]}
           >
             <tr className="bg-stone-50/50 italic text-stone-500">
-               <td className="px-6 py-3" colSpan={5}>ยอดยกมา / Opening Balance</td>
-               <td className="px-6 py-3 text-right font-mono font-bold">{formatCurrency(data.opening_balance)}</td>
+               <td className="px-6 py-3" colSpan={5}>{t('label.opening_balance')}</td>
+               <td className="px-6 py-3 text-right font-mono font-bold">{formatCurrency(data.opening_balance, lang)}</td>
             </tr>
             {data.lines.map((l, i) => (
               <tr key={i} className="hover:bg-stone-50 transition-colors text-sm border-b border-stone-50 last:border-0">
-                <td className="px-6 py-3 whitespace-nowrap">{formatDate(l.entry_date)}</td>
+                <td className="px-6 py-3 whitespace-nowrap">{formatDate(l.entry_date, lang)}</td>
                 <td className="px-6 py-3 font-mono font-bold text-blue-600">{l.entry_number}</td>
                 <td className="px-6 py-3">{l.description}</td>
-                <td className="px-6 py-3 text-right font-mono">{l.debit_amount > 0 ? formatCurrency(l.debit_amount) : '-'}</td>
-                <td className="px-6 py-3 text-right font-mono">{l.credit_amount > 0 ? formatCurrency(l.credit_amount) : '-'}</td>
-                <td className="px-6 py-3 text-right font-mono font-bold text-stone-900">{formatCurrency(l.running_balance)}</td>
+                <td className="px-6 py-3 text-right font-mono">{l.debit_amount > 0 ? formatCurrency(l.debit_amount, lang) : '-'}</td>
+                <td className="px-6 py-3 text-right font-mono">{l.credit_amount > 0 ? formatCurrency(l.credit_amount, lang) : '-'}</td>
+                <td className="px-6 py-3 text-right font-mono font-bold text-stone-900">{formatCurrency(l.running_balance, lang)}</td>
               </tr>
             ))}
             <tr className="bg-stone-900 text-white font-bold">
-               <td className="px-6 py-4" colSpan={5}>ยอดยกไป / Closing Balance</td>
-               <td className="px-6 py-4 text-right font-mono text-lg">{formatCurrency(data.closing_balance)}</td>
+               <td className="px-6 py-4" colSpan={5}>{t('label.closing_balance')}</td>
+               <td className="px-6 py-4 text-right font-mono text-lg">{formatCurrency(data.closing_balance, lang)}</td>
             </tr>
           </Table>
         </div>
       ) : accountId ? null : (
-        <div className="p-12 text-center text-stone-600 italic">กรุณาเลือกบัญชีเพื่อดูรายการ</div>
+        <div className="p-12 text-center text-stone-600 italic">{t('msg.select_account_to_view')}</div>
       )}
     </div>
   );
