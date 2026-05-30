@@ -9,10 +9,13 @@ import { Input } from '@/components/ui/Input';
 import Link from 'next/link';
 import type { Account } from '@/types';
 import { DirectionalTransition } from '@/components/ui/directional-transition';
+import { useT, useLanguage } from '@/lib/i18n';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden';
 
 export default function ChartOfAccountsPage() {
+  const t = useT();
+  const { lang } = useLanguage();
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -59,36 +62,36 @@ export default function ChartOfAccountsPage() {
       <div className="max-w-[1440px] mx-auto pb-12 space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-stone-900">ผังบัญชี / Chart of Accounts</h1>
-            <p className="text-stone-500 text-sm">จัดการโครงสร้างบัญชีและรหัสแยกประเภท</p>
+            <h1 className="text-2xl font-semibold text-stone-900">{t('page.coa')}</h1>
+            <p className="text-stone-500 text-sm">{t('page.coa_desc')}</p>
           </div>
           <Link href="/app/accounting/chart-of-accounts/new" transitionTypes={['nav-forward']}>
-            <Button>+ เพิ่มบัญชี / Add Account</Button>
+            <Button>{t('action.add_account')}</Button>
           </Link>
         </div>
 
         <div className={`${CARD} p-4 flex gap-4 items-end`}>
           <div className="w-80">
             <Input
-              label="ค้นหา / Search"
+              label={t('action.search')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="รหัส หรือ ชื่อบัญชี..."
+              placeholder={t('placeholder.account_code_or_name')}
             />
           </div>
           <div className="w-48">
-            <label className="block text-sm font-medium text-stone-700 mb-1">ประเภท / Type</label>
+            <label className="block text-sm font-medium text-stone-700 mb-1">{t('label.type')}</label>
             <select
               className="w-full px-3 py-2 bg-white border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
             >
-              <option value="">ทั้งหมด / All</option>
-              <option value="asset">สินทรัพย์ / Asset</option>
-              <option value="liability">หนี้สิน / Liability</option>
-              <option value="equity">ทุน / Equity</option>
-              <option value="revenue">รายได้ / Revenue</option>
-              <option value="expense">ค่าใช้จ่าย / Expense</option>
+              <option value="">{t('label.all')}</option>
+              <option value="asset">{t('label.asset')}</option>
+              <option value="liability">{t('label.liability')}</option>
+              <option value="equity">{t('label.equity')}</option>
+              <option value="revenue">{t('label.revenue')}</option>
+              <option value="expense">{t('label.expense')}</option>
             </select>
           </div>
         </div>
@@ -97,12 +100,12 @@ export default function ChartOfAccountsPage() {
           <Table
             loading={loading}
             headers={[
-              'รหัส / Code',
-              'ชื่อบัญชี / Name',
-              'ประเภท / Type',
-              'ยอดปกติ / Normal',
-              'บันทึกตรง / Direct',
-              'สถานะ / Status',
+              t('label.code'),
+              t('label.account_name'),
+              t('label.type'),
+              t('label.normal_balance'),
+              t('label.allows_direct'),
+              t('label.status'),
               '',
             ]}
           >
@@ -139,13 +142,13 @@ export default function ChartOfAccountsPage() {
                 </td>
                 <td className="px-5 py-4 text-right">
                    <Link href={`/app/accounting/chart-of-accounts/${a.id}`} transitionTypes={['nav-forward']}>
-                      <Button variant="outline" size="sm">แก้ไข</Button>
+                      <Button variant="outline" size="sm">{t('action.edit')}</Button>
                    </Link>
                 </td>
               </tr>
             ))}
             {filtered.length === 0 && !loading && (
-              <tr><td colSpan={7} className="px-5 py-12 text-center text-stone-600 italic">ไม่พบข้อมูลบัญชี</td></tr>
+              <tr><td colSpan={7} className="px-5 py-12 text-center text-stone-600 italic">{t('msg.no_records')}</td></tr>
             )}
           </Table>
         </div>

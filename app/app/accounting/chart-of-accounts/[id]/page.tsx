@@ -9,10 +9,13 @@ import { Select } from '@/components/ui/Select';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import Link from 'next/link';
 import type { Account } from '@/types';
+import { useT, useLanguage } from '@/lib/i18n';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden';
 
 export default function AccountDetailPage() {
+  const t = useT();
+  const { lang } = useLanguage();
   const { id } = useParams() as { id: string };
   const router = useRouter();
   const [account, setAccount] = useState<Account | null>(null);
@@ -53,7 +56,7 @@ export default function AccountDetailPage() {
     setSaving(true);
     try {
       await patch(`/api/accounting/accounts/${id}`, formData);
-      alert('บันทึกสำเร็จ / Saved successfully');
+      alert(t('msg.save_success'));
       fetchAccount();
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Failed to save');
@@ -97,13 +100,13 @@ export default function AccountDetailPage() {
 
         <div className="grid grid-cols-2 gap-4">
           <Input
-            label="ชื่อบัญชี (TH) / Name (TH)"
+            label={`${t('label.account_name')} (TH)`}
             value={formData.name_th}
             onChange={(e) => setFormData({ ...formData, name_th: e.target.value })}
             required
           />
           <Input
-            label="ชื่อบัญชี (EN) / Name (EN)"
+            label={`${t('label.account_name')} (EN)`}
             value={formData.name_en}
             onChange={(e) => setFormData({ ...formData, name_en: e.target.value })}
             required
@@ -111,16 +114,16 @@ export default function AccountDetailPage() {
         </div>
 
         <Select
-          label="สถานะ / Status"
+          label={t('label.status')}
           value={String(formData.is_active)}
           onChange={(e) => setFormData({ ...formData, is_active: e.target.value === 'true' })}
         >
-          <option value="true">ใช้งาน / Active</option>
-          <option value="false">ยกเลิก / Inactive</option>
+          <option value="true">{t('status.active')}</option>
+          <option value="false">{t('status.inactive')}</option>
         </Select>
 
         <div>
-          <label className="block text-sm font-medium text-stone-700 mb-1">คำอธิบาย / Description</label>
+          <label className="block text-sm font-medium text-stone-700 mb-1">{t('label.description')}</label>
           <textarea
             className="w-full px-3 py-2 bg-white border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
             rows={3}
@@ -130,7 +133,7 @@ export default function AccountDetailPage() {
         </div>
 
         <div className="flex justify-end gap-2 pt-4">
-          <Button type="submit" loading={saving}>บันทึกการเปลี่ยนแปลง / Save Changes</Button>
+          <Button type="submit" loading={saving}>{t('action.save_changes')}</Button>
         </div>
       </form>
     </div>
