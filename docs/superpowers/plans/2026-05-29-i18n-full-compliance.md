@@ -20,7 +20,7 @@ T1 (prevention) → T2 (keys) → T3 + T4 + T5 (parallel, module fixes) → T6 (
 
 | Track | File | Description |
 |-------|------|-------------|
-| I-1 | [i18n-t1-prevention](../../../conductor/tracks/i18n-t1-prevention/plan.md) | ESLint rule + template + docs + CLAUDE.md |
+| I-1 | [i18n-t1-prevention](../../../conductor/archive/tracks/i18n-t1-prevention/plan.md) | ESLint rule + template + docs + CLAUDE.md |
 | I-2 | [i18n-t2-keys](../../../conductor/tracks/i18n-t2-keys/plan.md) | Add ~65 keys to en.json + th.json |
 | I-3 | [i18n-t3-accounting](../../../conductor/tracks/i18n-t3-accounting/plan.md) | Fix Accounting module (vat-report, ledger) |
 | I-4 | [i18n-t4-grn-purchasing](../../../conductor/tracks/i18n-t4-grn-purchasing/plan.md) | Fix GRN + Purchase Orders |

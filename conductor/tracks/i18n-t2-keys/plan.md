@@ -2,7 +2,7 @@
 track: i18n-t2-keys
 phase: i18n-compliance
 sequence: 2
-status: Active
+status: Verified
 owner: Chen
 created: 2026-05-29
 depends_on: [i18n-t1-prevention]
@@ -48,7 +48,7 @@ JSON, TypeScript (DictKey type auto-derived from th.json keyof)
 
 ### Task 1: Add keys to en.json
 
-- [ ] **Step 1.1:** Open `lib/i18n/en.json`. Find the end of the `"page.*"` block. Add after the last page key:
+- [x] **Step 1.1:** Open `lib/i18n/en.json`. Find the end of the `"page.*"` block. Add after the last page key:
 
 ```json
   "page.audit_ledger": "Audit General Ledger",
@@ -59,7 +59,7 @@ JSON, TypeScript (DictKey type auto-derived from th.json keyof)
   "page.select_module": "Select Module",
 ```
 
-- [ ] **Step 1.2:** Find the end of the `"label.*"` block. Add after the last label key:
+- [x] **Step 1.2:** Find the end of the `"label.*"` block. Add after the last label key:
 
 ```json
   "label.from_date": "From Date",
@@ -95,7 +95,7 @@ JSON, TypeScript (DictKey type auto-derived from th.json keyof)
   "label.grn_lines": "Receipt Lines",
 ```
 
-- [ ] **Step 1.3:** Find the end of the `"confirm.*"` block. Add:
+- [x] **Step 1.3:** Find the end of the `"confirm.*"` block. Add:
 
 ```json
   "confirm.finalize_purchase_vat": "Confirm lock \"Purchase VAT\" for period",
@@ -104,7 +104,7 @@ JSON, TypeScript (DictKey type auto-derived from th.json keyof)
   "confirm.delete_grn": "Confirm delete this GRN? This cannot be undone.",
 ```
 
-- [ ] **Step 1.4:** Find the end of the `"error.*"` block. Add:
+- [x] **Step 1.4:** Find the end of the `"error.*"` block. Add:
 
 ```json
   "error.select_sku": "Please select a product (SKU)",
@@ -114,7 +114,7 @@ JSON, TypeScript (DictKey type auto-derived from th.json keyof)
   "error.select_product": "Please select a product first",
 ```
 
-- [ ] **Step 1.5:** Find the end of the `"greeting.*"` block (last block). Add a new `"msg.*"` block after it:
+- [x] **Step 1.5:** Find the end of the `"greeting.*"` block (last block). Add a new `"msg.*"` block after it:
 
 ```json
   "msg.lock_report_success": "Report locked and audit log created",
@@ -132,7 +132,7 @@ JSON, TypeScript (DictKey type auto-derived from th.json keyof)
   "msg.not_arrived": "Not arrived",
 ```
 
-- [ ] **Step 1.6:** Add a `"month.*"` block after `"msg.*"`:
+- [x] **Step 1.6:** Add a `"month.*"` block after `"msg.*"`:
 
 ```json
   "month.jan": "January",
@@ -153,7 +153,7 @@ JSON, TypeScript (DictKey type auto-derived from th.json keyof)
 
 ### Task 2: Mirror all keys in th.json
 
-- [ ] **Step 2.1:** Open `lib/i18n/th.json`. Add the same key groups with Thai translations in the same positions:
+- [x] **Step 2.1:** Open `lib/i18n/th.json`. Add the same key groups with Thai translations in the same positions:
 
 **page.* additions:**
 ```json
@@ -254,7 +254,7 @@ JSON, TypeScript (DictKey type auto-derived from th.json keyof)
 
 ### Task 3: Validate and commit
 
-- [ ] **Step 3.1:** Verify JSON is valid
+- [x] **Step 3.1:** Verify JSON is valid
 
 ```bash
 node -e "require('./lib/i18n/en.json'); console.log('en.json OK')"
@@ -263,7 +263,7 @@ node -e "require('./lib/i18n/th.json'); console.log('th.json OK')"
 
 Expected: `en.json OK` and `th.json OK`. If syntax error, fix the JSON (missing comma, trailing comma, etc.)
 
-- [ ] **Step 3.2:** Verify no duplicate keys
+- [x] **Step 3.2:** Verify no duplicate keys
 
 ```bash
 node -e "
@@ -281,7 +281,7 @@ if (!missing.length && !extra.length) console.log('Keys in sync:', enKeys.length
 
 Expected: `Keys in sync: <N> keys` — no missing or extra.
 
-- [ ] **Step 3.3:** Run TypeScript check
+- [x] **Step 3.3:** Run TypeScript check
 
 ```bash
 npx tsc --noEmit 2>&1 | head -20
@@ -289,7 +289,7 @@ npx tsc --noEmit 2>&1 | head -20
 
 Expected: 0 errors related to `DictKey`.
 
-- [ ] **Step 3.4:** Commit
+- [x] **Step 3.4:** Commit
 
 ```bash
 git add lib/i18n/en.json lib/i18n/th.json
