@@ -150,7 +150,7 @@ export default function AccountingExportJobsPage() {
                   </td>
                   <td className="py-3.5 px-5">{getFormatBadge(job.format)}</td>
                   <td className="py-3.5 px-5 font-mono text-stone-600">
-                    {formatDate(job.range_from)} {lang === 'th' ? 'ถึง' : 'to'} {formatDate(job.range_to)}
+                    {formatDate(job.range_from)} {t('label.to_range')} {formatDate(job.range_to)}
                   </td>
                   <td className="py-3.5 px-5 font-medium text-stone-850">
                     {job.requester_name}
@@ -163,7 +163,7 @@ export default function AccountingExportJobsPage() {
                           📁 {job.output_meta.filename}
                         </span>
                         <span className="text-[10px] text-stone-400">
-                          {job.output_meta.record_count?.toLocaleString(lang === 'th' ? 'th-TH' : 'en-US')} {lang === 'th' ? ' แถว' : ' rows'} · {formatBytes(job.output_meta.size_bytes)}
+                          {job.output_meta.record_count?.toLocaleString(lang === 'th' ? 'th-TH' : 'en-US')} {t('label.rows')} · {formatBytes(job.output_meta.size_bytes)}
                         </span>
                       </div>
                     ) : job.status === 'failed' && job.output_meta?.error_message ? (

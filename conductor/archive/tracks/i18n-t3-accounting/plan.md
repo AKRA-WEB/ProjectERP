@@ -2,7 +2,7 @@
 track: i18n-t3-accounting
 phase: i18n-compliance
 sequence: 3
-status: Active
+status: Verified
 owner: Chen
 created: 2026-05-29
 depends_on: [i18n-t2-keys]
@@ -55,9 +55,9 @@ Next.js, React, TypeScript, `@/lib/i18n`
 
 ### Task 1: Fix vat-report/page.tsx
 
-- [ ] **Step 1.1:** Read the full file `app/app/accounting/vat-report/page.tsx`
+- [x] **Step 1.1:** Read the full file `app/app/accounting/vat-report/page.tsx`
 
-- [ ] **Step 1.2:** Add import and hook — find the existing imports block and add:
+- [x] **Step 1.2:** Add import and hook — find the existing imports block and add:
 
 ```tsx
 import { useT } from '@/lib/i18n';
@@ -69,7 +69,7 @@ Then inside `VATReportPage()` function, after the existing `useState` calls, add
 const t = useT();
 ```
 
-- [ ] **Step 1.3:** Fix `handleFinalize` confirmation messages (around line 63-65):
+- [x] **Step 1.3:** Fix `handleFinalize` confirmation messages (around line 63-65):
 
 Replace:
 ```tsx
@@ -85,7 +85,7 @@ const confirmMessage = tab === 'purchase'
   : `${t('confirm.finalize_sales_vat')} ${month}/${year}? ${t('confirm.irreversible')}`;
 ```
 
-- [ ] **Step 1.4:** Fix success/error alerts (around line 73-76):
+- [x] **Step 1.4:** Fix success/error alerts (around line 73-76):
 
 Replace:
 ```tsx
@@ -105,7 +105,7 @@ With:
 alert((err as Error).message || t('msg.lock_report_error'));
 ```
 
-- [ ] **Step 1.5:** Fix all remaining Thai strings in the JSX render section. Run lint to see remaining violations:
+- [x] **Step 1.5:** Fix all remaining Thai strings in the JSX render section. Run lint to see remaining violations:
 
 ```bash
 npx eslint app/app/accounting/vat-report/page.tsx --rule '{"local-rules/no-hardcoded-thai": "error"}' 2>&1
@@ -122,7 +122,7 @@ Fix each reported line using the keys from Track 2. Common replacements:
 
 Note: CSV export headers (inside the csvContent string building) should stay in Thai — they are data output for Thai accounting software, not UI text. Add a targeted `// eslint-disable-next-line local-rules/no-hardcoded-thai` comment above those specific lines.
 
-- [ ] **Step 1.6:** Run lint on the file to confirm 0 warnings (except CSV headers if disabled):
+- [x] **Step 1.6:** Run lint on the file to confirm 0 warnings (except CSV headers if disabled):
 
 ```bash
 npx eslint app/app/accounting/vat-report/page.tsx 2>&1
@@ -130,7 +130,7 @@ npx eslint app/app/accounting/vat-report/page.tsx 2>&1
 
 Expected: 0 `no-hardcoded-thai` warnings.
 
-- [ ] **Step 1.7:** Commit
+- [x] **Step 1.7:** Commit
 
 ```bash
 git add app/app/accounting/vat-report/page.tsx
@@ -141,21 +141,21 @@ git commit -m "fix(i18n): migrate vat-report page to i18n keys"
 
 ### Task 2: Fix audit/ledger/page.tsx
 
-- [ ] **Step 2.1:** Read `app/app/accounting/audit/ledger/page.tsx`
+- [x] **Step 2.1:** Read `app/app/accounting/audit/ledger/page.tsx`
 
-- [ ] **Step 2.2:** Add import at top of file:
+- [x] **Step 2.2:** Add import at top of file:
 
 ```tsx
 import { useT } from '@/lib/i18n';
 ```
 
-- [ ] **Step 2.3:** Inside the component, add hook after existing hooks:
+- [x] **Step 2.3:** Inside the component, add hook after existing hooks:
 
 ```tsx
 const t = useT();
 ```
 
-- [ ] **Step 2.4:** Fix all 19 Thai lines. Key mappings:
+- [x] **Step 2.4:** Fix all 19 Thai lines. Key mappings:
 
 | Original Thai | Key to use |
 |---------------|-----------|
@@ -179,7 +179,7 @@ const t = useT();
 
 If any key is truly missing from Track 2, add it to both JSON files before proceeding.
 
-- [ ] **Step 2.5:** Run lint on file:
+- [x] **Step 2.5:** Run lint on file:
 
 ```bash
 npx eslint app/app/accounting/audit/ledger/page.tsx 2>&1
@@ -187,7 +187,7 @@ npx eslint app/app/accounting/audit/ledger/page.tsx 2>&1
 
 Expected: 0 `no-hardcoded-thai` warnings.
 
-- [ ] **Step 2.6:** Commit
+- [x] **Step 2.6:** Commit
 
 ```bash
 git add app/app/accounting/audit/ledger/page.tsx
@@ -198,13 +198,13 @@ git commit -m "fix(i18n): migrate accounting audit ledger page to i18n keys"
 
 ### Task 3: Fix remaining accounting pages
 
-- [ ] **Step 3.1:** Find all remaining accounting Thai violations:
+- [x] **Step 3.1:** Find all remaining accounting Thai violations:
 
 ```bash
 npx eslint app/app/accounting/ --rule '{"local-rules/no-hardcoded-thai": "warn"}' --format stylish 2>&1 | grep "no-hardcoded-thai"
 ```
 
-- [ ] **Step 3.2:** For each file with violations, apply the same pattern: add `useT` import + `const t = useT()` + replace Thai strings with `t('key')`. Add missing keys to JSON files if needed.
+- [x] **Step 3.2:** For each file with violations, apply the same pattern: add `useT` import + `const t = useT()` + replace Thai strings with `t('key')`. Add missing keys to JSON files if needed.
 
 Common accounting pages to check:
 - `app/app/accounting/journal-entries/page.tsx`
@@ -213,7 +213,7 @@ Common accounting pages to check:
 - `app/app/accounting/fiscal-periods/page.tsx`
 - `app/app/accounting/chart-of-accounts/page.tsx`
 
-- [ ] **Step 3.3:** After fixing all, run lint on entire accounting dir:
+- [x] **Step 3.3:** After fixing all, run lint on entire accounting dir:
 
 ```bash
 npx eslint app/app/accounting/ 2>&1 | grep "no-hardcoded-thai"
@@ -221,7 +221,7 @@ npx eslint app/app/accounting/ 2>&1 | grep "no-hardcoded-thai"
 
 Expected: 0 results.
 
-- [ ] **Step 3.4:** Commit all remaining fixes:
+- [x] **Step 3.4:** Commit all remaining fixes:
 
 ```bash
 git add app/app/accounting/

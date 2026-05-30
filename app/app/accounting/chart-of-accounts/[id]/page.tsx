@@ -73,7 +73,7 @@ export default function AccountDetailPage() {
       <div className="flex items-center gap-4">
         <Link href="/app/accounting/chart-of-accounts" className="text-stone-600 hover:text-stone-600">←</Link>
         <div>
-          <h1 className="text-2xl font-semibold text-stone-900">{account.name_th}</h1>
+          <h1 className="text-2xl font-semibold text-stone-900">{lang === 'th' ? account.name_th : (account.name_en || account.name_th)}</h1>
           <p className="text-stone-500 font-mono text-sm">{account.account_code}</p>
         </div>
       </div>

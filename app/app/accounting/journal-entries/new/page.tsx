@@ -9,12 +9,13 @@ import { Select } from '@/components/ui/Select';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { formatCurrency } from '@/lib/format';
 import Link from 'next/link';
-import { useLanguage } from '@/lib/i18n';
+import { useLanguage, useT } from '@/lib/i18n';
 import type { Account, FiscalPeriod, JournalEntry } from '@/types';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden';
 
 export default function NewJournalEntryPage() {
+  const t = useT();
   const router = useRouter();
   const { lang } = useLanguage();
   const [submitting, setSubmitting] = useState(false);
@@ -117,38 +118,38 @@ export default function NewJournalEntryPage() {
     <div className="max-w-5xl mx-auto space-y-6 pb-24">
       <div className="flex items-center gap-4">
         <Link href="/app/accounting/journal-entries" className="text-stone-600 hover:text-stone-600">←</Link>
-        <h1 className="text-2xl font-semibold text-stone-900">บันทึกรายการบัญชีใหม่ / New Journal Entry</h1>
+        <h1 className="text-2xl font-semibold text-stone-900">{t('page.new_journal_entry')}</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className={`${CARD} p-6 space-y-6`}>
            <div className="grid grid-cols-3 gap-6">
-              <Select label="รอบบัญชี / Period" value={fiscalPeriodId} onChange={e => setFiscalPeriodId(e.target.value)} required>
+              <Select label={t('label.fiscal_period')} value={fiscalPeriodId} onChange={e => setFiscalPeriodId(e.target.value)} required>
                 {periods.map(p => <option key={p.id} value={p.id}>{lang === 'th' ? p.name_th : (p.name_en || p.name_th)}</option>)}
               </Select>
-              <Input label="วันที่ / Date" type="date" value={entryDate} onChange={e => setEntryDate(e.target.value)} required />
-              <Select label="ประเภท / Type" value={entryType} onChange={e => setEntryType(e.target.value)} required>
+              <Input label={t('label.date')} type="date" value={entryDate} onChange={e => setEntryDate(e.target.value)} required />
+              <Select label={t('label.type')} value={entryType} onChange={e => setEntryType(e.target.value)} required>
                 <option value="manual">Manual Entry</option>
                 <option value="opening_balance">Opening Balance</option>
               </Select>
            </div>
-           <Input label="คำอธิบายรายการ / Description" value={description} onChange={e => setDescription(e.target.value)} required placeholder="เช่น บันทึกยอดยกมาปี 2569" />
+           <Input label={t('label.description')} value={description} onChange={e => setDescription(e.target.value)} required placeholder={t('placeholder.description_example')} />
         </div>
 
         <div className={CARD}>
           <div className="p-4 border-b border-stone-100 flex justify-between items-center bg-stone-50/50">
-            <h2 className="text-sm font-bold text-stone-600 uppercase tracking-widest">รายการแยกประเภท / Ledger Lines</h2>
-            <Button type="button" variant="outline" size="sm" onClick={addLine}>+ เพิ่มบรรทัด</Button>
+            <h2 className="text-sm font-bold text-stone-600 uppercase tracking-widest">{t('label.ledger_lines')}</h2>
+            <Button type="button" variant="outline" size="sm" onClick={addLine}>{t('label.add_line')}</Button>
           </div>
 
           <div className="p-4">
             <table className="w-full text-sm">
               <thead className="text-stone-600 text-left uppercase text-[11px] font-bold">
                 <tr>
-                  <th className="p-2 w-1/3">บัญชี / Account</th>
-                  <th className="p-2">คำอธิบายย่อย / Memo</th>
-                  <th className="p-2 w-32 text-right">เดบิต / Debit</th>
-                  <th className="p-2 w-32 text-right">เครดิต / Credit</th>
+                  <th className="p-2 w-1/3">{t('label.account')}</th>
+                  <th className="p-2">{t('label.memo')}</th>
+                  <th className="p-2 w-32 text-right">{t('label.debit')}</th>
+                  <th className="p-2 w-32 text-right">{t('label.credit')}</th>
                   <th className="p-2 w-10"></th>
                 </tr>
               </thead>
@@ -162,8 +163,12 @@ export default function NewJournalEntryPage() {
                         onChange={e => updateLine(i, 'account_id', e.target.value)}
                         required
                       >
-                        <option value="">-- เลือกบัญชี --</option>
-                        {accounts.map(a => <option key={a.id} value={a.id}>{a.account_code} - {a.name_th}</option>)}
+                        <option value="">{t('placeholder.select_account')}</option>
+                        {accounts.map(a => (
+                          <option key={a.id} value={a.id}>
+                            {a.account_code} - {lang === 'th' ? a.name_th : (a.name_en || a.name_th)}
+                          </option>
+                        ))}
                       </select>
                     </td>
                     <td className="p-2">
@@ -172,7 +177,7 @@ export default function NewJournalEntryPage() {
                          className="w-full px-2 py-1.5 border border-stone-200 rounded text-sm outline-none focus:border-emerald-500" 
                          value={line.description} 
                          onChange={e => updateLine(i, 'description', e.target.value)} 
-                         placeholder="บันทึกช่วยจำ (ถ้ามี)"
+                         placeholder={t('placeholder.memo_optional')}
                        />
                     </td>
                     <td className="p-2">
@@ -201,9 +206,9 @@ export default function NewJournalEntryPage() {
               </tbody>
               <tfoot className="bg-stone-50/50 font-bold border-t-2 border-stone-100">
                 <tr>
-                  <td colSpan={2} className="p-4 text-right">รวม / Total:</td>
-                  <td className="p-4 text-right font-mono">{formatCurrency(totals.debit)}</td>
-                  <td className="p-4 text-right font-mono">{formatCurrency(totals.credit)}</td>
+                  <td colSpan={2} className="p-4 text-right">{t('label.total')}:</td>
+                  <td className="p-4 text-right font-mono">{formatCurrency(totals.debit, lang)}</td>
+                  <td className="p-4 text-right font-mono">{formatCurrency(totals.credit, lang)}</td>
                   <td></td>
                 </tr>
               </tfoot>
@@ -214,24 +219,24 @@ export default function NewJournalEntryPage() {
         <div className="flex items-center justify-between p-4 bg-stone-900 text-white rounded-xl shadow-xl fixed bottom-6 left-1/2 -translate-x-1/2 w-full max-w-4xl z-50">
           <div className="flex items-center gap-6 px-4">
              <div className="flex flex-col">
-                <span className="text-[10px] uppercase text-stone-600 font-bold">ผลต่าง / Balance Diff</span>
+                <span className="text-[10px] uppercase text-stone-600 font-bold">{t('label.balance_diff')}</span>
                 <span className={`text-lg font-mono font-bold ${diff < 0.01 ? 'text-emerald-400' : 'text-red-400'}`}>
-                  {formatCurrency(diff)}
+                  {formatCurrency(diff, lang)}
                 </span>
              </div>
              <div className="h-8 w-px bg-stone-700" />
              {isBalanced ? (
-               <span className="text-emerald-400 font-bold flex items-center gap-2">✓ ยอดดุลปกติ</span>
+               <span className="text-emerald-400 font-bold flex items-center gap-2">✓ {t('status.balanced')}</span>
              ) : (
-               <span className="text-red-400 font-bold">✗ ยอดไม่สมดุล</span>
+               <span className="text-red-400 font-bold">✗ {t('status.unbalanced')}</span>
              )}
           </div>
           <div className="flex gap-3">
              <Link href="/app/accounting/journal-entries">
-               <Button type="button" variant="outline" className="border-stone-700 text-white hover:bg-stone-800">ยกเลิก</Button>
+                <Button type="button" variant="outline" className="border-stone-700 text-white hover:bg-stone-800">{t('action.cancel')}</Button>
              </Link>
              <Button type="submit" loading={submitting} disabled={!isBalanced} className="px-12 bg-emerald-600 hover:bg-emerald-700 text-white border-none shadow-emerald-900/20">
-                บันทึกรายการ / Post Entry
+                {t('action.post_entry')}
              </Button>
           </div>
         </div>

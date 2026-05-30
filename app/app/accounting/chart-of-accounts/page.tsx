@@ -114,9 +114,13 @@ export default function ChartOfAccountsPage() {
                 <td className="px-5 py-4 font-mono font-bold text-stone-900">{a.account_code}</td>
                 <td className="px-5 py-4">
                   <div className={`font-medium ${!a.allows_direct_posting ? 'text-stone-900 font-bold underline decoration-stone-200' : 'text-stone-700'}`}>
-                    {a.name_th}
+                    {lang === 'th' ? a.name_th : (a.name_en || a.name_th)}
                   </div>
-                  <div className="text-xs text-stone-600 font-mono">{a.name_en}</div>
+                  {a.name_en && (
+                    <div className="text-xs text-stone-400 font-mono">
+                      {lang === 'th' ? a.name_en : a.name_th}
+                    </div>
+                  )}
                 </td>
                 <td className="px-5 py-4 uppercase text-xs font-bold tracking-wider">
                   <Badge variant={

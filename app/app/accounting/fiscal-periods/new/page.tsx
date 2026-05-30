@@ -82,13 +82,13 @@ export default function NewFiscalPeriodPage() {
             label={`${t('label.display_name')} (TH)`}
             value={formData.name_th}
             onChange={(e) => setFormData({ ...formData, name_th: e.target.value })}
-            placeholder="มกราคม 2569"
+            placeholder={t('placeholder.period_name_th')}
           />
           <Input
             label={`${t('label.display_name')} (EN)`}
             value={formData.name_en}
             onChange={(e) => setFormData({ ...formData, name_en: e.target.value })}
-            placeholder="January 2026"
+            placeholder={t('placeholder.period_name_en')}
           />
         </div>
 
