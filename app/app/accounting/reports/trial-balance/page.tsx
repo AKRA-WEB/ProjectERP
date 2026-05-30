@@ -6,12 +6,13 @@ import { Button } from '@/components/ui/Button';
 import { Table } from '@/components/ui/Table';
 import { Select } from '@/components/ui/Select';
 import { formatCurrency } from '@/lib/format';
-import { useLanguage } from '@/lib/i18n';
+import { useLanguage, useT } from '@/lib/i18n';
 import type { TrialBalanceRow, FiscalPeriod } from '@/types';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden';
 
 export default function TrialBalancePage() {
+  const t = useT();
   const { lang } = useLanguage();
   const [periods, setPeriods] = useState<FiscalPeriod[]>([]);
   const [periodId, setPeriodId] = useState('');
@@ -51,18 +52,18 @@ export default function TrialBalancePage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-stone-900">งบทดลอง / Trial Balance</h1>
-          <p className="text-stone-500 text-sm">ตรวจสอบความสมดุลของบัญชีแยกประเภทรายเดือน</p>
+          <h1 className="text-2xl font-semibold text-stone-900">{t('page.trial_balance_title')}</h1>
+          <p className="text-stone-500 text-sm">{t('page.trial_balance_subtitle')}</p>
         </div>
         <div className="flex gap-2">
-           <Button variant="outline" onClick={() => window.print()}>พิมพ์รายงาน / Print</Button>
+           <Button variant="outline" onClick={() => window.print()}>{t('action.print_report')}</Button>
         </div>
       </div>
 
       <div className={`${CARD} p-4 flex gap-4 items-end no-print`}>
         <div className="w-64">
           <Select
-            label="รอบบัญชี / Fiscal Period"
+            label={t('label.fiscal_period')}
             value={periodId}
             onChange={(e) => setPeriodId(e.target.value)}
           >
@@ -77,34 +78,36 @@ export default function TrialBalancePage() {
         <Table
           loading={loading}
           headers={[
-            'รหัสบัญชี / Code',
-            'ชื่อบัญชี / Account Name',
-            'เดบิต / Debit',
-            'เครดิต / Credit',
-            'ยอดคงเหลือ / Balance',
+            t('label.account_code'),
+            t('label.account_name'),
+            t('label.debit'),
+            t('label.credit'),
+            t('label.balance'),
           ]}
         >
           {data.map((row) => (
             <tr key={row.account_code} className="hover:bg-stone-50 transition-colors text-sm">
               <td className="px-6 py-3 font-mono font-bold text-stone-900">{row.account_code}</td>
-              <td className="px-6 py-3 text-stone-700">{row.account_name_th}</td>
-              <td className="px-6 py-3 text-right font-mono">{row.total_debit > 0 ? formatCurrency(row.total_debit) : '-'}</td>
-              <td className="px-6 py-3 text-right font-mono">{row.total_credit > 0 ? formatCurrency(row.total_credit) : '-'}</td>
-              <td className="px-6 py-3 text-right font-mono font-bold text-stone-900">{formatCurrency(row.balance)}</td>
+              <td className="px-6 py-3 text-stone-700">
+                {lang === 'th' ? row.account_name_th : (row.account_name_en || row.account_name_th)}
+              </td>
+              <td className="px-6 py-3 text-right font-mono">{row.total_debit > 0 ? formatCurrency(row.total_debit, lang) : '-'}</td>
+              <td className="px-6 py-3 text-right font-mono">{row.total_credit > 0 ? formatCurrency(row.total_credit, lang) : '-'}</td>
+              <td className="px-6 py-3 text-right font-mono font-bold text-stone-900">{formatCurrency(row.balance, lang)}</td>
             </tr>
           ))}
           {!loading && data.length > 0 && (
             <tr className="bg-stone-900 text-white font-bold">
               <td colSpan={2} className="px-6 py-4 text-right uppercase tracking-widest text-[11px] text-stone-600">Total Balance</td>
-              <td className="px-6 py-4 text-right font-mono">{formatCurrency(totals.debit)}</td>
-              <td className="px-6 py-4 text-right font-mono">{formatCurrency(totals.credit)}</td>
+              <td className="px-6 py-4 text-right font-mono">{formatCurrency(totals.debit, lang)}</td>
+              <td className="px-6 py-4 text-right font-mono">{formatCurrency(totals.credit, lang)}</td>
               <td className="px-6 py-4 text-right font-mono text-emerald-400">
                 {Math.abs(totals.debit - totals.credit) < 0.01 ? '✓ Balanced' : '✗ Unbalanced'}
               </td>
             </tr>
           )}
           {data.length === 0 && !loading && (
-            <tr><td colSpan={5} className="px-6 py-12 text-center text-stone-400 italic">ไม่มีรายการเคลื่อนไหวในรอบบัญชีนี้</td></tr>
+            <tr><td colSpan={5} className="px-6 py-12 text-center text-stone-400 italic">{t('msg.no_transactions_in_period')}</td></tr>
           )}
         </Table>
       </div>
