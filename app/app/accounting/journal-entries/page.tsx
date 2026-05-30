@@ -9,13 +9,14 @@ import { Select } from '@/components/ui/Select';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { formatCurrency } from '@/lib/format';
 import Link from 'next/link';
-import { useLanguage } from '@/lib/i18n';
+import { useLanguage, useT } from '@/lib/i18n';
 import type { JournalEntry, PaginatedResponse, FiscalPeriod } from '@/types';
 import { useSession } from 'next-auth/react';
 
 const CARD = 'bg-white border border-stone-200 rounded-[10px] shadow-sm overflow-hidden';
 
 export default function JournalEntriesPage() {
+  const t = useT();
   const { data: session } = useSession();
   const role = (session?.user as { role?: string } | undefined)?.role;
   const { lang } = useLanguage();
@@ -58,12 +59,12 @@ export default function JournalEntriesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-stone-900">รายการบัญชี / Journal Entries</h1>
-          <p className="text-stone-500 text-sm">บันทึกรายการสมุดรายวันทั่วไปและตรวจสอบสถานะ</p>
+          <h1 className="text-2xl font-semibold text-stone-900">{t('page.journal')}</h1>
+          <p className="text-stone-500 text-sm">{t('page.journal_desc')}</p>
         </div>
         {role !== 'auditor' && (
           <Link href="/app/accounting/journal-entries/new">
-            <Button>+ สร้างรายการ / New Entry</Button>
+            <Button>{t('action.new_entry')}</Button>
           </Link>
         )}
       </div>
@@ -71,23 +72,23 @@ export default function JournalEntriesPage() {
       <div className={`${CARD} p-4 flex gap-4 items-end`}>
         <div className="w-48">
           <Select
-            label="สถานะ / Status"
+            label={t('label.status')}
             value={status}
             onChange={(e) => { setStatus(e.target.value); setPage(1); }}
           >
-            <option value="">ทั้งหมด / All</option>
-            <option value="draft">ฉบับร่าง / Draft</option>
-            <option value="posted">บันทึกแล้ว / Posted</option>
-            <option value="void">ยกเลิก / Void</option>
+            <option value="">{t('label.all')}</option>
+            <option value="draft">{t('status.draft')}</option>
+            <option value="posted">{t('status.posted')}</option>
+            <option value="void">{t('status.void')}</option>
           </Select>
         </div>
         <div className="w-64">
           <Select
-            label="รอบบัญชี / Fiscal Period"
+            label={t('label.fiscal_period')}
             value={periodId}
             onChange={(e) => { setPeriodId(e.target.value); setPage(1); }}
           >
-            <option value="">ทั้งหมด / All</option>
+            <option value="">{t('label.all')}</option>
             {periods.map(p => (
               <option key={p.id} value={p.id}>{lang === 'th' ? p.name_th : (p.name_en || p.name_th)}</option>
             ))}
@@ -99,13 +100,13 @@ export default function JournalEntriesPage() {
         <Table
           loading={loading}
           headers={[
-            'เลขที่ / JE No.',
-            'วันที่ / Date',
-            'คำอธิบาย / Description',
-            'ประเภท / Type',
-            'สถานะ / Status',
-            'เดบิต / Debit',
-            'เครดิต / Credit',
+            t('label.je_no'),
+            t('label.date'),
+            t('label.description'),
+            t('label.type'),
+            t('label.status'),
+            t('label.debit'),
+            t('label.credit'),
             '',
           ]}
         >
@@ -122,13 +123,13 @@ export default function JournalEntriesPage() {
               <td className="px-5 py-4 font-mono text-right font-bold">{formatCurrency(je.total_credit)}</td>
               <td className="px-5 py-4 text-right">
                 <Link href={`/app/accounting/journal-entries/${je.id}`}>
-                  <Button variant="outline" size="sm">รายละเอียด</Button>
+                  <Button variant="outline" size="sm">{t('action.view')}</Button>
                 </Link>
               </td>
             </tr>
           ))}
           {data?.data.length === 0 && !loading && (
-            <tr><td colSpan={8} className="px-5 py-12 text-center text-stone-600 italic">ไม่พบรายการบัญชี</td></tr>
+            <tr><td colSpan={8} className="px-5 py-12 text-center text-stone-600 italic">{t('msg.no_records')}</td></tr>
           )}
         </Table>
 
