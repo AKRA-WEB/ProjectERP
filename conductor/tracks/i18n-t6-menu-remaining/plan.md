@@ -2,7 +2,7 @@
 track: i18n-t6-menu-remaining
 phase: i18n-compliance
 sequence: 6
-status: Active
+status: Completed
 owner: Chen
 created: 2026-05-29
 depends_on: [i18n-t3-accounting, i18n-t4-grn-purchasing, i18n-t5-admin-wms]
