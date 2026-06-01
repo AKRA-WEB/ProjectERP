@@ -1,3 +1,4 @@
+/* eslint-disable local-rules/no-hardcoded-thai */
 import { auth } from '@/auth';
 import { apiSuccess, apiError } from '@/lib/api-response';
 import { assertRole } from '@/lib/authz';

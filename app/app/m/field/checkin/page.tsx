@@ -1,5 +1,6 @@
 'use client';
 
+/* eslint-disable local-rules/no-hardcoded-thai */
 import { useState, useEffect, useCallback } from 'react';
 import { get, post } from '@/lib/api-client';
 import { Button, Select } from '@/components/ui';

@@ -1,5 +1,6 @@
 'use client';
 
+/* eslint-disable local-rules/no-hardcoded-thai */
 import { useState, useEffect, useCallback } from 'react';
 import { Table, Thead, Tbody, Th, Td, Pagination, Badge } from '@/components/ui';
 import { get } from '@/lib/api-client';

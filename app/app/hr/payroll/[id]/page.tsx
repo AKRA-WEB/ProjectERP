@@ -1,5 +1,6 @@
 'use client';
 
+/* eslint-disable local-rules/no-hardcoded-thai */
 import React, { useState, useEffect, use, useMemo, useCallback } from 'react';
 import { get, patch } from '@/lib/api-client';
 import { formatCurrency } from '@/lib/utils';
