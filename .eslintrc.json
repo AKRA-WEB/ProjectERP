@@ -6,42 +6,6 @@
   "plugins": ["local-rules"],
   "rules": {
     "local-rules/no-hardcoded-thai": "error"
-  },
-  "overrides": [
-    {
-      "files": [
-        "app/api/grn/**/*",
-        "app/api/products/**/*",
-        "app/app/analytics/**/*",
-        "app/app/ap/**/*",
-        "app/app/bom/**/*",
-        "app/app/claims/**/*",
-        "app/app/customers/**/*",
-        "app/app/cycle-counts/**/*",
-        "app/app/delivery-orders/**/*",
-        "app/app/handheld/**/*",
-        "app/app/inbound-orders/**/*",
-        "app/app/inventory/**/*",
-        "app/app/m/**/*",
-        "app/app/picking/**/*",
-        "app/app/products/**/*",
-        "app/app/purchase-requests/**/*",
-        "app/app/purchasing/**/*",
-        "app/app/rebate/**/*",
-        "app/app/repack/**/*",
-        "app/app/rma/**/*",
-        "app/app/sales/**/*",
-        "app/app/sales-invoices/**/*",
-        "app/app/sales-orders/**/*",
-        "app/app/sales-quotations/**/*",
-        "app/app/sales-returns/**/*",
-        "app/app/shipments/**/*",
-        "app/app/transfers/**/*",
-        "app/app/vendors/**/*"
-      ],
-      "rules": {
-        "local-rules/no-hardcoded-thai": "warn"
-      }
-    }
-  ]
+  }
 }
+
