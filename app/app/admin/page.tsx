@@ -6,6 +6,7 @@ import React, { useState, useEffect } from 'react';
 import { Users, Shield, Scale, Warehouse as WarehouseIcon, ArrowRight, Loader2, Tag, RefreshCw } from 'lucide-react';
 import { get } from '@/lib/api-client';
 import { DirectionalTransition } from '@/components/ui/directional-transition';
+import { useT } from '@/lib/i18n';
 
 interface Stats {
   usersCount: number | null;
@@ -19,6 +20,7 @@ interface Stats {
 
 export default function AdminHubPage() {
   const { data: session } = useSession();
+  const t = useT();
   const [stats, setStats] = useState<Stats>({
     usersCount: null,
     warehousesCount: null,
@@ -67,57 +69,57 @@ export default function AdminHubPage() {
 
   const cards = [
     {
-      title: 'จัดการผู้ใช้งาน',
+      title: t('admin.card.users.title'),
       titleEn: 'Users Management',
-      desc: 'เพิ่ม แก้ไข ลบข้อมูลผู้ใช้งานในระบบ กำหนดแผนก และตำแหน่งงาน',
+      desc: t('admin.card.users.desc'),
       href: '/app/admin/users',
       icon: Users,
       stat: stats.usersCount,
     },
     {
-      title: 'ตั้งค่าสิทธิ์การใช้งาน',
+      title: t('admin.card.roles.title'),
       titleEn: 'Roles & Permissions',
-      desc: 'กำหนดสิทธิ์การเข้าถึงข้อมูลและเครื่องมือต่างๆ ในแต่ละระดับงาน',
+      desc: t('admin.card.roles.desc'),
       href: '/app/admin/roles',
       icon: Shield,
       stat: stats.rolesCount,
     },
     {
-      title: 'จัดการหน่วยนับ',
+      title: t('admin.card.uom.title'),
       titleEn: 'Units of Measure',
-      desc: 'ตั้งค่าหน่วยหลัก หน่วยเสริม และสัดส่วนการคำนวณ UoM ของคลังสินค้า',
+      desc: t('admin.card.uom.desc'),
       href: '/app/admin/uom',
       icon: Scale,
       stat: stats.uomsCount,
     },
     {
-      title: 'จัดการคลังสินค้า',
+      title: t('admin.card.warehouses.title'),
       titleEn: 'Warehouses',
-      desc: 'เพิ่มสาขา กำหนดคลัง และบริหารจัดการพื้นที่จัดเก็บสินค้า',
+      desc: t('admin.card.warehouses.desc'),
       href: '/app/admin/warehouses',
       icon: WarehouseIcon,
       stat: stats.warehousesCount,
     },
     {
-      title: 'ราคาสินค้าและสัญญา',
+      title: t('admin.card.pricing.title'),
       titleEn: 'Pricing & Contracts',
-      desc: 'กำหนดราคาสินค้าตามช่องทาง/ระดับสมาชิก และจัดการสัญญาล็อคราคาลูกค้า',
+      desc: t('admin.card.pricing.desc'),
       href: '/app/admin/pricing',
       icon: Tag,
       stat: stats.pricesCount,
     },
     {
-      title: 'การจำกัดหน่วยขายสินค้า',
+      title: t('admin.card.channel_uom.title'),
       titleEn: 'Allowed Sales UoMs Whitelist',
-      desc: 'จำกัดหน่วยขายสำหรับช่องทาง AKRA (Wholesale) และช่องทางทั่วไปของแต่ละสินค้า',
+      desc: t('admin.card.channel_uom.desc'),
       href: '/app/admin/product-channel-uoms',
       icon: Scale,
       stat: stats.productChannelUomsCount,
     },
     {
-      title: 'การเชื่อมต่อ Hrzoft',
+      title: t('admin.card.hrzoft.title'),
       titleEn: 'Hrzoft Sync Integration',
-      desc: 'ซิงค์ข้อมูลพนักงานบัญชีชื่อผู้ใช้จากระบบภายนอก Hrzoft ติดตามและจัดการความขัดแย้ง',
+      desc: t('admin.card.hrzoft.desc'),
       href: '/app/admin/integrations/hrzoft',
       icon: RefreshCw,
       stat: stats.hrzoftCount,
@@ -153,15 +155,15 @@ export default function AdminHubPage() {
             <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-[#7a5a7e] font-semibold mb-1">
               <span>ADMIN PANEL</span>
               <span className="w-1.5 h-1.5 rounded-full bg-[#7a5a7e]/40" />
-              <span>ผู้ดูแลระบบ</span>
+              <span>{t('module.admin')}</span>
             </div>
-            <h1 className="font-display text-[28px] font-semibold tracking-tight text-[#1c1917] m-0">ศูนย์กลางการจัดการระบบ</h1>
+            <h1 className="font-display text-[28px] font-semibold tracking-tight text-[#1c1917] m-0">{t('admin.hub.title')}</h1>
           </div>
           <Link
             href="/app/menu"
             className="px-4 py-2 border border-[#e4e0d6] hover:bg-stone-50 rounded text-sm text-[#44403c] transition-colors"
           >
-            กลับหน้าเมนูหลัก
+            {t('admin.hub.back')}
           </Link>
         </div>
 
@@ -201,7 +203,7 @@ export default function AdminHubPage() {
                         </span>
                       )}
                       <div className="text-[10px] text-[#78716c] uppercase tracking-wider font-medium mt-1">
-                        รายการ
+                        {t('label.items_suffix')}
                       </div>
                     </div>
                     <ArrowRight className="arrow-icon w-4 h-4 text-[#78716c]/40 transition-transform duration-200" />

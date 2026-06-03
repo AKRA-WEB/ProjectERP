@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from '@/components/ui';
 import { get, post } from '@/lib/api-client';
 import type { User, Warehouse } from '@/types';
+import { useT } from '@/lib/i18n';
 
 interface Props {
   user: User;
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export default function UserWarehouseModal({ user, onClose, onSaved }: Props) {
+  const t = useT();
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
@@ -41,7 +43,7 @@ export default function UserWarehouseModal({ user, onClose, onSaved }: Props) {
       await post(`/api/admin/users/${user.id}/warehouses`, { warehouse_ids: Array.from(selected) });
       onSaved();
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
+      setError(e instanceof Error ? e.message : t('users.warehouse_modal.save_error'));
     } finally {
       setSaving(false);
     }
@@ -49,7 +51,7 @@ export default function UserWarehouseModal({ user, onClose, onSaved }: Props) {
 
   return (
     <Modal open onClose={onClose}>
-      <ModalHeader>กำหนดคลังสินค้า — {user.name_th ?? user.name_en}</ModalHeader>
+      <ModalHeader>{t('users.warehouse_modal.title_prefix')} {user.name_th ?? user.name_en}</ModalHeader>
       <ModalBody>
         <div className="space-y-2">
           {warehouses.map((w) => (
@@ -65,8 +67,8 @@ export default function UserWarehouseModal({ user, onClose, onSaved }: Props) {
         {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
       </ModalBody>
       <ModalFooter>
-        <Button variant="ghost" onClick={onClose}>ยกเลิก</Button>
-        <Button onClick={handleSave} loading={saving}>บันทึก</Button>
+        <Button variant="ghost" onClick={onClose}>{t('action.cancel')}</Button>
+        <Button onClick={handleSave} loading={saving}>{t('action.save')}</Button>
       </ModalFooter>
     </Modal>
   );

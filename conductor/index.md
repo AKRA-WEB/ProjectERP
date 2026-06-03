@@ -17,7 +17,6 @@
 
 | Track | Status | Plan |
 | --- | --- | --- |
-| i18n-t5-admin-wms | Active | [plan](tracks/i18n-t5-admin-wms/plan.md) |
 | i18n-t6-menu-remaining | Active | [plan](tracks/i18n-t6-menu-remaining/plan.md) |
 
 ## i18n Compliance (run in sequence: T1 → T2 → T3/T4/T5 parallel → T6)
@@ -28,7 +27,7 @@
 | I-2 | i18n-t2-keys | I-1 | Verified | [plan](archive/tracks/i18n-t2-keys/plan.md) |
 | I-3 | i18n-t3-accounting | I-2 | Verified | [plan](archive/tracks/i18n-t3-accounting/plan.md) |
 | I-4 | i18n-t4-grn-purchasing | I-2 | Verified | [plan](archive/tracks/i18n-t4-grn-purchasing/plan.md) |
-| I-5 | i18n-t5-admin-wms | I-2 | Active | [plan](tracks/i18n-t5-admin-wms/plan.md) |
+| I-5 | i18n-t5-admin-wms | I-2 | Verified | [plan](archive/tracks/i18n-t5-admin-wms/plan.md) |
 | I-6 | i18n-t6-menu-remaining | I-3, I-4, I-5 | Active | [plan](tracks/i18n-t6-menu-remaining/plan.md) |
 
 ## Performance Optimization Tracks (sequential — measure after each tier)
@@ -104,7 +103,9 @@ Master plan: [erp-v2-orion-roadmap](tracks/erp-v2-orion-roadmap/plan.md)
 ## All Tracks
 
 | Track | Status | Created | Last Updated |
-|-------|--------|---------|--------------|| [i18n Track 4 — GRN + Purchase Orders Fix](./archive/tracks/i18n-t4-grn-purchasing/plan.md) | Verified | 2026-06-03 | 2026-06-03 |
+|-------|--------|---------|--------------|
+| [i18n Track 5 — Admin + WMS Fix](./archive/tracks/i18n-t5-admin-wms/plan.md) | Verified | 2026-05-30 | 2026-06-03 |
+| [i18n Track 4 — GRN + Purchase Orders Fix](./archive/tracks/i18n-t4-grn-purchasing/plan.md) | Verified | 2026-06-03 | 2026-06-03 |
 | [i18n Track 3 — Accounting Module Fix](./archive/tracks/i18n-t3-accounting/plan.md) | Verified | 2026-05-30 | 2026-05-30 |
 | [i18n Track 2 — Translation Keys Expansion](./archive/tracks/i18n-t2-keys/plan.md) | Verified | 2026-05-30 | 2026-05-30 |
 | [i18n Track 1 — Prevention Infrastructure](./archive/tracks/i18n-t1-prevention/plan.md) | Verified | 2026-05-30 | 2026-05-30 |

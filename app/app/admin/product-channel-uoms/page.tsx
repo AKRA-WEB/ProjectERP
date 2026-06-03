@@ -1,16 +1,16 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  Button, 
-  Input, 
-  Select, 
-  Table, 
-  Thead, 
-  Tbody, 
-  Th, 
-  Td, 
-  Badge, 
+import {
+  Button,
+  Input,
+  Select,
+  Table,
+  Thead,
+  Tbody,
+  Th,
+  Td,
+  Badge,
   Modal,
   Card,
   CardBody
@@ -19,6 +19,7 @@ import { get, patch } from '@/lib/api-client';
 import { DirectionalTransition } from '@/components/ui/directional-transition';
 import { Search, Plus, Edit2, Loader2, ArrowLeft, Check, X, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
+import { useT } from '@/lib/i18n';
 
 interface ProductChannelUom {
   id: string;
@@ -49,6 +50,7 @@ interface Product {
 }
 
 export default function ProductChannelUomsPage() {
+  const t = useT();
   const [items, setItems] = useState<ProductChannelUom[]>([]);
   const [uoms, setUoms] = useState<UnitOfMeasure[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -67,25 +69,23 @@ export default function ProductChannelUomsPage() {
   const [selectedProductId, setSelectedProductId] = useState('');
   const [selectedChannel, setSelectedChannel] = useState<'TRD' | 'AKRA'>('AKRA');
   const [selectedAllowedUoms, setSelectedAllowedUoms] = useState<string[]>([]);
-  
+
   // Product search in Modal
   const [modalProductSearch, setModalProductSearch] = useState('');
   const [filteredModalProducts, setFilteredModalProducts] = useState<Product[]>([]);
 
-  // Fetch all Whitelist records
   const fetchWhitelist = useCallback(async () => {
     setLoading(true);
     try {
       const data = await get<ProductChannelUom[]>('/api/admin/product-channel-uoms');
       setItems(data);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'โหลดข้อมูลสัญญาไม่สำเร็จ / Failed to load whitelist.');
+      setError(e instanceof Error ? e.message : t('channel_uom.error_load'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
-  // Fetch all global UoMs & Products for editing
   const fetchMetadata = useCallback(async () => {
     try {
       const [uomData, prodData] = await Promise.all([
@@ -104,7 +104,6 @@ export default function ProductChannelUomsPage() {
     fetchMetadata();
   }, [fetchWhitelist, fetchMetadata]);
 
-  // Modal Product autocomplete / filter
   useEffect(() => {
     if (!modalProductSearch) {
       setFilteredModalProducts([]);
@@ -112,22 +111,21 @@ export default function ProductChannelUomsPage() {
     }
     const q = modalProductSearch.toLowerCase();
     const filtered = products.filter(
-      p => p.sku.toLowerCase().includes(q) || 
-           p.name_th.toLowerCase().includes(q) || 
+      p => p.sku.toLowerCase().includes(q) ||
+           p.name_th.toLowerCase().includes(q) ||
            p.name_en.toLowerCase().includes(q)
     ).slice(0, 10);
     setFilteredModalProducts(filtered);
   }, [modalProductSearch, products]);
 
-  // Handle Save (Create / Update)
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedProductId) {
-      setError('กรุณาเลือกสินค้า / Please select a product');
+      setError(t('channel_uom.error_select_product'));
       return;
     }
     if (selectedAllowedUoms.length === 0) {
-      setError('กรุณาเลือก UoM ที่อนุญาตอย่างน้อย 1 รายการ / Please select at least one allowed UoM');
+      setError(t('channel_uom.error_select_uom'));
       return;
     }
 
@@ -142,17 +140,16 @@ export default function ProductChannelUomsPage() {
         allowed_uoms: selectedAllowedUoms,
       });
 
-      setSuccess('บันทึกข้อมูลเรียบร้อยแล้ว / Whitelist saved successfully');
+      setSuccess(t('channel_uom.save_success'));
       setShowModal(false);
-      
-      // Reset form
+
       setSelectedProductId('');
       setSelectedAllowedUoms([]);
       setModalProductSearch('');
-      
+
       await fetchWhitelist();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาดในการบันทึก / Save failed');
+      setError(e instanceof Error ? e.message : t('channel_uom.error_save'));
     } finally {
       setSubmitting(false);
     }
@@ -190,22 +187,21 @@ export default function ProductChannelUomsPage() {
     }
   };
 
-  // Filtered rows for main table
   const filteredItems = items.filter(item => {
-    const matchesSearch = searchQuery === '' || 
+    const matchesSearch = searchQuery === '' ||
       item.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.name_th.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.name_en.toLowerCase().includes(searchQuery.toLowerCase());
-      
+
     const matchesChannel = selectedChannelFilter === '' || item.channel === selectedChannelFilter;
-    
+
     return matchesSearch && matchesChannel;
   });
 
   return (
     <DirectionalTransition>
       <div className="max-w-[1200px] mx-auto min-h-[calc(100vh-140px)] font-sans px-4 py-8">
-        
+
         {/* Custom Styles */}
         <style dangerouslySetInnerHTML={{ __html: `
           .premium-input {
@@ -231,8 +227,8 @@ export default function ProductChannelUomsPage() {
         {/* Top Header Navigation */}
         <div className="mb-8 flex items-center justify-between border-b border-[#e4e0d6] pb-5">
           <div className="flex items-center gap-4">
-            <Link 
-              href="/app/admin" 
+            <Link
+              href="/app/admin"
               className="p-2 border border-[#e4e0d6] hover:bg-stone-50 rounded-lg text-[#78716c] hover:text-[#7a5a7e] transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
@@ -244,15 +240,15 @@ export default function ProductChannelUomsPage() {
                 <span>WHOLE-CASE SYSTEM</span>
               </div>
               <h1 className="font-display text-[26px] font-semibold tracking-tight text-[#1c1917] m-0">
-                การควบคุมหน่วยขายสินค้า / Allowed Sales UoMs Whitelist
+                {t('channel_uom.page.title')}
               </h1>
             </div>
           </div>
-          <Button 
+          <Button
             onClick={handleCreateClick}
             className="flex items-center gap-2 bg-[#7a5a7e] hover:bg-[#664b69] text-white shadow-sm transition-all"
           >
-            <Plus className="w-4 h-4" /> เพิ่มข้อจำกัดใหม่ / Add Rule
+            <Plus className="w-4 h-4" /> {t('channel_uom.add_rule')}
           </Button>
         </div>
 
@@ -261,7 +257,7 @@ export default function ProductChannelUomsPage() {
           <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 flex items-start gap-3 shadow-sm">
             <ShieldAlert className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold">เกิดข้อผิดพลาด / An error occurred:</p>
+              <p className="font-semibold">{t('channel_uom.error_occurred')}</p>
               <p className="mt-0.5">{error}</p>
             </div>
           </div>
@@ -270,7 +266,6 @@ export default function ProductChannelUomsPage() {
           <div className="mb-6 rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-700 flex items-start gap-3 shadow-sm">
             <Check className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold">สำเร็จ / Success:</p>
               <p className="mt-0.5">{success}</p>
             </div>
           </div>
@@ -284,20 +279,20 @@ export default function ProductChannelUomsPage() {
               <Input
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                placeholder="ค้นหาสินค้าตาม SKU, ชื่อไทย หรืออังกฤษ... / Search SKU, Name..."
+                placeholder={t('channel_uom.search_placeholder')}
                 className="pl-9 premium-input w-full"
               />
             </div>
-            
+
             <div className="w-full sm:w-60">
               <Select
                 value={selectedChannelFilter}
                 onChange={e => setSelectedChannelFilter(e.target.value)}
                 className="premium-input w-full"
               >
-                <option value="">ทุกช่องทางขาย / All Channels</option>
-                <option value="AKRA">AKRA (Wholesale เท่านั้น)</option>
-                <option value="TRD">TRD (ค้าปลีก/ทั่วไป)</option>
+                <option value="">{t('channel_uom.all_channels')}</option>
+                <option value="AKRA">{t('channel_uom.filter.akra')}</option>
+                <option value="TRD">{t('channel_uom.filter.trd')}</option>
               </Select>
             </div>
           </CardBody>
@@ -308,23 +303,23 @@ export default function ProductChannelUomsPage() {
           {loading ? (
             <div className="py-24 text-center text-stone-500 flex flex-col items-center justify-center gap-3">
               <Loader2 className="w-8 h-8 text-[#7a5a7e] animate-spin" />
-              <p>กำลังโหลดข้อมูลการตั้งค่าหน่วยขาย... / Loading allowed UoMs list...</p>
+              <p>{t('channel_uom.loading')}</p>
             </div>
           ) : filteredItems.length === 0 ? (
             <div className="py-20 text-center text-stone-500 flex flex-col items-center justify-center gap-2">
               <X className="w-10 h-10 text-stone-300" />
-              <p className="text-lg font-medium text-stone-700">ไม่พบข้อจำกัด UoM สำหรับสินค้านี้</p>
-              <p className="text-sm text-stone-400">กดปุ่ม &quot;+ เพิ่มข้อจำกัดใหม่&quot; เพื่อตั้งค่าข้อกำหนดช่องทางขาย</p>
+              <p className="text-lg font-medium text-stone-700">{t('channel_uom.no_rules')}</p>
+              <p className="text-sm text-stone-400">{t('channel_uom.no_rules_hint')}</p>
             </div>
           ) : (
             <Table>
               <Thead>
                 <tr>
-                  <Th className="py-3.5 px-4 font-semibold text-stone-700">สินค้า / Product Master</Th>
-                  <Th className="py-3.5 px-4 font-semibold text-stone-700">ช่องทาง / Sales Channel</Th>
-                  <Th className="py-3.5 px-4 font-semibold text-stone-700">หน่วยขายที่อนุญาต / Whitelisted UoMs</Th>
-                  <Th className="py-3.5 px-4 font-semibold text-stone-700">หน่วยนับฐาน / Base UoM</Th>
-                  <Th className="py-3.5 px-4 font-semibold text-stone-700">แก้ไขล่าสุด / Last Updated</Th>
+                  <Th className="py-3.5 px-4 font-semibold text-stone-700">{t('channel_uom.col.product')}</Th>
+                  <Th className="py-3.5 px-4 font-semibold text-stone-700">{t('channel_uom.col.channel')}</Th>
+                  <Th className="py-3.5 px-4 font-semibold text-stone-700">{t('channel_uom.col.allowed_uoms')}</Th>
+                  <Th className="py-3.5 px-4 font-semibold text-stone-700">{t('channel_uom.col.base_uom')}</Th>
+                  <Th className="py-3.5 px-4 font-semibold text-stone-700">{t('channel_uom.col.updated_at')}</Th>
                   <Th className="py-3.5 px-4 text-right"></Th>
                 </tr>
               </Thead>
@@ -338,7 +333,7 @@ export default function ProductChannelUomsPage() {
                         <span className="text-[10px] text-stone-400 font-mono">{item.name_en}</span>
                       </div>
                     </Td>
-                    
+
                     <Td className="py-4 px-4">
                       {item.channel === 'AKRA' ? (
                         <Badge className="bg-purple-100 text-purple-800 border border-purple-200 px-2 py-0.5 rounded text-xs font-semibold">
@@ -350,34 +345,34 @@ export default function ProductChannelUomsPage() {
                         </Badge>
                       )}
                     </Td>
-                    
+
                     <Td className="py-4 px-4">
                       <div className="flex flex-wrap gap-1.5 max-w-sm">
                         {item.allowed_uoms && item.allowed_uoms.length > 0 ? (
                           item.allowed_uoms.map(uomCode => (
-                            <span 
-                              key={uomCode} 
+                            <span
+                              key={uomCode}
                               className="inline-flex items-center px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-100 text-xs font-mono font-semibold"
                             >
                               {uomCode.toUpperCase()}
                             </span>
                           ))
                         ) : (
-                          <span className="text-red-500 font-medium text-xs">🔴 ไม่อนุญาตให้สั่งซื้อเลย / Locked</span>
+                          <span className="text-red-500 font-medium text-xs">🔴 {t('channel_uom.locked')}</span>
                         )}
                       </div>
                     </Td>
-                    
+
                     <Td className="py-4 px-4">
                       <span className="font-mono text-xs font-semibold text-stone-600 bg-stone-100 px-2 py-0.5 rounded">
                         {item.base_uom_code?.toUpperCase()}
                       </span>
                     </Td>
-                    
+
                     <Td className="py-4 px-4 text-xs text-stone-500 font-mono">
                       {new Date(item.updated_at).toLocaleString('th-TH', { hour12: false })}
                     </Td>
-                    
+
                     <Td className="py-4 px-4 text-right">
                       <Button
                         variant="ghost"
@@ -385,7 +380,7 @@ export default function ProductChannelUomsPage() {
                         onClick={() => handleEditClick(item)}
                         className="text-[#7a5a7e] hover:text-[#5a425d] hover:bg-[#7a5a7e]/5 transition-all flex items-center gap-1.5 ml-auto"
                       >
-                        <Edit2 className="w-3.5 h-3.5" /> แก้ไข / Edit
+                        <Edit2 className="w-3.5 h-3.5" /> {t('action.edit')}
                       </Button>
                     </Td>
                   </tr>
@@ -397,27 +392,27 @@ export default function ProductChannelUomsPage() {
 
         {/* Interactive Configuration Modal */}
         {showModal && (
-          <Modal 
-            title={modalMode === 'create' ? 'ตั้งค่าหน่วยจำหน่ายสินค้าใหม่ / Add Allowed UoM whitelist' : 'แก้ไขหน่วยจำหน่ายสินค้า / Edit UoM whitelist'} 
+          <Modal
+            title={modalMode === 'create' ? t('channel_uom.modal.create_title') : t('channel_uom.modal.edit_title')}
             onClose={() => setShowModal(false)}
           >
             <form onSubmit={handleSave} className="space-y-6 pt-2">
-              
+
               {/* Product Selection */}
               <div>
                 <label className="block text-sm font-semibold text-stone-700 mb-1.5">
-                  เลือกสินค้า / Select Product <span className="text-red-500">*</span>
+                  {t('channel_uom.modal.select_product_label')} <span className="text-red-500">*</span>
                 </label>
-                
+
                 {modalMode === 'create' ? (
                   <div className="relative">
                     <Input
                       value={modalProductSearch}
                       onChange={e => setModalProductSearch(e.target.value)}
-                      placeholder="พิมพ์เพื่อค้นหาตาม SKU หรือชื่อสินค้า... / Type to search SKU or name..."
+                      placeholder={t('channel_uom.search_placeholder')}
                       className="premium-input w-full"
                     />
-                    
+
                     {filteredModalProducts.length > 0 && (
                       <div className="absolute left-0 right-0 mt-1.5 bg-white border border-[#e4e0d6] rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto divide-y divide-stone-100">
                         {filteredModalProducts.map(p => (
@@ -450,7 +445,7 @@ export default function ProductChannelUomsPage() {
               {/* Channel Selection */}
               <div>
                 <label className="block text-sm font-semibold text-stone-700 mb-1.5">
-                  ช่องทางขาย / Sales Channel <span className="text-red-500">*</span>
+                  {t('channel_uom.modal.channel_label')} <span className="text-red-500">*</span>
                 </label>
                 {modalMode === 'create' ? (
                   <Select
@@ -458,8 +453,8 @@ export default function ProductChannelUomsPage() {
                     onChange={e => setSelectedChannel(e.target.value as 'TRD' | 'AKRA')}
                     className="premium-input w-full"
                   >
-                    <option value="AKRA">AKRA (ขายส่ง - Wholesale เท่านั้น)</option>
-                    <option value="TRD">TRD (ขายปลีก/ทั่วไป - General)</option>
+                    <option value="AKRA">{t('channel_uom.filter.akra')}</option>
+                    <option value="TRD">{t('channel_uom.filter.trd')}</option>
                   </Select>
                 ) : (
                   <Badge className="bg-purple-100 text-purple-800 border border-purple-200 px-3 py-1 rounded text-sm font-semibold">
@@ -472,10 +467,10 @@ export default function ProductChannelUomsPage() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="block text-sm font-semibold text-stone-700">
-                    เลือกหน่วยที่อนุญาตให้ขาย / Allowed Units of Measure <span className="text-red-500">*</span>
+                    {t('channel_uom.modal.uom_label')} <span className="text-red-500">*</span>
                   </label>
                   <span className="text-xs text-stone-400 font-medium">
-                    (คลิกเพื่อเลือก/ยกเลิก / Click to toggle)
+                    (Click to toggle)
                   </span>
                 </div>
 
@@ -488,8 +483,8 @@ export default function ProductChannelUomsPage() {
                         type="button"
                         onClick={() => toggleUom(uom.code)}
                         className={`uom-chip flex items-center justify-between p-2.5 rounded-lg border text-left font-sans transition-all shadow-sm ${
-                          isSelected 
-                            ? 'bg-emerald-50 border-emerald-500 text-emerald-900 ring-2 ring-emerald-500/20' 
+                          isSelected
+                            ? 'bg-emerald-50 border-emerald-500 text-emerald-900 ring-2 ring-emerald-500/20'
                             : 'bg-white border-[#d3cdbd] text-stone-700 hover:border-stone-400'
                         }`}
                       >
@@ -510,13 +505,13 @@ export default function ProductChannelUomsPage() {
 
               {/* Modal Action Buttons */}
               <div className="flex justify-end gap-2.5 pt-4 border-t border-stone-100">
-                <Button 
-                  type="button" 
-                  variant="ghost" 
+                <Button
+                  type="button"
+                  variant="ghost"
                   onClick={() => setShowModal(false)}
                   className="hover:bg-stone-50"
                 >
-                  ยกเลิก / Cancel
+                  {t('action.cancel')}
                 </Button>
                 <Button
                   type="submit"
@@ -525,10 +520,10 @@ export default function ProductChannelUomsPage() {
                 >
                   {submitting ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" /> กำลังบันทึก...
+                      <Loader2 className="w-4 h-4 animate-spin" /> {t('channel_uom.modal.saving')}
                     </>
                   ) : (
-                    'บันทึกการตั้งค่า / Save Settings'
+                    t('channel_uom.modal.save_settings')
                   )}
                 </Button>
               </div>

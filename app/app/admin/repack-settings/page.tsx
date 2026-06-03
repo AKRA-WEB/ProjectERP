@@ -5,10 +5,12 @@ import { get, patch } from '@/lib/api-client';
 import { Button, Input } from '@/components/ui';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Settings, Save, AlertCircle } from 'lucide-react';
+import { useT } from '@/lib/i18n';
 
 const CARD = 'bg-white border border-stone-200 rounded-xl p-6 shadow-sm';
 
 export default function RepackSettingsPage() {
+  const t = useT();
   const [threshold, setThreshold] = useState<number>(5);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -34,7 +36,7 @@ export default function RepackSettingsPage() {
     setError('');
     try {
       await patch('/api/settings/repack-loss-threshold', { threshold_pct: threshold });
-      alert('บันทึกการตั้งค่าเรียบร้อยแล้ว');
+      alert(t('repack.save_success'));
     } catch (err: unknown) {
       setError((err as Error).message || 'Failed to save settings');
     } finally {
@@ -47,17 +49,17 @@ export default function RepackSettingsPage() {
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-6">
       <h1 className="text-2xl font-bold flex items-center gap-2">
-        <Settings className="w-6 h-6 text-stone-600" /> ตั้งค่าการแบ่งบรรจุ (Repack Settings)
+        <Settings className="w-6 h-6 text-stone-600" /> {t('repack.page.title')}
       </h1>
 
       <div className={CARD}>
         <div className="space-y-6">
           <div>
-            <h2 className="text-lg font-bold text-stone-900 mb-1">เกณฑ์การสูญเสีย (Yield Loss Threshold)</h2>
-            <p className="text-sm text-stone-500 mb-4">กำหนดเปอร์เซ็นต์การสูญเสียสูงสุดที่อนุญาต หากเกินเกณฑ์นี้จะต้องใช้ Manager PIN เพื่ออนุมัติ</p>
-            
+            <h2 className="text-lg font-bold text-stone-900 mb-1">{t('repack.threshold.title')}</h2>
+            <p className="text-sm text-stone-500 mb-4">{t('repack.threshold.desc')}</p>
+
             <div className="flex items-center gap-4 max-w-xs">
-              <Input 
+              <Input
                 type="number"
                 min="0"
                 max="100"
@@ -77,9 +79,9 @@ export default function RepackSettingsPage() {
           )}
 
           <div className="pt-6 border-t border-stone-100">
-             <Button className="bg-stone-900 text-white px-8" onClick={handleSave} loading={saving}>
-                <Save className="w-4 h-4 mr-2" /> บันทึกการเปลี่ยนแปลง
-             </Button>
+            <Button className="bg-stone-900 text-white px-8" onClick={handleSave} loading={saving}>
+              <Save className="w-4 h-4 mr-2" /> {t('repack.btn_save')}
+            </Button>
           </div>
         </div>
       </div>

@@ -6,6 +6,7 @@ import { get, post, patch, del } from '@/lib/api-client';
 import type { Warehouse } from '@/types';
 import { DirectionalTransition } from '@/components/ui/directional-transition';
 import { ChevronDown, ChevronRight, Plus, Trash2, Edit2, ShieldAlert } from 'lucide-react';
+import { useT } from '@/lib/i18n';
 
 interface WarehouseWithStats extends Warehouse {
   user_count?: number;
@@ -29,6 +30,7 @@ interface VirtualLocation {
 }
 
 export default function AdminWarehousesPage() {
+  const t = useT();
   const [warehouses, setWarehouses] = useState<WarehouseWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [editWh, setEditWh] = useState<Warehouse | null>(null);
@@ -90,12 +92,12 @@ export default function AdminWarehousesPage() {
   }
 
   function openEdit(wh: Warehouse) {
-    setForm({ 
-      code: wh.code, 
-      name_th: wh.name_th, 
-      name_en: wh.name_en, 
-      address_th: wh.address_th ?? '', 
-      address_en: wh.address_en ?? '' 
+    setForm({
+      code: wh.code,
+      name_th: wh.name_th,
+      name_en: wh.name_en,
+      address_th: wh.address_th ?? '',
+      address_en: wh.address_en ?? ''
     });
     setError('');
     setEditWh(wh);
@@ -118,7 +120,7 @@ export default function AdminWarehousesPage() {
       }
       fetchWarehouses();
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
+      setError(e instanceof Error ? e.message : t('msg.save_error'));
     } finally {
       setSaving(false);
     }
@@ -138,18 +140,18 @@ export default function AdminWarehousesPage() {
   }
 
   async function handleDeleteZone(whId: string, zoneId: string) {
-    if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการลบโซนควบคุมอุณหภูมินี้? / Are you sure you want to delete this thermal zone?')) return;
+    if (!confirm(t('warehouse.zone.confirm_delete'))) return;
     try {
       await del(`/api/admin/warehouse-zones/${zoneId}`);
       await loadZones(whId);
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : 'ลบโซนล้มเหลว');
+      alert(e instanceof Error ? e.message : t('warehouse.zone.delete_error'));
     }
   }
 
   async function handleSaveZone() {
     if (!zoneForm.code.trim()) {
-      setZoneError('กรุณากรอกรหัสโซน / Please provide zone code');
+      setZoneError(t('warehouse.zone.code_required'));
       return;
     }
     setZoneError('');
@@ -164,7 +166,7 @@ export default function AdminWarehousesPage() {
       setZoneModal(null);
       await loadZones(warehouseId);
     } catch (e: unknown) {
-      setZoneError(e instanceof Error ? e.message : 'บันทึกโซนล้มเหลว');
+      setZoneError(e instanceof Error ? e.message : t('warehouse.zone.save_error'));
     } finally {
       setZoneSaving(false);
     }
@@ -174,18 +176,18 @@ export default function AdminWarehousesPage() {
   const isEdit = !!editWh;
 
   const thermalTypeBadges: Record<string, { label: string; variant: 'gray' | 'yellow' | 'blue' | 'red' }> = {
-    ambient: { label: 'Ambient (ทั่วไป)', variant: 'gray' },
-    sensitive: { label: 'Sensitive (อ่อนไหว)', variant: 'yellow' },
-    chilled: { label: 'Chilled (แช่เย็น)', variant: 'blue' },
-    frozen: { label: 'Frozen (แช่แข็ง)', variant: 'red' },
+    ambient: { label: `Ambient (${t('warehouse.thermal.ambient')})`, variant: 'gray' },
+    sensitive: { label: `Sensitive (${t('warehouse.thermal.sensitive')})`, variant: 'yellow' },
+    chilled: { label: `Chilled (${t('warehouse.thermal.chilled')})`, variant: 'blue' },
+    frozen: { label: `Frozen (${t('warehouse.thermal.frozen')})`, variant: 'red' },
   };
 
   const virtualPurposeLabels: Record<string, string> = {
-    buffer: 'Buffer (สำรอง)',
-    damage: 'Damage & Claims (กักกัน/เสียหาย)',
-    clearance: 'Clearance (สต็อกรอระบาย)',
-    scrap: 'Scrap & Write-off (เศษซาก)',
-    repack: 'Repack Staging (รอรีแพ็ค)',
+    buffer: `Buffer (${t('warehouse.virtual.buffer')})`,
+    damage: `Damage & Claims (${t('warehouse.virtual.damage')})`,
+    clearance: `Clearance (${t('warehouse.virtual.clearance')})`,
+    scrap: `Scrap & Write-off (${t('warehouse.virtual.scrap')})`,
+    repack: `Repack Staging (${t('warehouse.virtual.repack')})`,
   };
 
   return (
@@ -193,10 +195,10 @@ export default function AdminWarehousesPage() {
       <div className="max-w-[1440px] mx-auto pb-12">
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">คลังสินค้า / Warehouses</h1>
-            <p className="text-sm text-gray-500">{warehouses.length} คลัง</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('page.warehouses')}</h1>
+            <p className="text-sm text-gray-500">{warehouses.length} {t('warehouse.count_suffix')}</p>
           </div>
-          <Button onClick={openCreate} className="w-full sm:w-auto">+ เพิ่มคลัง</Button>
+          <Button onClick={openCreate} className="w-full sm:w-auto">+ {t('warehouse.add')}</Button>
         </div>
 
         <div className="rounded-xl bg-white shadow-sm border border-gray-100 overflow-hidden">
@@ -204,17 +206,17 @@ export default function AdminWarehousesPage() {
             <Thead>
               <tr>
                 <Th className="w-[40px]"></Th>
-                <Th>รหัส / Code</Th>
-                <Th>ชื่อ (TH)</Th>
+                <Th>{t('label.code')}</Th>
+                <Th>{t('label.name')} (TH)</Th>
                 <Th className="hidden sm:table-cell">Name (EN)</Th>
-                <Th className="hidden sm:table-cell">ผู้ใช้ / Users</Th>
-                <Th>สถานะ</Th>
+                <Th className="hidden sm:table-cell">{t('page.users')} / {t('warehouse.users_suffix')}</Th>
+                <Th>{t('label.status')}</Th>
                 <Th></Th>
               </tr>
             </Thead>
             <Tbody>
               {loading ? (
-                <tr><Td colSpan={7}><div className="py-8 text-center text-gray-400">กำลังโหลด...</div></Td></tr>
+                <tr><Td colSpan={7}><div className="py-8 text-center text-gray-400">{t('msg.loading_data')}</div></Td></tr>
               ) : (
                 warehouses.map((w) => {
                   const isExpanded = expandedWhId === w.id;
@@ -229,17 +231,17 @@ export default function AdminWarehousesPage() {
                         <Td className="font-mono font-medium text-sm text-stone-700">{w.code}</Td>
                         <Td className="text-sm font-medium text-stone-900">{w.name_th}</Td>
                         <Td className="text-sm text-gray-500 hidden sm:table-cell">{w.name_en}</Td>
-                        <Td className="text-sm hidden sm:table-cell text-stone-600">{w.user_count ?? 0} คน</Td>
+                        <Td className="text-sm hidden sm:table-cell text-stone-600">{w.user_count ?? 0} {t('warehouse.users_suffix')}</Td>
                         <Td>
                           <Badge variant={w.is_active ? 'green' : 'gray'}>
-                            {w.is_active ? 'ใช้งาน' : 'ปิด'}
+                            {w.is_active ? t('status.active') : t('status.inactive')}
                           </Badge>
                         </Td>
                         <Td>
                           <div className="flex items-center gap-3">
-                            <button className="text-sm text-blue-600 hover:text-blue-700 font-medium" onClick={() => openEdit(w)}>แก้ไข</button>
+                            <button className="text-sm text-blue-600 hover:text-blue-700 font-medium" onClick={() => openEdit(w)}>{t('action.edit')}</button>
                             <button className="text-sm text-stone-500 hover:text-stone-700 font-medium" onClick={() => toggleExpand(w.id)}>
-                              {isExpanded ? 'ซ่อนโซน' : 'ดูโซน'}
+                              {isExpanded ? t('warehouse.action_hide_zones') : t('warehouse.action_view_zones')}
                             </button>
                           </div>
                         </Td>
@@ -253,11 +255,11 @@ export default function AdminWarehousesPage() {
                               <div className="space-y-4">
                                 <div className="flex items-center justify-between border-b border-stone-200/60 pb-2">
                                   <div>
-                                    <h3 className="font-bold text-stone-900 text-sm">โซนควบคุมอุณหภูมิ / Thermal Zones</h3>
-                                    <p className="text-[11px] text-stone-400">ควบคุมและกักกันประเภทอุณหภูมิสำหรับ Cold-Chain</p>
+                                    <h3 className="font-bold text-stone-900 text-sm">{t('warehouse.thermal_title')}</h3>
+                                    <p className="text-[11px] text-stone-400">{t('warehouse.thermal_desc')}</p>
                                   </div>
                                   <Button onClick={() => openAddZone(w.id)} size="sm" className="h-7 text-xs px-2.5 flex items-center gap-1 bg-stone-900 hover:bg-stone-800">
-                                    <Plus size={14} /> เพิ่มโซน / Add Zone
+                                    <Plus size={14} /> {t('warehouse.btn_add_zone')}
                                   </Button>
                                 </div>
 
@@ -265,14 +267,14 @@ export default function AdminWarehousesPage() {
                                   <Table>
                                     <Thead>
                                       <tr>
-                                        <Th className="py-2 text-[11px] font-bold text-stone-500">รหัสโซน / Code</Th>
-                                        <Th className="py-2 text-[11px] font-bold text-stone-500">ประเภทอุณหภูมิ / Type</Th>
+                                        <Th className="py-2 text-[11px] font-bold text-stone-500">{t('label.code')}</Th>
+                                        <Th className="py-2 text-[11px] font-bold text-stone-500">Type</Th>
                                         <Th className="py-2"></Th>
                                       </tr>
                                     </Thead>
                                     <Tbody>
                                       {!zones[w.id] || zones[w.id].length === 0 ? (
-                                        <tr><Td colSpan={3} className="py-6 text-center text-xs text-stone-400">ไม่มีโซนควบคุม / No Thermal Zones</Td></tr>
+                                        <tr><Td colSpan={3} className="py-6 text-center text-xs text-stone-400">{t('warehouse.no_zones')}</Td></tr>
                                       ) : (
                                         zones[w.id].map((z) => (
                                           <tr key={z.id} className="hover:bg-stone-50/50">
@@ -284,10 +286,10 @@ export default function AdminWarehousesPage() {
                                             </Td>
                                             <Td className="py-2.5 text-right pr-4">
                                               <div className="flex items-center justify-end gap-3.5">
-                                                <button onClick={() => openEditZone(w.id, z)} className="text-stone-400 hover:text-blue-600 transition-colors p-1" title="แก้ไข">
+                                                <button onClick={() => openEditZone(w.id, z)} className="text-stone-400 hover:text-blue-600 transition-colors p-1">
                                                   <Edit2 size={13} />
                                                 </button>
-                                                <button onClick={() => handleDeleteZone(w.id, z.id)} className="text-stone-400 hover:text-red-600 transition-colors p-1" title="ลบ">
+                                                <button onClick={() => handleDeleteZone(w.id, z.id)} className="text-stone-400 hover:text-red-600 transition-colors p-1">
                                                   <Trash2 size={13} />
                                                 </button>
                                               </div>
@@ -303,23 +305,23 @@ export default function AdminWarehousesPage() {
                               {/* Virtual Locations Reference Column */}
                               <div className="space-y-4">
                                 <div className="border-b border-stone-200/60 pb-2">
-                                  <h3 className="font-bold text-stone-900 text-sm">คลังเสมือน / Virtual Locations</h3>
-                                  <p className="text-[11px] text-stone-400">คลังทางสถิติและกักกันระดับระบบ (Global / Non-Physical)</p>
+                                  <h3 className="font-bold text-stone-900 text-sm">{t('warehouse.virtual_title')}</h3>
+                                  <p className="text-[11px] text-stone-400">{t('warehouse.virtual_desc')}</p>
                                 </div>
 
                                 <div className="bg-white rounded-lg border border-stone-200/50 overflow-hidden shadow-xs">
                                   <Table>
                                     <Thead>
                                       <tr>
-                                        <Th className="py-2 text-[11px] font-bold text-stone-500">รหัส / Code</Th>
-                                        <Th className="py-2 text-[11px] font-bold text-stone-500">วัตถุประสงค์ / Purpose</Th>
-                                        <Th className="py-2 text-[11px] font-bold text-stone-500 text-center">พร้อมขาย / Sellable</Th>
-                                        <Th className="py-2 text-[11px] font-bold text-stone-500">ช่องทางขาย / Channels</Th>
+                                        <Th className="py-2 text-[11px] font-bold text-stone-500">{t('label.code')}</Th>
+                                        <Th className="py-2 text-[11px] font-bold text-stone-500">Purpose</Th>
+                                        <Th className="py-2 text-[11px] font-bold text-stone-500 text-center">Sellable</Th>
+                                        <Th className="py-2 text-[11px] font-bold text-stone-500">Channels</Th>
                                       </tr>
                                     </Thead>
                                     <Tbody>
                                       {virtualLocs.length === 0 ? (
-                                        <tr><Td colSpan={4} className="py-6 text-center text-xs text-stone-400">ไม่มีข้อมูลคลังเสมือน / No Virtual Locations</Td></tr>
+                                        <tr><Td colSpan={4} className="py-6 text-center text-xs text-stone-400">{t('warehouse.no_virtual')}</Td></tr>
                                       ) : (
                                         virtualLocs.map((vl) => (
                                           <tr key={vl.id} className="hover:bg-stone-50/50">
@@ -338,7 +340,7 @@ export default function AdminWarehousesPage() {
                                                   ))}
                                                 </div>
                                               ) : (
-                                                <span className="text-[11px] text-stone-400">ทุกช่องทาง / All</span>
+                                                <span className="text-[11px] text-stone-400">{t('label.all')}</span>
                                               )}
                                             </Td>
                                           </tr>
@@ -363,22 +365,22 @@ export default function AdminWarehousesPage() {
         {/* Warehouse Create/Edit Modal */}
         {isOpen && (
           <Modal open onClose={() => { setShowCreate(false); setEditWh(null); }}>
-            <ModalHeader>{isEdit ? 'แก้ไขคลังสินค้า' : 'เพิ่มคลังสินค้าใหม่'}</ModalHeader>
+            <ModalHeader>{isEdit ? t('warehouse.modal.edit_title') : t('warehouse.modal.create_title')}</ModalHeader>
             <ModalBody>
               <div className="space-y-4">
-                <Input label="รหัสคลัง / Code *" value={form.code} onChange={(e) => setF('code', e.target.value)} disabled={isEdit} />
+                <Input label={`${t('label.code')} *`} value={form.code} onChange={(e) => setF('code', e.target.value)} disabled={isEdit} />
                 <div className="grid grid-cols-2 gap-4">
-                  <Input label="ชื่อ (TH) *" value={form.name_th} onChange={(e) => setF('name_th', e.target.value)} />
+                  <Input label={`${t('label.name')} (TH) *`} value={form.name_th} onChange={(e) => setF('name_th', e.target.value)} />
                   <Input label="Name (EN) *" value={form.name_en} onChange={(e) => setF('name_en', e.target.value)} />
-                  <Input label="ที่อยู่ (TH)" value={form.address_th} onChange={(e) => setF('address_th', e.target.value)} />
+                  <Input label={`${t('label.address')} (TH)`} value={form.address_th} onChange={(e) => setF('address_th', e.target.value)} />
                   <Input label="Address (EN)" value={form.address_en} onChange={(e) => setF('address_en', e.target.value)} />
                 </div>
                 {error && <p className="text-sm text-red-600">{error}</p>}
               </div>
             </ModalBody>
             <ModalFooter>
-              <Button variant="ghost" onClick={() => { setShowCreate(false); setEditWh(null); }}>ยกเลิก</Button>
-              <Button onClick={handleSave} loading={saving}>{isEdit ? 'บันทึก' : 'สร้างคลัง'}</Button>
+              <Button variant="ghost" onClick={() => { setShowCreate(false); setEditWh(null); }}>{t('action.cancel')}</Button>
+              <Button onClick={handleSave} loading={saving}>{isEdit ? t('action.save') : t('warehouse.modal.create_btn')}</Button>
             </ModalFooter>
           </Modal>
         )}
@@ -386,25 +388,25 @@ export default function AdminWarehousesPage() {
         {/* Zone Add/Edit Modal */}
         {zoneModal?.open && (
           <Modal open onClose={() => setZoneModal(null)}>
-            <ModalHeader>{zoneModal.zoneId ? 'แก้ไขโซนควบคุมอุณหภูมิ / Edit Zone' : 'เพิ่มโซนควบคุมอุณหภูมิ / Add Zone'}</ModalHeader>
+            <ModalHeader>{zoneModal.zoneId ? t('warehouse.zone_modal_edit') : t('warehouse.zone_modal_add')}</ModalHeader>
             <ModalBody>
               <div className="space-y-4">
-                <Input 
-                  label="รหัสโซน / Zone Code *" 
-                  placeholder="เช่น S1, C1, Z-FREEZE" 
-                  value={zoneForm.code} 
+                <Input
+                  label={`${t('label.code')} *`}
+                  placeholder="e.g. S1, C1, Z-FREEZE"
+                  value={zoneForm.code}
                   onChange={(e) => setZoneForm(z => ({ ...z, code: e.target.value }))}
                 />
-                
+
                 <Select
-                  label="ประเภทการคุมอุณหภูมิ / Thermal Type *"
+                  label="Thermal Type *"
                   value={zoneForm.thermal_type}
                   onChange={(e) => setZoneForm(z => ({ ...z, thermal_type: e.target.value as 'ambient' | 'sensitive' | 'chilled' | 'frozen' }))}
                   options={[
-                    { value: 'ambient', label: 'Ambient (ควบคุมอุณหภูมิปกติ)' },
-                    { value: 'sensitive', label: 'Sensitive (อ่อนไหวต่อสิ่งแวดล้อม)' },
-                    { value: 'chilled', label: 'Chilled (แช่เย็น / Cold Chain)' },
-                    { value: 'frozen', label: 'Frozen (แช่แข็ง / Deep Cold)' }
+                    { value: 'ambient', label: `Ambient (${t('warehouse.thermal.ambient')})` },
+                    { value: 'sensitive', label: `Sensitive (${t('warehouse.thermal.sensitive')})` },
+                    { value: 'chilled', label: `Chilled (${t('warehouse.thermal.chilled')})` },
+                    { value: 'frozen', label: `Frozen (${t('warehouse.thermal.frozen')})` }
                   ]}
                 />
 
@@ -417,9 +419,9 @@ export default function AdminWarehousesPage() {
               </div>
             </ModalBody>
             <ModalFooter>
-              <Button variant="ghost" onClick={() => setZoneModal(null)}>ยกเลิก</Button>
+              <Button variant="ghost" onClick={() => setZoneModal(null)}>{t('action.cancel')}</Button>
               <Button onClick={handleSaveZone} loading={zoneSaving}>
-                {zoneModal.zoneId ? 'บันทึก / Save' : 'เพิ่มโซน / Add Zone'}
+                {zoneModal.zoneId ? t('action.save') : t('warehouse.btn_add_zone')}
               </Button>
             </ModalFooter>
           </Modal>

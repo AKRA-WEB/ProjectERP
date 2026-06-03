@@ -3,15 +3,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Table, Thead, Tbody, Th, Td, Badge, Card, CardHeader, CardBody } from '@/components/ui';
 import { get } from '@/lib/api-client';
-import { useLanguage } from '@/lib/i18n';
+import { useT } from '@/lib/i18n';
 import { formatDate } from '@/lib/utils';
 import type { BusinessUnit } from '@/types';
 
 export default function AdminBusinessUnitsPage() {
+  const t = useT();
   const [businessUnits, setBusinessUnits] = useState<BusinessUnit[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const { lang } = useLanguage();
 
   const fetchBusinessUnits = useCallback(async () => {
     setLoading(true);
@@ -20,11 +20,11 @@ export default function AdminBusinessUnitsPage() {
       const data = await get<BusinessUnit[]>('/api/admin/business-units');
       setBusinessUnits(data);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'โหลดข้อมูลหน่วยธุรกิจไม่สำเร็จ / Failed to load business units');
+      setError(e instanceof Error ? e.message : t('business_unit.load_error'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetchBusinessUnits();
@@ -33,7 +33,7 @@ export default function AdminBusinessUnitsPage() {
   if (loading) {
     return (
       <div className="py-16 text-center text-gray-500 font-medium">
-        {lang === 'en' ? 'Loading business units...' : 'กำลังโหลดข้อมูลหน่วยธุรกิจ...'}
+        {t('msg.loading_data')}
       </div>
     );
   }
@@ -42,12 +42,10 @@ export default function AdminBusinessUnitsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          {lang === 'en' ? 'Business Units' : 'หน่วยธุรกิจ (Business Units)'}
+          {t('business_unit.page.title')}
         </h1>
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          {lang === 'en' 
-            ? 'Manage and view partitioned business units' 
-            : 'ดูและจัดการการแบ่งขอบเขตหน่วยธุรกิจ (TRD Bakermart / Akra Wholesale)'}
+          {t('business_unit.page.subtitle')}
         </p>
       </div>
 
@@ -61,10 +59,10 @@ export default function AdminBusinessUnitsPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-              {lang === 'en' ? 'All Business Units' : 'หน่วยธุรกิจทั้งหมด'}
+              {t('business_unit.all_units')}
             </h2>
             <Badge variant="blue">
-              {businessUnits.length} {lang === 'en' ? 'Units' : 'หน่วย'}
+              {businessUnits.length} {t('business_unit.units_suffix')}
             </Badge>
           </div>
         </CardHeader>
@@ -73,17 +71,17 @@ export default function AdminBusinessUnitsPage() {
             <Table>
               <Thead>
                 <tr>
-                  <Th>{lang === 'en' ? 'Code' : 'รหัส'}</Th>
-                  <Th>{lang === 'en' ? 'Name (TH)' : 'ชื่อภาษาไทย'}</Th>
-                  <Th>{lang === 'en' ? 'Name (EN)' : 'ชื่อภาษาอังกฤษ'}</Th>
-                  <Th>{lang === 'en' ? 'Created At' : 'วันที่สร้าง'}</Th>
+                  <Th>{t('business_unit.col.code')}</Th>
+                  <Th>{t('business_unit.col.name_th')}</Th>
+                  <Th>{t('business_unit.col.name_en')}</Th>
+                  <Th>{t('business_unit.col.created_at')}</Th>
                 </tr>
               </Thead>
               <Tbody>
                 {businessUnits.length === 0 ? (
                   <tr>
                     <Td colSpan={4} className="text-center text-gray-500 py-8 dark:text-gray-400">
-                      {lang === 'en' ? 'No business units found' : 'ไม่พบข้อมูลหน่วยธุรกิจ'}
+                      {t('business_unit.no_data')}
                     </Td>
                   </tr>
                 ) : (
@@ -101,7 +99,7 @@ export default function AdminBusinessUnitsPage() {
                         {bu.name_en}
                       </Td>
                       <Td className="text-sm text-gray-500 dark:text-gray-400 font-mono">
-                        {formatDate(bu.created_at, lang)}
+                        {formatDate(bu.created_at)}
                       </Td>
                     </tr>
                   ))

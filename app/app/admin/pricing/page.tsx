@@ -2,16 +2,16 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { 
-  Tag, 
-  Search, 
-  Plus, 
-  Upload, 
-  List, 
-  ArrowLeft, 
-  HelpCircle, 
-  CheckCircle, 
-  XCircle, 
+import {
+  Tag,
+  Search,
+  Plus,
+  Upload,
+  List,
+  ArrowLeft,
+  HelpCircle,
+  CheckCircle,
+  XCircle,
   AlertCircle,
   Loader2,
   Calendar
@@ -20,6 +20,7 @@ import { get, post } from '@/lib/api-client';
 import { Button, Table, Thead, Tbody, Th, Td, Pagination } from '@/components/ui';
 import { useToast } from '@/components/ui/Toast';
 import { DirectionalTransition } from '@/components/ui/directional-transition';
+import { useT } from '@/lib/i18n';
 import type { Product, ProductPrice } from '@/types';
 import { cn } from '@/lib/utils';
 
@@ -31,6 +32,7 @@ interface ProductSearchProps {
 }
 
 function ProductSearch({ onSelect, selectedProduct, onClear }: ProductSearchProps) {
+  const t = useT();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Product[]>([]);
   const [open, setOpen] = useState(false);
@@ -61,14 +63,14 @@ function ProductSearch({ onSelect, selectedProduct, onClear }: ProductSearchProp
       setOpen(false);
       return;
     }
-    const t = setTimeout(async () => {
+    const timer = setTimeout(async () => {
       setLoading(true);
       try {
         const res = await get<{ data: Product[] }>(
           `/api/products?search=${encodeURIComponent(query)}&limit=10`
         );
-        const products = Array.isArray(res) 
-          ? res 
+        const products = Array.isArray(res)
+          ? res
           : (res && typeof res === 'object' && 'data' in res ? (res as { data: Product[] }).data : []);
         setResults(products);
         setOpen(products.length > 0);
@@ -78,7 +80,7 @@ function ProductSearch({ onSelect, selectedProduct, onClear }: ProductSearchProp
         setLoading(false);
       }
     }, 300);
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, [query, selectedProduct]);
 
   return (
@@ -87,7 +89,7 @@ function ProductSearch({ onSelect, selectedProduct, onClear }: ProductSearchProp
         <input
           type="text"
           className="w-full rounded border border-[#e4e0d6] px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#7a5a7e] focus:ring-1 focus:ring-[#7a5a7e] min-h-[38px] pr-8"
-          placeholder="ค้นหาสินค้าด้วยชื่อหรือ SKU..."
+          placeholder={t('placeholder.search_product_sku')}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => { if (results.length > 0) setOpen(true); }}
@@ -105,7 +107,7 @@ function ProductSearch({ onSelect, selectedProduct, onClear }: ProductSearchProp
       {open && results.length > 0 && (
         <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-[#e4e0d6] rounded-md shadow-lg max-h-52 overflow-y-auto">
           {loading && (
-            <p className="px-3 py-2 text-xs text-gray-400">กำลังค้นหา...</p>
+            <p className="px-3 py-2 text-xs text-gray-400">{t('msg.searching')}</p>
           )}
           {!loading && results.map((p) => (
             <button
@@ -132,6 +134,7 @@ function ProductSearch({ onSelect, selectedProduct, onClear }: ProductSearchProp
 
 export default function PricingAdminPage() {
   const toast = useToast();
+  const t = useT();
   const [activeTab, setActiveTab] = useState<'list' | 'create' | 'bulk'>('list');
 
   // List tab states
@@ -174,13 +177,13 @@ export default function PricingAdminPage() {
       const channelParam = channelFilter !== 'all' ? `&channel=${channelFilter}` : '';
       const tierParam = tierFilter !== 'all' ? `&tier=${tierFilter}` : '';
       const searchParam = search ? `&search=${encodeURIComponent(search)}` : '';
-      
+
       const res = await get<{
         data: (ProductPrice & { sku: string; name_th: string; name_en: string | null; unit_cost: number })[];
         total: number;
         total_pages: number;
       }>(`/api/admin/product-prices?page=${page}&limit=12${channelParam}${tierParam}${searchParam}`);
-      
+
       if (res) {
         setPrices(res.data || []);
         setTotalPages(res.total_pages || 1);
@@ -188,11 +191,11 @@ export default function PricingAdminPage() {
       }
     } catch (err) {
       console.error('Failed to load prices:', err);
-      toast('error', 'เกิดข้อผิดพลาดในการโหลดราคาสินค้า');
+      toast('error', t('msg.save_error'));
     } finally {
       setLoadingList(false);
     }
-  }, [page, channelFilter, tierFilter, search, toast]);
+  }, [page, channelFilter, tierFilter, search, toast, t]);
 
   useEffect(() => {
     if (activeTab === 'list') {
@@ -203,11 +206,11 @@ export default function PricingAdminPage() {
   // Handle Search Debounce
   useEffect(() => {
     if (activeTab !== 'list') return;
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       setPage(1);
       fetchPrices();
     }, 400);
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, [search, activeTab, fetchPrices]);
 
   // Live parser for bulk CSV
@@ -223,43 +226,43 @@ export default function PricingAdminPage() {
       if (parts.length < 4 || (parts.length === 1 && parts[0] === '')) return null;
 
       const [sku, channel, tier, priceStr, validFrom, validTo] = parts;
-      
+
       let isValid = true;
       let error = '';
 
       if (!sku) {
         isValid = false;
-        error = 'ระบุ SKU';
+        error = t('error.select_sku');
       }
       if (channel !== 'TRD' && channel !== 'AKRA') {
         isValid = false;
-        error = 'ช่องทางต้องเป็น TRD หรือ AKRA';
+        error = t('error.invalid_channel');
       }
       if (tier !== 'T0' && tier !== 'T1' && tier !== 'T2' && tier !== 'T3') {
         isValid = false;
-        error = 'ระดับสมาชิกต้องเป็น T0, T1, T2 หรือ T3';
+        error = t('error.invalid_tier');
       }
-      
+
       const price = Number(priceStr);
       if (isNaN(price) || price < 0) {
         isValid = false;
-        error = 'ราคาต้องเป็นจำนวนตัวเลขและมากกว่าหรือเท่ากับ 0';
+        error = t('error.invalid_price');
       }
 
       const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
       if (!validFrom || !dateRegex.test(validFrom)) {
         isValid = false;
-        error = 'วันที่เริ่มต้น (valid_from) ต้องอยู่ในรูปแบบ YYYY-MM-DD';
+        error = t('error.invalid_date_format');
       }
 
       if (validTo && !dateRegex.test(validTo)) {
         isValid = false;
-        error = 'วันที่สิ้นสุด (valid_to) ต้องอยู่ในรูปแบบ YYYY-MM-DD';
+        error = t('error.invalid_date_format');
       }
 
       if (validFrom && validTo && validTo < validFrom) {
         isValid = false;
-        error = 'วันที่สิ้นสุดต้องไม่น้อยกว่าวันที่เริ่มต้น';
+        error = t('error.date_range');
       }
 
       return {
@@ -275,23 +278,23 @@ export default function PricingAdminPage() {
     }).filter(x => x !== null) as typeof parsedPreview;
 
     setParsedPreview(parsed);
-  }, [bulkCsv]);
+  }, [bulkCsv, t]);
 
   // Form Submit: Add Single Price
   const handleSingleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedProduct) {
-      toast('error', 'กรุณาเลือกสินค้า');
+      toast('error', t('error.select_product'));
       return;
     }
     const priceNum = Number(formPrice);
     if (isNaN(priceNum) || priceNum < 0 || formPrice === '') {
-      toast('error', 'กรุณาระบุราคาสินค้าที่ถูกต้อง');
+      toast('error', t('error.invalid_price'));
       return;
     }
 
     if (formValidTo && formValidTo < formValidFrom) {
-      toast('error', 'วันที่สิ้นสุดต้องไม่น้อยกว่าวันที่เริ่มต้น');
+      toast('error', t('error.date_range'));
       return;
     }
 
@@ -309,7 +312,7 @@ export default function PricingAdminPage() {
       });
 
       if (res && res.inserted > 0) {
-        toast('success', 'บันทึกราคาสินค้าสำเร็จ');
+        toast('success', t('msg.save_success'));
         // Reset form
         setSelectedProduct(null);
         setFormPrice('');
@@ -319,7 +322,7 @@ export default function PricingAdminPage() {
     } catch (err) {
       const error = err as Error;
       console.error(error);
-      toast('error', error.message || 'ล้มเหลวในการบันทึกราคา');
+      toast('error', error.message || t('msg.save_error'));
     } finally {
       setSubmittingSingle(false);
     }
@@ -329,12 +332,12 @@ export default function PricingAdminPage() {
   const handleBulkSubmit = async () => {
     const invalidRows = parsedPreview.filter(r => !r.isValid);
     if (invalidRows.length > 0) {
-      toast('error', 'กรุณาแก้ไขแถวที่ระบุข้อผิดพลาดก่อนบันทึก');
+      toast('error', t('msg.fix_errors_before_save'));
       return;
     }
 
     if (parsedPreview.length === 0) {
-      toast('error', 'ไม่มีรายการข้อมูลสำหรับนำเข้า');
+      toast('error', t('msg.no_records'));
       return;
     }
 
@@ -352,14 +355,14 @@ export default function PricingAdminPage() {
       });
 
       if (res) {
-        toast('success', `นำเข้าราคาสำเร็จทั้งหมด ${res.inserted} รายการ`);
+        toast('success', `${t('msg.import_success')} (${res.inserted})`);
         setBulkCsv('');
         setActiveTab('list');
       }
     } catch (err) {
       const error = err as Error;
       console.error(error);
-      toast('error', error.message || 'เกิดข้อผิดพลาดในการนำเข้าข้อมูล');
+      toast('error', error.message || t('msg.import_error'));
     } finally {
       setSubmittingBulk(false);
     }
@@ -372,7 +375,7 @@ export default function PricingAdminPage() {
   return (
     <DirectionalTransition>
       <div className="max-w-[1100px] mx-auto min-h-[calc(100vh-140px)] font-sans px-4 py-8">
-        
+
         {/* Style tweaks */}
         <style dangerouslySetInnerHTML={{ __html: `
           .pricing-tab {
@@ -406,8 +409,8 @@ export default function PricingAdminPage() {
         {/* Back and Title */}
         <div className="mb-8 flex items-center justify-between border-b border-[#e4e0d6] pb-6">
           <div className="flex items-center gap-4">
-            <Link 
-              href="/app/admin" 
+            <Link
+              href="/app/admin"
               className="w-9 h-9 rounded-full border border-[#e4e0d6] flex items-center justify-center hover:bg-stone-50 text-[#78716c] hover:text-[#1c1917] transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -416,40 +419,40 @@ export default function PricingAdminPage() {
               <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-[#7a5a7e] font-semibold mb-1">
                 <span>ADMIN PANEL</span>
                 <span className="w-1.5 h-1.5 rounded-full bg-[#7a5a7e]/40" />
-                <span>ราคาสินค้า</span>
+                <span>{t('page.admin_pricing')}</span>
               </div>
-              <h1 className="font-display text-[26px] font-semibold tracking-tight text-[#1c1917] m-0">ตั้งค่าราคาสินค้า (Pricing Engine)</h1>
+              <h1 className="font-display text-[26px] font-semibold tracking-tight text-[#1c1917] m-0">{t('pricing.page.title')}</h1>
             </div>
           </div>
         </div>
 
         {/* Navigation Tabs */}
         <div className="flex border-b border-[#e4e0d6] mb-6 gap-2">
-          <button 
-            onClick={() => { setActiveTab('list'); setPage(1); }} 
+          <button
+            onClick={() => { setActiveTab('list'); setPage(1); }}
             className={cn("pricing-tab", activeTab === 'list' && "active")}
           >
             <span className="flex items-center gap-2">
               <List className="w-4 h-4" />
-              รายการราคาสินค้า ({totalItems})
+              {t('pricing.tab.list')} ({totalItems})
             </span>
           </button>
-          <button 
-            onClick={() => setActiveTab('create')} 
+          <button
+            onClick={() => setActiveTab('create')}
             className={cn("pricing-tab", activeTab === 'create' && "active")}
           >
             <span className="flex items-center gap-2">
               <Plus className="w-4 h-4" />
-              ตั้งค่าราคาใหม่
+              {t('pricing.tab.create')}
             </span>
           </button>
-          <button 
-            onClick={() => setActiveTab('bulk')} 
+          <button
+            onClick={() => setActiveTab('bulk')}
             className={cn("pricing-tab", activeTab === 'bulk' && "active")}
           >
             <span className="flex items-center gap-2">
               <Upload className="w-4 h-4" />
-              นำเข้าข้อมูลแบบกลุ่ม (CSV)
+              {t('pricing.tab.bulk')}
             </span>
           </button>
         </div>
@@ -457,14 +460,14 @@ export default function PricingAdminPage() {
         {/* Tab 1: Price List */}
         {activeTab === 'list' && (
           <div className="premium-card p-6">
-            
+
             {/* Filters Row */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               <div className="relative">
                 <Search className="absolute left-3 top-2.5 w-4 h-4 text-stone-400" />
                 <input
                   type="text"
-                  placeholder="ค้นหา SKU หรือชื่อสินค้า..."
+                  placeholder={t('placeholder.search_product_sku')}
                   className="pl-9 w-full rounded border border-[#e4e0d6] px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#7a5a7e]"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -477,7 +480,7 @@ export default function PricingAdminPage() {
                   value={channelFilter}
                   onChange={(e) => { setChannelFilter(e.target.value as 'all' | 'TRD' | 'AKRA'); setPage(1); }}
                 >
-                  <option value="all">ช่องทางการขายทั้งหมด (Channels)</option>
+                  <option value="all">{t('pricing.all_channels')}</option>
                   <option value="TRD">TRD (Traditional Trade)</option>
                   <option value="AKRA">AKRA (Retail/POS)</option>
                 </select>
@@ -489,20 +492,20 @@ export default function PricingAdminPage() {
                   value={tierFilter}
                   onChange={(e) => { setTierFilter(e.target.value as 'all' | 'T0' | 'T1' | 'T2' | 'T3'); setPage(1); }}
                 >
-                  <option value="all">ระดับสมาชิกทั้งหมด (Tiers)</option>
-                  <option value="T0">T0 (ราคาเริ่มต้น/มาตรฐาน)</option>
-                  <option value="T1">T1 (สมาชิกระดับ 1)</option>
-                  <option value="T2">T2 (สมาชิกระดับ 2)</option>
-                  <option value="T3">T3 (สมาชิกระดับ 3)</option>
+                  <option value="all">{t('pricing.all_tiers')}</option>
+                  <option value="T0">{t('pricing.tier.t0_label')}</option>
+                  <option value="T1">{t('pricing.tier.t1_label')}</option>
+                  <option value="T2">{t('pricing.tier.t2_label')}</option>
+                  <option value="T3">{t('pricing.tier.t3_label')}</option>
                 </select>
               </div>
 
               <div className="flex justify-end">
-                <Button 
+                <Button
                   onClick={() => { setSearch(''); setChannelFilter('all'); setTierFilter('all'); setPage(1); }}
                   className="border border-[#e4e0d6] bg-stone-50 hover:bg-stone-100 text-stone-700 font-medium text-xs rounded px-4 min-h-[38px]"
                 >
-                  ล้างตัวกรอง
+                  {t('action.clear_filter')}
                 </Button>
               </div>
             </div>
@@ -511,13 +514,13 @@ export default function PricingAdminPage() {
             {loadingList ? (
               <div className="flex flex-col items-center justify-center py-20">
                 <Loader2 className="w-10 h-10 text-[#7a5a7e] animate-spin mb-4" />
-                <span className="text-sm text-stone-500 font-medium">กำลังโหลดข้อมูลราคาสินค้า...</span>
+                <span className="text-sm text-stone-500 font-medium">{t('msg.loading_data')}</span>
               </div>
             ) : prices.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 border border-dashed border-[#e4e0d6] rounded-md">
                 <Tag className="w-12 h-12 text-stone-300 mb-4" />
-                <span className="text-sm text-stone-500 font-medium font-sans">ไม่พบข้อมูลราคาสินค้าที่ตั้งค่าไว้</span>
-                <span className="text-xs text-stone-400 mt-1 font-sans">{ 'สามารถเพิ่มราคาได้จากแท็บ "ตั้งค่าราคาใหม่"' }</span>
+                <span className="text-sm text-stone-500 font-medium font-sans">{t('pricing.no_data')}</span>
+                <span className="text-xs text-stone-400 mt-1 font-sans">{t('pricing.no_data_hint')}</span>
               </div>
             ) : (
               <div>
@@ -525,13 +528,13 @@ export default function PricingAdminPage() {
                   <Table>
                     <Thead>
                       <tr>
-                        <Th className="text-left font-semibold text-xs py-3 px-4 text-stone-600">รหัสสินค้า (SKU)</Th>
-                        <Th className="text-left font-semibold text-xs py-3 px-4 text-stone-600">ชื่อสินค้า (Thai)</Th>
-                        <Th className="text-center font-semibold text-xs py-3 px-4 text-stone-600">ช่องทางการขาย</Th>
-                        <Th className="text-center font-semibold text-xs py-3 px-4 text-stone-600">ระดับสมาชิก</Th>
-                        <Th className="text-right font-semibold text-xs py-3 px-4 text-stone-600">ราคาทุน</Th>
-                        <Th className="text-right font-semibold text-xs py-3 px-4 text-stone-600">ราคาขายตั้งไว้</Th>
-                        <Th className="text-center font-semibold text-xs py-3 px-4 text-stone-600">ช่วงวันที่ใช้งานได้</Th>
+                        <Th className="text-left font-semibold text-xs py-3 px-4 text-stone-600">{t('label.sku')}</Th>
+                        <Th className="text-left font-semibold text-xs py-3 px-4 text-stone-600">{t('label.product')}</Th>
+                        <Th className="text-center font-semibold text-xs py-3 px-4 text-stone-600">{t('label.price_channel')}</Th>
+                        <Th className="text-center font-semibold text-xs py-3 px-4 text-stone-600">{t('label.price_tier')}</Th>
+                        <Th className="text-right font-semibold text-xs py-3 px-4 text-stone-600">{t('label.cost')}</Th>
+                        <Th className="text-right font-semibold text-xs py-3 px-4 text-stone-600">{t('label.price')}</Th>
+                        <Th className="text-center font-semibold text-xs py-3 px-4 text-stone-600">{t('label.valid_period')}</Th>
                       </tr>
                     </Thead>
                     <Tbody>
@@ -548,14 +551,14 @@ export default function PricingAdminPage() {
                             </span>
                           </Td>
                           <Td className="py-3 px-4 text-center font-bold text-stone-700">{p.tier}</Td>
-                          <Td className="py-3 px-4 text-right font-mono text-xs text-stone-400">{formatMoney(p.unit_cost)} บาท</Td>
-                          <Td className="py-3 px-4 text-right font-mono text-sm font-semibold text-[#1c1917]">{formatMoney(p.price)} บาท</Td>
+                          <Td className="py-3 px-4 text-right font-mono text-xs text-stone-400">{formatMoney(p.unit_cost)} {t('label.baht')}</Td>
+                          <Td className="py-3 px-4 text-right font-mono text-sm font-semibold text-[#1c1917]">{formatMoney(p.price)} {t('label.baht')}</Td>
                           <Td className="py-3 px-4 text-center text-xs text-stone-500 font-medium">
                             <div className="flex items-center justify-center gap-1.5">
                               <Calendar className="w-3.5 h-3.5 text-stone-400" />
                               <span>{p.valid_from}</span>
                               <span className="text-stone-300">→</span>
-                              <span>{p.valid_to || 'ไม่มีกำหนด'}</span>
+                              <span>{p.valid_to || t('label.no_expiry')}</span>
                             </div>
                           </Td>
                         </tr>
@@ -563,10 +566,10 @@ export default function PricingAdminPage() {
                     </Tbody>
                   </Table>
                 </div>
-                
+
                 {/* Pagination */}
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-stone-500 font-medium">แสดงทั้งหมด {totalItems} รายการ</span>
+                  <span className="text-xs text-stone-500 font-medium">{t('pricing.showing_total')} {totalItems} {t('label.items_suffix')}</span>
                   {totalPages > 1 && (
                     <Pagination
                       currentPage={page}
@@ -583,27 +586,27 @@ export default function PricingAdminPage() {
         {/* Tab 2: Create Single Price Form */}
         {activeTab === 'create' && (
           <div className="premium-card p-8 max-w-[650px] mx-auto">
-            <h2 className="text-lg font-semibold text-[#1c1917] border-b border-[#e4e0d6] pb-3 mb-6">ตั้งราคาสินค้าแบบรายรายการ</h2>
-            
+            <h2 className="text-lg font-semibold text-[#1c1917] border-b border-[#e4e0d6] pb-3 mb-6">{t('pricing.form.title')}</h2>
+
             <form onSubmit={handleSingleSubmit} className="space-y-5">
               <div>
-                <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-2">เลือกสินค้า</label>
-                <ProductSearch 
-                  onSelect={setSelectedProduct} 
+                <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-2">{t('pricing.form.select_product')}</label>
+                <ProductSearch
+                  onSelect={setSelectedProduct}
                   selectedProduct={selectedProduct}
                   onClear={() => setSelectedProduct(null)}
                 />
                 {selectedProduct && (
                   <div className="mt-2.5 p-3 bg-stone-50 rounded border border-[#e4e0d6] flex items-center justify-between text-xs text-stone-600 font-mono">
-                    <span>ราคาทุนปัจจุบัน (Current Cost):</span>
-                    <span className="font-semibold text-stone-900">{formatMoney(selectedProduct.unit_cost)} บาท</span>
+                    <span>{t('pricing.form.current_cost')}</span>
+                    <span className="font-semibold text-stone-900">{formatMoney(selectedProduct.unit_cost)} {t('label.baht')}</span>
                   </div>
                 )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-2">ช่องทางขาย (Channel)</label>
+                  <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-2">{t('label.price_channel')}</label>
                   <select
                     className="w-full rounded border border-[#e4e0d6] px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#7a5a7e] min-h-[38px]"
                     value={formChannel}
@@ -614,22 +617,22 @@ export default function PricingAdminPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-2">ระดับราคาสมาชิก (Tier)</label>
+                  <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-2">{t('label.price_tier')}</label>
                   <select
                     className="w-full rounded border border-[#e4e0d6] px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#7a5a7e] min-h-[38px]"
                     value={formTier}
                     onChange={(e) => setFormTier(e.target.value as 'T0' | 'T1' | 'T2' | 'T3')}
                   >
-                    <option value="T0">T0 (มาตรฐาน/เริ่มต้น)</option>
-                    <option value="T1">T1 (ระดับ 1)</option>
-                    <option value="T2">T2 (ระดับ 2)</option>
-                    <option value="T3">T3 (ระดับ 3)</option>
+                    <option value="T0">{t('pricing.tier.t0_label')}</option>
+                    <option value="T1">{t('pricing.tier.t1_label')}</option>
+                    <option value="T2">{t('pricing.tier.t2_label')}</option>
+                    <option value="T3">{t('pricing.tier.t3_label')}</option>
                   </select>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-2">ราคาขาย (Price - THB)</label>
+                <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-2">{t('label.price')} (THB)</label>
                 <div className="relative">
                   <input
                     type="number"
@@ -640,13 +643,13 @@ export default function PricingAdminPage() {
                     value={formPrice}
                     onChange={(e) => setFormPrice(e.target.value)}
                   />
-                  <span className="absolute right-3 top-2 text-xs font-semibold text-stone-400">บาท</span>
+                  <span className="absolute right-3 top-2 text-xs font-semibold text-stone-400">{t('label.baht')}</span>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-2">วันที่เริ่มมีผล (Valid From)</label>
+                  <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-2">{t('label.valid_from')}</label>
                   <input
                     type="date"
                     className="w-full rounded border border-[#e4e0d6] px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#7a5a7e]"
@@ -655,7 +658,7 @@ export default function PricingAdminPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-2">วันที่สิ้นสุด (Valid To - ไม่บังคับ)</label>
+                  <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-2">{t('label.valid_to')}</label>
                   <input
                     type="date"
                     className="w-full rounded border border-[#e4e0d6] px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#7a5a7e]"
@@ -666,20 +669,20 @@ export default function PricingAdminPage() {
               </div>
 
               <div className="flex gap-3 pt-4 border-t border-[#e4e0d6] justify-end">
-                <Button 
-                  type="button" 
+                <Button
+                  type="button"
                   onClick={() => setActiveTab('list')}
                   className="px-4 py-2 border border-[#e4e0d6] bg-stone-50 hover:bg-stone-100 rounded text-sm text-[#44403c] transition-colors min-h-[38px]"
                 >
-                  ยกเลิก
+                  {t('action.cancel')}
                 </Button>
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   disabled={submittingSingle}
                   className="px-5 py-2 bg-[#7a5a7e] hover:bg-[#6b4e6f] text-white font-medium rounded text-sm transition-colors min-h-[38px] flex items-center gap-2"
                 >
                   {submittingSingle && <Loader2 className="w-4 h-4 animate-spin" />}
-                  บันทึกราคา
+                  {t('pricing.form.save_price')}
                 </Button>
               </div>
             </form>
@@ -689,16 +692,16 @@ export default function PricingAdminPage() {
         {/* Tab 3: Bulk Import Page */}
         {activeTab === 'bulk' && (
           <div className="space-y-6">
-            
+
             {/* Split screen: Paste form & Instructions */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              
+
               {/* Left 2 Columns: Paste area and parsed preview */}
               <div className="lg:col-span-2 space-y-6">
-                
+
                 <div className="premium-card p-6">
-                  <h3 className="text-base font-semibold text-[#1c1917] mb-4">วางข้อมูล CSV เพื่อนำเข้าราคาสินค้า</h3>
-                  
+                  <h3 className="text-base font-semibold text-[#1c1917] mb-4">{t('pricing.bulk.paste_title')}</h3>
+
                   <textarea
                     rows={8}
                     className="w-full rounded border border-[#e4e0d6] p-3 text-xs font-mono bg-stone-50 focus:bg-white focus:outline-none focus:border-[#7a5a7e] transition-colors"
@@ -708,14 +711,14 @@ export default function PricingAdminPage() {
                   />
 
                   <div className="flex justify-between items-center mt-4">
-                    <span className="text-xs text-stone-500 font-medium">ตรวจพบแถวข้อมูล: {parsedPreview.length} รายการ</span>
+                    <span className="text-xs text-stone-500 font-medium">{t('pricing.bulk.detected_rows')} {parsedPreview.length} {t('label.items_suffix')}</span>
                     <Button
                       onClick={handleBulkSubmit}
                       disabled={submittingBulk || parsedPreview.length === 0}
                       className="px-5 py-2 bg-[#7a5a7e] hover:bg-[#6b4e6f] text-white font-medium rounded text-sm transition-colors min-h-[38px] flex items-center gap-2"
                     >
                       {submittingBulk && <Loader2 className="w-4 h-4 animate-spin" />}
-                      นำเข้าข้อมูลที่ผ่านตรวจสอบ ({parsedPreview.filter(r => r.isValid).length})
+                      {t('pricing.bulk.import_valid')} ({parsedPreview.filter(r => r.isValid).length})
                     </Button>
                   </div>
                 </div>
@@ -723,19 +726,19 @@ export default function PricingAdminPage() {
                 {/* Parsed Preview Table */}
                 {parsedPreview.length > 0 && (
                   <div className="premium-card p-6">
-                    <h3 className="text-sm font-semibold text-[#1c1917] mb-4">ตรวจสอบความถูกต้องก่อนบันทึก</h3>
-                    
+                    <h3 className="text-sm font-semibold text-[#1c1917] mb-4">{t('pricing.bulk.verify_title')}</h3>
+
                     <div className="overflow-x-auto rounded border border-[#e4e0d6]">
                       <Table>
                         <Thead>
                           <tr>
-                            <Th className="text-left font-semibold text-xs py-2 px-3 text-stone-600 w-12">สถานะ</Th>
+                            <Th className="text-left font-semibold text-xs py-2 px-3 text-stone-600 w-12">{t('label.status')}</Th>
                             <Th className="text-left font-semibold text-xs py-2 px-3 text-stone-600">SKU</Th>
-                            <Th className="text-center font-semibold text-xs py-2 px-3 text-stone-600">ช่องทาง</Th>
-                            <Th className="text-center font-semibold text-xs py-2 px-3 text-stone-600">ระดับ</Th>
-                            <Th className="text-right font-semibold text-xs py-2 px-3 text-stone-600">ราคาขาย</Th>
-                            <Th className="text-center font-semibold text-xs py-2 px-3 text-stone-600">ช่วงวันที่</Th>
-                            <Th className="text-left font-semibold text-xs py-2 px-3 text-stone-600">หมายเหตุ</Th>
+                            <Th className="text-center font-semibold text-xs py-2 px-3 text-stone-600">{t('label.price_channel')}</Th>
+                            <Th className="text-center font-semibold text-xs py-2 px-3 text-stone-600">{t('label.price_tier')}</Th>
+                            <Th className="text-right font-semibold text-xs py-2 px-3 text-stone-600">{t('label.price')}</Th>
+                            <Th className="text-center font-semibold text-xs py-2 px-3 text-stone-600">{t('label.valid_period')}</Th>
+                            <Th className="text-left font-semibold text-xs py-2 px-3 text-stone-600">{t('label.note')}</Th>
                           </tr>
                         </Thead>
                         <Tbody>
@@ -751,13 +754,13 @@ export default function PricingAdminPage() {
                               <Td className="py-2 px-3 font-mono font-semibold">{row.sku}</Td>
                               <Td className="py-2 px-3 text-center font-medium">{row.channel}</Td>
                               <Td className="py-2 px-3 text-center font-bold">{row.tier}</Td>
-                              <Td className="py-2 px-3 text-right font-mono font-medium">{formatMoney(row.price)} บาท</Td>
+                              <Td className="py-2 px-3 text-right font-mono font-medium">{formatMoney(row.price)} {t('label.baht')}</Td>
                               <Td className="py-2 px-3 text-center text-stone-500 font-medium">
-                                {row.valid_from} → {row.valid_to || 'ไม่มีกำหนด'}
+                                {row.valid_from} → {row.valid_to || t('label.no_expiry')}
                               </Td>
                               <Td className="py-2 px-3">
                                 {row.isValid ? (
-                                  <span className="text-emerald-700 font-medium">พร้อมนำเข้า</span>
+                                  <span className="text-emerald-700 font-medium">{t('pricing.bulk.ready')}</span>
                                 ) : (
                                   <span className="text-red-700 font-semibold flex items-center gap-1">
                                     <AlertCircle className="w-3 h-3" />
@@ -779,47 +782,47 @@ export default function PricingAdminPage() {
               <div className="premium-card p-6 h-fit space-y-4">
                 <h3 className="text-sm font-semibold text-[#1c1917] flex items-center gap-2">
                   <HelpCircle className="w-4 h-4 text-[#7a5a7e]" />
-                  คำแนะนำรูปแบบข้อมูล
+                  {t('pricing.bulk.instructions_title')}
                 </h3>
-                
+
                 <p className="text-xs text-stone-600 leading-relaxed">
-                  กรุณาเตรียมไฟล์ข้อมูลในรูปแบบ CSV โดยวางข้อความที่แยกข้อมูลด้วยเครื่องหมายจุลภาค <strong>(,)</strong> และคั่นแต่ละบรรทัดด้วยการขึ้นบรรทัดใหม่
+                  {t('pricing.bulk.instructions_intro')}
                 </p>
 
                 <div className="p-3 bg-stone-50 rounded border border-[#e4e0d6] font-mono text-[10px] text-stone-600 leading-relaxed">
-                  <span className="text-stone-400"># รูปแบบคอลัมน์:</span><br />
+                  <span className="text-stone-400"># {t('pricing.bulk.col_format')}</span><br />
                   sku, channel, tier, price, valid_from, valid_to
                 </div>
 
                 <div className="space-y-2 text-xs text-stone-600">
                   <div className="flex gap-2">
                     <span className="font-semibold text-[#7a5a7e]">1. sku:</span>
-                    <span>รหัสสินค้าที่ต้องการตั้งค่าราคา (ต้องมีอยู่จริงในคลัง)</span>
+                    <span>{t('pricing.bulk.sku_desc')}</span>
                   </div>
                   <div className="flex gap-2">
                     <span className="font-semibold text-[#7a5a7e]">2. channel:</span>
-                    <span><strong>TRD</strong> หรือ <strong>AKRA</strong> เท่านั้น</span>
+                    <span>{t('pricing.bulk.channel_desc')}</span>
                   </div>
                   <div className="flex gap-2">
                     <span className="font-semibold text-[#7a5a7e]">3. tier:</span>
-                    <span>ระดับสมาชิก <strong>T0</strong> (ทั่วไป), <strong>T1</strong>, <strong>T2</strong>, <strong>T3</strong></span>
+                    <span>{t('pricing.bulk.tier_desc')}</span>
                   </div>
                   <div className="flex gap-2">
                     <span className="font-semibold text-[#7a5a7e]">4. price:</span>
-                    <span>ราคาขายเป็นตัวเลข ทศนิยมไม่เกิน 4 ตำแหน่ง (เช่น 150 หรือ 99.50)</span>
+                    <span>{t('pricing.bulk.price_desc')}</span>
                   </div>
                   <div className="flex gap-2">
                     <span className="font-semibold text-[#7a5a7e]">5. valid_from:</span>
-                    <span>วันที่เริ่มมีผล รูปแบบ YYYY-MM-DD (เช่น 2026-05-23)</span>
+                    <span>{t('pricing.bulk.valid_from_desc')}</span>
                   </div>
                   <div className="flex gap-2">
                     <span className="font-semibold text-[#7a5a7e]">6. valid_to:</span>
-                    <span>วันที่สิ้นสุดราคา รูปแบบ YYYY-MM-DD (ไม่ต้องใส่ก็ได้)</span>
+                    <span>{t('pricing.bulk.valid_to_desc')}</span>
                   </div>
                 </div>
 
                 <div className="border-t border-[#e4e0d6] pt-3 text-[11px] text-stone-500">
-                  ⚠️ การนำเข้าที่มี SKU ซ้ำ, ช่องทางซ้ำ, ระดับสมาชิกซ้ำ และวันที่เริ่มซ้ำกัน จะทำการ<strong>อัปเดตราคาเดิม</strong>ให้โดยอัตโนมัติ (Upsert)
+                  ⚠️ {t('pricing.bulk.upsert_note')}
                 </div>
               </div>
 

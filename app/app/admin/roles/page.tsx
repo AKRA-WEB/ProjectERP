@@ -5,8 +5,10 @@ import { Button, Table, Thead, Tbody, Th, Td, Badge } from '@/components/ui';
 import { get, del } from '@/lib/api-client';
 import type { EmployeeRole } from '@/types';
 import Link from 'next/link';
+import { useT } from '@/lib/i18n';
 
 export default function RolesPage() {
+  const t = useT();
   const [roles, setRoles] = useState<EmployeeRole[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -23,12 +25,12 @@ export default function RolesPage() {
   useEffect(() => { fetchRoles(); }, []);
 
   async function handleDelete(id: string) {
-    if (!confirm('ยืนยันการลบบทบาทนี้?')) return;
+    if (!confirm(t('roles.confirm_delete'))) return;
     try {
       await del(`/api/admin/roles/${id}`);
       fetchRoles();
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
+      alert(e instanceof Error ? e.message : t('roles.delete_error'));
     }
   }
 
@@ -36,11 +38,11 @@ export default function RolesPage() {
     <div>
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">บทบาทพนักงาน / Employee Roles</h1>
-          <p className="text-sm text-gray-500">จัดการชุดสิทธิ์การใช้งานสำหรับพนักงาน</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('roles.page.title')}</h1>
+          <p className="text-sm text-gray-500">{t('roles.page.subtitle')}</p>
         </div>
         <Link href="/app/admin/roles/new">
-          <Button className="w-full sm:w-auto">+ สร้างบทบาทใหม่</Button>
+          <Button className="w-full sm:w-auto">+ {t('roles.create_btn')}</Button>
         </Link>
       </div>
 
@@ -48,8 +50,8 @@ export default function RolesPage() {
         <Table>
           <Thead>
             <tr>
-              <Th>รหัส / Code</Th>
-              <Th>ชื่อบทบาท / Role Name</Th>
+              <Th>{t('roles.col.code')}</Th>
+              <Th>{t('roles.col.name')}</Th>
               <Th className="text-center">Permissions</Th>
               <Th className="text-center">Users</Th>
               <Th></Th>
@@ -57,7 +59,7 @@ export default function RolesPage() {
           </Thead>
           <Tbody>
             {loading ? (
-              <tr><Td colSpan={5}><div className="py-8 text-center text-gray-600">กำลังโหลด...</div></Td></tr>
+              <tr><Td colSpan={5}><div className="py-8 text-center text-gray-600">{t('msg.loading_data')}</div></Td></tr>
             ) : roles.map((r) => (
               <tr key={r.id} className="hover:bg-gray-50">
                 <Td className="font-mono text-sm font-medium">{r.code}</Td>
@@ -76,8 +78,8 @@ export default function RolesPage() {
                     <Badge variant="green">System</Badge>
                   ) : (
                     <>
-                      <Link href={`/app/admin/roles/${r.id}`} className="text-sm text-blue-600 hover:underline">แก้ไข</Link>
-                      <button onClick={() => handleDelete(r.id)} className="text-sm text-red-600 hover:underline">ลบ</button>
+                      <Link href={`/app/admin/roles/${r.id}`} className="text-sm text-blue-600 hover:underline">{t('action.edit')}</Link>
+                      <button onClick={() => handleDelete(r.id)} className="text-sm text-red-600 hover:underline">{t('action.delete')}</button>
                     </>
                   )}
                 </Td>

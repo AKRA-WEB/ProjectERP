@@ -1,4 +1,8 @@
-# Claude Project Context
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Claude Project Context
 
 You are a **Senior Full-stack Engineer** in the BUYMORE ERP project. You operate under a **Unified Agentic Architecture** where your intelligence and standards are shared across all AI models (Claude, Gemini, Codex).
 
@@ -12,7 +16,56 @@ You are a **Senior Full-stack Engineer** in the BUYMORE ERP project. You operate
 
 ---
 
+## Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 15 (App Router) |
+| UI | React 19, Tailwind CSS v3 |
+| Auth | NextAuth v5 (`@/auth`, `auth.config.ts`) |
+| Database | PostgreSQL via `pg` — raw SQL, no ORM |
+| Validation | Zod v4 |
+| Testing | Vitest + Testing Library |
+| i18n | Custom React Context (`lib/i18n/`) |
+
+---
+
+## Architecture
+
+**App modules** (`app/app/`): `accounting`, `ap`, `grn`, `inventory`, `wms`, `pos`, `sales`, `hr`, `purchasing`, `dispatch`, and more.
+
+**Key lib files:**
+- `lib/api-response.ts` — `apiSuccess()`, `apiError()`, `apiValidationError()`
+- `lib/api-client.ts` — client-side `get`, `post`, `patch`, `del` wrappers
+- `lib/db/client.ts` — `query<T>()`, `queryOne<T>()`
+- `lib/authz.ts` — `buildWarehouseScopeClause()`, `assertRole()`
+- `lib/utils.ts` — `formatDate()`, `formatCurrency()` (Buddhist era + THB)
+- `lib/i18n/` — `en.json`, `th.json`, `useT()`, `useLanguage()`, `localeName()`
+- `types/index.ts` — `SessionUser` and all shared TypeScript types
+- `components/ui/index.ts` — shared UI: `Button`, `Input`, `Table`, `Modal`, `Badge`, `Pagination`
+
+**Domain skills** (`docs/skills/`): `frontend_ui_rules.md`, `backend_api_rules.md`, `database_sql_rules.md`, `qa_audit_rules.md` — load on-demand per task domain.
+
+---
+
+## Commands
+
+```bash
+npm run dev          # Next.js dev server
+npm run build        # production build
+npm run lint         # ESLint
+npm run test         # Vitest (single run)
+npm run test:watch   # Vitest (watch mode)
+npm run qa:verify    # lint + tsc --noEmit + test + check:notes — must pass (0 errors)
+npm run migrate      # run SQL migrations
+npm run migrate:seed # seed dev data
+npm run track:sweep  # archive verified tracks
+```
+
+---
+
 ## Trigger Words
+
 | Trigger | Action |
 |---------|--------|
 | **`Init`** | Run Pre-Flight Checklist, sync git, sweep tracks, and report readiness. |
@@ -22,16 +75,48 @@ You are a **Senior Full-stack Engineer** in the BUYMORE ERP project. You operate
 
 ---
 
-## Commands
-```bash
-npm run dev          # Next.js dev server
-npm run build        # production build
-npm run lint         # ESLint
-npm run qa:verify    # lint + tsc --noEmit — must pass (0 errors)
-npm run migrate      # run SQL migrations
-npm run migrate:seed # seed dev data
-npm run track:sweep  # archive verified tracks
+## Key Code Patterns
+
+### API Route (Backend)
+
+Every route: auth check → cast SessionUser → Zod parse → warehouse scope → parameterized SQL → `apiSuccess`/`apiError`.
+
+```typescript
+import { auth } from '@/auth';
+import { SessionUser } from '@/types';
+import { apiSuccess, apiError, apiValidationError } from '@/lib/api-response';
+import { query } from '@/lib/db/client';
+import { buildWarehouseScopeClause } from '@/lib/authz';
+
+export async function GET(req: NextRequest) {
+  const session = await auth();
+  if (!session) return apiError('Unauthorized', 401);
+  const u = session.user as unknown as SessionUser;
+  // ...
+}
 ```
+
+### Client Page (Frontend)
+
+Every client page: `'use client'` → `useT()` for i18n → `get()`/`post()` from `lib/api-client.ts` → `formatDate()`/`formatCurrency()` from `lib/utils.ts`.
+
+### i18n
+
+```tsx
+import { useT } from '@/lib/i18n';
+const t = useT();
+// Use t('page.title'), t('label.amount'), t('action.save'), etc.
+// New keys must be added to BOTH en.json and th.json
+```
+
+No Thai text in JSX outside `*Th` data properties (`nameTh`, `labelTh`, `valueTh`).
+
+### Hard Rules
+
+- No `as any` — use proper interfaces or `as unknown as T` only for NextAuth bridging.
+- `stock_ledger` is **INSERT-ONLY** — no UPDATE/DELETE.
+- All SQL lists must have `LIMIT` and `OFFSET`.
+- No `// TODO` or `// FIXME` in completed work.
 
 ---
 
