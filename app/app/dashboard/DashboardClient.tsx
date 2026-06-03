@@ -216,16 +216,16 @@ export function DashboardClient({ initialKpi, initialWarehouses, session: server
           <KpiCard
             label={t('page.inventory') + ' ' + t('status.pending')}
             value={d(kpi?.low_stock?.length)}
-            subValue="ต่ำกว่า reorder point"
+            subValue={t('dashboard.below_reorder')}
             sparkline={<Sparkline data={SPARK.low} color="#d97706" />}
             href="/app/inventory?low_stock=true"
             loading={loading}
             className="[&_.text-ink]:text-amber-600"
           />
           <KpiCard
-            label="SO รอดำเนินการ"
+            label={t('dashboard.so_pending_label')}
             value={d(kpi?.sales?.pending_so)}
-            subValue={<>รายได้ 30 วัน: <span className="font-mono text-[10.5px]">{kpi?.sales?.revenue_30d ? formatCurrency(kpi.sales.revenue_30d, lang) : '—'}</span></>}
+            subValue={<>{t('dashboard.revenue_30d')} <span className="font-mono text-[10.5px]">{kpi?.sales?.revenue_30d ? formatCurrency(kpi.sales.revenue_30d, lang) : '—'}</span></>}
             sparkline={<Sparkline data={SPARK.pr} color="#6366f1" />}
             href="/app/sales-orders?status=confirmed"
             loading={loading}
@@ -247,17 +247,17 @@ export function DashboardClient({ initialKpi, initialWarehouses, session: server
           <div className={`${CARD} lg:col-span-2`}>
             <div className={CARD_H}>
               <div>
-                <div className="text-[13.5px] font-semibold text-stone-950">แนวโน้มการรับสินค้า</div>
-                <div className="text-[12px] text-stone-500 mt-0.5">จำนวน GRN · 30 วันล่าสุด</div>
+                <div className="text-[13.5px] font-semibold text-stone-950">{t('dashboard.grn_trend_title')}</div>
+                <div className="text-[12px] text-stone-500 mt-0.5">{t('dashboard.grn_trend_sub')}</div>
               </div>
               <div className="flex items-center gap-4 text-[12px] text-stone-400">
                 <span className="flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 rounded-[3px] bg-emerald-500 inline-block" />
-                  เดือนนี้
+                  {t('label.this_month')}
                 </span>
                 <span className="flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 rounded-[3px] bg-stone-300 inline-block" />
-                  เดือนที่แล้ว
+                  {t('label.last_month')}
                 </span>
               </div>
             </div>
@@ -266,9 +266,9 @@ export function DashboardClient({ initialKpi, initialWarehouses, session: server
             </div>
             <div className="grid grid-cols-3 border-t border-stone-100">
               {[
-                { l: 'รับทั้งหมดเดือนนี้', v: loading ? '—' : String(kpi?.grn?.stocked_this_month ?? '—'), u: ' ครั้ง' },
-                { l: 'GRN รอดำเนินการ',    v: loading ? '—' : String(kpi?.grn?.pending ?? '—'),              u: ' รายการ' },
-                { l: 'QC ไม่ผ่าน',         v: loading ? '—' : String(kpi?.grn?.qc_failed ?? '—'),            u: ' ครั้ง' },
+                { l: t('dashboard.stat_received_month'), v: loading ? '—' : String(kpi?.grn?.stocked_this_month ?? '—'), u: ' ' + t('label.times') },
+                { l: t('dashboard.stat_grn_pending'),    v: loading ? '—' : String(kpi?.grn?.pending ?? '—'),              u: ' ' + t('label.items_suffix') },
+                { l: t('dashboard.stat_qc_failed'),      v: loading ? '—' : String(kpi?.grn?.qc_failed ?? '—'),            u: ' ' + t('label.times') },
               ].map((s, i) => (
                 <div key={i} className={`px-[18px] py-3.5${i < 2 ? ' border-r border-stone-100' : ''}`}>
                   <div className="text-[11.5px] text-stone-400 mb-0.5">{s.l}</div>
@@ -285,8 +285,8 @@ export function DashboardClient({ initialKpi, initialWarehouses, session: server
           <div className={CARD}>
             <div className={CARD_H}>
               <div>
-                <div className="text-[13.5px] font-semibold text-stone-950">สินค้ารับมากสุด</div>
-                <div className="text-[12px] text-stone-500 mt-0.5">5 อันดับแรก · เดือนนี้</div>
+                <div className="text-[13.5px] font-semibold text-stone-950">{t('dashboard.top_received_title')}</div>
+                <div className="text-[12px] text-stone-500 mt-0.5">{t('dashboard.top_received_sub')}</div>
               </div>
               <Link href="/app/inventory/ledger" className={BTN_SM}>{t('action.view')}{t('label.all')}</Link>
             </div>
@@ -305,7 +305,7 @@ export function DashboardClient({ initialKpi, initialWarehouses, session: server
                     <div className="flex items-center gap-1.5 text-[11.5px] text-stone-400 mt-0.5">
                       <span className="font-mono">{p.sku}</span>
                       <span>·</span>
-                      <span>รับ {formatQty(p.tx_count)} ครั้ง</span>
+                      <span>{t('dashboard.received_prefix')} {formatQty(p.tx_count)} {t('label.times')}</span>
                     </div>
                   </div>
                   <div className="text-right shrink-0">
@@ -323,8 +323,8 @@ export function DashboardClient({ initialKpi, initialWarehouses, session: server
           <div className={CARD}>
             <div className={CARD_H}>
               <div>
-                <div className="text-[13.5px] font-semibold text-stone-950">สินค้าขายดีสุด</div>
-                <div className="text-[12px] text-stone-500 mt-0.5">30 วันล่าสุด · จากระบบ POS</div>
+                <div className="text-[13.5px] font-semibold text-stone-950">{t('dashboard.top_selling_title')}</div>
+                <div className="text-[12px] text-stone-500 mt-0.5">{t('dashboard.top_selling_sub')}</div>
               </div>
             </div>
             <div>
@@ -345,7 +345,7 @@ export function DashboardClient({ initialKpi, initialWarehouses, session: server
                     <div className="text-[13px] font-mono font-medium text-stone-700 tabular-nums">
                       {formatNumber(p.qty_sold, lang)}
                     </div>
-                    <div className="text-[11px] text-stone-400 mt-0.5">{Number(p.tx_count)} บิล</div>
+                    <div className="text-[11px] text-stone-400 mt-0.5">{Number(p.tx_count)} {t('label.bills')}</div>
                   </div>
                 </div>
               ))}
@@ -360,15 +360,15 @@ export function DashboardClient({ initialKpi, initialWarehouses, session: server
           <div className={`${CARD} lg:col-span-2`}>
             <div className={CARD_H}>
               <div>
-                <div className="text-[13.5px] font-semibold text-stone-950">ผลงานคลังสินค้า</div>
-                <div className="text-[12px] text-stone-500 mt-0.5">ปริมาณสินค้านำเข้า · เดือนนี้</div>
+                <div className="text-[13.5px] font-semibold text-stone-950">{t('dashboard.warehouse_perf_title')}</div>
+                <div className="text-[12px] text-stone-500 mt-0.5">{t('dashboard.warehouse_perf_sub')}</div>
               </div>
             </div>
             <div className="px-5 py-4 flex flex-col gap-5">
               {loading ? (
                 <p className="text-[13px] text-stone-400">{t('label.loading')}</p>
               ) : !kpi?.warehouse_perf?.length ? (
-                <p className="text-[13px] text-stone-400">ไม่มีข้อมูลคลัง</p>
+                <p className="text-[13px] text-stone-400">{t('dashboard.no_warehouse_data')}</p>
               ) : kpi.warehouse_perf.map((w) => {
                 const pct = Math.min(100, (Number(w.qty_stocked) / maxQtyStocked) * 100);
                 const barColor = pct >= 80 ? 'bg-emerald-500' : pct >= 50 ? 'bg-amber-400' : 'bg-stone-300';
@@ -404,7 +404,7 @@ export function DashboardClient({ initialKpi, initialWarehouses, session: server
               <div className={CARD_H}>
                 <div>
                   <div className="text-[13.5px] font-semibold text-stone-950">Vendor Claims</div>
-                  <div className="text-[12px] text-stone-500 mt-0.5">การเรียกร้องที่เปิดอยู่</div>
+                  <div className="text-[12px] text-stone-500 mt-0.5">{t('dashboard.vendor_claims_sub')}</div>
                 </div>
                 <Link href="/app/claims" className={BTN_SM}>{t('action.view')}{t('label.all')}</Link>
               </div>
@@ -416,7 +416,7 @@ export function DashboardClient({ initialKpi, initialWarehouses, session: server
                   </div>
                 </div>
                 <div>
-                  <div className="text-[12px] text-stone-400 mb-1">มูลค่าคงค้าง</div>
+                  <div className="text-[12px] text-stone-400 mb-1">{t('dashboard.outstanding_value')}</div>
                   <div className="text-[20px] font-semibold tracking-tight text-red-600 leading-[1.1]">
                     {loading ? '—' : (kpi?.claims?.open_claim_value ? formatCurrency(kpi.claims.open_claim_value, lang) : '—')}
                   </div>
@@ -429,7 +429,7 @@ export function DashboardClient({ initialKpi, initialWarehouses, session: server
               <div className={CARD_H}>
                 <div>
                   <div className="text-[13.5px] font-semibold text-stone-950">Returns (RMA)</div>
-                  <div className="text-[12px] text-stone-500 mt-0.5">การคืนสินค้าที่เปิดอยู่</div>
+                  <div className="text-[12px] text-stone-500 mt-0.5">{t('dashboard.rma_sub')}</div>
                 </div>
                 <Link href="/app/rma" className={BTN_SM}>{t('action.view')}{t('label.all')}</Link>
               </div>
@@ -453,8 +453,8 @@ export function DashboardClient({ initialKpi, initialWarehouses, session: server
             <div className={CARD}>
               <div className={CARD_H}>
                 <div>
-                  <div className="text-[13.5px] font-semibold text-stone-950">GRN QC ไม่ผ่าน</div>
-                  <div className="text-[12px] text-stone-500 mt-0.5">เดือนนี้</div>
+                  <div className="text-[13.5px] font-semibold text-stone-950">{t('dashboard.grn_qc_failed_title')}</div>
+                  <div className="text-[12px] text-stone-500 mt-0.5">{t('label.this_month')}</div>
                 </div>
                 <Link href="/app/grn?status=qc_failed" className={BTN_SM}>{t('action.view')}</Link>
               </div>
@@ -476,22 +476,22 @@ export function DashboardClient({ initialKpi, initialWarehouses, session: server
             <div className={CARD_H}>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[13.5px] font-semibold text-stone-950">สต็อกใกล้หมด</span>
+                  <span className="text-[13.5px] font-semibold text-stone-950">{t('dashboard.low_stock_title')}</span>
                   {!loading && kpi && kpi.low_stock.length > 0 && (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border border-amber-200 bg-amber-50 text-amber-700 text-[10.5px] font-medium before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:bg-current">
                       {kpi.low_stock.length} {t('label.total')}
                     </span>
                   )}
                 </div>
-                <div className="text-[12px] text-stone-500 mt-0.5">ต้องสั่งเพิ่มเร็ว ๆ นี้</div>
+                <div className="text-[12px] text-stone-500 mt-0.5">{t('dashboard.low_stock_sub')}</div>
               </div>
-              <Link href="/app/purchase-requests/new" className={`${BTN_SM} text-stone-950`}>สร้าง PR</Link>
+              <Link href="/app/purchase-requests/new" className={`${BTN_SM} text-stone-950`}>{t('dashboard.create_pr')}</Link>
             </div>
             <div>
               {loading ? (
                 <p className="px-5 py-4 text-[13px] text-stone-400">{t('label.loading')}</p>
               ) : !kpi?.low_stock?.length ? (
-                <p className="px-5 py-4 text-[13px] text-stone-400">ไม่มีสินค้าต่ำกว่า reorder point</p>
+                <p className="px-5 py-4 text-[13px] text-stone-400">{t('dashboard.no_low_stock')}</p>
               ) : kpi.low_stock.map((s, idx) => {
                 const pct = Math.min(100, (Number(s.qty_available) / (s.reorder_point || 1)) * 100);
                 return (
@@ -501,7 +501,7 @@ export function DashboardClient({ initialKpi, initialWarehouses, session: server
                       <div className="flex items-center gap-1.5 text-[11.5px] text-stone-400 mt-0.5 flex-wrap">
                         <span className="font-mono">{s.sku}</span>
                         <span>·</span>
-                        <span>เหลือ {formatQty(s.qty_available)} / {formatQty(s.reorder_point)}</span>
+                        <span>{t('dashboard.stock_remaining')} {formatQty(s.qty_available)} / {formatQty(s.reorder_point)}</span>
                         <span>·</span>
                         <span>{s.warehouse_code}</span>
                       </div>
@@ -528,8 +528,8 @@ export function DashboardClient({ initialKpi, initialWarehouses, session: server
           <div className={CARD}>
             <div className={CARD_H}>
               <div>
-                <div className="text-[13.5px] font-semibold text-stone-950">กิจกรรมล่าสุด</div>
-                <div className="text-[12px] text-stone-500 mt-0.5">ความเคลื่อนไหวล่าสุดในระบบ</div>
+                <div className="text-[13.5px] font-semibold text-stone-950">{t('dashboard.activity_title')}</div>
+                <div className="text-[12px] text-stone-500 mt-0.5">{t('dashboard.activity_sub')}</div>
               </div>
             </div>
             <div className="px-5 py-4 flex flex-col gap-4">

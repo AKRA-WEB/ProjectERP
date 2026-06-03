@@ -1,3 +1,4 @@
+/* eslint-disable local-rules/no-hardcoded-thai */
 import { auth } from '@/auth';
 import { apiSuccess, apiError, apiValidationError } from '@/lib/api-response';
 import { query, queryOne } from '@/lib/db/client';

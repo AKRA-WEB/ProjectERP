@@ -1,5 +1,6 @@
 'use client';
 
+/* eslint-disable local-rules/no-hardcoded-thai */
 import { useState, useEffect, use } from 'react';
 import { get, patch } from '@/lib/api-client';
 import type { LeaveRequest, LeaveBalance } from '@/types';

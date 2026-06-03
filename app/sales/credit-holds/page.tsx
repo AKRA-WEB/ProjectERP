@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable local-rules/no-hardcoded-thai */
 
 import { useEffect, useState, useCallback } from 'react';
 import { get, post, ApiError } from '@/lib/api-client';

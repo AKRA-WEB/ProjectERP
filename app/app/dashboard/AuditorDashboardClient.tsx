@@ -6,7 +6,7 @@ import { useSession } from 'next-auth/react';
 import { get } from '@/lib/api-client';
 import { formatCurrency } from '@/lib/format';
 import Link from 'next/link';
-import { useLanguage } from '@/lib/i18n';
+import { useT, useLanguage } from '@/lib/i18n';
 import type { AuditorDashboardData } from '@/lib/queries/dashboard';
 
 interface DashboardPeriod {
@@ -47,6 +47,7 @@ export function AuditorDashboardClient({ initialData, session: serverSession }: 
   const [stats, setStats] = useState<AuditorDashboardData | null>(initialData);
   const [loading, setLoading] = useState(initialData === null);
   const { lang } = useLanguage();
+  const t = useT();
 
   useEffect(() => {
     if (initialData !== null) return;
@@ -100,15 +101,15 @@ export function AuditorDashboardClient({ initialData, session: serverSession }: 
                 Auditor Portal
               </div>
               <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-                ยินดีต้อนรับสู่ระบบตรวจสอบบัญชี{userName ? `, ${userName}` : ''} 👋
+                {t('dashboard.auditor.welcome')}{userName ? `, ${userName}` : ''} 👋
               </h1>
               <p className="text-stone-300 text-sm max-w-xl font-normal leading-relaxed">
-                สิทธิ์การเข้าถึงของคุณคือ <strong className="text-emerald-400">Read-Only (ผู้ตรวจสอบบัญชี)</strong>. 
-                คุณสามารถเข้าถึงสมุดรายวันทั่วไป งบแสดงฐานะการเงิน การคำนวณภาษีหัก ณ ที่จ่าย และรายงานอายุหนี้ได้อย่างโปร่งใส
+                {t('dashboard.auditor.role_access')} <strong className="text-emerald-400">{t('dashboard.auditor.role_name')}</strong>.{' '}
+                {t('dashboard.auditor.role_access_detail')}
               </p>
             </div>
             <div className="shrink-0 flex flex-col items-start md:items-end justify-center font-mono text-xs text-stone-400 pl-4 md:pl-0 pr-4">
-              <span className="text-stone-300 font-semibold">วันเวลาปัจจุบัน / Current Time</span>
+              <span className="text-stone-300 font-semibold">{t('dashboard.auditor.current_time')}</span>
               <span>{new Date().toLocaleString(lang === 'th' ? 'th-TH' : 'en-US', { dateStyle: 'medium', timeStyle: 'short' })}</span>
               <span className="mt-1 text-[10px] text-stone-500 uppercase tracking-widest">Secured Audit Session</span>
             </div>
@@ -119,27 +120,27 @@ export function AuditorDashboardClient({ initialData, session: serverSession }: 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             {
-              label: "รอบบัญชีที่เปิดอยู่ / Active Periods",
+              label: t('dashboard.auditor.kpi_periods_label'),
               value: loading ? "..." : d(stats?.periodsCount),
-              desc: "จำนวนรอบบัญชีที่กำลังบันทึกรายการ",
+              desc: t('dashboard.auditor.kpi_periods_desc'),
               color: "text-emerald-600",
             },
             {
-              label: "ยอดเจ้าหนี้ค้างชำระ / Outstanding AP",
+              label: t('dashboard.auditor.kpi_ap_label'),
               value: loading ? "..." : formatCurrency(stats?.outstandingAp ?? 0, lang),
-              desc: "ยอดหนี้สินค้าค้างจ่ายจากใบแจ้งหนี้ AP",
+              desc: t('dashboard.auditor.kpi_ap_desc'),
               color: "text-amber-600 font-mono",
             },
             {
-              label: "ใบรับรองหัก ณ ที่จ่าย / WHT Certificates",
+              label: t('dashboard.auditor.kpi_wht_label'),
               value: loading ? "..." : d(stats?.whtCertificatesCount),
-              desc: "จำนวนรายการหนังสือรับรอง 50 ทวิ",
+              desc: t('dashboard.auditor.kpi_wht_desc'),
               color: "text-blue-600",
             },
             {
-              label: "JE ล่าสุดในระบบ / Latest Journal Entries",
+              label: t('dashboard.auditor.kpi_je_label'),
               value: loading ? "..." : d(stats?.recentJe?.length),
-              desc: "รายการสมุดรายวันทั่วไปที่บันทึกช่วงนี้",
+              desc: t('dashboard.auditor.kpi_je_desc'),
               color: "text-purple-600",
             }
           ].map((k, i) => (
@@ -157,48 +158,48 @@ export function AuditorDashboardClient({ initialData, session: serverSession }: 
         <div className="space-y-4">
           <h2 className="text-lg font-bold text-stone-900 flex items-center gap-2">
             <svg className="w-5 h-5 text-stone-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
-            ทางลัดโมดูลการตรวจสอบ / Audit Quick Links
+            {t('dashboard.auditor.quick_links_heading')}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
               {
-                title: "สมุดบัญชีแยกประเภท / General Ledger (Audit)",
-                desc: "สืบค้นและตรวจสอบรายละเอียดความเคลื่อนไหวของแต่ละผังบัญชี พร้อมตัวกรองเลขที่บัญชีและช่วงเวลาแบบละเอียดสำหรับผู้ตรวจสอบโดยเฉพาะ",
+                title: t('dashboard.auditor.link_ledger_title'),
+                desc: t('dashboard.auditor.link_ledger_desc'),
                 href: "/app/accounting/audit/ledger",
                 icon: "📖",
                 tag: "Audit Route",
               },
               {
-                title: "งบทดลองตรวจสอบ / Trial Balance (Audit)",
-                desc: "แสดงรายการงบทดลองตามช่วงเวลาและรอบบัญชี คำนวณเดบิต/เครดิตและดุลบัญชีแบบเรียลไทม์เพื่อตรวจสอบความถูกต้องของระบบบัญชีคู่",
+                title: t('dashboard.auditor.link_trial_balance_title'),
+                desc: t('dashboard.auditor.link_trial_balance_desc'),
                 href: "/app/accounting/audit/trial-balance",
                 icon: "⚖️",
                 tag: "Audit Route",
               },
               {
-                title: "ผังบัญชี / Chart of Accounts",
-                desc: "ดูโครงสร้างและรหัสบัญชีทั้งหมดแยกตามประเภทสินทรัพย์ หนี้สิน ส่วนของเจ้าของ รายได้ และค่าใช้จ่าย พร้อมประเภท normal balance",
+                title: t('dashboard.auditor.link_coa_title'),
+                desc: t('dashboard.auditor.link_coa_desc'),
                 href: "/app/accounting/chart-of-accounts",
                 icon: "📊",
                 tag: "Bilingual COA",
               },
               {
-                title: "สมุดรายวันทั่วไป / Journal Entries",
-                desc: "เรียกดูใบสำคัญสมุดรายวัน (JE) ทุกฉบับ ตรวจเช็คสถานะการบันทึก (Posted) การยกเลิก (Void) หรือฉบับร่าง (Draft)",
+                title: t('dashboard.auditor.link_journal_title'),
+                desc: t('dashboard.auditor.link_journal_desc'),
                 href: "/app/accounting/journal-entries",
                 icon: "📂",
                 tag: "General Journal",
               },
               {
-                title: "หนังสือรับรองหัก ณ ที่จ่าย / WHT Certificates",
-                desc: "ตรวจสอบรายการภาษีหัก ณ ที่จ่ายตามมาตรา 50 ทวิ ที่ออกให้คู่ค้าเจ้าหนี้ พร้อมปุ่มเรียกดูและพิมพ์เอกสาร PDF ภาษีหัก ณ ที่จ่ายแบบ 2 ภาษา",
+                title: t('dashboard.auditor.link_wht_title'),
+                desc: t('dashboard.auditor.link_wht_desc'),
                 href: "/app/ap/wht",
                 icon: "🧾",
                 tag: "WHT 50 Twi",
               },
               {
-                title: "รายงานอายุเจ้าหนี้ / AP Aging Report",
-                desc: "ตรวจสอบภาระหนี้สินคงเหลือของคู่ค้าแยกตามช่วงอายุหนี้ (0-30, 31-60, 61-90, >90 วัน) เพื่อวิเคราะห์ความน่าเชื่อถือทางบัญชี",
+                title: t('dashboard.auditor.link_ap_aging_title'),
+                desc: t('dashboard.auditor.link_ap_aging_desc'),
                 href: "/app/ap/aging",
                 icon: "⏳",
                 tag: "AP Aging Log",
@@ -220,7 +221,7 @@ export function AuditorDashboardClient({ initialData, session: serverSession }: 
                   {l.desc}
                 </p>
                 <div className="flex items-center gap-1 text-xs font-semibold text-stone-900 mt-4 group-hover:underline">
-                  เข้าสู่หน้าตรวจสอบ / Access Portal
+                  {t('dashboard.auditor.access_portal')}
                   <svg className="w-3.5 h-3.5 transform group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
                 </div>
               </Link>
@@ -231,26 +232,26 @@ export function AuditorDashboardClient({ initialData, session: serverSession }: 
         {/* Recent Ledger Postings */}
         <div className="bg-white border border-stone-200 rounded-2xl p-6 shadow-sm space-y-4">
           <div>
-            <h2 className="text-lg font-bold text-stone-900">บันทึกสมุดรายวันล่าสุด / Recent Journal Entries</h2>
-            <p className="text-xs text-stone-500">ตรวจสอบใบสำคัญบัญชีล่าสุดที่ผ่านการบันทึกรายการเข้าระบบ</p>
+            <h2 className="text-lg font-bold text-stone-900">{t('dashboard.auditor.recent_je_heading')}</h2>
+            <p className="text-xs text-stone-500">{t('dashboard.auditor.recent_je_desc')}</p>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="border-b border-stone-200 text-stone-500 font-semibold uppercase">
-                  <th className="py-3 px-2">เลขที่ / JE No.</th>
-                  <th className="py-3 px-2">วันที่ / Date</th>
-                  <th className="py-3 px-2">ประเภท / Type</th>
-                  <th className="py-3 px-2">คำอธิบายรายการ / Description</th>
-                  <th className="py-3 px-2 text-right">จำนวนเงินเดบิต / Total Debit</th>
-                  <th className="py-3 px-2">สถานะ / Status</th>
+                  <th className="py-3 px-2">{t('dashboard.auditor.col_je_no')}</th>
+                  <th className="py-3 px-2">{t('label.date')}</th>
+                  <th className="py-3 px-2">{t('label.type')}</th>
+                  <th className="py-3 px-2">{t('dashboard.auditor.col_description')}</th>
+                  <th className="py-3 px-2 text-right">{t('dashboard.auditor.col_debit')}</th>
+                  <th className="py-3 px-2">{t('label.status')}</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={6} className="py-6 text-center text-stone-400 italic">กำลังโหลดรายการล่าสุด...</td></tr>
+                  <tr><td colSpan={6} className="py-6 text-center text-stone-400 italic">{t('msg.loading_data')}</td></tr>
                 ) : stats?.recentJe?.length === 0 ? (
-                  <tr><td colSpan={6} className="py-6 text-center text-stone-400 italic">ไม่พบรายการสมุดรายวันล่าสุด</td></tr>
+                  <tr><td colSpan={6} className="py-6 text-center text-stone-400 italic">{t('dashboard.auditor.no_je')}</td></tr>
                 ) : stats?.recentJe?.map((je: DashboardJournalEntry) => (
                   <tr key={je.id} className="border-b border-stone-100 hover:bg-stone-50/50 transition-colors">
                     <td className="py-3 px-2 font-mono font-semibold text-stone-900">

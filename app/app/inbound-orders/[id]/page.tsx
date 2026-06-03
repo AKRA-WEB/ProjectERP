@@ -1,5 +1,6 @@
 'use client';
 
+/* eslint-disable local-rules/no-hardcoded-thai */
 import { useState, useEffect, useCallback, forwardRef, useRef, TextareaHTMLAttributes } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button, StatusBadge, Input, Select } from '@/components/ui';

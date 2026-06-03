@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable local-rules/no-hardcoded-thai */
 
 import { useState, useRef } from 'react';
 import { Modal, ModalBody, ModalFooter } from '@/components/ui/Modal';

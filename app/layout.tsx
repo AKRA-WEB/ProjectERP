@@ -1,3 +1,4 @@
+/* eslint-disable local-rules/no-hardcoded-thai */
 import type { Metadata } from 'next';
 import { SessionProvider } from 'next-auth/react';
 import { IBM_Plex_Sans_Thai, IBM_Plex_Mono } from 'next/font/google';

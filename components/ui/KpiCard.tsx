@@ -4,6 +4,7 @@ import { ReactNode } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { TrendingUp, TrendingDown } from 'lucide-react';
+import { useT } from '@/lib/i18n';
 
 interface KpiCardProps {
   label: string;
@@ -23,11 +24,13 @@ export function KpiCard({
   subValue,
   sparkline,
   href,
-  hrefLabel = 'ดูทั้งหมด →',
+  hrefLabel,
   className,
   loading = false,
   delta,
 }: KpiCardProps) {
+  const t = useT();
+  const displayHrefLabel = hrefLabel ?? `${t('action.view_all')} →`;
   return (
     <div className={cn(
       'flex-1 p-[22px] flex flex-col gap-2 relative min-h-[140px]',
@@ -76,7 +79,7 @@ export function KpiCard({
           href={href}
           className="text-[11.5px] font-medium text-accent-ink hover:underline mt-auto pt-2 inline-block"
         >
-          {hrefLabel}
+          {displayHrefLabel}
         </Link>
       )}
     </div>

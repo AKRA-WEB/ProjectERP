@@ -5,6 +5,7 @@ import Link from 'next/link';
 import React, { useState, useEffect } from 'react';
 import { ViewTransition } from '@/lib/react-vts';
 import { useToast } from '@/components/ui';
+import { useT, useLanguage } from '@/lib/i18n';
 
 // SVG components for modules
 const PosIcon = () => (
@@ -101,8 +102,9 @@ interface ModuleCard {
   accent: string;
 }
 
+// eslint-disable-next-line local-rules/no-hardcoded-thai
 const MODULE_CONFIG: ModuleCard[] = [
-  { id: 'pos', nameTh: 'POS', nameEn: 'หน้าร้าน', icon: PosIcon, href: '/app/pos', permission: 'pos:cashier', accent: '#b85c3c' },
+  { id: 'pos', nameTh: 'หน้าร้าน', nameEn: 'POS', icon: PosIcon, href: '/app/pos', permission: 'pos:cashier', accent: '#b85c3c' },
   { id: 'sales', nameTh: 'ขาย', nameEn: 'Sales', icon: SalesIcon, href: '/app/sales-quotations', permission: 'sales:view', accent: '#3a7a7a' },
   { id: 'purchasing', nameTh: 'จัดซื้อ', nameEn: 'Purchasing', icon: PurchasingIcon, href: '/app/purchase-requests', permission: 'purchasing:view', accent: '#4f5d8a' },
   { id: 'wms', nameTh: 'คลังสินค้า', nameEn: 'Warehouse', icon: WmsIcon, href: '/app/dashboard', permission: 'dashboard:view', accent: '#5b7a99' },
@@ -112,6 +114,7 @@ const MODULE_CONFIG: ModuleCard[] = [
 ];
 
 function initials(name: string) {
+  // eslint-disable-next-line local-rules/no-hardcoded-thai
   if (!name) return 'อ';
   const parts = name.trim().split(' ');
   if (parts.length >= 2) {
@@ -120,9 +123,17 @@ function initials(name: string) {
   return name.substring(0, 2).toUpperCase();
 }
 
+const MONTH_KEYS = [
+  'month.jan', 'month.feb', 'month.mar', 'month.apr',
+  'month.may', 'month.jun', 'month.jul', 'month.aug',
+  'month.sep', 'month.oct', 'month.nov', 'month.dec',
+] as const;
+
 export default function MainMenuPage() {
   const { data: session, status } = useSession();
   const toast = useToast();
+  const t = useT();
+  const { lang } = useLanguage();
   const loading = status === 'loading';
   const [isMounted, setIsMounted] = useState(false);
   const [currentThaiMonth, setCurrentThaiMonth] = useState('');
@@ -130,12 +141,9 @@ export default function MainMenuPage() {
   useEffect(() => {
     setIsMounted(true);
     const now = new Date();
-    const thaiMonths = [
-      'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
-      'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
-    ];
-    setCurrentThaiMonth(`${thaiMonths[now.getMonth()]} ${now.getFullYear() + 543}`);
-  }, []);
+    const monthKey = MONTH_KEYS[now.getMonth()];
+    setCurrentThaiMonth(`${t(monthKey)} ${lang === 'th' ? now.getFullYear() + 543 : now.getFullYear()}`);
+  }, [t, lang]);
 
   const user = session?.user as { role: string; permissions: string[]; name: string } | undefined;
   const role = user?.role ?? '';
@@ -185,12 +193,12 @@ export default function MainMenuPage() {
   const handleCardClick = (e: React.MouseEvent, mod: ModuleCard) => {
     if (mod.isStub) {
       e.preventDefault();
-      toast('info', `🚧 โมดูล ${mod.nameTh} อยู่ในระหว่างการพัฒนา`);
+      toast('info', `🚧 ${t('msg.under_development').replace('{name}', lang === 'th' ? mod.nameTh : mod.nameEn)}`);
     }
   };
 
   if (loading || !isMounted) {
-    return <div className="min-h-screen bg-[#f6f4ef] flex items-center justify-center text-[#78716c]">กำลังโหลด...</div>;
+    return <div className="min-h-screen bg-[#f6f4ef] flex items-center justify-center text-[#78716c]">{t('msg.loading_data')}</div>;
   }
 
   return (
@@ -281,17 +289,18 @@ export default function MainMenuPage() {
 
         <div className="text-center mb-14">
           <div className="inline-flex items-center gap-3 px-3 pr-4 py-1.5 border border-[#e4e0d6] bg-white/55 rounded-full mb-6">
+            {/* eslint-disable-next-line local-rules/no-hardcoded-thai */}
             <div className="w-7 h-7 rounded-full bg-[#1c1917] text-[#f6f4ef] grid place-items-center text-[13px] font-semibold">อ</div>
             <span className="text-[11.5px] uppercase tracking-[0.18em] text-[#44403c] font-medium">Arun · ERP</span>
           </div>
-          <h1 className="font-display text-[34px] font-medium tracking-[-0.025em] text-[#1c1917] m-0">เลือกระบบงาน</h1>
+          <h1 className="font-display text-[34px] font-medium tracking-[-0.025em] text-[#1c1917] m-0">{t('page.select_module')}</h1>
           <div className="text-[13px] text-[#78716c] mt-2.5 tracking-[0.02em]">Choose a workspace to continue</div>
         </div>
 
-        <nav className="mm-grid" aria-label="ระบบงาน">
+        <nav className="mm-grid" aria-label={t('page.select_module')}>
           {visibleModules.length === 0 ? (
             <div className="w-full py-20 text-center text-[#78716c]">
-              <p>ขออภัย คุณยังไม่มีสิทธิ์เข้าถึงระบบใดๆ</p>
+              <p>{t('msg.no_access')}</p>
             </div>
           ) : (
             visibleModules.map((mod, index) => (
@@ -323,7 +332,7 @@ export default function MainMenuPage() {
           <div className="w-[30px] h-[30px] rounded-full bg-[#efece4] border border-[#e4e0d6] grid place-items-center text-[11px] font-semibold text-[#44403c]">
             {initials(user?.name || '')}
           </div>
-          <span className="font-medium text-[#44403c]">{user?.name || 'ผู้ใช้งาน'}</span>
+          <span className="font-medium text-[#44403c]">{user?.name || t('label.user')}</span>
           <span className="w-1 h-1 rounded-full bg-[#e4e0d6]" />
           <span>{role || 'Staff'}</span>
         </div>

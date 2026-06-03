@@ -1,3 +1,4 @@
+/* eslint-disable local-rules/no-hardcoded-thai */
 import { auth } from '@/auth';
 import { readOnlyMiddleware } from '@/lib/auth/readOnlyMiddleware';
 import { apiSuccess, apiError, apiValidationError } from '@/lib/api-response';

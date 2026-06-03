@@ -73,7 +73,7 @@ export async function GET(req: Request) {
       `SELECT 
         pt.receipt_number AS doc_number,
         pt.created_at AS tax_point_date,
-        'ลูกค้าทั่วไป / General Customer' AS customer_name,
+        'General Customer' AS customer_name,
         NULL AS customer_tax_id,
         'POS' AS channel,
         (pt.total - pt.vat_amount) AS base_amount,

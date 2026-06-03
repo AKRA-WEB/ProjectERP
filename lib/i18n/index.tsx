@@ -5,7 +5,7 @@ import type { Locale } from '@/types';
 import thDict from './th.json';
 import enDict from './en.json';
 
-type DictKey = keyof typeof thDict;
+export type DictKey = keyof typeof thDict;
 
 const DICTS: Record<Locale, Record<string, string>> = {
   th: thDict as Record<string, string>,

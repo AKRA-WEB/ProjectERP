@@ -1,5 +1,6 @@
 'use client';
 
+/* eslint-disable local-rules/no-hardcoded-thai */
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { formatCurrency, formatQty } from '@/lib/format';

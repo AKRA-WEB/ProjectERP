@@ -5,6 +5,7 @@
   ],
   "plugins": ["local-rules"],
   "rules": {
-    "local-rules/no-hardcoded-thai": "warn"
+    "local-rules/no-hardcoded-thai": "error"
   }
 }
+

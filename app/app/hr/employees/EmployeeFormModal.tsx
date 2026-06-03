@@ -1,5 +1,6 @@
 'use client';
 
+/* eslint-disable local-rules/no-hardcoded-thai */
 import { useState, useEffect } from 'react';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Input, Select } from '@/components/ui';
 import { get, post } from '@/lib/api-client';

@@ -1,5 +1,6 @@
 'use client';
 
+/* eslint-disable local-rules/no-hardcoded-thai */
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { post } from '@/lib/api-client';

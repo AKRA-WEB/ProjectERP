@@ -50,6 +50,7 @@ const DATETIME_FMT_EN = new Intl.DateTimeFormat('en-GB', {
 });
 
 export function formatCurrency(value: string | number | null | undefined, lang?: Locale): string {
+  // eslint-disable-next-line local-rules/no-hardcoded-thai
   if (value == null || value === '') return lang === 'en' ? 'THB 0.00' : '฿0.00';
   return (lang === 'en' ? USD : THB).format(Number(value));
 }

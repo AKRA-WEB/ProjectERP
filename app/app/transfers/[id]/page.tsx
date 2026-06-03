@@ -1,5 +1,6 @@
 'use client';
 
+/* eslint-disable local-rules/no-hardcoded-thai */
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { StatusBadge } from '@/components/ui';

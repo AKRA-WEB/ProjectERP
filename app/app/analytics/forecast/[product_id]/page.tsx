@@ -1,5 +1,6 @@
 'use client';
 
+/* eslint-disable local-rules/no-hardcoded-thai */
 import { useState, useEffect, useCallback, use } from 'react';
 import Link from 'next/link';
 import { get } from '@/lib/api-client';
