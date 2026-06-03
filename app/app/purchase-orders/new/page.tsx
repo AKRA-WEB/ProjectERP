@@ -9,6 +9,7 @@ import { VAT_RATE } from '@/lib/constants';
 import type { PaginatedResponse, Product, Warehouse } from '@/types';
 import { ApprovalDialog } from '@/components/purchase-orders/ApprovalDialog';
 import { cn } from '@/lib/utils';
+import { useT } from '@/lib/i18n';
 
 interface LineItem {
   product_id: string;
@@ -60,6 +61,7 @@ function Textarea({ label, value, onChange, className }: { label: string, value:
 }
 
 function NewPurchaseOrderPageInner() {
+  const t = useT();
   const router = useRouter();
   const searchParams = useSearchParams();
   const prId = searchParams.get('pr_id');
@@ -303,17 +305,17 @@ function NewPurchaseOrderPageInner() {
 
   async function handleSubmit(approveImmediately: boolean) {
     const newErrors: Record<string, string> = {};
-    if (!form.vendor_id) newErrors.vendor_id = 'กรุณาเลือกผู้จำหน่าย';
-    if (!form.warehouse_id) newErrors.warehouse_id = 'กรุณาเลือกคลังสินค้า';
+    if (!form.vendor_id) newErrors.vendor_id = t('error.vendor_required');
+    if (!form.warehouse_id) newErrors.warehouse_id = t('error.warehouse_required');
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      setError('กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน');
+      setError(t('error.fill_required'));
       return;
     }
 
     if (selectedIOIds.length === 0 && lines.length === 0) {
-      setError('กรุณาเพิ่มรายการสินค้า');
+      setError(t('error.add_items_required'));
       return;
     }
 
@@ -321,13 +323,13 @@ function NewPurchaseOrderPageInner() {
     if (selectedIOIds.length > 0) {
       const hasInvalidPrice = ioLines.some(l => l.unit_price === undefined || l.unit_price === null || isNaN(l.unit_price) || l.unit_price < 0);
       if (hasInvalidPrice) {
-        setError('กรุณากรอกราคาสินค้าให้ถูกต้องและครบถ้วนทุกรายการ');
+        setError(t('error.invalid_prices_all'));
         return;
       }
     } else {
       const hasInvalidPrice = lines.some(l => l.unit_price === undefined || l.unit_price === null || isNaN(l.unit_price) || l.unit_price < 0);
       if (hasInvalidPrice) {
-        setError('กรุณากรอกราคาสินค้าให้ถูกต้องและครบถ้วนทุกรายการ');
+        setError(t('error.invalid_prices_all'));
         return;
       }
     }
@@ -369,7 +371,7 @@ function NewPurchaseOrderPageInner() {
       router.push(`/app/purchase-orders/${po.id}`);
     } catch (e: unknown) {
       const err = e as { message?: string };
-      setError(err.message ?? 'เกิดข้อผิดพลาด');
+      setError(err.message ?? t('error.generic'));
       setSaving(false);
     }
   }
@@ -379,8 +381,8 @@ function NewPurchaseOrderPageInner() {
   return (
     <div className="max-w-7xl mx-auto">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">สร้างใบสั่งซื้อใหม่</h1>
-        <button className="text-sm text-gray-500 hover:underline" onClick={() => router.back()}>← ย้อนกลับ</button>
+        <h1 className="text-2xl font-bold text-gray-900">{t('po.new.title')}</h1>
+        <button className="text-sm text-gray-500 hover:underline" onClick={() => router.back()}>← {t('action.back')}</button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
@@ -388,13 +390,13 @@ function NewPurchaseOrderPageInner() {
           {/* IO Multi-Select Box */}
           <div className="rounded-xl bg-white shadow-sm border border-gray-100 p-6 space-y-3">
             <h2 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
-              📦 เลือก Inbound Orders ที่ยืนยันแล้ว
+              {t('po.new.select_io')}
             </h2>
             <p className="text-xs text-gray-500">
-              * การเลือก IO จะกำหนดผู้จำหน่ายและคลังสินค้าตามใบสั่งสินค้า และสรุปยอดรายการสินค้าให้อัตโนมัติ
+              {t('po.new.select_io_help')}
             </p>
             <div className="space-y-1 max-h-52 overflow-y-auto border rounded-lg p-2 bg-gray-50">
-              {confirmedIOs.length === 0 && <p className="text-sm text-gray-400 p-2">ไม่มี Inbound Order ที่รอเปิด PO</p>}
+              {confirmedIOs.length === 0 && <p className="text-sm text-gray-400 p-2">{t('po.new.no_io')}</p>}
               {confirmedIOs.map((io) => (
                 <label key={io.id} className="flex items-center gap-3 p-2 hover:bg-white rounded cursor-pointer transition-colors">
                   <input
@@ -408,7 +410,7 @@ function NewPurchaseOrderPageInner() {
                   <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                     <span className="text-sm font-mono font-bold text-gray-900">{io.io_number}</span>
                     <span className="text-sm text-blue-600">{io.vendor_name}</span>
-                    <span className="text-xs text-gray-400">{io.line_count} รายการ</span>
+                    <span className="text-xs text-gray-400">{io.line_count} {t('label.items_suffix')}</span>
                   </div>
                 </label>
               ))}
@@ -420,13 +422,13 @@ function NewPurchaseOrderPageInner() {
               {/* Searchable Vendor Input */}
               <div ref={vendorContainerRef} className="relative flex flex-col">
                 <label className="text-[13px] font-medium text-gray-700 mb-1.5 flex justify-between items-center">
-                  <span>ผู้จำหน่าย *</span>
+                  <span>{t('label.vendor')} *</span>
                   {errors.vendor_id && <span className="text-red-500 text-xs font-normal">{errors.vendor_id}</span>}
                 </label>
                 <div className="relative">
                   <input
                     type="text"
-                    placeholder="พิมพ์รหัสหรือชื่อผู้จำหน่าย..."
+                    placeholder={t('label.search_vendor_placeholder')}
                     value={vendorSearchText}
                     onChange={(e) => {
                       setVendorSearchText(e.target.value);
@@ -464,7 +466,7 @@ function NewPurchaseOrderPageInner() {
                 {showVendorDropdown && !(selectedIOIds.length > 0) && (
                   <div className="absolute left-0 right-0 top-full mt-1 z-50 max-h-60 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg">
                     {filteredVendors.length === 0 ? (
-                      <p className="p-3 text-sm text-gray-400 italic text-center">ไม่พบผู้จำหน่าย</p>
+                      <p className="p-3 text-sm text-gray-400 italic text-center">{t('error.vendor_not_found')}</p>
                     ) : (
                       filteredVendors.map((v) => (
                         <button
@@ -490,11 +492,11 @@ function NewPurchaseOrderPageInner() {
               </div>
 
               <Select
-                label="คลังสินค้า *"
+                label={t('label.warehouse') + ' *'}
                 value={form.warehouse_id}
                 onChange={(e) => setF('warehouse_id', e.target.value)}
                 options={warehouses}
-                placeholder="เลือกคลังสินค้า"
+                placeholder={t('label.select_warehouse')}
                 error={errors.warehouse_id}
                 disabled={selectedIOIds.length > 0}
               />
@@ -504,16 +506,16 @@ function NewPurchaseOrderPageInner() {
               <div className="space-y-4">
                 <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-4">
                   <p className="text-sm font-semibold text-emerald-800">
-                    อยู่ในโหมดรวม Inbound Orders ({selectedIOIds.length} รายการ)
+                    {t('po.new.io_mode_title').replace('{count}', selectedIOIds.length.toString())}
                   </p>
                   <p className="text-xs text-emerald-600 mt-1">
-                    ระบบจะสร้างใบสั่งซื้อด้วยสินค้าและจำนวนที่รับมาจากใบสั่งสินค้าทั้งหมด
+                    {t('po.new.io_mode_help')}
                   </p>
                 </div>
 
                 {ioLines.length > 0 && (
                   <div className="space-y-3">
-                    <p className="text-sm font-semibold text-gray-700">ใส่ราคาต่อหน่วยสำหรับรายการรับสินค้า</p>
+                    <p className="text-sm font-semibold text-gray-700">{t('po.new.input_unit_price_io')}</p>
                     <div className="space-y-2">
                       {ioLines.map((line, i) => (
                         <div key={line.product_id} className="flex flex-col sm:flex-row sm:items-center gap-3 bg-gray-50 rounded-lg p-3 border border-gray-100">
@@ -522,23 +524,23 @@ function NewPurchaseOrderPageInner() {
                             <span className="text-sm font-medium text-gray-900">{line.name_th}</span>
                             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-gray-500">
                               <span className="flex items-center gap-1 bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
-                                ราคามาสเตอร์: <span className="font-semibold font-mono">{formatCurrency(line.product_unit_cost ?? 0)}</span>
+                                {t('label.master_price')}: <span className="font-semibold font-mono">{formatCurrency(line.product_unit_cost ?? 0)}</span>
                               </span>
                               <span className="text-gray-300">|</span>
                               <span className="flex items-center gap-1 bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded border border-blue-100">
-                                ราคานำเข้า: <span className="font-semibold font-mono">{formatCurrency(line.unit_cost ?? 0)}</span>
+                                {t('label.import_price')}: <span className="font-semibold font-mono">{formatCurrency(line.unit_cost ?? 0)}</span>
                               </span>
                             </div>
                           </div>
                           <div className="text-sm text-gray-500 flex-shrink-0">
-                            รับแล้ว <span className="font-bold font-mono text-emerald-700">{line.qty_received}</span> {line.uom_code}
+                            {t('label.received_qty')} <span className="font-bold font-mono text-emerald-700">{line.qty_received}</span> {line.uom_code}
                           </div>
                           <div className="flex items-center gap-2 flex-shrink-0">
                             <Input
                               type="number"
                               min="0"
                               step="0.01"
-                              placeholder="ราคา/หน่วย"
+                              placeholder={t('label.unit_price')}
                               value={line.unit_price || ''}
                               onChange={(e) => {
                                 const updated = [...ioLines];
@@ -547,7 +549,7 @@ function NewPurchaseOrderPageInner() {
                               }}
                               className="w-28 text-right font-mono"
                             />
-                            <span className="text-xs text-gray-500">บาท</span>
+                            <span className="text-xs text-gray-500">{t('label.thb')}</span>
                           </div>
                         </div>
                       ))}
@@ -558,8 +560,8 @@ function NewPurchaseOrderPageInner() {
             ) : (
               <>
                 <Tabs>
-                  <Tab active={activeTab === 'items'} onClick={() => setActiveTab('items')}>สินค้านำเข้า</Tab>
-                  <Tab active={activeTab === 'details'} onClick={() => setActiveTab('details')}>รายละเอียด</Tab>
+                  <Tab active={activeTab === 'items'} onClick={() => setActiveTab('items')}>{t('po.new.tab_items')}</Tab>
+                  <Tab active={activeTab === 'details'} onClick={() => setActiveTab('details')}>{t('label.details')}</Tab>
                 </Tabs>
 
                 <div className="mt-4">
@@ -568,14 +570,14 @@ function NewPurchaseOrderPageInner() {
                       {/* Product search container */}
                       <div ref={productContainerRef} className="relative">
                         <Input
-                          label="ค้นหาสินค้า"
+                          label={t('label.search_product')}
                           value={productSearch}
                           onChange={(e) => setProductSearch(e.target.value)}
-                          placeholder="พิมพ์ SKU หรือชื่อสินค้า..."
+                          placeholder={t('label.search_product_placeholder')}
                         />
                         {searchLoading && (
                           <div className="absolute z-20 right-3 top-[34px] flex items-center">
-                            <span className="text-xs text-gray-400">กำลังค้นหา...</span>
+                            <span className="text-xs text-gray-400">{t('msg.searching')}</span>
                           </div>
                         )}
                         {productResults.length > 0 && (
@@ -594,7 +596,7 @@ function NewPurchaseOrderPageInner() {
                                 </button>
                               ))}
                             {productResults.filter(p => !lines.some(l => l.product_id === p.id)).length === 0 && (
-                              <p className="p-3 text-sm text-gray-400 italic text-center">ไม่มีสินค้าที่ยังไม่ได้เลือก</p>
+                              <p className="p-3 text-sm text-gray-400 italic text-center">{t('po.new.no_remaining_products')}</p>
                             )}
                           </div>
                         )}
@@ -604,18 +606,18 @@ function NewPurchaseOrderPageInner() {
                         <table className="w-full text-sm">
                           <thead className="bg-gray-50">
                             <tr>
-                              <th className="text-left p-3 font-medium text-gray-600">สินค้า</th>
-                              <th className="text-right p-3 font-medium text-gray-600 w-24">จำนวน</th>
-                              <th className="text-right p-3 font-medium text-gray-600 w-32">ราคา/หน่วย</th>
-                              <th className="text-right p-3 font-medium text-gray-600 w-32">ส่วนลดรวม</th>
-                              <th className="text-right p-3 font-medium text-gray-600 w-32">รวม</th>
+                              <th className="text-left p-3 font-medium text-gray-600">{t('label.product')}</th>
+                              <th className="text-right p-3 font-medium text-gray-600 w-24">{t('label.qty')}</th>
+                              <th className="text-right p-3 font-medium text-gray-600 w-32">{t('label.unit_price')}</th>
+                              <th className="text-right p-3 font-medium text-gray-600 w-32">{t('label.line_discount')}</th>
+                              <th className="text-right p-3 font-medium text-gray-600 w-32">{t('label.sum')}</th>
                               <th className="w-10"></th>
                             </tr>
                           </thead>
                           <tbody>
                             {lines.length === 0 ? (
                               <tr>
-                                <td colSpan={6} className="p-8 text-center text-gray-400 italic">ยังไม่มีรายการสินค้า</td>
+                                <td colSpan={6} className="p-8 text-center text-gray-400 italic">{t('po.new.no_items')}</td>
                               </tr>
                             ) : (
                               lines.map((l, i) => (
@@ -640,20 +642,20 @@ function NewPurchaseOrderPageInner() {
 
                   {activeTab === 'details' && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <Input label="วันที่เอกสาร" type="date" value={form.doc_date} onChange={(e) => setF('doc_date', e.target.value)} />
-                      <Input label="วันที่คาดรับ" type="date" value={form.expected_date} onChange={(e) => setF('expected_date', e.target.value)} error={errors.expected_date} />
-                      <Input label="วันครบกำหนด" type="date" value={form.expiry_date} onChange={(e) => setF('expiry_date', e.target.value)} />
-                      <Input label="วันที่ส่งของ" type="date" value={form.delivery_date} onChange={(e) => setF('delivery_date', e.target.value)} />
-                      <Input label="เงื่อนไขการชำระ (วัน)" type="number" value={form.payment_terms_days} onChange={(e) => setF('payment_terms_days', parseInt(e.target.value) || 0)} />
-                      <Input label="อ้างอิง" value={form.reference} onChange={(e) => setF('reference', e.target.value)} />
+                      <Input label={t('label.doc_date')} type="date" value={form.doc_date} onChange={(e) => setF('doc_date', e.target.value)} />
+                      <Input label={t('label.expected_date')} type="date" value={form.expected_date} onChange={(e) => setF('expected_date', e.target.value)} error={errors.expected_date} />
+                      <Input label={t('label.po_expiry_date')} type="date" value={form.expiry_date} onChange={(e) => setF('expiry_date', e.target.value)} />
+                      <Input label={t('label.delivery_date')} type="date" value={form.delivery_date} onChange={(e) => setF('delivery_date', e.target.value)} />
+                      <Input label={t('label.payment_terms')} type="number" value={form.payment_terms_days} onChange={(e) => setF('payment_terms_days', parseInt(e.target.value) || 0)} />
+                      <Input label={t('label.reference')} value={form.reference} onChange={(e) => setF('reference', e.target.value)} />
                       <div className="col-span-2">
-                        <Textarea label="ที่อยู่ผู้ส่ง" value={form.from_address} onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setF('from_address', e.target.value)} />
+                        <Textarea label={t('label.from_address')} value={form.from_address} onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setF('from_address', e.target.value)} />
                       </div>
                       <div className="col-span-2">
-                        <Textarea label="ที่อยู่ผู้รับ" value={form.to_address} onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setF('to_address', e.target.value)} />
+                        <Textarea label={t('label.to_address')} value={form.to_address} onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setF('to_address', e.target.value)} />
                       </div>
                       <div className="col-span-2">
-                        <Textarea label="หมายเหตุ" value={form.notes} onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setF('notes', e.target.value)} />
+                        <Textarea label={t('label.note')} value={form.notes} onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setF('notes', e.target.value)} />
                       </div>
                     </div>
                   )}
@@ -665,32 +667,32 @@ function NewPurchaseOrderPageInner() {
 
         <div className="sticky top-6 space-y-4">
           <div className="rounded-xl bg-white shadow-sm border border-gray-100 p-6 space-y-4">
-            <h2 className="font-semibold text-gray-900 border-b pb-2">สรุปยอดเงิน</h2>
+            <h2 className="font-semibold text-gray-900 border-b pb-2">{t('po.new.summary_title')}</h2>
             
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-500">ยอดรวม (ก่อนหัก):</span>
+                <span className="text-gray-500">{t('label.subtotal')}:</span>
                 <span className="font-mono">{formatCurrency(summary.subtotal)}</span>
               </div>
               <div className="flex justify-between text-red-600">
-                <span>ส่วนลดรวมรายการ:</span>
+                <span>{t('label.line_discount')}:</span>
                 <span className="font-mono">-{formatCurrency(summary.totalLineDiscount)}</span>
               </div>
               <div className="flex justify-between font-medium pt-1 border-t">
-                <span>ยอดหลังหักส่วนลด:</span>
+                <span>{t('label.subtotal_after_discount')}:</span>
                 <span className="font-mono">{formatCurrency(summary.afterLineDiscount)}</span>
               </div>
               
               <div className="pt-2 space-y-3">
                 <Input
-                  label="ส่วนลดท้ายบิล"
+                  label={t('label.bill_discount')}
                   type="number"
                   value={form.bill_discount}
                   onChange={(e) => setF('bill_discount', parseFloat(e.target.value) || 0)}
                   className="font-mono text-right"
                 />
                 <Input
-                  label="ยอดไม่เสียภาษี"
+                  label={t('label.non_vat_amount')}
                   type="number"
                   value={form.non_vat_amount}
                   onChange={(e) => setF('non_vat_amount', parseFloat(e.target.value) || 0)}
@@ -699,11 +701,11 @@ function NewPurchaseOrderPageInner() {
               </div>
 
               <div className="flex justify-between pt-2 border-t">
-                <span className="text-gray-500">ยอดก่อนภาษี:</span>
+                <span className="text-gray-500">{t('label.pre_vat_amount')}:</span>
                 <span className="font-mono">{formatCurrency(summary.preVat)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">ภาษีมูลค่าเพิ่ม (7%):</span>
+                <span className="text-gray-500">{t('label.vat_7pct')}:</span>
                 <span className="font-mono">{formatCurrency(summary.vat)}</span>
               </div>
               
@@ -715,11 +717,11 @@ function NewPurchaseOrderPageInner() {
                   onChange={(e) => setF('include_vat', e.target.checked)}
                   className="rounded border-gray-300"
                 />
-                <label htmlFor="include_vat" className="text-xs text-gray-600 cursor-pointer select-none">ราคารวม VAT แล้ว</label>
+                <label htmlFor="include_vat" className="text-xs text-gray-600 cursor-pointer select-none">{t('label.include_vat')}</label>
               </div>
 
               <div className="flex justify-between text-xl font-bold text-blue-700 pt-3 border-t">
-                <span>ยอดสุทธิ:</span>
+                <span>{t('label.net_total')}:</span>
                 <span className="font-mono">{formatCurrency(summary.netTotal)}</span>
               </div>
             </div>
@@ -727,8 +729,8 @@ function NewPurchaseOrderPageInner() {
             {error && <p className="text-sm text-red-600">{error}</p>}
 
             <div className="grid grid-cols-2 gap-3 pt-4">
-              <Button variant="secondary" onClick={() => handleSubmit(false)} loading={saving}>พักบิล</Button>
-              <Button onClick={() => setShowApproval(true)} disabled={saving || (selectedIOIds.length === 0 && lines.length === 0)}>อนุมัติทันที</Button>
+              <Button variant="secondary" onClick={() => handleSubmit(false)} loading={saving}>{t('action.hold_bill')}</Button>
+              <Button onClick={() => setShowApproval(true)} disabled={saving || (selectedIOIds.length === 0 && lines.length === 0)}>{t('action.approve_immediately')}</Button>
             </div>
           </div>
         </div>
@@ -756,8 +758,9 @@ function NewPurchaseOrderPageInner() {
 }
 
 export default function NewPurchaseOrderPage() {
+  const t = useT();
   return (
-    <Suspense fallback={<div className="py-16 text-center text-gray-400">กำลังโหลด...</div>}>
+    <Suspense fallback={<div className="py-16 text-center text-gray-400">{t('label.loading')}</div>}>
       <NewPurchaseOrderPageInner />
     </Suspense>
   );

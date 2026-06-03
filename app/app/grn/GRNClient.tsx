@@ -11,6 +11,7 @@ import { useSession } from 'next-auth/react';
 import { Loader2, Search, Warehouse as WarehouseIcon, Clock, User, Download, Plus, CornerDownRight } from 'lucide-react';
 import type { GRNPageResult, GRNRow } from '@/lib/queries/grn';
 import type { WarehouseRow } from '@/lib/queries/admin';
+import { useT } from '@/lib/i18n';
 
 interface GRN {
   id: string;
@@ -46,25 +47,25 @@ interface GRNDetail extends GRN {
   }>;
 }
 
-const GRN_STATUSES: Record<string, { label: string; cls: string }> = {
-  draft:       { label: 'ร่าง',          cls: 'muted' },
-  received:    { label: 'รับแล้ว',       cls: 'info' },
-  qc_pending:  { label: 'รอ QC',         cls: 'warn' },
-  qc_passed:   { label: 'QC ผ่าน',       cls: 'ok' },
-  qc_failed:   { label: 'QC ไม่ผ่าน',    cls: 'danger' },
-  verified:    { label: 'ตรวจสอบแล้ว',   cls: 'info' },
-  stocked:     { label: 'นำเข้าคลัง',    cls: 'ok' },
+const GRN_STATUSES: Record<string, { cls: string }> = {
+  draft:       { cls: 'muted' },
+  received:    { cls: 'info' },
+  qc_pending:  { cls: 'warn' },
+  qc_passed:   { cls: 'ok' },
+  qc_failed:   { cls: 'danger' },
+  verified:    { cls: 'info' },
+  stocked:     { cls: 'ok' },
 };
 
 const TABS = [
-  { id: '', label: 'ทั้งหมด' },
-  { id: 'draft', label: 'ร่าง' },
-  { id: 'received', label: 'รับแล้ว' },
-  { id: 'qc_pending', label: 'รอ QC' },
-  { id: 'qc_passed', label: 'QC ผ่าน' },
-  { id: 'qc_failed', label: 'QC ไม่ผ่าน' },
-  { id: 'verified', label: 'ตรวจสอบแล้ว' },
-  { id: 'stocked', label: 'นำเข้าคลัง' },
+  { id: '' },
+  { id: 'draft' },
+  { id: 'received' },
+  { id: 'qc_pending' },
+  { id: 'qc_passed' },
+  { id: 'qc_failed' },
+  { id: 'verified' },
+  { id: 'stocked' },
 ];
 
 const PILL_COLORS: Record<string, string> = {
@@ -76,10 +77,20 @@ const PILL_COLORS: Record<string, string> = {
 };
 
 function Pill({ status }: { status: string }) {
-  const s = GRN_STATUSES[status] ?? { label: status, cls: 'muted' };
+  const t = useT();
+  const s = GRN_STATUSES[status] ?? { cls: 'muted' };
+  const labels: Record<string, string> = {
+    draft: t('status.draft'),
+    received: t('status.received'),
+    qc_pending: t('status.qc_pending'),
+    qc_passed: t('status.qc_passed'),
+    qc_failed: t('status.qc_failed'),
+    verified: t('status.verified'),
+    stocked: t('status.stocked'),
+  };
   return (
     <span className={`inline-flex items-center gap-[5px] px-2 py-[2px] text-[11.5px] font-medium rounded-full border leading-[1.5] whitespace-nowrap before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:bg-current ${PILL_COLORS[s.cls]}`}>
-      {s.label}
+      {labels[status] ?? status}
     </span>
   );
 }
@@ -97,6 +108,7 @@ function GRNDetailModal({
   onActionComplete: () => void;
   sessionUser: { role: string } | undefined;
 }) {
+  const t = useT();
   const [qcNotes, setQcNotes] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const toast = useToast();
@@ -112,15 +124,15 @@ function GRNDetailModal({
     try {
       if (action === 'stock') {
         await post(`/api/grn/${grn.id}/stock`, {});
-        toast('success', 'สินค้าถูกนำเข้าคลังเรียบร้อยแล้ว');
+        toast('success', t('msg.grn_stocked_success'));
       } else {
         await patch(`/api/grn/${grn.id}`, { action, qc_notes: qcNotes });
-        toast('success', 'อัปเดตสถานะสำเร็จแล้ว');
+        toast('success', t('msg.update_status_success'));
       }
       onActionComplete();
       onClose();
     } catch (err: unknown) {
-      toast('error', err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการทำรายการ');
+      toast('error', err instanceof Error ? err.message : t('msg.transaction_error'));
     } finally {
       setActionLoading(false);
     }
@@ -163,9 +175,9 @@ function GRNDetailModal({
           {/* Info grid */}
           <div className="grid grid-cols-3 gap-3">
             {[
-              { l: grn.inbound_order_id ? 'เลข IO' : 'เลข PO', v: grn.io_number ?? grn.po_number ?? '—' },
-              { l: 'คลังสินค้า', v: grn.warehouse_name },
-              { l: 'ผู้รับสินค้า', v: grn.received_by_name },
+              { l: grn.inbound_order_id ? t('grn.queue.th_io_num') : t('grn.queue.th_po_num'), v: grn.io_number ?? grn.po_number ?? '—' },
+              { l: t('grn.client.th_warehouse'), v: grn.warehouse_name },
+              { l: t('grn.modal.receiver'), v: grn.received_by_name },
             ].map((s) => (
               <div key={s.l} className="bg-stone-50 border border-stone-200 rounded-[8px] px-3 py-[10px]">
                 <div className="text-[11.5px] text-stone-600 mb-1">{s.l}</div>
@@ -176,12 +188,12 @@ function GRNDetailModal({
 
           {/* Line items */}
           <div>
-            <div className="text-[12px] font-semibold tracking-[.04em] uppercase text-stone-600 mb-2">รายการสินค้า</div>
+            <div className="text-[12px] font-semibold tracking-[.04em] uppercase text-stone-600 mb-2">{t('grn.modal.items_title')}</div>
             <div className={CARD}>
               <table className="w-full border-collapse text-[13px]">
                 <thead>
                   <tr>
-                    {['SKU', 'ชื่อสินค้า', 'รับเข้า', 'ผ่าน', 'ตีคืน', 'หน่วย'].map((h, i) => (
+                    {[t('label.sku'), t('label.product'), t('grn.modal.th_received'), t('grn.modal.th_passed'), t('grn.modal.th_rejected'), t('grn.modal.th_unit')].map((h, i) => (
                       <th key={h} className={`text-left py-2.5 px-3.5 text-[11.5px] font-medium tracking-[.04em] uppercase text-stone-600 bg-stone-50 border-b border-stone-200 first:pl-5 last:pr-5 ${i >= 2 ? 'text-right' : ''}`}>
                         {h}
                       </th>
@@ -209,7 +221,7 @@ function GRNDetailModal({
 
           {grn.qc_notes && (
             <div>
-              <div className="text-[12px] font-semibold tracking-[.04em] uppercase text-stone-600 mb-1">หมายเหตุ QC</div>
+              <div className="text-[12px] font-semibold tracking-[.04em] uppercase text-stone-600 mb-1">{t('grn.modal.qc_notes_title')}</div>
               <p className="text-[13px] text-stone-600 bg-stone-50 rounded-[8px] px-3 py-2.5 border border-stone-200">{grn.qc_notes}</p>
             </div>
           )}
@@ -217,11 +229,11 @@ function GRNDetailModal({
           {/* QC action panel inside modal */}
           {grn.status === 'qc_pending' && isManagerOrAdmin && (
             <div className="flex flex-col gap-2 w-full mt-2 border-t border-stone-100 pt-4">
-              <div className="text-[12px] font-semibold text-stone-600">ระบุหมายเหตุ QC (ถ้ามี)</div>
+              <div className="text-[12px] font-semibold text-stone-600">{t('grn.modal.specify_qc_notes')}</div>
               <textarea
                 value={qcNotes}
                 onChange={(e) => setQcNotes(e.target.value)}
-                placeholder="ใส่เหตุผลในการ อนุมัติ / ปฏิเสธ หรือข้อมูลผลการทดสอบ QC..."
+                placeholder={t('grn.modal.qc_notes_placeholder')}
                 className="w-full text-xs p-2.5 border border-stone-200 rounded-[6px] focus:outline-none focus:border-stone-400 bg-stone-50 transition-colors"
                 rows={2}
               />
@@ -232,7 +244,7 @@ function GRNDetailModal({
                   className="h-8 px-4 rounded-[7px] text-[13px] font-medium text-white bg-red-600 hover:bg-red-700 shadow-sm disabled:opacity-50 inline-flex items-center gap-1.5 transition-colors"
                 >
                   {actionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
-                  ปฏิเสธ QC
+                  {t('grn.modal.btn_qc_reject')}
                 </button>
                 <button
                   onClick={() => handleAction('qc_approve')}
@@ -240,7 +252,7 @@ function GRNDetailModal({
                   className="h-8 px-4 rounded-[7px] text-[13px] font-medium text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm disabled:opacity-50 inline-flex items-center gap-1.5 transition-colors"
                 >
                   {actionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
-                  อนุมัติ QC
+                  {t('grn.modal.btn_qc_approve')}
                 </button>
               </div>
             </div>
@@ -257,7 +269,7 @@ function GRNDetailModal({
                 className="h-8 px-3 rounded-[7px] text-[13px] font-medium text-white bg-blue-600 hover:bg-blue-700 shadow-sm disabled:opacity-50 inline-flex items-center gap-1.5 transition-colors"
               >
                 {actionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
-                ส่ง QC
+                {t('grn.modal.btn_send_qc')}
               </button>
             )}
             {grn.status === 'qc_passed' && isManagerOrAdmin && (
@@ -267,18 +279,18 @@ function GRNDetailModal({
                 className="h-8 px-3 rounded-[7px] text-[13px] font-medium text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm disabled:opacity-50 inline-flex items-center gap-1.5 transition-colors"
               >
                 {actionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
-                นำเข้าคลัง
+                {t('grn.modal.btn_stock')}
               </button>
             )}
           </div>
           <div className="flex gap-2">
             <button onClick={onClose}
               className="h-8 px-3 rounded-[7px] text-[13px] font-medium text-stone-600 bg-white border border-stone-200 hover:bg-stone-50 shadow-[0_1px_0_rgba(15,23,42,.03)]">
-              ปิด
+              {t('grn.modal.btn_close')}
             </button>
             <Link href={`/app/grn/${grn.id}`} transitionTypes={['nav-forward']}
               className="h-8 px-3 rounded-[7px] text-[13px] font-medium text-white bg-stone-950 hover:bg-stone-800 shadow-sm inline-flex items-center gap-1.5">
-              ดูรายละเอียดเต็ม →
+              {t('grn.modal.btn_full_details')}
             </Link>
           </div>
         </div>
@@ -301,6 +313,7 @@ interface Props {
 
 export function GRNClient({ initialGRNs, initialStatusCounts, initialWarehouses, initialQueueCounts }: Props) {
   const { data: session } = useSession();
+  const t = useT();
 
   const [data, setData] = useState<GRNPageResult | null>(initialGRNs);
   const [tabCounts, setTabCounts] = useState<Record<string, number>>(initialStatusCounts);
@@ -419,23 +432,23 @@ export function GRNClient({ initialGRNs, initialStatusCounts, initialWarehouses,
         <div className="flex items-center justify-between gap-6 flex-wrap">
           <div>
             <h1 className="text-[26px] font-semibold tracking-tight text-stone-950 leading-tight mb-1">
-              ใบรับสินค้า (GRN)
+              {t('grn.client.title')}
             </h1>
             <p className="text-[13.5px] text-stone-500">
-              Goods Receipt Notes · {loading ? '—' : (data?.total ?? 0).toLocaleString('th-TH')} รายการ
+              {t('grn.client.subtitle_prefix')}{loading ? '—' : (data?.total ?? 0).toLocaleString()}{t('grn.client.subtitle_suffix')}
             </p>
           </div>
           <div className="flex items-center gap-2">
             <button className="h-8 px-3 rounded-[7px] text-[13px] font-medium text-stone-600 bg-white border border-stone-200 hover:bg-stone-50 shadow-[0_1px_0_rgba(15,23,42,.03)] inline-flex items-center gap-1.5 transition-colors">
               <Download className="w-3.5 h-3.5" />
-              Export CSV
+              {t('grn.client.btn_export')}
             </button>
             <Link
               href="/app/grn/receiving-queue"
               transitionTypes={['nav-forward']}
               className="h-8 px-3 rounded-[7px] text-[13px] font-medium text-stone-600 bg-white border border-stone-200 hover:bg-stone-50 shadow-[0_1px_0_rgba(15,23,42,.03)] inline-flex items-center gap-1.5 transition-colors"
             >
-              รายการรอรับ
+              {t('grn.client.btn_waiting_receive')}
               {(queueCounts.io + queueCounts.po) > 0 && (
                 <span className="ml-1 text-[10px] font-bold text-amber-700 bg-amber-100 rounded-full px-1.5 py-0.5 animate-pulse">
                   {queueCounts.io > 0 ? `${queueCounts.io} IO` : ''}
@@ -450,31 +463,39 @@ export function GRNClient({ initialGRNs, initialStatusCounts, initialWarehouses,
               className="inline-flex items-center gap-1.5 h-8 px-3 rounded-[7px] bg-stone-950 text-white text-[13px] font-medium shadow-sm hover:bg-stone-800 transition-colors"
             >
               <Plus className="w-3.5 h-3.5" />
-              สร้าง GRN
+              {t('grn.client.btn_create_grn')}
             </Link>
           </div>
         </div>
 
         {/* 8 Status Tabs */}
         <div className="flex gap-0 border-b border-stone-200 overflow-x-auto scrollbar-none whitespace-nowrap">
-          {TABS.map((t) => {
-            const count = t.id === '' 
+          {TABS.map((tItem) => {
+            const count = tItem.id === '' 
               ? Object.values(tabCounts).reduce((a, b) => a + b, 0)
-              : getTabCount(t.id);
-            const isQCPending = t.id === 'qc_pending';
+              : getTabCount(tItem.id);
+            const isQCPending = tItem.id === 'qc_pending';
             return (
               <button
-                key={t.id}
-                onClick={() => { setTab(t.id); setPage(1); }}
+                key={tItem.id}
+                onClick={() => { setTab(tItem.id); setPage(1); }}
                 className={`px-4 py-3 text-[13.5px] font-medium border-b-2 -mb-px transition-all inline-flex items-center gap-1.5 ${
-                  tab === t.id
+                  tab === tItem.id
                     ? 'text-stone-950 border-stone-950 font-semibold'
                     : 'text-stone-600 border-transparent hover:text-stone-700'
                 }`}
               >
-                <span>{t.label}</span>
+                <span>{tItem.id === '' ? t('label.all') : ({
+                  draft: t('status.draft'),
+                  received: t('status.received'),
+                  qc_pending: t('status.qc_pending'),
+                  qc_passed: t('status.qc_passed'),
+                  qc_failed: t('status.qc_failed'),
+                  verified: t('status.verified'),
+                  stocked: t('status.stocked'),
+                } as Record<string, string>)[tItem.id] ?? tItem.id}</span>
                 <span className={`text-[10.5px] font-semibold px-1.5 py-0.5 rounded-full ${
-                  tab === t.id
+                  tab === tItem.id
                     ? isQCPending ? 'bg-amber-100 text-amber-800' : 'bg-stone-200 text-stone-800'
                     : isQCPending ? 'bg-amber-50 text-amber-700/80' : 'bg-stone-100 text-stone-600/80'
                 }`}>
@@ -492,7 +513,7 @@ export function GRNClient({ initialGRNs, initialStatusCounts, initialWarehouses,
             <Search className="absolute left-3 top-2.5 w-4 h-4 text-stone-400" />
             <input
               type="text"
-              placeholder="ค้นหาเลขที่ GRN / PO / IO..."
+              placeholder={t('grn.client.filter_placeholder')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full text-[13px] pl-9 pr-3 py-2 bg-white border border-stone-200 rounded-[7px] focus:outline-none focus:border-stone-400 transition-colors"
@@ -507,7 +528,7 @@ export function GRNClient({ initialGRNs, initialStatusCounts, initialWarehouses,
               onChange={(e) => { setWarehouseFilter(e.target.value); setPage(1); }}
               className="w-full text-[13px] pl-9 pr-3 py-2 bg-white border border-stone-200 rounded-[7px] focus:outline-none focus:border-stone-400 appearance-none transition-colors"
             >
-              <option value="">เลือกคลังสินค้าทั้งหมด</option>
+              <option value="">{t('grn.client.filter_all_warehouses')}</option>
               {warehousesList.map((wh) => (
                 <option key={wh.id} value={wh.id}>{wh.code} - {wh.name_th}</option>
               ))}
@@ -522,10 +543,10 @@ export function GRNClient({ initialGRNs, initialStatusCounts, initialWarehouses,
               onChange={(e) => setTimeFilter(e.target.value)}
               className="w-full text-[13px] pl-9 pr-3 py-2 bg-white border border-stone-200 rounded-[7px] focus:outline-none focus:border-stone-400 appearance-none transition-colors"
             >
-              <option value="">เลือกช่วงเวลาทั้งหมด</option>
-              <option value="today">วันนี้</option>
-              <option value="7days">7 วันล่าสุด</option>
-              <option value="30days">30 วันล่าสุด</option>
+              <option value="">{t('grn.client.filter_all_periods')}</option>
+              <option value="today">{t('grn.client.filter_today')}</option>
+              <option value="7days">{t('grn.client.filter_7days')}</option>
+              <option value="30days">{t('grn.client.filter_30days')}</option>
             </select>
           </div>
 
@@ -537,7 +558,7 @@ export function GRNClient({ initialGRNs, initialStatusCounts, initialWarehouses,
               onChange={(e) => setReceiverFilter(e.target.value)}
               className="w-full text-[13px] pl-9 pr-3 py-2 bg-white border border-stone-200 rounded-[7px] focus:outline-none focus:border-stone-400 appearance-none transition-colors"
             >
-              <option value="">เลือกผู้รับทั้งหมด</option>
+              <option value="">{t('grn.client.filter_all_receivers')}</option>
               {uniqueReceivers.map((rec) => (
                 <option key={rec} value={rec}>{rec}</option>
               ))}
@@ -550,7 +571,16 @@ export function GRNClient({ initialGRNs, initialStatusCounts, initialWarehouses,
           <table className="w-full border-collapse text-[13px]">
             <thead>
               <tr>
-                {['เลข GRN', 'เอกสารอ้างอิง / Ref.', 'คลังสินค้า', 'ผู้รับ', 'วันที่รับ', 'รายการ', 'สถานะ', ''].map((h, i) => (
+                {[
+                  t('grn.client.th_grn_num'),
+                  t('grn.client.th_ref'),
+                  t('grn.client.th_warehouse'),
+                  t('grn.client.th_receiver'),
+                  t('grn.client.th_received_date'),
+                  t('grn.client.th_items_count'),
+                  t('grn.client.th_status'),
+                  ''
+                ].map((h, i) => (
                   <th key={i} className={`text-left py-3 px-3.5 text-[11.5px] font-medium tracking-[.04em] uppercase text-stone-600 bg-stone-50 border-b border-stone-200 first:pl-5 last:pr-5 ${i === 5 ? 'text-center' : ''} ${[2,3,4,5].includes(i) ? 'hidden lg:table-cell' : ''}`}>
                     {h}
                   </th>
@@ -559,9 +589,9 @@ export function GRNClient({ initialGRNs, initialStatusCounts, initialWarehouses,
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={8} className="py-12 text-center text-[13px] text-stone-600">กำลังโหลด...</td></tr>
+                <tr><td colSpan={8} className="py-12 text-center text-[13px] text-stone-600">{t('grn.client.loading')}</td></tr>
               ) : displayedGRNs.length === 0 ? (
-                <tr><td colSpan={8} className="py-12 text-center text-[13px] text-stone-600">ไม่พบรายการ</td></tr>
+                <tr><td colSpan={8} className="py-12 text-center text-[13px] text-stone-600">{t('grn.client.no_records')}</td></tr>
               ) : displayedGRNs.map((g, index) => {
                 const isSelected = selectedRowIndex === index;
                 return (
@@ -611,9 +641,9 @@ export function GRNClient({ initialGRNs, initialStatusCounts, initialWarehouses,
         {/* Card stack for mobile */}
         <div className="md:hidden space-y-3">
           {loading ? (
-            <div className="text-center py-8 text-[13px] text-stone-600 bg-white border border-stone-200 rounded-xl">กำลังโหลด...</div>
+            <div className="text-center py-8 text-[13px] text-stone-600 bg-white border border-stone-200 rounded-xl">{t('grn.client.loading')}</div>
           ) : displayedGRNs.length === 0 ? (
-            <div className="text-center py-8 text-[13px] text-stone-600 bg-white border border-stone-200 rounded-xl">ไม่พบรายการ</div>
+            <div className="text-center py-8 text-[13px] text-stone-600 bg-white border border-stone-200 rounded-xl">{t('grn.client.no_records')}</div>
           ) : (
             displayedGRNs.map((g) => (
               <div
@@ -626,13 +656,13 @@ export function GRNClient({ initialGRNs, initialStatusCounts, initialWarehouses,
                   <Pill status={g.status} />
                 </div>
                 <div className="text-[13px] text-stone-600 mb-1">
-                  คลัง: {g.warehouse_name} ({g.warehouse_code})
+                  {t('label.warehouse_colon')}{g.warehouse_name} ({g.warehouse_code})
                 </div>
                 <div className="text-[13px] text-stone-600 mb-2">
-                  อ้างอิง: {g.po_number ? `PO: ${g.po_number}` : g.io_number ? `IO: ${g.io_number}` : '—'}
+                  {t('label.source_colon')}{g.po_number ? `PO: ${g.po_number}` : g.io_number ? `IO: ${g.io_number}` : '—'}
                 </div>
                 <div className="flex justify-between items-center text-[11px] text-stone-500 border-t border-stone-100 pt-2">
-                  <span>ผู้รับ: {g.received_by_name}</span>
+                  <span>{t('label.receiver_colon')}{g.received_by_name}</span>
                   <span className="font-mono">{formatDate(g.received_date)}</span>
                 </div>
               </div>
@@ -643,15 +673,15 @@ export function GRNClient({ initialGRNs, initialStatusCounts, initialWarehouses,
         {/* Pagination */}
         {data && data.total_pages > 1 && (
           <div className="flex items-center justify-between text-[13px] text-stone-500">
-            <span>หน้า {page} จาก {data.total_pages}</span>
+            <span>{t('label.page')} {page} {t('label.of')} {data.total_pages}</span>
             <div className="flex gap-1">
               <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
                 className="h-8 px-3 rounded-[7px] border border-stone-200 bg-white hover:bg-stone-50 disabled:opacity-40 disabled:pointer-events-none text-[13px]">
-                ← ก่อนหน้า
+                ← {t('label.prev')}
               </button>
               <button onClick={() => setPage((p) => Math.min(data.total_pages, p + 1))} disabled={page === data.total_pages}
                 className="h-8 px-3 rounded-[7px] border border-stone-200 bg-white hover:bg-stone-50 disabled:opacity-40 disabled:pointer-events-none text-[13px]">
-                ถัดไป →
+                {t('label.next')} →
               </button>
             </div>
           </div>
@@ -662,7 +692,7 @@ export function GRNClient({ initialGRNs, initialStatusCounts, initialWarehouses,
           <div className="fixed inset-0 z-40 grid place-items-center bg-[rgba(15,23,42,.2)]">
             <div className="bg-white rounded-lg p-4 shadow-md flex items-center gap-2 border border-stone-100">
               <Loader2 className="w-5 h-5 text-stone-800 animate-spin" />
-              <span className="text-stone-700 text-[13px]">กำลังเรียกข้อมูลรายละเอียด...</span>
+              <span className="text-stone-700 text-[13px]">{t('grn.modal.loading_details')}</span>
             </div>
           </div>
         )}

@@ -60,7 +60,7 @@ export default function PODetailPage() {
     setActing(true);
     try {
       const res = await post<{ grn_number: string }>(`/api/purchase-orders/${id}/approve`, {});
-      setSuccess(`PO อนุมัติแล้ว — GRN: ${res.grn_number}`);
+      setSuccess(t('po.detail.approved_grn_created').replace('{grn_number}', res.grn_number));
       setShowApproval(false);
       await fetchPO();
     } catch (e: unknown) {
@@ -116,8 +116,8 @@ export default function PODetailPage() {
 
       {po.approved_at && (
         <div className="mb-6 rounded-lg bg-green-50 border border-green-100 p-4 flex flex-wrap gap-x-8 gap-y-2 text-sm text-green-800">
-          <div><span className="text-green-600 font-medium">{t('action.approve')}โดย:</span> {po.approved_by_name}</div>
-          <div><span className="text-green-600 font-medium">{t('action.approve')}เมื่อ:</span> {formatDate(po.approved_at, lang)}</div>
+          <div><span className="text-green-600 font-medium">{t('label.approved_by')}:</span> {po.approved_by_name}</div>
+          <div><span className="text-green-600 font-medium">{t('label.approved_at')}:</span> {formatDate(po.approved_at, lang)}</div>
         </div>
       )}
 
@@ -161,7 +161,7 @@ export default function PODetailPage() {
             </tr>
             {summary && summary.totalLineDiscount > 0 && (
               <tr>
-                <td colSpan={6} className="p-3 text-right text-sm text-red-600">{t('label.discount')}รวมรายการ</td>
+                <td colSpan={6} className="p-3 text-right text-sm text-red-600">{t('label.discount_total')}</td>
                 <td className="p-3 text-right text-sm text-red-600 font-mono">-{formatCurrency(summary.totalLineDiscount, lang)}</td>
               </tr>
             )}
@@ -173,12 +173,12 @@ export default function PODetailPage() {
             )}
             {Number(po.non_vat_amount) > 0 && (
               <tr>
-                <td colSpan={6} className="p-3 text-right text-sm text-gray-500">ยอดไม่เสียภาษี</td>
+                <td colSpan={6} className="p-3 text-right text-sm text-gray-500">{t('label.non_vatable_amount')}</td>
                 <td className="p-3 text-right text-sm font-mono">{formatCurrency(po.non_vat_amount, lang)}</td>
               </tr>
             )}
             <tr>
-              <td colSpan={6} className="p-3 text-right text-sm text-gray-500 border-t">ยอดก่อนภาษี</td>
+              <td colSpan={6} className="p-3 text-right text-sm text-gray-500 border-t">{t('label.pretax_amount')}</td>
               <td className="p-3 text-right text-sm font-medium font-mono border-t">{formatCurrency(po.pre_vat_amount, lang)}</td>
             </tr>
             <tr>
@@ -200,9 +200,9 @@ export default function PODetailPage() {
             <table className="w-full text-sm text-left">
               <thead className="bg-gray-50 border-b">
                 <tr>
-                  <th className="p-3 font-medium text-gray-600">เลขใบแจ้งหนี้</th>
+                  <th className="p-3 font-medium text-gray-600">{t('label.invoice_number')}</th>
                   <th className="p-3 font-medium text-gray-600">{t('label.date')}</th>
-                  <th className="p-3 font-medium text-gray-600">ครบกำหนด</th>
+                  <th className="p-3 font-medium text-gray-600">{t('label.due_date')}</th>
                   <th className="text-right p-3 font-medium text-gray-600">{t('label.qty')}</th>
                   <th className="p-3 font-medium text-gray-600">{t('label.status')}</th>
                 </tr>
@@ -214,7 +214,7 @@ export default function PODetailPage() {
                     <td className="p-3">{formatDate(inv.invoice_date, lang)}</td>
                     <td className="p-3">{formatDate(inv.due_date, lang)}</td>
                     <td className="p-3 text-right font-medium font-mono">{formatCurrency(inv.amount, lang)}</td>
-                    <td className="p-3"><Badge variant={inv.is_paid ? 'green' : 'yellow'}>{inv.is_paid ? t('status.paid') : 'ค้างชำระ'}</Badge></td>
+                    <td className="p-3"><Badge variant={inv.is_paid ? 'green' : 'yellow'}>{inv.is_paid ? t('status.paid') : t('status.unpaid')}</Badge></td>
                   </tr>
                 ))}
               </tbody>
@@ -235,7 +235,7 @@ export default function PODetailPage() {
           <>
             <Button variant="secondary" onClick={() => router.push(`/app/purchase-orders/${id}/edit`)}>{t('action.edit')}</Button>
             <Button variant="danger" onClick={() => action('cancel')} loading={acting}>{t('action.cancel')} PO</Button>
-            <Button variant="secondary" onClick={() => action('send')} loading={acting}>ส่ง PO</Button>
+            <Button variant="secondary" onClick={() => action('send')} loading={acting}>{t('action.send_po')}</Button>
             <Button onClick={() => setShowApproval(true)} disabled={acting}>{t('action.approve')}</Button>
           </>
         )}
@@ -244,7 +244,7 @@ export default function PODetailPage() {
             <Button variant="danger" onClick={() => action('cancel')} loading={acting}>{t('action.cancel')} PO</Button>
             <Link href={`/app/grn/new?po_id=${id}`}>
               <Button className="bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-2">
-                <ShoppingBag className="w-4 h-4" /> ยืนยันการรับสินค้า
+                <ShoppingBag className="w-4 h-4" /> {t('action.confirm_receiving')}
               </Button>
             </Link>
           </>

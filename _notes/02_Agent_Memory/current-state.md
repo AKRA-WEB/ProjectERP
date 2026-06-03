@@ -15,14 +15,14 @@ updated_by: Gemini
 - **Accounting:** Chart of Accounts, JE Posting, 3-Way Match (v070), Thai VAT (v071).
 
 ## Last 5 Completed Tracks
+- **i18n-t4-grn-purchasing**: Migrated WMS GRN & Purchase Orders pages (New GRN, GRN Details, Merge GRN, New PO, PO Details, receiving queue, and WMS dashboard clients) to use useT() hook translation keys (2026-06-03)
 - **i18n-t3-accounting**: Fully migrated all Accounting pages (VAT report, General Ledger audit, Chart of Accounts list/new/edit, Journal Entries list/detail, external export adapters/jobs, and 6 reports including AP/AR aging, Balance Sheet, profit-loss, trial balance, general ledger) to i18n dynamic translation (2026-05-30)
 - **i18n-t2-keys**: Added ~65 missing translation keys to en.json and th.json in perfect 1-to-1 sync, covering modules for accounting, GRN, WMS, admin, and menu categories (2026-05-30)
 - **i18n-t1-prevention**: Installed `eslint-plugin-local-rules`, created `no-hardcoded-thai` ESLint rule (warn), added scaffold template `scripts/new-page-template.tsx`, wrote `docs/i18n.md`, updated CLAUDE.md Knowledge Base + QA loop (2026-05-30)
 - **perf-tier4-suspense-streaming**: Converted Dashboard, GRN, Inventory, AP, and SKU-Cut pages to React Server Components (RSC) with parallel database fetches. Replaced expensive `limit=1000` GRN scans with an optimized count endpoint. ~85% reduction in hydration latency (2026-05-28)
-- **seed-ap-invoices-stocked-grns**: Extended `lib/db/seed.js` to seed stocked GRNs, fully-received POs, stock ledger entries, and matched/mismatched AP invoices. Fixed BEFORE INSERT trigger FK race on `po_invoice_match_variances` (2026-05-28)
 
 ## Active Work
-- i18n-t4-grn-purchasing through i18n-t6-menu-remaining (pending, need fresh session each)
+- i18n-t5-admin-wms through i18n-t6-menu-remaining (pending, need fresh session each)
 
 ---
 

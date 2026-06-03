@@ -9,6 +9,7 @@ import { useSession } from 'next-auth/react';
 import type { GrnStatus, Vendor, PaginatedResponse } from '@/types';
 import Link from 'next/link';
 import { Search, ScanLine, Plus, Trash2, ShoppingCart, ChevronDown, Printer } from 'lucide-react';
+import { useT } from '@/lib/i18n';
 
 const LABEL_CLS = "block text-[13px] font-medium text-stone-500 mb-1";
 const FIELD_CLS = "w-full bg-white border border-stone-200 rounded-[7px] px-3 py-2 text-[14px] outline-none focus:border-emerald-500 transition-colors";
@@ -82,6 +83,7 @@ export default function GRNDetailPage() {
   const router = useRouter();
   const { data: session } = useSession();
   const toast = useToast();
+  const t = useT();
   const [grn, setGrn] = useState<GRNDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState(false);
@@ -199,7 +201,7 @@ export default function GRNDetailPage() {
       setShowVerify(false);
     } catch (e: unknown) {
       const err = e as { message?: string };
-      setError(err.message ?? 'เกิดข้อผิดพลาด');
+      setError(err.message ?? t('error.generic'));
     } finally {
       setActing(false);
     }
@@ -225,24 +227,24 @@ export default function GRNDetailPage() {
       await fetchGRN();
     } catch (e: unknown) {
       const err = e as { message?: string };
-      setError(err.message ?? 'เกิดข้อผิดพลาด');
+      setError(err.message ?? t('error.generic'));
     } finally {
       setActing(false);
     }
   }
 
   async function handleCreatePO() {
-    if (!poData.vendor_id) { setError('กรุณาเลือกผู้จำหน่าย'); return; }
+    if (!poData.vendor_id) { setError(t('error.select_vendor')); return; }
     setError('');
     setActing(true);
     try {
       const result = await post<{ po_id: string; po_number: string }>(`/api/grn/${id}/create-po`, poData);
-      toast('success', `สร้าง PO เลขที่ ${result.po_number} แล้ว`);
+      toast('success', t('msg.create_po_success_prefix') + result.po_number + t('msg.create_po_success_suffix'));
       setShowCreatePO(false);
       await fetchGRN();
     } catch (e: unknown) {
       const err = e as { message?: string };
-      setError(err.message ?? 'เกิดข้อผิดพลาด');
+      setError(err.message ?? t('error.generic'));
     } finally {
       setActing(false);
     }
@@ -253,7 +255,7 @@ export default function GRNDetailPage() {
     setActing(true);
     try {
       await post(`/api/grn/${id}/cancel`, { reason: cancelReason || undefined });
-      toast('success', 'ยกเลิก GRN และปรับลดยอดสต็อกเรียบร้อยแล้ว');
+      toast('success', t('msg.cancel_grn_success'));
       setShowCancelModal(false);
       setCancelReason('');
       await fetchGRN();
@@ -267,9 +269,9 @@ export default function GRNDetailPage() {
         setShowConsumptionModal(true);
       } else if (details?.code === 'INVOICE_PAID') {
         setShowCancelModal(false);
-        toast('error', err.message ?? 'ใบแจ้งหนี้ชำระแล้ว — กรุณาลงบัญชีแก้ไขผ่านสมุดรายวัน');
+        toast('error', err.message ?? t('msg.invoice_paid_error'));
       } else {
-        toast('error', err.message ?? 'เกิดข้อผิดพลาดในการยกเลิก GRN');
+        toast('error', err.message ?? t('error.cancel_grn'));
       }
     } finally {
       setActing(false);
@@ -280,8 +282,8 @@ export default function GRNDetailPage() {
     setQcLines((prev) => prev.map((l, idx) => idx === i ? { ...l, [key]: val } : l));
   }
 
-  if (loading) return <div className="py-16 text-center text-gray-400">กำลังโหลด...</div>;
-  if (!grn) return <div className="py-16 text-center text-gray-400">ไม่พบข้อมูล</div>;
+  if (loading) return <div className="py-16 text-center text-gray-400">{t('label.loading')}</div>;
+  if (!grn) return <div className="py-16 text-center text-gray-400">{t('label.no_data')}</div>;
 
   const isManager = session?.user && ['manager', 'admin'].includes((session.user as { role?: string }).role ?? '');
   const canCreatePO = (grn.source_type === 'standalone' || grn.source_type === 'pr_direct') && grn.status === 'stocked' && !grn.po_id;
@@ -290,7 +292,7 @@ export default function GRNDetailPage() {
     <div className="max-w-5xl pb-24 md:pb-0">
       {/* Mobile Header (md:hidden) */}
       <div className="md:hidden mb-4">
-        <button className="text-sm text-gray-500 hover:underline mb-2 flex items-center min-h-[44px]" onClick={() => router.back()}>← ย้อนกลับ</button>
+        <button className="text-sm text-gray-500 hover:underline mb-2 flex items-center min-h-[44px]" onClick={() => router.back()}>← {t('action.back')}</button>
         <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
@@ -300,21 +302,21 @@ export default function GRNDetailPage() {
             <button
               onClick={() => setHeaderExpanded(v => !v)}
               className="p-2 text-gray-500 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-gray-50"
-              aria-label="ขยายรายละเอียด"
+              aria-label={t('action.expand_details')}
             >
               <ChevronDown className={`w-5 h-5 transition-transform duration-200 ${headerExpanded ? 'rotate-180' : ''}`} />
             </button>
           </div>
-          <div className="text-sm text-gray-600 mt-1">คลัง: {grn.warehouse_code} · {formatDate(grn.received_date)}</div>
+          <div className="text-sm text-gray-600 mt-1">{t('label.warehouse_colon')}{grn.warehouse_code} · {formatDate(grn.received_date)}</div>
 
           {headerExpanded && (
             <div className="mt-3 space-y-2 text-sm text-gray-600 border-t border-gray-100 pt-3">
               <div>
-                <span className="text-gray-400">แหล่งที่มา: </span>
+                <span className="text-gray-400">{t('label.source_colon')}</span>
                 <span className="font-medium text-gray-800 uppercase">{grn.source_type}</span>
               </div>
               <div>
-                <span className="text-gray-400">{grn.inbound_order_id ? 'ใบส่งสินค้า (IO): ' : 'ใบสั่งซื้อ (PO): '}</span>
+                <span className="text-gray-400">{grn.inbound_order_id ? t('label.delivery_bill_io_colon') : t('label.purchase_order_po_colon')}</span>
                 {grn.inbound_order_id ? (
                   <Link href={`/app/inbound-orders/${grn.inbound_order_id}`} className="font-mono font-medium text-blue-600 hover:underline">{grn.io_number ?? '—'}</Link>
                 ) : grn.po_id ? (
@@ -324,7 +326,7 @@ export default function GRNDetailPage() {
                 )}
               </div>
               <div>
-                <span className="text-gray-400">ผู้รับ: </span>
+                <span className="text-gray-400">{t('label.receiver_colon')}</span>
                 <span className="font-medium text-gray-800">{grn.received_by_name ?? '—'}</span>
               </div>
             </div>
@@ -336,7 +338,7 @@ export default function GRNDetailPage() {
       <div className="hidden md:block">
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <button className="text-sm text-gray-500 hover:underline mb-1" onClick={() => router.back()}>← ย้อนกลับ</button>
+            <button className="text-sm text-gray-500 hover:underline mb-1" onClick={() => router.back()}>← {t('action.back')}</button>
             <h1 className="text-2xl font-bold text-gray-900 font-mono">{grn.grn_number}</h1>
           </div>
           <StatusBadge status={grn.status} />
@@ -344,10 +346,10 @@ export default function GRNDetailPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {[
-            { label: grn.inbound_order_id ? 'เลข IO' : 'เลข PO', value: grn.io_number ?? grn.po_number, href: grn.inbound_order_id ? `/app/inbound-orders/${grn.inbound_order_id}` : (grn.po_id ? `/app/purchase-orders/${grn.po_id}` : undefined) },
-            { label: 'คลังสินค้า', value: `${grn.warehouse_code} — ${grn.warehouse_name}` },
-            { label: 'ผู้รับ', value: grn.received_by_name },
-            { label: 'วันที่รับ', value: formatDate(grn.received_date) },
+            { label: grn.inbound_order_id ? t('label.io_number') : t('label.po_number_short'), value: grn.io_number ?? grn.po_number, href: grn.inbound_order_id ? `/app/inbound-orders/${grn.inbound_order_id}` : (grn.po_id ? `/app/purchase-orders/${grn.po_id}` : undefined) },
+            { label: t('label.warehouse'), value: `${grn.warehouse_code} — ${grn.warehouse_name}` },
+            { label: t('label.receiver'), value: grn.received_by_name },
+            { label: t('label.received_date'), value: formatDate(grn.received_date) },
           ].map((f) => (
             <div key={f.label} className="rounded-lg bg-white border border-gray-100 p-4">
               <p className="text-xs text-gray-400 mb-1">{f.label}</p>
@@ -366,10 +368,10 @@ export default function GRNDetailPage() {
         <div className="rounded-xl bg-white shadow-sm border border-emerald-100 p-4 md:p-6 mb-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <h2 className="text-lg font-semibold text-emerald-800 flex items-center gap-2">
-              <ScanLine className="w-5 h-5" /> บันทึกรับสินค้า (Work Card)
+              <ScanLine className="w-5 h-5" /> {t('title.record_receiving_work_card')}
             </h2>
             <div className="w-full md:w-1/3">
-              <label className={LABEL_CLS}>คลังรับสินค้า / Receiving Warehouse</label>
+              <label className={LABEL_CLS}>{t('label.receiving_warehouse')}</label>
               <select
                 value={workCard.warehouse_id}
                 onChange={(e) => setWorkCard((wc) => ({ ...wc, warehouse_id: e.target.value }))}
@@ -388,10 +390,10 @@ export default function GRNDetailPage() {
               <thead className="bg-stone-50">
                 <tr>
                   <th className="text-left p-3 font-medium text-stone-600">SKU</th>
-                  <th className="text-left p-3 font-medium text-stone-600">สินค้า</th>
-                  <th className="text-right p-3 font-medium text-stone-600 w-32">ที่สั่ง / คาดว่าจะรับ</th>
-                  <th className="text-right p-3 font-medium text-stone-600 w-32">จำนวนที่รับ</th>
-                  <th className="text-left p-3 font-medium text-stone-600 w-40">โลเคชั่น</th>
+                  <th className="text-left p-3 font-medium text-stone-600">{t('label.product')}</th>
+                  <th className="text-right p-3 font-medium text-stone-600 w-32">{t('label.qty_ordered_expected')}</th>
+                  <th className="text-right p-3 font-medium text-stone-600 w-32">{t('label.received_qty')}</th>
+                  <th className="text-left p-3 font-medium text-stone-600 w-40">{t('label.location')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -416,7 +418,7 @@ export default function GRNDetailPage() {
                         />
                         {wl.qty_received > 0 && line.qty_expected != null && wl.qty_received > line.qty_expected && (
                           <p className="text-[11px] text-amber-600 text-right mt-0.5 tabular-nums">
-                            เกินที่สั่ง +{(wl.qty_received - Number(line.qty_expected)).toFixed(0)} {line.uom_code}
+                            {t('label.exceeded_by')}+{((wl.qty_received - Number(line.qty_expected))).toFixed(0)} {line.uom_code}
                           </p>
                         )}
                       </td>
@@ -445,11 +447,11 @@ export default function GRNDetailPage() {
               return (
                 <div key={line.id} className="border border-stone-200 rounded-xl p-4 bg-stone-50/50">
                   <div className="font-semibold text-stone-900 text-sm mb-1">{line.name_th}</div>
-                  <div className="text-xs text-stone-500 font-mono mb-3">SKU: {line.sku} · สั่ง {line.qty_expected != null ? formatQty(line.qty_expected) : '—'} {line.uom_code}</div>
+                  <div className="text-xs text-stone-500 font-mono mb-3">SKU: {line.sku} · {t('label.ordered_prefix')}{line.qty_expected != null ? formatQty(line.qty_expected) : '—'} {line.uom_code}</div>
                   
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-xs text-gray-500 block mb-1">จำนวนที่รับ *</label>
+                      <label className="text-xs text-gray-500 block mb-1">{t('label.received_qty_required')}</label>
                       <input
                         type="number" min="0" step="any"
                         value={wl.qty_received || ''}
@@ -461,14 +463,14 @@ export default function GRNDetailPage() {
                       />
                       {wl.qty_received > 0 && line.qty_expected != null && wl.qty_received > line.qty_expected && (
                         <p className="text-[11px] text-amber-600 text-right mt-0.5 tabular-nums">
-                          เกินที่สั่ง +{(wl.qty_received - Number(line.qty_expected)).toFixed(0)}
+                          {t('label.exceeded_by')}+{((wl.qty_received - Number(line.qty_expected))).toFixed(0)}
                         </p>
                       )}
                     </div>
                     <div>
-                      <label className="text-xs text-gray-500 block mb-1">ตำแหน่งเก็บ / โลเคชั่น</label>
+                      <label className="text-xs text-gray-500 block mb-1">{t('label.storage_location_or_location')}</label>
                       <input
-                        type="text" placeholder="เช่น A-01"
+                        type="text" placeholder={t('placeholder.location_example')}
                         value={wl.storage_location}
                         onChange={(e) => setWorkCard(wc => ({
                           ...wc,
@@ -485,11 +487,11 @@ export default function GRNDetailPage() {
 
           {/* Extra / bonus items search */}
           <div className="mt-6 mb-2">
-            <p className={LABEL_CLS}>เพิ่มสินค้าแถม / สินค้าที่ไม่ได้สั่ง</p>
+            <p className={LABEL_CLS}>{t('label.add_bonus_or_unordered_items')}</p>
             <div className="relative">
               <input
                 type="text"
-                placeholder="ค้นหาสินค้าด้วยชื่อหรือ SKU..."
+                placeholder={t('placeholder.search_product_sku')}
                 value={productSearch}
                 onChange={(e) => setProductSearch(e.target.value)}
                 className={`${FIELD_CLS} text-base md:text-[14px]`}
@@ -511,7 +513,7 @@ export default function GRNDetailPage() {
                 </ul>
               )}
               {searching && (
-                <span className="absolute right-10 top-2.5 text-[11px] text-stone-400">กำลังค้นหา…</span>
+                <span className="absolute right-10 top-2.5 text-[11px] text-stone-400">{t('msg.searching')}</span>
               )}
             </div>
           </div>
@@ -523,9 +525,9 @@ export default function GRNDetailPage() {
                 <table className="w-full text-[13px] mb-4 border-t border-dashed border-amber-200 mt-4">
                   <thead className="bg-amber-50">
                     <tr>
-                      <th className="px-3 py-2 text-left font-medium text-amber-800">สินค้าเพิ่มเติม (ไม่ได้สั่ง)</th>
-                      <th className="px-3 py-2 text-right font-medium text-stone-600 w-32">จำนวนที่รับ</th>
-                      <th className="px-3 py-2 text-left font-medium text-stone-600 w-40">โลเคชั่น</th>
+                      <th className="px-3 py-2 text-left font-medium text-amber-800">{t('label.extra_unordered_items')}</th>
+                      <th className="px-3 py-2 text-right font-medium text-stone-600 w-32">{t('label.received_qty')}</th>
+                      <th className="px-3 py-2 text-left font-medium text-stone-600 w-40">{t('label.location')}</th>
                       <th className="w-10"></th>
                     </tr>
                   </thead>
@@ -560,6 +562,7 @@ export default function GRNDetailPage() {
                           <button
                             onClick={() => setExtraLines((prev) => prev.filter((_, idx) => idx !== i))}
                             className="text-red-400 hover:text-red-600 p-1"
+                            aria-label={t('action.delete_product')}
                           ><Trash2 className="w-4 h-4" /></button>
                         </td>
                       </tr>
@@ -570,13 +573,13 @@ export default function GRNDetailPage() {
 
               {/* Mobile view */}
               <div className="md:hidden space-y-3 mb-4">
-                <p className="text-sm font-semibold text-amber-800 border-b border-amber-100 pb-2">สินค้าเพิ่มเติม (ไม่ได้สั่ง)</p>
+                <p className="text-sm font-semibold text-amber-800 border-b border-amber-100 pb-2">{t('label.extra_unordered_items')}</p>
                 {extraLines.map((el, i) => (
                   <div key={i} className="border border-amber-200 rounded-xl p-4 bg-amber-50/20 relative">
                     <button
                       onClick={() => setExtraLines((prev) => prev.filter((_, idx) => idx !== i))}
                       className="absolute top-2 right-2 text-red-500 hover:text-red-700 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg bg-stone-100/50"
-                      aria-label="ลบสินค้า"
+                      aria-label={t('action.delete_product')}
                     >
                       <Trash2 className="w-4.5 h-4.5" />
                     </button>
@@ -585,7 +588,7 @@ export default function GRNDetailPage() {
                     
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-xs text-gray-500 block mb-1">จำนวนที่รับ *</label>
+                        <label className="text-xs text-gray-500 block mb-1">{t('label.received_qty_required')}</label>
                         <input
                           type="number" min="0.01" step="any"
                           value={el.qty_received || ''}
@@ -596,9 +599,9 @@ export default function GRNDetailPage() {
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-gray-500 block mb-1">ตำแหน่งเก็บ / โลเคชั่น</label>
+                        <label className="text-xs text-gray-500 block mb-1">{t('label.storage_location_or_location')}</label>
                         <input
-                          type="text" placeholder="เช่น A-01-02"
+                          type="text" placeholder={t('placeholder.location_example_2')}
                           value={el.storage_location}
                           onChange={(e) => setExtraLines((prev) =>
                             prev.map((l, idx) => idx === i ? { ...l, storage_location: e.target.value } : l)
@@ -615,7 +618,7 @@ export default function GRNDetailPage() {
 
           <div className="flex justify-end mt-6">
             <Button onClick={handleReceive} loading={acting} className="w-full md:w-auto bg-emerald-600 hover:bg-emerald-700 text-white min-h-[44px]">
-              รับลงสินค้า
+              {t('action.receive_goods')}
             </Button>
           </div>
         </div>
@@ -628,11 +631,11 @@ export default function GRNDetailPage() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="text-left p-2 font-medium">SKU / สินค้า</th>
-                  <th className="text-right p-2 font-medium w-24">รับมา</th>
-                  <th className="text-right p-2 font-medium w-24">ยอมรับ</th>
-                  <th className="text-right p-2 font-medium w-24">ปฏิเสธ</th>
-                  <th className="p-2 font-medium w-28">ผล QC</th>
+                  <th className="text-left p-2 font-medium">{t('label.sku_product')}</th>
+                  <th className="text-right p-2 font-medium w-24">{t('label.received')}</th>
+                  <th className="text-right p-2 font-medium w-24">{t('label.accepted')}</th>
+                  <th className="text-right p-2 font-medium w-24">{t('label.rejected')}</th>
+                  <th className="p-2 font-medium w-28">{t('label.qc_result')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -657,9 +660,9 @@ export default function GRNDetailPage() {
                       <select value={qcLines[i]?.qc_status ?? 'pass'}
                         onChange={(e) => updateQcLine(i, 'qc_status', e.target.value)}
                         className="w-full rounded border px-2 py-1 text-sm">
-                        <option value="pass">ผ่าน</option>
-                        <option value="partial">บางส่วน</option>
-                        <option value="fail">ไม่ผ่าน</option>
+                        <option value="pass">{t('label.qc_status_pass')}</option>
+                        <option value="partial">{t('label.qc_status_partial')}</option>
+                        <option value="fail">{t('label.qc_status_fail')}</option>
                       </select>
                     </td>
                   </tr>
@@ -673,17 +676,17 @@ export default function GRNDetailPage() {
             {grn.lines?.map((l, i) => (
               <div key={l.id} className="border border-stone-200 rounded-xl p-4 bg-stone-50/50">
                 <div className="font-semibold text-stone-900 text-sm mb-1">{l.name_th}</div>
-                <div className="text-xs text-stone-500 font-mono mb-3">SKU: {l.sku} · รับมา {l.qty_received} {l.uom_code}</div>
+                <div className="text-xs text-stone-500 font-mono mb-3">SKU: {l.sku} · {t('label.received_prefix')}{l.qty_received} {l.uom_code}</div>
                 
                 <div className="grid grid-cols-2 gap-3 mb-3">
                   <div>
-                    <label className="text-xs text-gray-500 block mb-1">ยอมรับ (Accept) *</label>
+                    <label className="text-xs text-gray-500 block mb-1">{t('label.qc_accept_required')}</label>
                     <input type="number" min="0" step="any" value={qcLines[i]?.qty_accepted ?? 0}
                       onChange={(e) => updateQcLine(i, 'qty_accepted', parseFloat(e.target.value) || 0)}
                       className="w-full text-right rounded-lg border border-stone-300 px-3 py-2 text-base bg-white" />
                   </div>
                   <div>
-                    <label className="text-xs text-gray-500 block mb-1">ปฏิเสธ (Reject)</label>
+                    <label className="text-xs text-gray-500 block mb-1">{t('label.qc_reject')}</label>
                     <input type="number" min="0" step="any" value={qcLines[i]?.qty_rejected ?? 0}
                       onChange={(e) => updateQcLine(i, 'qty_rejected', parseFloat(e.target.value) || 0)}
                       className="w-full text-right rounded-lg border border-stone-300 px-3 py-2 text-base bg-white" />
@@ -691,23 +694,23 @@ export default function GRNDetailPage() {
                 </div>
 
                 <div>
-                  <label className="text-xs text-gray-500 block mb-1">ผลการตรวจสอบ (QC Status)</label>
+                  <label className="text-xs text-gray-500 block mb-1">{t('label.qc_status_label')}</label>
                   <select value={qcLines[i]?.qc_status ?? 'pass'}
                     onChange={(e) => updateQcLine(i, 'qc_status', e.target.value)}
                     className="w-full rounded-lg border border-stone-300 px-3 py-2 text-base bg-white">
-                    <option value="pass">ผ่าน (Pass)</option>
-                    <option value="partial">บางส่วน (Partial)</option>
-                    <option value="fail">ไม่ผ่าน (Fail)</option>
+                    <option value="pass">{t('label.qc_pass_option')}</option>
+                    <option value="partial">{t('label.qc_partial_option')}</option>
+                    <option value="fail">{t('label.qc_fail_option')}</option>
                   </select>
                 </div>
               </div>
             ))}
           </div>
 
-          <Input label="หมายเหตุ QC" value={qcNotes} onChange={(e) => setQcNotes(e.target.value)} className="text-base" />
+          <Input label={t('label.qc_notes_label')} value={qcNotes} onChange={(e) => setQcNotes(e.target.value)} className="text-base" />
           <div className="flex gap-3 justify-end mt-4">
-            <Button variant="ghost" onClick={() => setShowQC(false)} className="flex-1 md:flex-initial min-h-[44px]">ยกเลิก</Button>
-            <Button onClick={() => action('qc', { qc_notes: qcNotes, lines: qcLines })} loading={acting} className="flex-1 md:flex-initial bg-emerald-600 hover:bg-emerald-700 text-white min-h-[44px]">บันทึก QC</Button>
+            <Button variant="ghost" onClick={() => setShowQC(false)} className="flex-1 md:flex-initial min-h-[44px]">{t('action.cancel')}</Button>
+            <Button onClick={() => action('qc', { qc_notes: qcNotes, lines: qcLines })} loading={acting} className="flex-1 md:flex-initial bg-emerald-600 hover:bg-emerald-700 text-white min-h-[44px]">{t('action.save_qc')}</Button>
           </div>
         </div>
       ) : (
@@ -719,13 +722,13 @@ export default function GRNDetailPage() {
                 <tr>
                   <th className="text-left p-3 font-medium">#</th>
                   <th className="text-left p-3 font-medium">SKU</th>
-                  <th className="text-left p-3 font-medium min-w-[200px]">สินค้า</th>
-                  <th className="text-right p-3 font-medium">คาดหวัง</th>
-                  <th className="text-right p-3 font-medium">รับมา</th>
-                  <th className="text-right p-3 font-medium">ยอมรับ</th>
-                  <th className="text-right p-3 font-medium">ปฏิเสธ</th>
-                  <th className="text-right p-3 font-medium">ต้นทุน</th>
-                  <th className="text-right p-3 font-medium">รวม</th>
+                  <th className="text-left p-3 font-medium min-w-[200px]">{t('label.product')}</th>
+                  <th className="text-right p-3 font-medium">{t('label.expected')}</th>
+                  <th className="text-right p-3 font-medium">{t('label.received')}</th>
+                  <th className="text-right p-3 font-medium">{t('label.accepted')}</th>
+                  <th className="text-right p-3 font-medium">{t('label.rejected')}</th>
+                  <th className="text-right p-3 font-medium">{t('label.cost')}</th>
+                  <th className="text-right p-3 font-medium">{t('label.total')}</th>
                   <th className="p-3 font-medium">Lot</th>
                   <th className="p-3 font-medium text-center">QC</th>
                 </tr>
@@ -764,19 +767,19 @@ export default function GRNDetailPage() {
                 <div className="text-xs text-stone-500 font-mono mb-3">SKU: {l.sku}</div>
                 <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-[13px] border-t border-stone-100 pt-3">
                   <div>
-                    <span className="text-stone-400">สั่ง/รับจริง: </span>
+                    <span className="text-stone-400">{t('label.ordered_vs_received')}</span>
                     <span className="font-medium text-stone-800">{l.qty_expected != null ? formatQty(l.qty_expected) : '—'} / {formatQty(l.qty_received)} {l.uom_code}</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-stone-400">ต้นทุน: </span>
+                    <span className="text-stone-400">{t('label.cost_colon')}</span>
                     <span className="font-mono text-stone-800">{formatCurrency(l.unit_cost)}</span>
                   </div>
                   <div>
-                    <span className="text-stone-400">QC ผ่าน/เสีย: </span>
+                    <span className="text-stone-400">{t('label.qc_pass_fail_colon')}</span>
                     <span className="font-medium text-emerald-600">{l.qty_accepted != null ? formatQty(l.qty_accepted) : '—'}</span> / <span className="font-medium text-red-500">{l.qty_rejected != null ? formatQty(l.qty_rejected) : '—'}</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-stone-400">รวมเงิน: </span>
+                    <span className="text-stone-400">{t('label.total_amount_colon')}</span>
                     <span className="font-mono font-semibold text-stone-900">{formatCurrency(l.line_total)}</span>
                   </div>
                 </div>
@@ -809,7 +812,7 @@ export default function GRNDetailPage() {
           onClick={() => window.print()}
           className="flex items-center gap-2 flex-1 md:flex-initial min-h-[44px]"
         >
-          <Printer className="w-4 h-4" /> พิมพ์ / Print
+          <Printer className="w-4 h-4" /> {t('action.print_label')}
         </Button>
 
         {canCreatePO && (
@@ -817,7 +820,7 @@ export default function GRNDetailPage() {
             onClick={() => setShowCreatePO(true)}
             className="bg-stone-900 hover:bg-stone-800 text-white flex items-center gap-2 flex-1 md:flex-initial min-h-[44px]"
           >
-            <ShoppingCart className="w-4 h-4" /> สร้าง PO จาก GR นี้
+            <ShoppingCart className="w-4 h-4" /> {t('action.create_po_from_gr')}
           </Button>
         )}
 
@@ -825,11 +828,11 @@ export default function GRNDetailPage() {
           <>
             {grn.inbound_order_id ? (
               <Button onClick={() => setShowVerify(true)} className="flex-1 md:flex-initial min-h-[44px]">
-                ✓ ตรวจสอบความถูกต้อง / Verify
+                {t('action.verify_correctness')}
               </Button>
             ) : (
               <Button onClick={() => setShowQC(true)} className="flex-1 md:flex-initial min-h-[44px]">
-                เริ่ม QC / Quality Control
+                {t('action.start_qc')}
               </Button>
             )}
           </>
@@ -837,7 +840,7 @@ export default function GRNDetailPage() {
 
         {['qc_passed', 'verified'].includes(grn.status) && isManager && (
           <Button onClick={() => action('stock')} loading={acting} className="flex-1 md:flex-initial min-h-[44px]">
-            นำเข้าคลัง / Stock In
+            {t('action.stock_in')}
           </Button>
         )}
 
@@ -847,35 +850,35 @@ export default function GRNDetailPage() {
             variant="outline"
             className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300 flex items-center gap-2 flex-1 md:flex-initial min-h-[44px]"
           >
-            <Trash2 className="w-4 h-4" /> ยกเลิก GRN / Cancel
+            <Trash2 className="w-4 h-4" /> {t('action.cancel_grn_label')}
           </Button>
         )}
       </div>
 
       {showVerify && (
         <Modal open={showVerify} onClose={() => setShowVerify(false)} size="md">
-          <ModalHeader onClose={() => setShowVerify(false)}>ตรวจสอบการรับสินค้า (IO Flow)</ModalHeader>
+          <ModalHeader onClose={() => setShowVerify(false)}>{t('title.verify_receiving_io_flow')}</ModalHeader>
           <ModalBody>
             <div className="space-y-4">
-              <p className="text-sm text-gray-600">กรุณายืนยันว่ารายการสินค้าและจำนวนที่รับเข้ามา ถูกต้องตามใบส่งของ (Delivery Bill) ของผู้จำหน่าย</p>
-              <Input label="หมายเหตุการตรวจสอบ (ไม่บังคับ)" value={verifyNotes} onChange={(e) => setVerifyNotes(e.target.value)} placeholder="เช่น ตรวจสอบแล้วตรงตามบิล..." className="text-base" />
+              <p className="text-sm text-gray-600">{t('msg.confirm_items_qty_correct')}</p>
+              <Input label={t('label.verification_notes_optional')} value={verifyNotes} onChange={(e) => setVerifyNotes(e.target.value)} placeholder={t('placeholder.verification_notes_example')} className="text-base" />
             </div>
           </ModalBody>
           <ModalFooter>
-            <Button variant="ghost" onClick={() => setShowVerify(false)} className="min-h-[44px]">ยกเลิก</Button>
-            <Button onClick={() => action('verify', { verification_notes: verifyNotes })} loading={acting} className="min-h-[44px]">ยืนยันความถูกต้อง</Button>
+            <Button variant="ghost" onClick={() => setShowVerify(false)} className="min-h-[44px]">{t('action.cancel')}</Button>
+            <Button onClick={() => action('verify', { verification_notes: verifyNotes })} loading={acting} className="min-h-[44px]">{t('action.confirm_correctness')}</Button>
           </ModalFooter>
         </Modal>
       )}
 
       {showCreatePO && (
         <Modal open={showCreatePO} onClose={() => setShowCreatePO(false)} size="md">
-          <ModalHeader onClose={() => setShowCreatePO(false)}>สร้างใบสั่งซื้อย้อนหลัง (Retrospective PO)</ModalHeader>
+          <ModalHeader onClose={() => setShowCreatePO(false)}>{t('title.create_retrospective_po')}</ModalHeader>
           <ModalBody>
             <div className="space-y-4">
-              <p className="text-sm text-stone-600">สร้างใบสั่งซื้อเพื่อจับคู่กับยอดรับสินค้านี้ สต็อกจะไม่ถูกเพิ่มซ้ำ</p>
+              <p className="text-sm text-stone-600">{t('msg.create_po_match_receipt')}</p>
               <Select
-                label="ผู้จำหน่าย / Vendor *"
+                label={t('label.vendor_required')}
                 value={poData.vendor_id}
                 onChange={(e) => setPoData(prev => ({ ...prev, vendor_id: e.target.value }))}
                 options={vendors.map(v => ({ value: v.id, label: `${v.code} — ${v.name_th}` }))}
@@ -883,56 +886,55 @@ export default function GRNDetailPage() {
                 className="text-base"
               />
               <Input
-                label="เครดิต (จำนวนวัน)"
+                label={t('label.credit_days')}
                 type="number"
                 value={poData.payment_terms_days}
                 onChange={(e) => setPoData(prev => ({ ...prev, payment_terms_days: parseInt(e.target.value) || 0 }))}
                 className="text-base"
               />
               <Input
-                label="หมายเหตุ PO"
+                label={t('label.po_notes')}
                 value={poData.notes}
                 onChange={(e) => setPoData(prev => ({ ...prev, notes: e.target.value }))}
-                placeholder="ระบุเหตุผลหรือเลอ่ะอ้างอิงบิล..."
+                placeholder={t('placeholder.po_notes_example')}
                 className="text-base"
               />
             </div>
           </ModalBody>
           <ModalFooter>
-            <Button variant="ghost" onClick={() => setShowCreatePO(false)} className="min-h-[44px]">ยกเลิก</Button>
-            <Button onClick={handleCreatePO} loading={acting} className="bg-stone-900 text-white min-h-[44px]">ยืนยันสร้าง PO</Button>
+            <Button variant="ghost" onClick={() => setShowCreatePO(false)} className="min-h-[44px]">{t('action.cancel')}</Button>
+            <Button onClick={handleCreatePO} loading={acting} className="bg-stone-900 text-white min-h-[44px]">{t('action.confirm_create_po')}</Button>
           </ModalFooter>
         </Modal>
       )}
 
       {showCancelModal && (
         <Modal open={showCancelModal} onClose={() => setShowCancelModal(false)} size="md">
-          <ModalHeader onClose={() => setShowCancelModal(false)}>ยืนยันการยกเลิกสินค้าเข้าคลัง / Cancel GRN</ModalHeader>
+          <ModalHeader onClose={() => setShowCancelModal(false)}>{t('title.confirm_cancel_stocked_grn')}</ModalHeader>
           <ModalBody>
             <div className="space-y-4">
               <div className="p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-[7px] text-xs leading-relaxed">
-                <span className="font-bold block mb-1">คำเตือน: การกระทำนี้ไม่สามารถย้อนกลับได้</span>
-                ระบบจะสร้างรายการหักลบในสต็อก และยกเลิกใบแจ้งหนี้คู่ค้า (AP Invoice) ที่เชื่อมโยงอยู่โดยอัตโนมัติ 
-                ไม่สามารถยกเลิกได้หากมีการดึงยอดสินค้าไปขายหรือโอนย้ายแล้ว
+                <span className="font-bold block mb-1">{t('label.warning_irreversible')}</span>
+                {t('msg.cancel_grn_warning_details')}
               </div>
               <Input
-                label="ระบุเหตุผลการยกเลิก (Cancel Reason) *"
+                label={t('label.cancel_reason_required')}
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}
-                placeholder="ระบุเหตุผลในการยกเลิกรายการนี้..."
+                placeholder={t('placeholder.cancel_reason')}
                 className="text-base"
               />
             </div>
           </ModalBody>
           <ModalFooter>
-            <Button variant="ghost" onClick={() => setShowCancelModal(false)} className="min-h-[44px]">ยกเลิก</Button>
+            <Button variant="ghost" onClick={() => setShowCancelModal(false)} className="min-h-[44px]">{t('action.cancel')}</Button>
             <Button 
               onClick={handleCancel} 
               loading={acting} 
               disabled={!cancelReason.trim()}
               className="bg-red-600 hover:bg-red-700 text-white min-h-[44px]"
             >
-              ยืนยันการยกเลิก GRN
+              {t('action.confirm_cancel_grn')}
             </Button>
           </ModalFooter>
         </Modal>
@@ -940,19 +942,19 @@ export default function GRNDetailPage() {
 
       {showConsumptionModal && (
         <Modal open={showConsumptionModal} onClose={() => setShowConsumptionModal(false)} size="md">
-          <ModalHeader onClose={() => setShowConsumptionModal(false)}>ไม่สามารถยกเลิก GRN ได้ / Cannot Cancel GRN</ModalHeader>
+          <ModalHeader onClose={() => setShowConsumptionModal(false)}>{t('title.cannot_cancel_grn')}</ModalHeader>
           <ModalBody>
             <div className="space-y-4">
               <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-[7px] text-sm font-medium">
-                ไม่สามารถยกเลิกได้ — มีรายการเบิกจ่ายสินค้าหลังรับสินค้าเข้าคลัง (Outbound stock consumption exists after stocking)
+                {t('msg.cannot_cancel_consumption_exists')}
               </div>
-              <p className="text-sm text-stone-600 font-medium">รายการที่เบิกจ่ายเพื่อการอ้างอิง:</p>
+              <p className="text-sm text-stone-600 font-medium">{t('label.referenced_consumption_items')}</p>
               <div className="border border-stone-200 rounded-[7px] overflow-hidden max-h-[250px] overflow-y-auto">
                 <table className="w-full text-sm text-left border-collapse">
                   <thead>
                     <tr className="bg-stone-50 border-b border-stone-200 text-stone-500 font-medium">
-                      <th className="p-2 pl-3">ประเภทรายการ (Type)</th>
-                      <th className="p-2 pr-3">รหัสรายการอ้างอิง (Reference ID / Number)</th>
+                      <th className="p-2 pl-3">{t('label.transaction_type')}</th>
+                      <th className="p-2 pr-3">{t('label.reference_id_number')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -968,12 +970,12 @@ export default function GRNDetailPage() {
                 </table>
               </div>
               <p className="text-xs text-stone-500">
-                หมายเหตุ: กรุณาให้เจ้าหน้าที่บัญชีปรับปรุงบัญชีด้วยตนเองผ่านสมุดรายวันทั่วไป (General Journal)
+                {t('msg.manual_journal_adjustment_note')}
               </p>
             </div>
           </ModalBody>
           <ModalFooter>
-            <Button onClick={() => setShowConsumptionModal(false)} className="min-h-[44px] w-full md:w-auto">ตกลง / Close</Button>
+            <Button onClick={() => setShowConsumptionModal(false)} className="min-h-[44px] w-full md:w-auto">{t('action.ok_close')}</Button>
           </ModalFooter>
         </Modal>
       )}

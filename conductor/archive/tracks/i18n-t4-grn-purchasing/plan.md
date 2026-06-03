@@ -2,7 +2,7 @@
 track: i18n-t4-grn-purchasing
 phase: i18n-compliance
 sequence: 4
-status: Active
+status: Verified
 owner: Chen
 created: 2026-05-29
 depends_on: [i18n-t2-keys]

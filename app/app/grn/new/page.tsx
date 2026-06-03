@@ -26,6 +26,7 @@ import {
   PackageX
 } from 'lucide-react';
 import { parseBuddhistDate, todayBE } from '@/lib/date-utils';
+import { useT } from '@/lib/i18n';
 
 interface GRNLine {
   po_line_item_id?: string;
@@ -116,6 +117,7 @@ function expiryDaysLeft(beStr: string): number | null {
 }
 
 function ExpiryChip({ days }: { days: number | null }) {
+  const t = useT();
   if (days === null) return null;
   const cls = days >= 90
     ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
@@ -124,12 +126,17 @@ function ExpiryChip({ days }: { days: number | null }) {
     : 'bg-rose-50 text-rose-700 border-rose-200';
   return (
     <span className={`text-[11px] font-semibold border rounded-full px-2.5 py-0.5 inline-flex items-center ${cls}`}>
-      {days > 0 ? `เหลือ ${days} วัน` : days === 0 ? 'หมดวันนี้' : `หมดอายุแล้ว ${Math.abs(days)} วัน`}
+      {days > 0
+        ? t('expiry.days_left_prefix') + days + t('expiry.days_left_suffix')
+        : days === 0
+        ? t('expiry.expires_today')
+        : t('expiry.expired_prefix') + Math.abs(days) + t('expiry.expired_suffix')}
     </span>
   );
 }
 
 function NewGRNPageInner() {
+  const t = useT();
   const router = useRouter();
   const toast = useToast();
   const { data: session } = useSession();
@@ -181,9 +188,9 @@ function NewGRNPageInner() {
       setActiveIndex(idx);
       setSimulatedBarcode('');
       setShowSimulatedScanner(false);
-      toast('success', `พบสินค้า SKU: ${lines[idx].sku} แล้ว`);
+      toast('success', t('grn.new.sku_found_prefix') + lines[idx].sku + t('grn.new.sku_found_suffix'));
     } else {
-      toast('error', `ไม่พบสินค้า SKU: ${simulatedBarcode} ในบิลนี้`);
+      toast('error', t('grn.new.sku_not_found_prefix') + simulatedBarcode + t('grn.new.sku_not_found_suffix'));
     }
   };
 
@@ -245,7 +252,7 @@ function NewGRNPageInner() {
           product_name: l.name_th,
           qty_ordered: Number(l.qty_ordered),
           qty_received: 0,
-          unit: l.uom_code || 'ชิ้น',
+          unit: l.uom_code || t('label.default_unit'),
           expiry_date_be: todayBE(),
           mfg_date_be: '',
           date_type: 'expiry',
@@ -256,7 +263,7 @@ function NewGRNPageInner() {
         }))
       );
     });
-  }, [selectedPoId, mode]);
+  }, [selectedPoId, mode, t]);
 
   useEffect(() => {
     if (mode !== 'io' || !ioIdParam) return;
@@ -271,7 +278,7 @@ function NewGRNPageInner() {
           product_name: l.name_th,
           qty_ordered: Number(l.qty_ordered),
           qty_received: 0,
-          unit: l.uom_code || 'ชิ้น',
+          unit: l.uom_code || t('label.default_unit'),
           expiry_date_be: todayBE(),
           mfg_date_be: '',
           date_type: 'expiry',
@@ -282,7 +289,7 @@ function NewGRNPageInner() {
         }))
       );
     });
-  }, [ioIdParam, mode]);
+  }, [ioIdParam, mode, t]);
 
   function updateLine(i: number, key: keyof GRNLine, val: string | number) {
     setLines((prev) => prev.map((l, idx) => idx === i ? { ...l, [key]: val } : l));
@@ -295,7 +302,7 @@ function NewGRNPageInner() {
         product_id: undefined,
         product_name: '',
         qty: 1,
-        unit: 'ชิ้น',
+        unit: t('label.default_unit'),
         expiry_date_be: todayBE(),
         notes: '',
       },
@@ -348,7 +355,7 @@ function NewGRNPageInner() {
     newItems[index].product_id = product.id;
     newItems[index].product_name = product.name_th;
     newItems[index].sku = product.sku;
-    newItems[index].unit = product.uom_code ?? 'ชิ้น';
+    newItems[index].unit = product.uom_code ?? t('label.default_unit');
     setBonusItems(newItems);
 
     const newQueries = [...searchQueries];
@@ -363,50 +370,50 @@ function NewGRNPageInner() {
 
   async function handleSubmit(submitMode: 'draft' | 'submit') {
     if (mode === 'po' && !selectedPoId) {
-      setError('กรุณาเลือกใบสั่งซื้อ / Please select a Purchase Order');
+      setError(t('grn.new.error_select_po'));
       return;
     }
     if (mode === 'io' && !ioIdParam) {
-      setError('ไม่พบรหัส IO / Inbound Order ID not found');
+      setError(t('grn.new.error_io_id_not_found'));
       return;
     }
     if (!warehouseId) {
-      setError('กรุณาเลือกคลังสินค้า / Please select a warehouse');
+      setError(t('grn.new.error_select_warehouse'));
       return;
     }
     if (lines.length === 0) {
-      setError('ไม่มีรายการสินค้า / No items found');
+      setError(t('grn.new.error_no_items'));
       return;
     }
 
     // F-004: Validate that no received quantities or bonus quantities are negative
     for (const l of lines) {
       if (l.qty_received < 0) {
-        setError(`จำนวนที่รับของสินค้า SKU: ${l.sku} ต้องไม่เป็นค่าติดลบ / Received quantity cannot be negative`);
+        setError(t('grn.new.error_received_qty_negative_prefix') + l.sku + t('grn.new.error_received_qty_negative_suffix'));
         return;
       }
     }
     for (const b of bonusItems) {
       if (b.qty < 0) {
-        setError(`จำนวนของแถม ${b.product_name} ต้องไม่เป็นค่าติดลบ / Bonus quantity cannot be negative`);
+        setError(t('grn.new.error_bonus_qty_negative_prefix') + b.product_name + t('grn.new.error_bonus_qty_negative_suffix'));
         return;
       }
     }
 
     // Date validation
     if (!receivedDate || !/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(receivedDate)) {
-      setError('รูปแบบวันที่ไม่ถูกต้อง กรุณาระบุในรูปแบบ วว/ดด/ปปปป');
+      setError(t('grn.new.error_invalid_date_format'));
       return;
     }
     const gregorianATA = parseBuddhistDate(receivedDate);
     if (!gregorianATA) {
-      setError('วันที่มาส่งไม่ถูกต้อง / Invalid ATA Date');
+      setError(t('grn.new.error_invalid_ata_date'));
       return;
     }
 
     const activeLines = lines.filter((l) => l.qty_received > 0);
     if (activeLines.length === 0 && bonusItems.length === 0) {
-      setError('กรุณาระบุจำนวนที่รับอย่างน้อย 1 รายการ');
+      setError(t('grn.new.error_min_one_item'));
       return;
     }
 
@@ -415,7 +422,7 @@ function NewGRNPageInner() {
       const targetDate = l.date_type === 'expiry' ? l.expiry_date_be : l.mfg_date_be;
       if (targetDate) {
         if (!/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(targetDate)) {
-          setError(`รูปแบบวันที่ในรายการสินค้า ${l.sku} ไม่ถูกต้อง (ระบุ วว/ดด/ปปปป)`);
+          setError(t('grn.new.error_line_date_invalid_prefix') + l.sku + t('grn.new.error_line_date_invalid_suffix'));
           return;
         }
       }
@@ -425,14 +432,14 @@ function NewGRNPageInner() {
     for (const b of bonusItems) {
       if (b.expiry_date_be) {
         if (!/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(b.expiry_date_be)) {
-          setError(`รูปแบบวันที่ควบคุมในของแถม ${b.product_name} ไม่ถูกต้อง (ระบุ วว/ดด/ปปปป)`);
+          setError(t('grn.new.error_bonus_date_invalid_prefix') + b.product_name + t('grn.new.error_bonus_date_invalid_suffix'));
           return;
         }
       }
     }
 
     if (submitMode === 'submit' && !receivedByNames.trim()) {
-      setError('กรุณาระบุชื่อผู้รับลงสินค้า / Please enter staff names');
+      setError(t('grn.new.error_staff_names_required'));
       return;
     }
 
@@ -490,18 +497,18 @@ function NewGRNPageInner() {
         const skippedLines = lines.filter((l) => l.qty_received === 0);
         if (skippedLines.length > 0 && mode === 'io' && ioIdParam) {
           // Partial receive: redirect to new GRN for remaining items
-          toast('success', `รับสินค้า ${activeLines.length} รายการเรียบร้อย เปิดใบรับใหม่สำหรับสินค้าที่เหลืออีก ${skippedLines.length} รายการ`);
+          toast('success', t('grn.new.toast_partial_receive_1') + activeLines.length + t('grn.new.toast_partial_receive_2') + skippedLines.length + t('grn.new.toast_partial_receive_3'));
           router.push(`/app/grn/new?io_id=${ioIdParam}`);
         } else {
-          toast('success', 'บันทึกการรับลงสินค้าเรียบร้อยแล้ว รอหัวหน้างานตรวจสอบ');
+          toast('success', t('grn.new.toast_receive_success'));
           router.push('/app/grn/receiving-queue');
         }
       } else {
-        toast('success', 'บันทึกฉบับร่างเรียบร้อยแล้ว');
+        toast('success', t('grn.new.toast_draft_success'));
         router.push('/app/grn/receiving-queue');
       }
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาดในการบันทึก / Save failed');
+      setError(e instanceof Error ? e.message : t('grn.new.error_save_failed'));
     } finally {
       setSaving(false);
     }
@@ -534,11 +541,11 @@ function NewGRNPageInner() {
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-[12px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-md px-2 py-0.5 uppercase tracking-wider">
-                  IO RECEIVING
+                  {t('grn.new.io_receiving')}
                 </span>
                 {isW2Warehouse && (
                   <span className="text-[12px] font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2 py-0.5 uppercase">
-                    W2 Warehouse
+                    {t('grn.new.w2_warehouse')}
                   </span>
                 )}
               </div>
@@ -548,7 +555,7 @@ function NewGRNPageInner() {
             </div>
           </div>
           <div className="text-right hidden sm:block">
-            <p className="text-[12px] text-stone-500 font-medium">ผู้จำหน่าย / Vendor</p>
+            <p className="text-[12px] text-stone-500 font-medium">{t('grn.new.vendor_label')}</p>
             <p className="text-[14px] font-bold text-stone-800">{vendorName}</p>
           </div>
         </div>
@@ -558,20 +565,20 @@ function NewGRNPageInner() {
           <div className="rounded-2xl bg-white border border-stone-200/80 shadow-sm p-5 space-y-4">
             <div className="border-b border-stone-100 pb-3 flex items-center justify-between">
               <h2 className="text-[15px] font-bold text-stone-800 flex items-center gap-2">
-                <User className="w-4 h-4 text-emerald-500" /> ข้อมูลการรับลงสินค้า / ATA Header Info
+                <User className="w-4 h-4 text-emerald-500" /> {t('grn.new.ata_header_info')}
               </h2>
-              <span className="text-xs text-rose-500 font-medium font-mono">* จำเป็น / Required</span>
+              <span className="text-xs text-rose-500 font-medium font-mono">{t('grn.new.required_label')}</span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {mode === 'po' && (
                 <div className="md:col-span-1">
                   <Select
-                    label="ใบสั่งซื้อ / Purchase Order *"
+                    label={t('page.purchase_orders') + " *"}
                     value={selectedPoId}
                     onChange={(e) => setSelectedPoId(e.target.value)}
                     options={poOptions}
-                    placeholder={loadingPo ? "กำลังโหลดใบสั่งซื้อ..." : "เลือกใบสั่งซื้อ (sent)"}
+                    placeholder={loadingPo ? t('grn.new.loading_po') : t('grn.new.select_po_placeholder')}
                     className="w-full"
                     disabled={loadingPo}
                   />
@@ -580,11 +587,11 @@ function NewGRNPageInner() {
 
               <div className={mode === 'po' ? 'md:col-span-1' : 'md:col-span-1'}>
                 <Select
-                  label="คลังรับสินค้า / Warehouse *"
+                  label={t('label.warehouse') + " *"}
                   value={warehouseId}
                   onChange={(e) => setWarehouseId(e.target.value)}
                   options={warehouses}
-                  placeholder="เลือกคลังสินค้า"
+                  placeholder={t('grn.new.select_warehouse_placeholder')}
                   disabled={mode === 'io'}
                   className="w-full"
                 />
@@ -592,20 +599,20 @@ function NewGRNPageInner() {
 
               <div>
                 <Input
-                  label="วันที่มาส่ง (ATA) *"
-                  placeholder="วว/ดด/ปปปป"
+                  label={t('grn.new.mobile_ata_date_label') + " *"}
+                  placeholder={t('grn.new.date_placeholder')}
                   maxLength={10}
                   value={receivedDate}
                   onChange={(e) => setReceivedDate(e.target.value)}
                   className="font-mono text-[14px]"
-                  helperText="ระบุเป็นปี พ.ศ. เช่น 20/05/2569"
+                  helperText={t('grn.new.received_date_helper')}
                 />
               </div>
 
               <div className={mode === 'po' ? 'md:col-span-3' : 'md:col-span-2'}>
                 <Input
-                  label="ผู้รับลงสินค้า / Staff Names *"
-                  placeholder="ชื่อทีมผู้รับลงสินค้า คั่นด้วยจุลภาค เช่น สมชาย, วิภา"
+                  label={t('grn.new.mobile_staff_names_label')}
+                  placeholder={t('grn.new.staff_names_placeholder')}
                   value={receivedByNames}
                   onChange={(e) => setReceivedByNames(e.target.value)}
                 />
@@ -617,7 +624,7 @@ function NewGRNPageInner() {
           <div className="space-y-3">
             <div className="flex items-center justify-between px-1">
               <h2 className="text-[15px] font-bold text-stone-700 flex items-center gap-2">
-                <Landmark className="w-4.5 h-4.5 text-stone-400" /> รายการสินค้าในบิล / Document Line Items
+                <Landmark className="w-4.5 h-4.5 text-stone-400" /> {t('grn.new.document_line_items')}
               </h2>
               <span className="text-[12px] font-mono text-stone-500 font-bold bg-stone-100 rounded-md px-2.5 py-0.5">
                 {lines.length} SKU
@@ -627,9 +634,9 @@ function NewGRNPageInner() {
             {lines.length === 0 ? (
               <div className="rounded-2xl border-2 border-dashed border-stone-200 bg-white p-12 text-center text-stone-400">
                 <Inbox className="w-10 h-10 mx-auto text-stone-300 mb-2" />
-                <p className="text-sm font-semibold">ไม่มีรายการสินค้าในบิล</p>
+                <p className="text-sm font-semibold">{t('grn.new.no_items_in_bill')}</p>
                 {mode === 'po' && !selectedPoId && (
-                  <p className="text-xs text-stone-500 mt-1">กรุณาเลือกใบสั่งซื้อเพื่อแสดงรายการสินค้า</p>
+                  <p className="text-xs text-stone-500 mt-1">{t('grn.new.select_po_to_display')}</p>
                 )}
               </div>
             ) : (
@@ -649,10 +656,10 @@ function NewGRNPageInner() {
                               SKU: {l.sku}
                             </span>
                             <span className="text-xs font-mono font-bold text-slate-500">
-                              สั่งมา: {formatQty(l.qty_ordered)} {l.unit}
+                              {t('grn.new.ordered_qty_label')}{formatQty(l.qty_ordered)} {l.unit}
                             </span>
                             <span className="text-xs font-semibold text-stone-500 bg-stone-50 px-2 py-0.5 border border-stone-100 rounded-md">
-                              สต็อกเดิม: {formatQty(l.stock_on_hand)} {l.unit}
+                              {t('grn.new.existing_stock_label')}{formatQty(l.stock_on_hand)} {l.unit}
                             </span>
                           </div>
                           <h3 className="text-[14.5px] font-bold text-stone-800 leading-snug mt-1.5">
@@ -664,7 +671,7 @@ function NewGRNPageInner() {
                       {/* Inputs Block */}
                       <div className="grid grid-cols-1 sm:grid-cols-4 gap-3.5 pt-3">
                         <div>
-                          <label className="text-[12px] font-semibold text-stone-600 block mb-1">จำนวนที่รับ ({l.unit})</label>
+                          <label className="text-[12px] font-semibold text-stone-600 block mb-1">{t('grn.new.received_qty_unit_label')} ({l.unit})</label>
                           <input
                             type="number"
                             min="0"
@@ -676,10 +683,10 @@ function NewGRNPageInner() {
                         </div>
 
                         <div>
-                          <label className="text-[12px] font-semibold text-stone-600 block mb-1">ตำแหน่งเก็บ / Storage</label>
+                          <label className="text-[12px] font-semibold text-stone-600 block mb-1">{t('grn.new.storage_location_label')}</label>
                           <input
                             type="text"
-                            placeholder="เช่น A-01-01"
+                            placeholder={t('grn.new.storage_location_placeholder')}
                             value={l.storage_location}
                             onChange={(e) => updateLine(i, 'storage_location', e.target.value)}
                             className="w-full h-9 px-3 text-[13.5px] rounded-[8px] border border-stone-200 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
@@ -689,14 +696,14 @@ function NewGRNPageInner() {
                         <div className="sm:col-span-2 space-y-1">
                           <div className="flex items-center justify-between">
                             <label className="text-[12px] font-semibold text-stone-600 block">
-                              {l.date_type === 'expiry' ? '📅 วันหมดอายุ (EXP)' : '🏭 วันที่ผลิต (MFG)'}
+                              {l.date_type === 'expiry' ? t('grn.new.expiry_date_label') : t('grn.new.mfg_date_label')}
                             </label>
                             <button
                               type="button"
                               onClick={() => updateLine(i, 'date_type', l.date_type === 'expiry' ? 'mfg' : 'expiry')}
                               className="text-[11px] text-blue-600 hover:text-blue-700 font-semibold underline underline-offset-2"
                             >
-                              สลับเป็น {l.date_type === 'expiry' ? 'MFG' : 'EXP'}
+                              {t('grn.new.switch_to')}{l.date_type === 'expiry' ? 'MFG' : 'EXP'}
                             </button>
                           </div>
 
@@ -704,7 +711,7 @@ function NewGRNPageInner() {
                             <div className="flex-1">
                               <input
                                 type="text"
-                                placeholder="วว/ดด/ปปปป"
+                                placeholder={t('grn.new.date_placeholder')}
                                 maxLength={10}
                                 value={l.date_type === 'expiry' ? l.expiry_date_be : l.mfg_date_be}
                                 onChange={(e) => updateLine(i, l.date_type === 'expiry' ? 'expiry_date_be' : 'mfg_date_be', e.target.value)}
@@ -730,19 +737,19 @@ function NewGRNPageInner() {
           <div className="rounded-2xl bg-white border border-stone-200/80 shadow-sm p-5 space-y-4">
             <div className="border-b border-stone-100 pb-3 flex items-center justify-between">
               <h2 className="text-[15px] font-bold text-stone-800 flex items-center gap-2">
-                <Landmark className="w-4 h-4 text-emerald-500" /> ของแถม / สินค้านอกบิล (Bonus / Extra Items)
+                <Landmark className="w-4 h-4 text-emerald-500" /> {t('grn.new.bonus_items_title')}
               </h2>
               <button
                 type="button"
                 onClick={handleAddBonusItem}
                 className="text-[12.5px] font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl px-3 py-1.5 flex items-center gap-1.5 transition-all duration-150 active:scale-95"
               >
-                <Plus className="w-4 h-4" /> เพิ่มของแถม
+                <Plus className="w-4 h-4" /> {t('grn.new.add_bonus_item')}
               </button>
             </div>
 
             {bonusItems.length === 0 ? (
-              <p className="text-center text-stone-400 text-xs py-4">ไม่มีของแถม หรือ สินค้านอกบิลเพิ่มเติม</p>
+              <p className="text-center text-stone-400 text-xs py-4">{t('grn.new.no_bonus_items')}</p>
             ) : (
               <div className="space-y-4">
                 {bonusItems.map((b, i) => {
@@ -764,12 +771,12 @@ function NewGRNPageInner() {
                         {/* Product search box (autocomplete) */}
                         <div className="md:col-span-5 relative">
                           <label className="text-[12px] font-semibold text-stone-600 block mb-1">
-                            ค้นหาสินค้าหรือคีย์ชื่อเอง / Product Name *
+                            {t('grn.new.bonus_product_name_label')}
                           </label>
                           <div className="relative">
                             <input
                               type="text"
-                              placeholder="พิมพ์ค้น SKU/ชื่อ หรือ ระบุชื่อสินค้าใหม่..."
+                              placeholder={t('grn.new.bonus_search_placeholder')}
                               value={searchQueries[i] ?? b.product_name}
                               onChange={(e) => handleSearchChange(i, e.target.value)}
                               onFocus={() => setDropdownOpen(i)}
@@ -781,7 +788,7 @@ function NewGRNPageInner() {
                           {b.sku && (
                             <div className="mt-1 flex items-center gap-1.5">
                               <span className="text-[10px] font-mono font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 rounded px-1.5 py-0.5">
-                                Catalog Product (SKU: {b.sku})
+                                {t('grn.new.catalog_product')} (SKU: {b.sku})
                               </span>
                             </div>
                           )}
@@ -812,7 +819,7 @@ function NewGRNPageInner() {
 
                         {/* Qty */}
                         <div className="md:col-span-2">
-                          <label className="text-[12px] font-semibold text-stone-600 block mb-1">จำนวนรับ / Qty</label>
+                          <label className="text-[12px] font-semibold text-stone-600 block mb-1">{t('grn.new.received_qty_label')}</label>
                           <input
                             type="number"
                             min="0.001"
@@ -829,10 +836,10 @@ function NewGRNPageInner() {
 
                         {/* Unit */}
                         <div className="md:col-span-1.5">
-                          <label className="text-[12px] font-semibold text-stone-600 block mb-1">หน่วย / Unit</label>
+                          <label className="text-[12px] font-semibold text-stone-600 block mb-1">{t('grn.new.unit_label')}</label>
                           <input
                             type="text"
-                            placeholder="ชิ้น"
+                            placeholder={t('grn.new.unit_placeholder')}
                             value={b.unit}
                             onChange={(e) => {
                               const newItems = [...bonusItems];
@@ -845,20 +852,20 @@ function NewGRNPageInner() {
 
                         {/* Expiry BE */}
                         <div className="md:col-span-3.5 space-y-1">
-                          <label className="text-[12px] font-semibold text-stone-600 block">วันหมดอายุ / EXP (วว/ดด/ปปปป)</label>
+                          <label className="text-[12px] font-semibold text-stone-600 block">{t('grn.new.bonus_expiry_label')}</label>
                           <div className="flex gap-2 items-center">
                             <div className="flex-1">
                               <input
-                                type="text"
-                                placeholder="วว/ดด/ปปปป"
-                                maxLength={10}
-                                value={b.expiry_date_be}
-                                onChange={(e) => {
-                                  const newItems = [...bonusItems];
-                                  newItems[i].expiry_date_be = e.target.value;
-                                  setBonusItems(newItems);
-                                }}
-                                className="w-full h-9 px-3 text-[14px] font-mono rounded-[8px] border border-stone-200 bg-white focus:outline-none focus:border-emerald-500"
+                                  type="text"
+                                  placeholder={t('grn.new.date_placeholder')}
+                                  maxLength={10}
+                                  value={b.expiry_date_be}
+                                  onChange={(e) => {
+                                    const newItems = [...bonusItems];
+                                    newItems[i].expiry_date_be = e.target.value;
+                                    setBonusItems(newItems);
+                                  }}
+                                  className="w-full h-9 px-3 text-[14px] font-mono rounded-[8px] border border-stone-200 bg-white focus:outline-none focus:border-emerald-500"
                               />
                             </div>
                             {daysLeft !== null && (
@@ -871,10 +878,10 @@ function NewGRNPageInner() {
                       </div>
 
                       <div>
-                        <label className="text-[12px] font-semibold text-stone-600 block mb-1">หมายเหตุของแถม / Line Notes</label>
+                        <label className="text-[12px] font-semibold text-stone-600 block mb-1">{t('grn.new.bonus_notes_label')}</label>
                         <input
                           type="text"
-                          placeholder="ระบุหมายเหตุ (ถ้ามี)..."
+                          placeholder={t('grn.new.bonus_notes_placeholder')}
                           value={b.notes}
                           onChange={(e) => {
                             const newItems = [...bonusItems];
@@ -895,11 +902,11 @@ function NewGRNPageInner() {
           {isW2Warehouse && (
             <div className="rounded-2xl bg-amber-50/50 border border-amber-200 shadow-sm p-5 space-y-4">
               <h2 className="text-[15px] font-bold text-amber-900 flex items-center gap-2">
-                <Landmark className="w-[18px] h-[18px] text-amber-600" /> ค่าบริการยกสินค้าขึ้นอาคารชั้นบน (Lift Fee rounds)
+                <Landmark className="w-[18px] h-[18px] text-amber-600" /> {t('grn.new.lift_fee_title')}
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
                 <div>
-                  <label className="text-[12px] font-semibold text-amber-800 block mb-1">จำนวนรอบขึ้นลิฟท์ / Rounds</label>
+                  <label className="text-[12px] font-semibold text-amber-800 block mb-1">{t('grn.new.lift_fee_rounds_label')}</label>
                   <input
                     type="number"
                     min="0"
@@ -910,14 +917,14 @@ function NewGRNPageInner() {
                 </div>
 
                 <div>
-                  <p className="text-[12px] font-semibold text-amber-800 mb-1">คำนวณเงินค่าลิฟท์ / Total Amount</p>
+                  <p className="text-[12px] font-semibold text-amber-800 mb-1">{t('grn.new.lift_fee_total_label')}</p>
                   <p className="text-[18px] font-extrabold text-amber-700 font-mono">
-                    ฿{(liftFeeRounds * 50).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    {t('currency.baht')}{(liftFeeRounds * 50).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </p>
                 </div>
 
                 <div>
-                  <span className="text-[12px] font-semibold text-amber-800 block mb-1">วิธีการจ่ายเงิน / Payment Method</span>
+                  <span className="text-[12px] font-semibold text-amber-800 block mb-1">{t('grn.new.lift_fee_payment_label')}</span>
                   <div className="flex gap-4">
                     <label className="flex items-center gap-1.5 cursor-pointer text-[13.5px] font-medium text-stone-700">
                       <input
@@ -928,7 +935,7 @@ function NewGRNPageInner() {
                         onChange={() => setLiftFeePayment('cash')}
                         className="w-4 h-4 text-emerald-600"
                       />
-                      <span>จ่ายสด (Cash)</span>
+                      <span>{t('grn.new.payment_cash')} (Cash)</span>
                     </label>
                     <label className="flex items-center gap-1.5 cursor-pointer text-[13.5px] font-medium text-stone-700">
                       <input
@@ -939,7 +946,7 @@ function NewGRNPageInner() {
                         onChange={() => setLiftFeePayment('credit')}
                         className="w-4 h-4 text-emerald-600"
                       />
-                      <span>เงินเชื่อ (Credit)</span>
+                      <span>{t('grn.new.payment_credit')} (Credit)</span>
                     </label>
                   </div>
                 </div>
@@ -949,10 +956,10 @@ function NewGRNPageInner() {
 
           {/* หมายเหตุ */}
           <div className="rounded-2xl bg-white border border-stone-200/80 shadow-sm p-5 space-y-3">
-            <label className="text-[14px] font-bold text-stone-700 block">หมายเหตุทั่วไป / Notes</label>
+            <label className="text-[14px] font-bold text-stone-700 block">{t('grn.new.general_notes_label')}</label>
             <textarea
               rows={3}
-              placeholder="เขียนข้อความหมายเหตุทั่วไปประกอบการรับลงสินค้า เช่น สภาพภายนอกกล่องชำรุด ฯลฯ"
+              placeholder={t('grn.new.general_notes_placeholder')}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               className="w-full p-3 text-[13.5px] rounded-[8px] border border-stone-200 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
@@ -963,7 +970,7 @@ function NewGRNPageInner() {
             <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 flex items-start gap-2.5">
               <BadgeAlert className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-semibold text-rose-800">เกิดข้อผิดพลาดในการตรวจสอบข้อมูล</p>
+                <p className="text-sm font-semibold text-rose-800">{t('grn.new.validation_error_title')}</p>
                 <p className="text-xs text-rose-700 mt-0.5">{error}</p>
               </div>
             </div>
@@ -979,7 +986,7 @@ function NewGRNPageInner() {
               disabled={saving || lines.length === 0}
               className="flex-1 h-11 rounded-xl border border-stone-300 hover:border-stone-400 bg-white hover:bg-stone-50 text-[13.5px] font-bold text-stone-700 transition-all active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
             >
-              ⏸ พักบิล (Save Draft)
+              {t('grn.new.btn_save_draft')}
             </button>
             <button
               type="button"
@@ -987,7 +994,7 @@ function NewGRNPageInner() {
               disabled={saving || lines.length === 0}
               className="flex-[3] h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[13.5px] font-extrabold shadow-sm shadow-emerald-600/10 transition-all active:scale-95 disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center gap-1.5"
             >
-              {saving ? 'กำลังบันทึกข้อมูล...' : '✅ รับสินค้าเสร็จแล้ว (Complete Receive)'}
+              {saving ? t('grn.new.btn_saving') : t('grn.new.btn_complete_receive')}
             </button>
           </div>
         </div>
@@ -1010,10 +1017,10 @@ function NewGRNPageInner() {
               <div>
                 <div className="flex items-center gap-1.5">
                   <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-1.5 py-0.5 uppercase tracking-wider font-mono">
-                    IO RECEIVING
+                    {t('grn.new.io_receiving')}
                   </span>
                   {isW2Warehouse && (
-                    <span className="text-[10px] font-extrabold text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-1.5 py-0.5 uppercase">W2</span>
+                    <span className="text-[10px] font-extrabold text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-1.5 py-0.5 uppercase">{t('grn.new.w2_warehouse')}</span>
                   )}
                 </div>
                 <h1 className="text-[15px] font-extrabold text-stone-900 mt-1 leading-tight font-mono flex items-center gap-1">
@@ -1022,7 +1029,7 @@ function NewGRNPageInner() {
               </div>
             </div>
             <div className="text-right">
-              <span className="text-[10px] font-bold text-stone-500 block uppercase">Vendor</span>
+              <span className="text-[10px] font-bold text-stone-500 block uppercase">{t('grn.new.vendor_label')}</span>
               <span className="text-[12px] font-bold text-stone-800 block truncate max-w-[160px]">{vendorName}</span>
             </div>
           </div>
@@ -1030,7 +1037,7 @@ function NewGRNPageInner() {
           {/* Sticky Mobile Warehouse Selector */}
           <div className="px-4 pb-3.5 pt-1 border-t border-stone-100 flex items-center justify-between gap-3 bg-white">
             <label className="text-[11px] font-bold text-stone-500 uppercase tracking-wider whitespace-nowrap">
-              คลังสินค้า / Warehouse
+              {t('grn.new.mobile_warehouse_label')}
             </label>
             <select
               disabled={mode === 'io'}
@@ -1038,7 +1045,7 @@ function NewGRNPageInner() {
               onChange={(e) => setWarehouseId(e.target.value)}
               className="flex-1 h-11 px-3 text-base rounded-xl bg-white border border-stone-300 text-stone-800 focus:outline-none focus:border-emerald-600 disabled:opacity-50"
             >
-              <option value="">เลือกคลังสินค้า...</option>
+              <option value="">{t('grn.new.mobile_select_warehouse')}</option>
               {warehouseList.map((wh) => (
                 <option key={wh.id} value={wh.id}>{wh.code} — {wh.name_th}</option>
               ))}
@@ -1053,11 +1060,11 @@ function NewGRNPageInner() {
             <div className="flex items-center justify-between text-xs font-bold text-stone-500">
               <span className="flex items-center gap-1">
                 <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-                ความคืบหน้าการรับของ
+                {t('grn.new.mobile_progress_title')}
               </span>
               <span className="font-mono text-emerald-600">
-                {itemsSuccessCount}/{lines.length} SKU สำเร็จ
-                {itemsSkippedCount > 0 && <span className="text-amber-600 ml-1">({itemsSkippedCount} ยังไม่เข้า)</span>}
+                {itemsSuccessCount}/{lines.length}{t('grn.new.mobile_sku_completed_suffix')}
+                {itemsSkippedCount > 0 && <span className="text-amber-600 ml-1">({itemsSkippedCount}{t('grn.new.mobile_sku_skipped_suffix')})</span>}
               </span>
             </div>
             <div className="w-full h-3 bg-stone-200 rounded-full overflow-hidden p-0.5 border border-stone-200">
@@ -1077,14 +1084,14 @@ function NewGRNPageInner() {
             <div className="w-12 h-12 bg-white rounded-2xl border border-stone-300 flex items-center justify-center mb-2 z-10 group-hover:scale-105 transition-transform">
               <Barcode className="w-6 h-6 text-emerald-600" />
             </div>
-            <p className="text-xs font-bold text-stone-700 z-10">จำลองการยิงสแกนรับสินค้า</p>
-            <p className="text-[10px] text-stone-500 mt-0.5 z-10">สแกน SKU สินค้าเพื่อสลับเป็นตัวทำงานทันที</p>
+            <p className="text-xs font-bold text-stone-700 z-10">{t('grn.new.mobile_sim_scan_title')}</p>
+            <p className="text-[10px] text-stone-500 mt-0.5 z-10">{t('grn.new.mobile_sim_scan_desc')}</p>
 
             {showSimulatedScanner ? (
               <form onSubmit={handleSimulatedScanSubmit} className="w-full mt-3 flex gap-2 z-10 relative">
                 <input
                   type="text"
-                  placeholder="พิมพ์บาร์โค้ด / SKU..."
+                  placeholder={t('grn.new.mobile_sim_scan_placeholder')}
                   value={simulatedBarcode}
                   onChange={(e) => setSimulatedBarcode(e.target.value)}
                   className="flex-1 h-11 px-3 rounded-xl bg-white border border-stone-300 focus:outline-none focus:border-emerald-500 text-base font-mono text-stone-900 text-center"
@@ -1094,7 +1101,7 @@ function NewGRNPageInner() {
                   type="submit"
                   className="h-11 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl active:scale-95 transition-all"
                 >
-                  สแกน
+                  {t('grn.new.mobile_sim_scan_btn')}
                 </button>
               </form>
             ) : (
@@ -1104,7 +1111,7 @@ function NewGRNPageInner() {
                 className="mt-3 px-4 h-11 bg-white border border-stone-300 rounded-xl text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-all flex items-center gap-1.5 active:scale-95 z-10"
               >
                 <Camera className="w-3.5 h-3.5" />
-                จำลองยิงบาร์โค้ด (Camera/Sim)
+                {t('grn.new.mobile_sim_scan_btn_trigger')}
               </button>
             )}
           </div>
@@ -1112,25 +1119,25 @@ function NewGRNPageInner() {
           {/* ATA Header Fields Card for Mobile */}
           <div className="bg-white border border-stone-200 rounded-2xl p-4 space-y-3.5 shadow-sm">
             <p className="text-[11.5px] font-extrabold text-stone-500 uppercase tracking-wider border-b border-stone-200 pb-2">
-              📋 ข้อมูลรับเอกสาร / ATA Header
+              {t('grn.new.mobile_ata_header_title')}
             </p>
             <div className="space-y-3.5">
               <div>
-                <label className="text-[10px] font-bold text-stone-700 block mb-1">วันที่มาส่ง (ATA)</label>
+                <label className="text-[10px] font-bold text-stone-700 block mb-1">{t('grn.new.mobile_ata_date_label')}</label>
                 <input
                   type="text"
                   maxLength={10}
-                  placeholder="วว/ดด/ปปปป"
+                  placeholder={t('grn.new.date_placeholder')}
                   value={receivedDate}
                   onChange={(e) => setReceivedDate(e.target.value)}
                   className="w-full h-11 px-3 text-base font-mono rounded-lg bg-white border border-stone-300 text-stone-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600/30"
                 />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-stone-700 block mb-1">ชื่อผู้รับทีมลงสินค้า *</label>
+                <label className="text-[10px] font-bold text-stone-700 block mb-1">{t('grn.new.mobile_staff_names_label')}</label>
                   <input
                   type="text"
-                  placeholder="ชื่อผู้รับลงสินค้า..."
+                  placeholder={t('grn.new.mobile_staff_names_placeholder')}
                   value={receivedByNames}
                   onChange={(e) => setReceivedByNames(e.target.value)}
                   className="w-full h-11 px-3 text-base rounded-lg bg-white border border-stone-300 text-stone-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600/30"
@@ -1150,18 +1157,18 @@ function NewGRNPageInner() {
                   <h3 className="text-[15px] font-extrabold text-stone-900 leading-tight mt-2">{activeLine.product_name}</h3>
                 </div>
                 <div className="text-right flex-shrink-0">
-                  <span className="text-[10px] font-bold text-stone-700 block uppercase">สั่งมา</span>
+                  <span className="text-[10px] font-bold text-stone-700 block uppercase">{t('grn.new.mobile_ordered_label')}</span>
                   <span className="text-[14.5px] font-mono font-extrabold text-stone-900">
                     {formatQty(activeLine.qty_ordered)} {activeLine.unit}
                   </span>
-                  <span className="text-[9.5px] text-stone-700 block font-semibold">เดิม: {formatQty(activeLine.stock_on_hand)}</span>
+                  <span className="text-[9.5px] text-stone-700 block font-semibold">{t('grn.new.mobile_prev_label')}: {formatQty(activeLine.stock_on_hand)}</span>
                 </div>
               </div>
 
               {/* Qty Stepper — wrapped in green highlight box */}
               <div className="border-2 border-emerald-400 bg-emerald-50/40 rounded-2xl p-4 space-y-3 ring-4 ring-emerald-400/10">
                 <label className="text-[11.5px] font-bold text-stone-800 block text-center">
-                  ระบุจำนวนชิ้นสินค้าที่รับลงของ ({activeLine.unit})
+                  {t('grn.new.mobile_qty_input_title')} ({activeLine.unit})
                 </label>
                 <div className="max-w-xs mx-auto space-y-2">
                   <div className="flex items-center justify-between gap-2">
@@ -1217,7 +1224,7 @@ function NewGRNPageInner() {
                       onClick={() => updateLine(activeIndex, 'qty_received', Number(activeLine.qty_ordered))}
                       className="h-11 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 rounded-xl text-xs font-extrabold border border-emerald-300 active:scale-95 transition-all flex items-center justify-center"
                     >
-                      ✓ครบ
+                      {t('grn.new.mobile_btn_all_ordered')}
                     </button>
                     {Number(activeLine.qty_received) > 0 && (
                       <button
@@ -1225,7 +1232,7 @@ function NewGRNPageInner() {
                         onClick={() => updateLine(activeIndex, 'qty_received', 0)}
                         className="col-span-4 h-9 bg-white hover:bg-rose-50 text-stone-400 hover:text-rose-500 rounded-xl text-xs font-bold border border-stone-200 active:scale-95 transition-all flex items-center justify-center gap-1"
                       >
-                        ล้างค่า
+                        {t('grn.new.mobile_btn_clear')}
                       </button>
                     )}
                   </div>
@@ -1235,20 +1242,20 @@ function NewGRNPageInner() {
               {/* Exp/Mfg Date & Lot/Location Inputs for Active item */}
               <div className="grid grid-cols-2 gap-3 border-t border-stone-200 pt-3.5">
                 <div>
-                  <label className="text-[10px] font-bold text-stone-800 block mb-1">ตำแหน่งเก็บ / Location</label>
+                  <label className="text-[10px] font-bold text-stone-800 block mb-1">{t('grn.new.mobile_location_label')}</label>
                   <input
                     type="text"
-                    placeholder="เช่น A-01-01"
+                    placeholder={t('grn.new.storage_location_placeholder')}
                     value={activeLine.storage_location}
                     onChange={(e) => updateLine(activeIndex, 'storage_location', e.target.value)}
                     className="w-full h-11 px-2.5 text-base rounded-lg bg-stone-100 border border-stone-300 text-stone-900 focus:outline-none focus:border-emerald-500"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-stone-800 block mb-1">Lot No. ควบคุม</label>
+                  <label className="text-[10px] font-bold text-stone-800 block mb-1">{t('grn.new.mobile_lot_no_label')}</label>
                   <input
                     type="text"
-                    placeholder="เช่น LOT69-01"
+                    placeholder={t('grn.new.mobile_lot_no_placeholder')}
                     value={activeLine.lot_no}
                     onChange={(e) => updateLine(activeIndex, 'lot_no', e.target.value)}
                     className="w-full h-11 px-2.5 text-base rounded-lg bg-stone-100 border border-stone-300 text-stone-900 focus:outline-none focus:border-emerald-500"
@@ -1257,20 +1264,20 @@ function NewGRNPageInner() {
 
                 <div className="col-span-2 space-y-1.5">
                   <div className="flex items-center justify-between text-[11px] font-bold text-stone-700">
-                    <span>{activeLine.date_type === 'expiry' ? '📅 วันหมดอายุ (EXP)' : '🏭 วันผลิต (MFG)'}</span>
+                    <span>{activeLine.date_type === 'expiry' ? t('grn.new.mobile_expiry_date_label') : t('grn.new.mobile_mfg_date_label')}</span>
                     <button
                       type="button"
                       onClick={() => updateLine(activeIndex, 'date_type', activeLine.date_type === 'expiry' ? 'mfg' : 'expiry')}
                       className="text-emerald-600 hover:text-emerald-700 underline min-h-[44px] flex items-center"
                     >
-                      สลับเป็น {activeLine.date_type === 'expiry' ? 'MFG' : 'EXP'}
+                      {t('grn.new.switch_to')}{activeLine.date_type === 'expiry' ? 'MFG' : 'EXP'}
                     </button>
                   </div>
                   <div className="flex gap-2 items-center">
                     <input
                       type="text"
                       maxLength={10}
-                      placeholder="วว/ดด/ปปปป"
+                      placeholder={t('grn.new.date_placeholder')}
                       value={activeLine.date_type === 'expiry' ? activeLine.expiry_date_be : activeLine.mfg_date_be}
                       onChange={(e) => updateLine(activeIndex, activeLine.date_type === 'expiry' ? 'expiry_date_be' : 'mfg_date_be', e.target.value)}
                       className="flex-1 h-11 px-2.5 text-base font-mono rounded-lg bg-stone-100 border border-stone-300 text-stone-900 focus:outline-none focus:border-emerald-500"
@@ -1299,12 +1306,12 @@ function NewGRNPageInner() {
                     } else if (fallbackPending >= 0) {
                       setActiveIndex(fallbackPending);
                     }
-                    toast('info', `${activeLine.product_name} — สินค้ายังไม่เข้า`);
+                    toast('info', activeLine.product_name + t('grn.new.toast_skipped_suffix'));
                   }}
                   className="flex-1 h-11 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-xs font-bold text-amber-700 transition-all active:scale-95 flex items-center justify-center gap-1"
                 >
                   <PackageX className="w-4 h-4" />
-                  สินค้ายังไม่เข้า
+                  {t('grn.new.mobile_btn_skip')}
                 </button>
                 <button
                   type="button"
@@ -1316,25 +1323,25 @@ function NewGRNPageInner() {
                     } else if (fallbackIncomplete >= 0) {
                       setActiveIndex(fallbackIncomplete);
                     }
-                    toast('success', `บันทึก ${activeLine.product_name} แล้ว`);
+                    toast('success', t('grn.new.toast_saved_prefix') + activeLine.product_name + t('grn.new.toast_saved_suffix'));
                   }}
                   className="flex-[2] h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold flex items-center justify-center gap-1 shadow-sm active:scale-95 transition-all"
                 >
                   <Check className="w-4 h-4" />
-                  บันทึกรายการนี้
+                  {t('grn.new.mobile_btn_save_line')}
                 </button>
               </div>
             </div>
           ) : (
             <div className="text-center py-8 text-stone-400 text-xs italic">
-              ไม่มีสินค้าในบิลให้ทำการตรวจรับ
+              {t('grn.new.mobile_no_items_in_bill')}
             </div>
           )}
 
           {/* Line Checklist below */}
           <div className="bg-white border border-stone-200 rounded-2xl p-4.5 space-y-3 shadow-sm">
             <p className="text-[11.5px] font-extrabold text-stone-500 uppercase tracking-wider border-b border-stone-200 pb-2">
-              📝 รายการตรวจสอบสินค้า / Item Checklist ({lines.length} SKU)
+              {t('grn.new.mobile_checklist_title')}
             </p>
             <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
               {lines.map((l, i) => {
@@ -1352,7 +1359,7 @@ function NewGRNPageInner() {
                   dotColor = 'bg-emerald-500 border-emerald-400';
                   iconEl = <Check className="w-3 h-3 text-stone-950 font-bold" />;
                 } else if (received > 0) {
-                  dotColor = 'bg-amber-500 border-amber-400';
+                  dotColor = 'bg-amber-50 border-amber-400';
                 }
 
                 return (
@@ -1385,12 +1392,12 @@ function NewGRNPageInner() {
                       </div>
                     </div>
                     <div className="text-right flex-shrink-0 font-mono">
-                      <p className="text-xs font-bold text-stone-500">สั่ง: {formatQty(l.qty_ordered)}</p>
+                      <p className="text-xs font-bold text-stone-500">{t('grn.new.mobile_ordered_short')}: {formatQty(l.qty_ordered)}</p>
                       {isSkipped ? (
-                        <p className="text-[11px] font-bold mt-0.5 text-amber-600">สินค้ายังไม่เข้า</p>
+                        <p className="text-[11px] font-bold mt-0.5 text-amber-600">{t('grn.new.mobile_btn_skip')}</p>
                       ) : (
                         <p className={`text-[13px] font-extrabold mt-0.5 ${received > 0 ? 'text-emerald-600' : 'text-stone-400'}`}>
-                          รับ: {formatQty(l.qty_received)}
+                          {t('grn.new.mobile_received_short')}: {formatQty(l.qty_received)}
                         </p>
                       )}
                     </div>
@@ -1402,10 +1409,10 @@ function NewGRNPageInner() {
 
           {/* Notes field for Mobile */}
           <div className="bg-white border border-stone-200 rounded-2xl p-4 space-y-2 shadow-sm">
-            <label className="text-[11.5px] font-bold text-stone-500 block">หมายเหตุทั่วไป / Notes</label>
+            <label className="text-[11.5px] font-bold text-stone-500 block">{t('grn.new.general_notes_label')}</label>
             <textarea
               rows={2}
-              placeholder="หมายเหตุเพิ่มเติมประกอบการรับลงของ..."
+              placeholder={t('grn.new.mobile_notes_placeholder')}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               className="w-full p-2.5 text-base rounded-lg bg-stone-50 border border-stone-300 text-stone-900 focus:outline-none focus:border-emerald-500"
@@ -1416,7 +1423,7 @@ function NewGRNPageInner() {
             <div className="rounded-xl border border-rose-200 bg-rose-50 p-3.5 flex items-start gap-2.5">
               <BadgeAlert className="w-4.5 h-4.5 text-rose-500 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-xs font-bold text-rose-700">เกิดข้อผิดพลาดในการตรวจสอบ</p>
+                <p className="text-xs font-bold text-rose-700">{t('grn.new.mobile_error_title')}</p>
                 <p className="text-[11px] text-rose-600 mt-0.5">{error}</p>
               </div>
             </div>
@@ -1432,7 +1439,7 @@ function NewGRNPageInner() {
               disabled={saving || lines.length === 0}
               className="flex-1 h-11 rounded-xl bg-white border border-stone-300 hover:bg-stone-50 text-xs font-bold text-stone-700 transition-all active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
             >
-              พักบิล (Draft)
+              {t('grn.new.mobile_btn_draft')}
             </button>
 
             {remainingCount > 0 ? (
@@ -1442,7 +1449,7 @@ function NewGRNPageInner() {
                 className="flex-[2] h-11 rounded-xl bg-stone-800 border border-stone-700/60 text-stone-500 text-xs font-bold transition-all flex items-center justify-center gap-1.5"
               >
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ค้างอยู่อีก {remainingCount} รายการ
+                {t('grn.new.mobile_btn_remaining_prefix')}{remainingCount}{t('grn.new.mobile_btn_remaining_suffix')}
               </button>
             ) : (
               <button
@@ -1451,7 +1458,7 @@ function NewGRNPageInner() {
                 disabled={saving}
                 className="flex-[2] h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-sm active:scale-95 transition-all flex items-center justify-center gap-1.5"
               >
-                {saving ? 'กำลังบันทึก...' : itemsSkippedCount > 0 ? `✅ รับลงคลังเรียบร้อย (${itemsSkippedCount} รายการยังไม่เข้า)` : '✅ รับลงคลังเรียบร้อย'}
+                {saving ? t('grn.new.mobile_btn_saving') : itemsSkippedCount > 0 ? t('grn.new.mobile_btn_complete_skipped_prefix') + itemsSkippedCount + t('grn.new.mobile_btn_complete_skipped_suffix') : t('grn.new.mobile_btn_complete_prefix')}
               </button>
             )}
           </div>
@@ -1462,8 +1469,9 @@ function NewGRNPageInner() {
 }
 
 export default function NewGRNPage() {
+  const t = useT();
   return (
-    <Suspense fallback={<div className="py-16 text-center text-gray-400">กำลังโหลด...</div>}>
+    <Suspense fallback={<div className="py-16 text-center text-gray-400">{t('label.loading')}</div>}>
       <NewGRNPageInner />
     </Suspense>
   );

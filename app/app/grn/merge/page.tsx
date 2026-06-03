@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { formatDatetime } from '@/lib/format';
 import { Layers, ArrowLeft } from 'lucide-react';
+import { useT } from '@/lib/i18n';
 
 const CARD = 'bg-white border border-stone-200 rounded-xl shadow-sm overflow-hidden';
 
@@ -26,6 +27,7 @@ interface BR {
 
 export default function GRNMergePage() {
   const router = useRouter();
+  const t = useT();
   const [pos, setPOs] = useState<PO[]>([]);
   const [selectedPO, setSelectedPO] = useState<PO | null>(null);
   const [brs, setBRs] = useState<BR[]>([]);
@@ -71,7 +73,7 @@ export default function GRNMergePage() {
         br_ids: selectedBRIds,
         received_date: new Date().toISOString().split('T')[0]
       });
-      alert('รวมข้อมูลสำเร็จ สร้าง GRN เรียบร้อยแล้ว');
+      alert(t('grn.merge.alert_success'));
       router.push(`/app/grn/${res.grn_id}`);
     } catch (err: unknown) {
       alert((err as Error).message || 'Failed to merge BRs');
@@ -86,13 +88,13 @@ export default function GRNMergePage() {
     <div className="max-w-5xl mx-auto p-6 space-y-6">
       <div className="flex items-center gap-4">
         {selectedPO && <Button variant="ghost" size="sm" onClick={() => setSelectedPO(null)}><ArrowLeft /></Button>}
-        <h1 className="text-2xl font-bold text-stone-900">รวมข้อมูลตรวจรับ (Merge BRs)</h1>
+        <h1 className="text-2xl font-bold text-stone-900">{t('grn.merge.title')}</h1>
       </div>
 
       {!selectedPO ? (
          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
            {pos.length === 0 ? (
-             <div className="col-span-full py-12 text-center text-stone-400 italic">ไม่มีใบสั่งซื้อที่รอรวมข้อมูล</div>
+             <div className="col-span-full py-12 text-center text-stone-400 italic">{t('grn.merge.no_pending_po')}</div>
            ) : (
              pos.map(po => (
                <div key={po.id} className={`${CARD} p-4 hover:border-emerald-300 cursor-pointer transition-colors group`} onClick={() => handleSelectPO(po)}>
@@ -112,9 +114,9 @@ export default function GRNMergePage() {
 
            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
-                 <h3 className="text-sm font-bold text-stone-400 uppercase tracking-wider">ใบตรวจนับ (BRs) ที่รอยืนยัน</h3>
+                 <h3 className="text-sm font-bold text-stone-400 uppercase tracking-wider">{t('grn.merge.pending_brs_title')}</h3>
                  {brs.length === 0 ? (
-                   <p className="text-sm text-stone-500 italic">ไม่พบใบตรวจนับที่ส่งข้อมูลแล้วสำหรับ PO นี้</p>
+                   <p className="text-sm text-stone-500 italic">{t('grn.merge.no_brs_found')}</p>
                  ) : (
                    brs.map(br => (
                      <label key={br.id} className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all ${selectedBRIds.includes(br.id) ? 'bg-white border-emerald-500 shadow-sm' : 'bg-stone-50 border-stone-200 opacity-60'}`}>
@@ -126,7 +128,7 @@ export default function GRNMergePage() {
                        />
                        <div className="flex-1">
                           <p className="font-mono font-bold text-stone-900">{br.br_number}</p>
-                          <p className="text-[11px] text-stone-500">นับโดย: {br.counted_by_name} · {formatDatetime(br.created_at, 'th')}</p>
+                          <p className="text-[11px] text-stone-500">{t('grn.merge.counted_by')}: {br.counted_by_name} · {formatDatetime(br.created_at, 'th')}</p>
                        </div>
                      </label>
                    ))
@@ -134,15 +136,15 @@ export default function GRNMergePage() {
               </div>
 
               <div className="space-y-4">
-                 <h3 className="text-sm font-bold text-stone-400 uppercase tracking-wider">ดำเนินการ</h3>
+                 <h3 className="text-sm font-bold text-stone-400 uppercase tracking-wider">{t('grn.merge.actions_title')}</h3>
                  <div className={`${CARD} p-6 space-y-4`}>
                     <p className="text-[13px] text-stone-600 leading-relaxed">
-                      เลือกใบตรวจนับที่ต้องการรวมเข้าด้วยกันเพื่อสร้างเป็นใบรับสินค้า (GRN) อย่างเป็นทางการ
+                      {t('grn.merge.instructions')}
                     </p>
                     <div className="bg-stone-50 p-4 rounded-lg border border-stone-100 mb-4">
                       <div className="flex justify-between text-sm">
-                        <span className="text-stone-500">เลือกแล้ว</span>
-                        <span className="font-bold text-stone-900">{selectedBRIds.length} ใบ</span>
+                        <span className="text-stone-500">{t('grn.merge.selected_count')}</span>
+                        <span className="font-bold text-stone-900">{selectedBRIds.length} {t('grn.merge.units')}</span>
                       </div>
                     </div>
                     <Button 
@@ -151,9 +153,9 @@ export default function GRNMergePage() {
                       loading={merging}
                       disabled={selectedBRIds.length === 0}
                     >
-                       <Layers className="w-5 h-5 mr-2" /> รวมข้อมูลและสร้าง GRN
+                       <Layers className="w-5 h-5 mr-2" /> {t('grn.merge.btn_submit')}
                     </Button>
-                    <p className="text-[11px] text-stone-400 text-center uppercase font-medium">หลังสร้างแล้วสถานะ GRN จะเป็น Draft</p>
+                    <p className="text-[11px] text-stone-400 text-center uppercase font-medium">{t('grn.merge.draft_note')}</p>
                  </div>
               </div>
            </div>

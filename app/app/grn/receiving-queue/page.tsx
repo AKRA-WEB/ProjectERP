@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { DirectionalTransition } from '@/components/ui/directional-transition';
 import { ArrowLeft, Filter, Home, Package, Boxes, ClipboardList, ScanLine } from 'lucide-react';
+import { useT } from '@/lib/i18n';
 
 interface PendingPO {
   id: string;
@@ -42,28 +43,20 @@ interface QueueResponse {
   inbound_orders: PendingIO[];
 }
 
-function timeSince(dateStr: string): string {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function timeSince(dateStr: string, t: (key: any) => string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
   const hrs = Math.floor(mins / 60);
   const days = Math.floor(hrs / 24);
-  if (days > 0) return `เมื่อ ${days} วัน ที่แล้ว`;
-  if (hrs > 0) return `เมื่อ ${hrs} ชม. ที่แล้ว`;
-  return `เมื่อ ${mins} น. ที่แล้ว`;
+  if (days > 0) return t('time.days_ago').replace('{count}', String(days));
+  if (hrs > 0) return t('time.hours_ago').replace('{count}', String(hrs));
+  return t('time.mins_ago').replace('{count}', String(mins));
 }
 
 function isUrgent(dateStr: string): boolean {
   return Date.now() - new Date(dateStr).getTime() > 4 * 60 * 60 * 1000;
 }
-
-const IO_STATUS_LABEL: Record<string, string> = {
-  open:                 'รอสินค้าเข้า',
-  receiving:            'กำลังลงสินค้า',
-  received:             'รอตรวจสอบ',
-  pending_verification: 'รอตรวจสอบ',
-  stocked:              'รับสินค้าแล้ว',
-  verified:             'รับสินค้าแล้ว',
-};
 
 function isOverdue(dateStr: string, status: string): boolean {
   if (status !== 'open' && status !== 'receiving') return false;
@@ -72,11 +65,12 @@ function isOverdue(dateStr: string, status: string): boolean {
 
 function MobileBottomTabBar() {
   const router = useRouter();
+  const t = useT();
   const tabs = [
-    { key: 'home', label: 'หน้าหลัก', icon: Home, href: '/app' },
-    { key: 'receive', label: 'รับสินค้า', icon: Package, href: '/app/grn/receiving-queue', active: true },
-    { key: 'stock', label: 'สต็อก', icon: Boxes, href: '/app/inventory' },
-    { key: 'profile', label: 'โปรไฟล์', icon: ClipboardList, href: '/app/profile' },
+    { key: 'home', label: t('grn.queue.mobile_tab_home'), icon: Home, href: '/app' },
+    { key: 'receive', label: t('grn.queue.mobile_tab_receive'), icon: Package, href: '/app/grn/receiving-queue', active: true },
+    { key: 'stock', label: t('grn.queue.mobile_tab_stock'), icon: Boxes, href: '/app/inventory' },
+    { key: 'profile', label: t('grn.queue.mobile_tab_profile'), icon: ClipboardList, href: '/app/profile' },
   ];
   return (
     <div className="fixed bottom-0 inset-x-0 h-16 bg-white border-t border-stone-200 flex md:hidden z-40">
@@ -101,6 +95,17 @@ function MobileBottomTabBar() {
 
 export default function ReceivingQueuePage() {
   const router = useRouter();
+  const t = useT();
+
+  const IO_STATUS_LABEL: Record<string, string> = {
+    open:                 t('status.open'),
+    receiving:            t('status.receiving'),
+    received:             t('status.pending_verification'),
+    pending_verification: t('status.pending_verification'),
+    stocked:              t('status.stocked'),
+    verified:             t('status.verified'),
+  };
+
   const [data, setData] = useState<QueueResponse>({ pending_pos: [], inbound_orders: [] });
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [warehouseId, setWarehouseId] = useState('');
@@ -131,7 +136,7 @@ export default function ReceivingQueuePage() {
   const ioQtyTotal = data.inbound_orders.reduce((s, io) => s + Number(io.total_qty_remaining), 0);
   const poQtyTotal = data.pending_pos.reduce((s, po) => s + Number(po.total_qty_remaining), 0);
 
-  const selectedWarehouseCode = warehouses.find((w) => w.id === warehouseId)?.code ?? 'ทุกคลัง';
+  const selectedWarehouseCode = warehouses.find((w) => w.id === warehouseId)?.code ?? t('grn.queue.all_warehouses_short');
 
   return (
     <DirectionalTransition>
@@ -145,7 +150,7 @@ export default function ReceivingQueuePage() {
               <ArrowLeft className="w-5 h-5 text-stone-700" />
             </button>
             <div className="flex-1 text-center">
-              <p className="text-[16px] font-extrabold text-stone-900 tracking-tight">คิวรับสินค้า</p>
+              <p className="text-[16px] font-extrabold text-stone-900 tracking-tight">{t('grn.queue.mobile_title')}</p>
               <p className="text-[11px] font-bold text-emerald-600 uppercase mt-0.5 tracking-wider">{selectedWarehouseCode}</p>
             </div>
             <button className="w-10 h-10 flex items-center justify-center rounded-full bg-stone-50 border border-stone-100 hover:bg-stone-100 active:scale-95 transition-all">
@@ -164,40 +169,40 @@ export default function ReceivingQueuePage() {
                   : 'border-stone-200'
               }`}>
                 <div className="flex items-center justify-between">
-                  <p className="text-[10px] font-bold text-stone-500 uppercase tracking-wider">ด่วนที่สุด</p>
+                  <p className="text-[10px] font-bold text-stone-500 uppercase tracking-wider">{t('grn.queue.mobile_urgent_title')}</p>
                   {urgentCount > 0 && <span className="animate-pulse w-2 h-2 rounded-full bg-amber-500" />}
                 </div>
                 <div className="flex items-baseline gap-1.5 mt-1.5">
                   <p className={`text-2xl font-mono font-extrabold tabular-nums leading-none ${urgentCount > 0 ? 'text-amber-600' : 'text-stone-300'}`}>
                     {urgentCount}
                   </p>
-                  <p className="text-[10px] font-bold text-stone-400">บิล</p>
+                  <p className="text-[10px] font-bold text-stone-400">{t('grn.queue.mobile_bills_unit')}</p>
                 </div>
-                <p className="text-[9px] font-semibold text-stone-500 mt-1">ค้างเกิน 4 ชม.</p>
+                <p className="text-[9px] font-semibold text-stone-500 mt-1">{t('grn.queue.mobile_over_4h')}</p>
               </div>
 
               {/* Inbound Orders Block */}
               <div className="bg-gradient-to-br from-white to-stone-50/30 rounded-2xl p-3 border border-stone-200 shadow-sm">
-                <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">IO (LINE)</p>
+                <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">{t('grn.queue.io_line')}</p>
                 <div className="flex items-baseline gap-1 mt-1.5">
                   <p className="text-2xl font-mono font-extrabold tabular-nums text-stone-900 leading-none">
                     {data.inbound_orders.length}
                   </p>
-                  <p className="text-[10px] font-bold text-stone-400">บิล</p>
+                  <p className="text-[10px] font-bold text-stone-400">{t('grn.queue.mobile_bills_unit')}</p>
                 </div>
-                <p className="text-[9px] font-semibold text-stone-500 mt-1">{ioQtyTotal.toLocaleString()} ชิ้น</p>
+                <p className="text-[9px] font-semibold text-stone-500 mt-1">{t('grn.queue.mobile_items_unit').replace('{count}', ioQtyTotal.toLocaleString())}</p>
               </div>
 
               {/* Purchase Orders Block */}
               <div className="bg-gradient-to-br from-white to-stone-50/30 rounded-2xl p-3 border border-stone-200 shadow-sm">
-                <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">PO (ปกติ)</p>
+                <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">{t('grn.queue.po_normal')}</p>
                 <div className="flex items-baseline gap-1 mt-1.5">
                   <p className="text-2xl font-mono font-extrabold tabular-nums text-stone-900 leading-none">
                     {data.pending_pos.length}
                   </p>
-                  <p className="text-[10px] font-bold text-stone-400">บิล</p>
+                  <p className="text-[10px] font-bold text-stone-400">{t('grn.queue.mobile_bills_unit')}</p>
                 </div>
-                <p className="text-[9px] font-semibold text-stone-500 mt-1">{poQtyTotal.toLocaleString()} ชิ้น</p>
+                <p className="text-[9px] font-semibold text-stone-500 mt-1">{t('grn.queue.mobile_items_unit').replace('{count}', poQtyTotal.toLocaleString())}</p>
               </div>
             </div>
 
@@ -242,7 +247,7 @@ export default function ReceivingQueuePage() {
             {loading ? (
               <div className="flex flex-col items-center justify-center py-16 text-stone-400 space-y-2">
                 <span className="animate-spin w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full" />
-                <p className="text-xs font-semibold">กำลังโหลดคิวรับสินค้า...</p>
+                <p className="text-xs font-semibold">{t('grn.queue.loading_queue')}</p>
               </div>
             ) : segment === 'io' ? (
               data.inbound_orders.length === 0 ? (
@@ -250,8 +255,8 @@ export default function ReceivingQueuePage() {
                   <div className="w-12 h-12 bg-stone-50 border border-stone-100 rounded-full flex items-center justify-center mx-auto mb-3">
                     <Package className="w-5 h-5 text-stone-300" />
                   </div>
-                  <p className="text-sm font-bold text-stone-800">ไม่มี IO ค้างรับ</p>
-                  <p className="text-xs text-stone-500 mt-1">คิวรับสินค้าจากไลน์เสร็จสิ้นครบถ้วนแล้ว</p>
+                  <p className="text-sm font-bold text-stone-800">{t('grn.queue.no_io_queue_title')}</p>
+                  <p className="text-xs text-stone-500 mt-1">{t('grn.queue.no_io_queue_desc')}</p>
                 </div>
               ) : (
                 <div className="space-y-3.5">
@@ -273,10 +278,10 @@ export default function ReceivingQueuePage() {
                                 {io.io_number}
                               </span>
                               {urgent && (
-                                <span className="text-[9px] font-extrabold text-amber-700 bg-amber-50 border border-amber-300 rounded-full px-2 py-0.5 tracking-wider uppercase leading-none animate-pulse">ด่วน</span>
+                                <span className="text-[9px] font-extrabold text-amber-700 bg-amber-50 border border-amber-300 rounded-full px-2 py-0.5 tracking-wider uppercase leading-none animate-pulse">{t('grn.queue.urgent_tag')}</span>
                               )}
                               {overdue && (
-                                <span className="text-[9px] font-extrabold text-red-700 bg-red-50 border border-red-300 rounded-full px-2 py-0.5 tracking-wider uppercase leading-none">นานผิดปกติ</span>
+                                <span className="text-[9px] font-extrabold text-red-700 bg-red-50 border border-red-300 rounded-full px-2 py-0.5 tracking-wider uppercase leading-none">{t('grn.queue.overdue_tag')}</span>
                               )}
                             </div>
                             <div>
@@ -285,14 +290,14 @@ export default function ReceivingQueuePage() {
                           </div>
                           <div className="text-right flex-shrink-0">
                             <p className="text-2xl font-mono font-extrabold tabular-nums text-stone-900 leading-none">{formatQty(io.total_qty_remaining)}</p>
-                            <p className="text-[10px] font-bold text-stone-400 mt-1.5">{io.total_lines} SKU ค้างรับ</p>
+                            <p className="text-[10px] font-bold text-stone-400 mt-1.5">{t('grn.queue.sku_remaining').replace('{count}', String(io.total_lines))}</p>
                           </div>
                         </div>
                         <div className="space-y-2">
                           <p className="text-[14px] font-bold text-stone-800 leading-snug">{io.vendor_name}</p>
                           <div className="flex items-center justify-between text-[11px] font-semibold text-stone-500">
-                            <span>คลังปลายทาง: <span className="text-stone-700 font-bold">{io.warehouse_code}</span></span>
-                            <span>{timeSince(io.created_at)}</span>
+                            <span>{t('grn.queue.destination_wh')}: <span className="text-stone-700 font-bold">{io.warehouse_code}</span></span>
+                            <span>{timeSince(io.created_at, t)}</span>
                           </div>
                         </div>
                         <button
@@ -300,7 +305,7 @@ export default function ReceivingQueuePage() {
                           className="w-full h-12 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-xl text-[13.5px] font-extrabold hover:from-emerald-700 hover:to-emerald-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-sm shadow-emerald-600/10"
                         >
                           <ScanLine className="w-4.5 h-4.5" />
-                          เริ่มรับสินค้า (Scan)
+                          {t('grn.queue.scan_receive')}
                         </button>
                       </div>
                     );
@@ -313,8 +318,8 @@ export default function ReceivingQueuePage() {
                   <div className="w-12 h-12 bg-stone-50 border border-stone-100 rounded-full flex items-center justify-center mx-auto mb-3">
                     <Package className="w-5 h-5 text-stone-300" />
                   </div>
-                  <p className="text-sm font-bold text-stone-800">ไม่มี PO ค้างรับ</p>
-                  <p className="text-xs text-stone-500 mt-1">คิวรับสินค้าปกติเสร็จสิ้นครบถ้วนแล้ว</p>
+                  <p className="text-sm font-bold text-stone-800">{t('grn.queue.no_po_queue_title')}</p>
+                  <p className="text-xs text-stone-500 mt-1">{t('grn.queue.no_po_queue_desc')}</p>
                 </div>
               ) : (
                 <div className="space-y-3.5">
@@ -333,7 +338,7 @@ export default function ReceivingQueuePage() {
                                 {po.po_number}
                               </span>
                               {urgent && (
-                                <span className="text-[9px] font-extrabold text-amber-700 bg-amber-50 border border-amber-300 rounded-full px-2 py-0.5 tracking-wider uppercase leading-none animate-pulse">ด่วน</span>
+                                <span className="text-[9px] font-extrabold text-amber-700 bg-amber-50 border border-amber-300 rounded-full px-2 py-0.5 tracking-wider uppercase leading-none animate-pulse">{t('grn.queue.urgent_tag')}</span>
                               )}
                             </div>
                             <div>
@@ -342,14 +347,14 @@ export default function ReceivingQueuePage() {
                           </div>
                           <div className="text-right flex-shrink-0">
                             <p className="text-2xl font-mono font-extrabold tabular-nums text-stone-900 leading-none">{formatQty(po.total_qty_remaining)}</p>
-                            <p className="text-[10px] font-bold text-stone-400 mt-1.5">{po.total_lines} SKU ค้างรับ</p>
+                            <p className="text-[10px] font-bold text-stone-400 mt-1.5">{t('grn.queue.sku_remaining').replace('{count}', String(po.total_lines))}</p>
                           </div>
                         </div>
                         <div className="space-y-2">
                           <p className="text-[14px] font-bold text-stone-800 leading-snug">{po.vendor_name}</p>
                           <div className="flex items-center justify-between text-[11px] font-semibold text-stone-500">
-                            <span>คลังปลายทาง: <span className="text-stone-700 font-bold">{po.warehouse_code}</span></span>
-                            <span>{po.expected_date ? `คาดรับ ${formatDate(po.expected_date)}` : timeSince(po.created_at ?? '')}</span>
+                            <span>{t('grn.queue.destination_wh')}: <span className="text-stone-700 font-bold">{po.warehouse_code}</span></span>
+                            <span>{po.expected_date ? `${t('grn.queue.mobile_expected_prefix')}${formatDate(po.expected_date)}` : timeSince(po.created_at ?? '', t)}</span>
                           </div>
                         </div>
                         <button
@@ -357,7 +362,7 @@ export default function ReceivingQueuePage() {
                           className="w-full h-12 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-xl text-[13.5px] font-extrabold hover:from-emerald-700 hover:to-emerald-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-sm shadow-emerald-600/10"
                         >
                           <ScanLine className="w-4.5 h-4.5" />
-                          เริ่มรับสินค้า (Scan)
+                          {t('grn.queue.scan_receive')}
                         </button>
                       </div>
                     );
@@ -374,15 +379,15 @@ export default function ReceivingQueuePage() {
         <div className="hidden md:block max-w-[1440px] mx-auto pb-12">
           <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-stone-900">รายการรอรับสินค้า / Receiving Queue</h1>
-              <p className="text-sm text-stone-500">รายการทั้งหมดที่พร้อมรับเข้าคลัง</p>
+              <h1 className="text-2xl font-bold text-stone-900">{t('grn.queue.title')}</h1>
+              <p className="text-sm text-stone-500">{t('grn.queue.subtitle')}</p>
             </div>
             <div className="flex gap-2 items-center">
               <Link href="/app/inbound-orders/new" transitionTypes={['nav-forward']}>
-                <Button variant="secondary" size="sm">+ สร้าง IO ใหม่ (LINE)</Button>
+                <Button variant="secondary" size="sm">{t('grn.queue.btn_create_io')}</Button>
               </Link>
               <Link href="/app/grn" transitionTypes={['nav-back']} className="text-sm text-blue-600 hover:underline flex items-center">
-                ← ไปหน้าประวัติ GRN
+                {t('grn.queue.btn_history')}
               </Link>
             </div>
           </div>
@@ -393,7 +398,7 @@ export default function ReceivingQueuePage() {
               value={warehouseId}
               onChange={(e) => setWarehouseId(e.target.value)}
             >
-              <option value="">ทุกคลังสินค้า</option>
+              <option value="">{t('grn.queue.all_warehouses')}</option>
               {warehouses.map((w) => <option key={w.id} value={w.id}>{w.code} — {w.name_th}</option>)}
             </select>
           </div>
@@ -402,27 +407,27 @@ export default function ReceivingQueuePage() {
             {/* Inbound Orders */}
             <section>
               <div className="flex items-center gap-2 mb-4">
-                <h2 className="text-lg font-bold text-stone-800">Inbound Orders (สั่งผ่าน LINE)</h2>
+                <h2 className="text-lg font-bold text-stone-800">{t('grn.queue.io_line_title')}</h2>
                 <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded-full ml-2">{data.inbound_orders.length}</span>
               </div>
               <div className="rounded-xl bg-white shadow-sm border border-stone-200 overflow-hidden">
                 <Table>
                   <Thead>
                     <tr>
-                      <Th>เลข IO</Th>
-                      <Th>ผู้จำหน่าย</Th>
-                      <Th className="hidden sm:table-cell">คลังสินค้า</Th>
-                      <Th className="hidden sm:table-cell text-right">ค้างรับ</Th>
-                      <Th className="hidden sm:table-cell">วันที่สร้าง</Th>
-                      <Th>สถานะ</Th>
+                      <Th>{t('grn.queue.th_io_num')}</Th>
+                      <Th>{t('grn.queue.th_vendor')}</Th>
+                      <Th className="hidden sm:table-cell">{t('grn.queue.th_warehouse')}</Th>
+                      <Th className="hidden sm:table-cell text-right">{t('grn.queue.th_remaining')}</Th>
+                      <Th className="hidden sm:table-cell">{t('grn.queue.th_created_date')}</Th>
+                      <Th>{t('grn.queue.th_status')}</Th>
                       <Th></Th>
                     </tr>
                   </Thead>
                   <Tbody>
                     {loading ? (
-                      <tr><Td colSpan={7}><div className="py-8 text-center text-stone-600">กำลังโหลด...</div></Td></tr>
+                      <tr><Td colSpan={7}><div className="py-8 text-center text-stone-600">{t('grn.queue.loading')}</div></Td></tr>
                     ) : data.inbound_orders.length === 0 ? (
-                      <tr><Td colSpan={7}><div className="py-8 text-center text-stone-600 italic">ไม่มีรายการ IO ค้างรับ</div></Td></tr>
+                      <tr><Td colSpan={7}><div className="py-8 text-center text-stone-600 italic">{t('grn.queue.no_io_pending')}</div></Td></tr>
                     ) : data.inbound_orders.map((io) => (
                       <tr key={io.id} className="hover:bg-stone-50">
                         <Td className="font-mono font-medium text-sm text-emerald-700">
@@ -435,7 +440,7 @@ export default function ReceivingQueuePage() {
                         <Td><StatusBadge status={io.status} labelOverride={IO_STATUS_LABEL[io.status]} /></Td>
                         <Td className="text-right">
                           <Link href={`/app/grn/new?io_id=${io.id}`} transitionTypes={['nav-forward']}>
-                            <Button size="sm">รับสินค้า</Button>
+                            <Button size="sm">{t('grn.queue.btn_receive')}</Button>
                           </Link>
                         </Td>
                       </tr>
@@ -448,27 +453,27 @@ export default function ReceivingQueuePage() {
             {/* Purchase Orders */}
             <section>
               <div className="flex items-center gap-2 mb-4">
-                <h2 className="text-lg font-bold text-stone-800">Purchase Orders (ระบบปกติ)</h2>
+                <h2 className="text-lg font-bold text-stone-800">{t('grn.queue.po_system_title')}</h2>
                 <span className="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded-full ml-2">{data.pending_pos.length}</span>
               </div>
               <div className="rounded-xl bg-white shadow-sm border border-stone-200 overflow-hidden">
                 <Table>
                   <Thead>
                     <tr>
-                      <Th>เลข PO</Th>
-                      <Th>ผู้จำหน่าย</Th>
-                      <Th className="hidden sm:table-cell">คลังสินค้า</Th>
-                      <Th className="hidden sm:table-cell text-right">ค้างรับ</Th>
-                      <Th className="hidden sm:table-cell">วันที่คาดรับ</Th>
-                      <Th>สถานะ</Th>
+                      <Th>{t('grn.queue.th_po_num')}</Th>
+                      <Th>{t('grn.queue.th_vendor')}</Th>
+                      <Th className="hidden sm:table-cell">{t('grn.queue.th_warehouse')}</Th>
+                      <Th className="hidden sm:table-cell text-right">{t('grn.queue.th_remaining')}</Th>
+                      <Th className="hidden sm:table-cell">{t('grn.queue.th_expected_date')}</Th>
+                      <Th>{t('grn.queue.th_status')}</Th>
                       <Th></Th>
                     </tr>
                   </Thead>
                   <Tbody>
                     {loading ? (
-                      <tr><Td colSpan={7}><div className="py-8 text-center text-stone-600">กำลังโหลด...</div></Td></tr>
+                      <tr><Td colSpan={7}><div className="py-8 text-center text-stone-600">{t('grn.queue.loading')}</div></Td></tr>
                     ) : data.pending_pos.length === 0 ? (
-                      <tr><Td colSpan={7}><div className="py-8 text-center text-stone-600 italic">ไม่มีรายการ PO ค้างรับ</div></Td></tr>
+                      <tr><Td colSpan={7}><div className="py-8 text-center text-stone-600 italic">{t('grn.queue.no_po_pending')}</div></Td></tr>
                     ) : data.pending_pos.map((po) => (
                       <tr key={po.id} className="hover:bg-stone-50">
                         <Td className="font-mono font-medium text-sm text-blue-700">
@@ -481,7 +486,7 @@ export default function ReceivingQueuePage() {
                         <Td><StatusBadge status={po.status} /></Td>
                         <Td className="text-right">
                           <Link href={`/app/grn/new?po_id=${po.id}`} transitionTypes={['nav-forward']}>
-                            <Button size="sm">รับสินค้า</Button>
+                            <Button size="sm">{t('grn.queue.btn_receive')}</Button>
                           </Link>
                         </Td>
                       </tr>
