@@ -17,7 +17,22 @@
 
 | Track | Status | Plan |
 | --- | --- | --- |
-| i18n-t6-menu-remaining | Completed | [plan](tracks/i18n-t6-menu-remaining/plan.md) |
+| hardening-t1-test-foundation | Planned | [plan](tracks/hardening-t1-test-foundation/plan.md) |
+
+## Phase 6 — Hardening & Stabilization (from full audit 2026-06-06)
+
+> Source: [full-audit-2026-06-06](qa-reports/full-audit-2026-06-06.md). Execute in priority order. T1 first (unblocks the gate). T3 can run in parallel.
+
+| # | Track | Priority | Depends On | Status | Plan |
+| --- | --- | --- | --- | --- | --- |
+| H1 | hardening-t1-test-foundation | 🔴 Critical | — | Planned | [plan](tracks/hardening-t1-test-foundation/plan.md) |
+| H2 | hardening-t2-ci-gate | 🟠 High | H1 | Planned | [plan](tracks/hardening-t2-ci-gate/plan.md) |
+| H3 | hardening-t3-db-tls-security | 🟠 High | — | Planned | [plan](tracks/hardening-t3-db-tls-security/plan.md) |
+| H4 | hardening-t4-route-guard-and-errors | 🟡 Medium | H1 | Planned | [plan](tracks/hardening-t4-route-guard-and-errors/plan.md) |
+| H6 | hardening-t6-deep-verification-audit | 🟡 Medium | H1 | Planned | [plan](tracks/hardening-t6-deep-verification-audit/plan.md) |
+| H5 | hardening-t5-repo-hygiene-and-types | 🟢 Low | H1 | Planned | [plan](tracks/hardening-t5-repo-hygiene-and-types/plan.md) |
+
+> Note: **M4** (108 i18n suppressions) is owned by existing track [i18n-t6-menu-remaining](tracks/i18n-t6-menu-remaining/plan.md) — see Rework Required below.
 
 ## i18n Compliance (run in sequence: T1 → T2 → T3/T4/T5 parallel → T6)
 
@@ -28,7 +43,7 @@
 | I-3 | i18n-t3-accounting | I-2 | Verified | [plan](archive/tracks/i18n-t3-accounting/plan.md) |
 | I-4 | i18n-t4-grn-purchasing | I-2 | Verified | [plan](archive/tracks/i18n-t4-grn-purchasing/plan.md) |
 | I-5 | i18n-t5-admin-wms | I-2 | Verified | [plan](archive/tracks/i18n-t5-admin-wms/plan.md) |
-| I-6 | i18n-t6-menu-remaining | I-3, I-4, I-5 | Completed | [plan](tracks/i18n-t6-menu-remaining/plan.md) |
+| I-6 | i18n-t6-menu-remaining | I-3, I-4, I-5 | Rework Required | [plan](tracks/i18n-t6-menu-remaining/plan.md) |
 
 ## Performance Optimization Tracks (sequential — measure after each tier)
 
@@ -98,7 +113,9 @@ Master plan: [erp-v2-orion-roadmap](tracks/erp-v2-orion-roadmap/plan.md)
 
 > Gemini CLI: after Active Now is clear, fix these next.
 
-*No rework required. All tracks are fully verified by Billy QA and approved by Chen/Claude.*
+| Track | Status | Plan | Rework |
+| --- | --- | --- | --- |
+| i18n-t6-menu-remaining | Rework Required | [plan](tracks/i18n-t6-menu-remaining/plan.md) | [rework](tracks/i18n-t6-menu-remaining/rework-plan.md) |
 
 ## All Tracks
 

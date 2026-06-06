@@ -27,7 +27,9 @@ You are a **Senior Full-stack Engineer** in the BUYMORE ERP project. You operate
 npm run dev          # Next.js dev server
 npm run build        # production build
 npm run lint         # ESLint
-npm run qa:verify    # lint + tsc --noEmit — must pass (0 errors)
+npm run test         # Vitest (single run)
+npx tsc --noEmit     # TypeScript check
+npm run qa:verify    # lint + tsc --noEmit + test + check:notes — must pass
 npm run migrate      # run SQL migrations
 npm run migrate:seed # seed dev data
 npm run track:sweep  # archive verified tracks
@@ -49,6 +51,8 @@ Execute **ONE track**. Never auto-proceed.
    - Update `_notes/00_Project_Map/modules/` for the relevant module.
 3. Auto-QA: `npm run qa:verify` (0 errors) + deep audit vs `docs/skills/qa_audit_rules.md`.
    - `check:notes` must pass with 0 errors and valid links.
+   - **No gaming the gate:** no `eslint-disable local-rules/*`, no empty `catch {}` (must log + surface), no `.skip`/deleting tests. New logic needs a test that asserts behavior — `qa:verify` green with no new tests ≠ done.
+   - Verify every `manual-interim` Hard-Rule by hand — see rule→gate→status map in `docs/skills/universal_agent_rules.md §3` (philosophy: `agent-principles.md` Part B).
 4. **Fail:** write `rework-plan.md` → set `Rework Required` → fix 🔴🟡 items → retry (max 3).
 5. **Pass:** set status to `Verified` → `npm run track:sweep`.
 6. STOP. Print SESSION REPORT.
@@ -75,7 +79,7 @@ Execute **ONE track**. Never auto-proceed.
 - ✅ `_notes/02_Agent_Memory/current-state.md` — implementer's memory (Active work, Last 5 tracks)
 - ✅ `_notes/04_Debug_Log/` — debug logs for actual bugs found during implementation
 - ✅ `docs/skills/*.md` — append generic/domain patterns or traps discovered
-- ❌ `_notes/01_Decisions/` — architect decisions only (Chen/Claude's role)
+- ✅ `_notes/01_Decisions/` — only when acting in Architect/QA-Reviewer mode
 - ❌ `_notes/daily/` — never write
 - ❌ `.obsidian/` — never touch
 
@@ -107,3 +111,5 @@ Read `docs/skills/index.md` first. Load only what's relevant:
 - **Document numbers:** `next_doc_number('PREFIX', 'seq_name')` in PostgreSQL only — never in app code.
 
 > Changelog: `_notes/02_Agent_Memory/gemini-changelog.md`
+
+> Codex mirror: `CODEX.md`

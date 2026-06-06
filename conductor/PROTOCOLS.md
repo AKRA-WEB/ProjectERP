@@ -21,23 +21,23 @@ All agents must adhere to the [Universal Agent Protocol](file:///C:/dev/projectE
 
 ## The Workflow
 
-1.  **Requirement Analysis (Chen):** The user provides requirements. Chen analyzes the codebase, designs the solution, and breaks it down into a technical specification.
-2.  **Task Planning (Chen):** Chen creates a new "Track" in `conductor/tracks/<feature-name>/plan.md` including a QA Checklist.
-3.  **Implementation (Gemini CLI):** The user directs Gemini CLI to execute the plan. Gemini reads the plan, modifies the code, runs tests, and updates task checkboxes.
-4.  **Knowledge Elevation (Gemini CLI):** Before finalizing, Gemini MUST update `_notes/02_Agent_Memory/current-state.md`, `docs/SCHEMA.md`, and relevant module notes with all new technical facts (DB schema, API routes, logic traps).
-5.  **Verification (Gemini CLI):** Gemini CLI runs `npm run qa:verify` (which includes `check:notes`) to ensure documentation is in sync. Then creates an `execution-summary.md` in the track folder.
-6.  **QA Draft (Billy):** Trigger with `QA: <track-name>`. Billy runs `npm run lint` + `npm run build` + `npm run check:notes`, audits all modified files against `plan.md`, and produces a **Draft QA Report** labeled `[DRAFT — Pending Chen Validation]`. Billy does NOT write `rework-plan.md` or update `index.md`.
-7.  **QA Validation (Chen):** Claude routes Billy's draft to Chen via `QA-Review: <track-name>`. Chen reads the actual implementation files, validates each finding (Confirmed / Downgraded / Dismissed), and produces a **Validated Rework Plan**. Chen may add missed findings or flag scope drift.
-8.  **Write Artifacts (Claude):** Claude writes `conductor/tracks/<track-name>/rework-plan.md` from Chen's validated output. Claude updates `index.md` status: `Rework Required` · `Optimization Suggested` · `Verified`.
-9.  **Rework (Gemini CLI):** If `Rework Required`, Gemini executes `rework-plan.md` 🔴 items first, then 🟡. Re-triggers Billy QA → Chen validation cycle.
-10. **Architectural Review (Claude):** Final review after status reaches `Verified`.
+1.  **Requirement Analysis (Architect role):** The user provides requirements. The active agent analyzes the codebase, designs the solution, and breaks it down into a technical specification.
+2.  **Task Planning (Architect role):** The active agent creates a new "Track" in `conductor/tracks/<feature-name>/plan.md` including a QA checklist.
+3.  **Implementation (Implementer role):** The active agent executes the plan, modifies the code, runs tests, and updates task checkboxes.
+4.  **Knowledge Elevation (Implementer role):** Before finalizing, the active agent MUST update `_notes/02_Agent_Memory/current-state.md`, `docs/SCHEMA.md`, and relevant module notes with all new technical facts (DB schema, API routes, logic traps).
+5.  **Verification (Implementer role):** The active agent runs `npm run qa:verify` (which includes `check:notes`) to ensure documentation is in sync. Then creates an `execution-summary.md` in the track folder.
+6.  **QA Draft (Auditor role):** Trigger with `QA: <track-name>`. The active auditor runs `npm run lint` + `npm run build` + `npm run check:notes`, audits all modified files against `plan.md`, and produces a **Draft QA Report**. Auditor draft mode does NOT write `rework-plan.md` or update `index.md`.
+7.  **QA Validation (QA Reviewer role):** Trigger with `QA-Review: <track-name>` or an explicit user request. The active agent reads actual implementation files, validates each finding (Confirmed / Downgraded / Dismissed), and produces a **Validated Rework Plan** when needed.
+8.  **Write Artifacts (QA Reviewer / Maintainer role):** The active agent writes `conductor/tracks/<track-name>/rework-plan.md` from validated output and updates `index.md` status: `Rework Required` · `Optimization Suggested` · `Verified`.
+9.  **Rework (Implementer role):** If `Rework Required`, the active implementer executes `rework-plan.md` must-fix items first, then should-fix items. Re-trigger QA after rework.
+10. **Architectural Review (Architect/Reviewer role):** Final review after status reaches `Verified`.
 
 ## File Structure
 
 - `conductor/index.md`: Registry of all tracks and their statuses.
 - `conductor/tracks/<feature-name>/plan.md`: The step-by-step implementation plan.
 - `conductor/tracks/<feature-name>/spec.md`: (Optional) Technical specification and design notes.
-- `conductor/tracks/<feature-name>/execution-summary.md`: Final report from Gemini CLI.
+- `conductor/tracks/<feature-name>/execution-summary.md`: Final report from the active implementer.
 
 ## Knowledge Base (Obsidian)
 
@@ -45,15 +45,15 @@ This project uses **Obsidian** opened directly on this folder as a vault. All `.
 
 | Folder | Owner | Purpose |
 |--------|-------|---------|
-| `conductor/` | Claude + Gemini | Plans, protocols, track artifacts |
+| `conductor/` | All role-based agents | Plans, protocols, track artifacts |
 | `_notes/` | All Agents | Knowledge capture, current state, logs |
 | `_notes/01_Decisions/` | Chen (Architect) | Architectural decision records (ADR) |
-| `docs/skills/` | Gemini reads | Skill files loaded on-demand |
+| `docs/skills/` | All agents | Skill files loaded on-demand |
 | `_notes/04_Debug_Log/` | All Agents | Debug logs for actual bugs found |
 
 **Boundary rules:**
-- `conductor/` — Gemini: `execution-summary.md`, checkbox updates. Chen: `plan.md`, `rework-plan.md`, `index.md`. Claude: reviews + commits.
-- `_notes/` — Gemini writes `current-state.md`. Chen writes `01_Decisions/`. All agents read. Never write `daily/` or `.obsidian/`.
+- `conductor/` — Architect writes `plan.md`; Implementer writes `execution-summary.md` and checkbox updates; QA Reviewer writes `rework-plan.md` and status changes.
+- `_notes/` — Implementer writes `current-state.md`; Architect/QA Reviewer writes `01_Decisions/` only for architectural decisions. All agents read. Never write `daily/` or `.obsidian/`.
 - `.obsidian/` — Never touched by any AI agent.
 
 ## Billy QA Protocol (`QA: <track-name>`)
@@ -62,23 +62,23 @@ This project uses **Obsidian** opened directly on this folder as a vault. All `.
 
 ### File Writing Rules (Billy) — MANDATORY
 
-**Billy subagent CANNOT write to the Windows filesystem.** Billy's `write_file` tool and Bash HEREDOCs silently "succeed" but write to the container FS, not `C:\`. The files never appear in the project.
+Some auditor subagents may not write to the Windows filesystem. Their `write_file` tool and Bash HEREDOCs can silently "succeed" but write to a container FS, not `C:\`. The files never appear in the project.
 
 **Correct pattern:**
 1. Billy performs the audit and outputs the full report as structured text in its response.
 2. Tell Billy: **"Do NOT echo file contents — output only findings as text, keep response under 30KB."**
-3. After Billy responds, **main thread Claude** writes the file using the native Write tool:
+3. After the auditor responds, the active main agent writes the file using the native write tool:
    `C:\dev\projectERP\conductor\qa-reports\<track>.md`
 
 ### Billy Output Rules
 - Label report `[DRAFT — Pending Chen Validation]`
-- Do NOT write `rework-plan.md` or update `index.md` — that is Chen's job
+- Do NOT write `rework-plan.md` or update `index.md` in Auditor draft mode — that belongs to QA Reviewer / Maintainer mode
 - Classify: **Must Fix** | **Should Fix** | **Suggestion**
 - Each finding: `file:line — Issue — Fix`
 - Ensure the file is written to disk before finishing.
 
-### Spawning Billy (Claude's Responsibility)
-After Billy responds, Claude writes the report:
+### Writing Auditor Output
+After the auditor responds, the active main agent writes the report:
 ```
 Write tool → C:\dev\projectERP\conductor\qa-reports\<track>.md
 ```
@@ -113,8 +113,9 @@ Each task in plan.md is incomplete unless it specifies:
 3. **Child table inserts** — every parent+children POST must show: INSERT parent → get id → FOR EACH child: INSERT with parent_id
 4. **Side effects after status change** — `stock_ledger` insert, balance update, AP entry, etc.
 5. **Response shape** — exact fields returned in `apiSuccess()`
+6. **Test named** — every task with business logic MUST name the test file + the behavior it asserts (Hard-Rule #8). "Write tests" with no named assertion is not a plan — it is the prose that rots (agent-principles Part B).
 
-A plan task missing any of these ≠ ready for Gemini.
+A plan task missing any of these ≠ ready for the Implementer.
 
 ### File Writing Rules (Chen) — MANDATORY
 
@@ -137,7 +138,7 @@ Then use the Write tool with the Windows absolute path `C:\dev\projectERP\<relat
 
 ---
 
-## Guidance for Claude (The Architect)
+## Guidance for The Architect Role
 
 - Do NOT implement large chunks of code inline — focus on the plan.
 - Use checkboxes `- [ ]` for tasks in `plan.md`.

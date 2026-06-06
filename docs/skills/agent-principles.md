@@ -7,7 +7,7 @@ load-when: "agent behavior, operating principles"
 
 # ⚡ Shared Operating Principles
 
-All agents in this project (Chen, Gemini, Puka, Paku, Billy) MUST follow these principles.
+All agents in this project (Chen, Gemini, Claude, Codex, Puka, Paku, Billy, and future AI surfaces) MUST follow these principles.
 
 ---
 
@@ -56,4 +56,29 @@ Flag when "fix X" turns into "refactor everything." Keep changes focused on the 
 
 ### 10. CONCISE SUMMARIZATION — บันทึกงานเฉพาะส่วนสำคัญ
 After completing tasks or sessions, document only the high-impact, critical changes and key milestones. Avoid long, trivial lists of routine steps or files changed. Keep reports concise and focused strictly on what matters.
+
+---
+
+## Part B: Enforcement Principles (Anti-Rot)
+
+> **Origin:** full-audit 2026-06-06 found that strong prose rules (write tests, no unbounded SQL, no `as any`) rotted because they were *self-reported*, not *machine-enforced*. These principles prevent prose-rot. See [full-audit-2026-06-06](../../conductor/qa-reports/full-audit-2026-06-06.md) and track `hardening-t2-ci-gate`.
+
+### B1. Enforcement over self-report
+A rule with no automated gate is a suggestion. Every hard-rule MUST name its enforcement mechanism (ESLint rule, CI step, type check). If the only enforcement is "an agent remembers to check," label it **manual-interim** and treat it as a backlog item for `hardening-t2-ci-gate` — do not present it as solved.
+
+### B2. Gates measure intent, not letter
+A green gate is necessary, not sufficient. `npm run qa:verify` passing with **zero tests** is a failing gate, not a passing track. Before claiming done, ask "does the gate actually check what the rule asks?" — not "did the command exit 0?"
+
+### B3. Never game a gate
+Do NOT satisfy the letter of a check while violating its intent. Specifically:
+- ❌ No inline or file-level `eslint-disable local-rules/*` to make lint pass. Migrate the code instead.
+- ❌ No empty `catch {}` to dodge the "no console" rule (see B5).
+- ❌ No deleting/`.skip`-ing a test to make the suite green.
+If a gate blocks legitimate work, fix the gate openly (and say so) — never bypass it silently.
+
+### B4. Cross-cutting concerns need an owning track
+The per-track feature model is blind to global concerns: test infrastructure, CI, security config (TLS, secrets, env), dependency hygiene, repo cleanliness. These rot because no feature track owns them. When you spot a cross-cutting gap, create or reference a `hardening-*` track — do not leave it ownerless.
+
+### B5. Errors must surface (rule-conflict resolution)
+The "no `console.*`" rule targets **debug noise** (`console.log` of state), NOT error handling. In a `catch` block you MUST log (`console.error(...)` or the project logger) AND surface a user-visible error/retry state where applicable. A swallowed error (`catch {}`) is a defect, not clean code.
 

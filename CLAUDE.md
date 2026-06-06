@@ -117,6 +117,11 @@ No Thai text in JSX outside `*Th` data properties (`nameTh`, `labelTh`, `valueTh
 - `stock_ledger` is **INSERT-ONLY** — no UPDATE/DELETE.
 - All SQL lists must have `LIMIT` and `OFFSET`.
 - No `// TODO` or `// FIXME` in completed work.
+- **No gaming the gate:** no `eslint-disable local-rules/*`, no empty `catch {}`, no `.skip`/deleting tests to go green.
+- **Errors must surface:** `catch` must `console.error`/log (the "no console" rule targets debug noise, not error handling).
+- **Tests assert behavior:** new/changed logic needs a real assertion; `qa:verify` passing with no new tests ≠ done.
+
+> Full rule→gate→status map: [docs/skills/universal_agent_rules.md §3](docs/skills/universal_agent_rules.md). Enforcement philosophy: [docs/skills/agent-principles.md](docs/skills/agent-principles.md) Part B. `manual-interim` rules must be checked by hand until `hardening-t2-ci-gate` lands.
 
 ---
 
@@ -151,3 +156,5 @@ Execute **ONE track**. Never auto-proceed.
 | `docs/i18n.md` | Before adding any UI text or new module |
 
 **Notes:** `_notes/00_Project_Map/` modules · `_notes/01_Decisions/` ADRs · `_notes/02_Agent_Memory/` memory · `_notes/04_Debug_Log/` logs.
+
+**Agent mirrors:** `GEMINI.md` and `CODEX.md` describe the same role-based workflow for other AI surfaces. Keep command semantics and verification gates aligned across all three files.

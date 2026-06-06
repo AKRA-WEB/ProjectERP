@@ -21,6 +21,8 @@
 
 ระบบนี้ขับเคลื่อนด้วย **Unified Agentic Architecture** ซึ่งมีรูปแบบการทำงานและการแบ่งหน้าที่อย่างเด็ดขาดตามคำสั่งที่ได้รับ **ไม่ว่าจะเป็น Claude, Gemini, Codex หรือ AI ตัวใดในอนาคต** ทุกตัวจะทำงานตามมาตรฐานเดียวกันเมื่อสวมบทบาทในแต่ละโปรไฟล์ ดังนี้:
 
+> **Role-based rule:** ชื่อ Chen, Gemini, Billy, Claude, Codex เป็นชื่อ role/surface เพื่อสื่อสารเท่านั้น ไม่ใช่ข้อจำกัดทางเครื่องมือ หากผู้ใช้สั่งให้ agent ใดทำงานใน mode นั้น agent นั้นต้องทำตาม workflow และเขียน artifact ในตำแหน่งเดียวกัน
+
 ```mermaid
 graph TD
     User([USER]) -->|1. Architect Command| Agent_A[AI Agent: Planner/Architect Profile]
@@ -52,7 +54,7 @@ graph TD
 * **ผู้รับผิดชอบ:** AI Agent ทุกตัวในเซสชันใหม่
 * **หน้าที่:** โหลดบริบทและประเมินความพร้อมของระบบทั้งหมดทันที:
   1. รัน `git pull origin master` เพื่อดึงข้อมูลล่าสุดจาก Remote
-  2. รัน `npm run track:sweep` (หรือ `npx tsx scripts/archive-track.ts --sweep`) เพื่อกวาดเก็บแทร็กที่ถูก `Verified` แล้วเข้าสารบบ Archive
+  2. รัน `npm run track:sweep` เพื่อกวาดเก็บแทร็กที่ถูก `Verified` แล้วเข้าสารบบ Archive
   3. โหลดและอ่านข้อตกลงและหลักการทำงานของ Agent (`docs/skills/agent-principles.md`)
   4. ดึงความจำระบบและจุดผิดพลาดทั่วไป (`current-state.md`, `pitfalls.md`)
   5. รายงานสรุปสถานะความพร้อม (DB columns ล่าสุด, API ล่าสุด, แทร็กค้าง) ให้ User ทราบเพื่อรอคำสั่งถัดไป
@@ -82,7 +84,7 @@ graph TD
 3. ดำเนินการแก้ไขโค้ด (Surgical Edit) ตาม Tasks ทั้งหมดใน plan.md
    │
    ▼
-4. เขียน Unit Test สำหรับ Logic ที่สำคัญ (Vitest)
+4. เขียน Unit Test ที่ **assert behavior จริง** สำหรับ Logic ที่สำคัญ (Vitest) — Hard-Rule #8. ห้าม `.skip`/ลบ test เพื่อให้ผ่าน, ห้าม `eslint-disable local-rules/*` เพื่อหนี lint (principle B3). `qa:verify` ผ่านทั้งที่ไม่มี test ใหม่ = ยังไม่เสร็จ (principle B2)
    │
    ▼
 5. รัน KNOWLEDGE ELEVATION (Context Protection):
@@ -105,7 +107,7 @@ graph TD
         │
         ▼
 7. ปิดงานและ Sweep:
-   - ปรับสถานะ Track ใน index.md และ frontmatter ของ plan.md เป็น 'Verified' หรือ 'Completed'
+   - ปรับสถานะ Track ใน index.md และ frontmatter ของ plan.md เป็น `Verified` เมื่อผ่านจริง หรือ `Completed` เฉพาะเมื่อรอ QA ตาม board policy
    - เขียนไฟล์ 'execution-summary.md' ตามรูปแบบที่กำหนด
    - รันคำสั่งกวาดเก็บแทร็ก `npm run track:sweep`
    │
@@ -152,7 +154,7 @@ updated: YYYY-MM-DD
 3. **Child Table Inserts:** หากมีข้อมูลหัวข้อหลักคู่กับรายการย่อย ต้องระบุโครงสร้างการทำงานแบบ:
    - INSERT Parent -> Get `parent_id` -> `FOR EACH` child: INSERT child พร้อม `parent_id`
 4. **Side Effects & Stock Integrity:** สำหรับการเปลี่ยนสถานะใดๆ ต้องระบุผลกระทบที่ตามมา เช่น การบันทึก `stock_ledger` และการอัปเดตยอดคงเหลือ
-5. **Testing Strategy:** ระบุ Test Cases ที่ต้องเขียนเพื่อยืนยันความถูกต้องของ Business Logic (Vitest)
+5. **Testing Strategy:** ระบุ **ชื่อไฟล์ test + behavior ที่ assert** สำหรับทุก task ที่มี business logic (Hard-Rule #8 / PROTOCOLS Plan Quality Gate #6). "เขียน test" ลอย ๆ โดยไม่ระบุ assertion = prose ที่จะ rot ไม่นับว่าพร้อม
 6. **Response Shape:** ระบุ Zod Schema หรือ TypeScript Interface ของ Data ที่ส่งกลับจาก `apiSuccess()` หรือรับเข้าทาง Body อย่างชัดเจน
 
 ---
@@ -194,7 +196,7 @@ updated: YYYY-MM-DD
 | สิ่งที่ต้องการบันทึก | เส้นทางไฟล์ (Path) | ผู้รับผิดชอบ (Role) | กฎเกณฑ์ที่ต้องปฏิบัติตาม |
 | :--- | :--- | :--- | :--- |
 | **Track เสร็จสิ้น / คอลัมน์ DB ใหม่ / API route ใหม่** | `_notes/02_Agent_Memory/current-state.md` | **ทุก Agent**  | อัปเดตหลังจากปิด Track สำเร็จ ย้าย Track ที่เสร็จเข้า "Last 5 Completed Tracks" และลบออกจาก "Active Work" |
-| **การตัดสินใจเชิงสถาปัตยกรรม (Architecture Decision)** | `_notes/01_Decisions/<topic-name>.md` | **ทุก Agent**  | บันทึกเฉพาะโครงสร้างใหญ่ ๆ ห้าม Gemini เขียนโค้ดทับสเปกที่กำหนดไว้ที่นี่ |
+| **การตัดสินใจเชิงสถาปัตยกรรม (Architecture Decision)** | `_notes/01_Decisions/<topic-name>.md` | **Architect / QA Reviewer role**  | บันทึกเฉพาะโครงสร้างใหญ่ ๆ ห้าม implementer เขียนโค้ดทับสเปกที่กำหนดไว้ที่นี่ |
 | **สาเหตุของบั๊กและการแก้ไขเชิงลึก (Bug Root Cause & Complex Fix)** | `_notes/04_Debug_Log/<YYYY-MM-DD>-<topic>.md` | **ทุก Agent** | เขียนเฉพาะกรณีที่เจอบั๊กที่ยากและหาวิธีการแก้ที่ไม่ธรรมดา เพื่อเป็นแนวทางในอนาคต |
 | **การค้นพบจุดบกพร่องทั่วไป / Traps ใหม่** | `_notes/02_Agent_Memory/pitfalls.md` | **ทุก Agent** | อัปเดตเพื่อจดจำ generic traps ที่อาจส่งผลกระทบต่อสถาปัตยกรรมและการพัฒนา |
 | **กฎมาตรฐานแยกตามหัวข้อทางเทคนิค** | `docs/skills/<skill_rules>.md` | **ทุก Agent** | ปรับปรุงพฤติกรรม รูปแบบ หรือ Pattern โค้ดที่นำกลับมาใช้ใหม่ได้ |
@@ -213,3 +215,7 @@ updated: YYYY-MM-DD
 4. **No Code Placeholders:** ห้ามปล่อยทิ้งคอมเมนต์เช่น `// TODO`, `// FIXME`, `// intentionally omitted` ไว้ในไฟล์งานที่ทำเสร็จแล้วอย่างเด็ดขาด! หากมีอยู่จะไม่สามารถติ๊กอนุมัติ `[x]` บนเช็คลิสต์ได้
 5. **Read Before Edit:** ทุกครั้งก่อนจะแก้ไขไฟล์ใด ๆ ต้องใช้เครื่องมือ `view_file` อ่านโค้ดในไฟล์นั้นให้เข้าใจโครงสร้างทั้งหมดเสียก่อน ห้ามคาดเดาและเขียนทับโค้ดเดิมแบบไม่มีหลักการ
 6. **Zero-Emission compilation:** ก่อนเปลี่ยนสถานะ Track เป็น Completed ต้องรัน `npx tsc --noEmit` และ `npm run lint` แล้วมีข้อผิดพลาดเป็น 0 เท่านั้น
+7. **No Gaming The Gate:** ห้ามทำให้ check ผ่านโดยละเมิดเจตนา — ไม่มี `eslint-disable local-rules/*`, ไม่มี `catch {}` ว่าง (ต้อง log + surface error), ไม่ลบ/`.skip` test เพื่อให้ suite เขียว (principle B3).
+8. **Errors Must Surface:** กฎ "ห้าม console.*" เล็งที่ debug noise ไม่ใช่ error handling — `catch` ต้อง `console.error`/logger เสมอ (principle B5).
+
+> **Enforcement note:** กฎทั้งหมดข้างบนมี mapping → gate → status ใน [universal_agent_rules.md §3](skills/universal_agent_rules.md). กฎที่ยังเป็น `manual-interim` ต้องตรวจด้วยมือทุก track จนกว่า `hardening-t2-ci-gate` จะเพิ่ม automated gate. กฎไม่มี gate = suggestion ที่จะ rot (agent-principles Part B).
