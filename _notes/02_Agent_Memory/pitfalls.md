@@ -53,4 +53,8 @@ This file records generic workflow and agent-behavior pitfalls. Specific domain 
 * **Root Cause:** Reversal of a stocked GRN is strictly blocked if any outbound movement (`pos_sale`, `so_delivery`, `transfer_out`) occurred for the same product and warehouse after the GRN's `stocked_at` timestamp, or if current stock balances on-hand are lower than the reversed quantity.
 * **Fix:** Guide the user/accountant to manually post a correcting Journal Entry (JE) or perform appropriate stock corrections when reversing is blocked by consumption.
 
+### 11. `next/font/google` Hangs Sandboxed Builds
+* **Symptom:** `npm run build` hangs for a very long time / times out under sandboxed CI agents (e.g. Codex) with no network. Same build succeeds locally (warm `.next` cache + network).
+* **Root Cause:** `next/font/google` (in `app/layout.tsx`) fetches the font files from Google **at build time**. With network blocked, the fetch retries until timeout → build stalls.
+* **Fix:** Self-host. Use `next/font/local` with woff2 vendored in `app/fonts/`. Source single-file-per-weight builds that cover the needed scripts — IBM Plex `complete` woff2 (`@ibm/plex-sans-thai`, `@ibm/plex-mono`) carry Thai+Latin in one file (do NOT use subset-split `@fontsource/*-thai-*` / `*-latin-*` files: `next/font/local` has no per-`src` `unicode-range`, so same-weight entries collide and one script drops to tofu). Verify coverage with fontTools cmap before shipping — a green build does not prove Thai renders. (Done 2026-06-06, commit `aa2e66e`.)
 

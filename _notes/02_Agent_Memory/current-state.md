@@ -1,6 +1,6 @@
 ---
-updated: 2026-05-30
-updated_by: Gemini
+updated: 2026-06-06
+updated_by: Claude
 ---
 
 # Project Current State — Anti-Context-Loss Briefing
@@ -24,6 +24,7 @@ updated_by: Gemini
 
 ## Active Work
 - **i18n-t6-menu-remaining**: Rework Required as of 2026-06-06. QA found broad `eslint-disable local-rules/no-hardcoded-thai` suppressions across legacy product UI files instead of full i18n migration, and production build verification did not complete within timeout. See `conductor/tracks/i18n-t6-menu-remaining/rework-plan.md`.
+- **Self-hosted fonts (build fix, merged to chore `be859a6`)**: `app/layout.tsx` uses `next/font/local` with IBM Plex woff2 vendored in `app/fonts/` (Sans Thai 300–700, Mono 400–600). Replaced `next/font/google` which fetched fonts at build time and hung sandboxed (Codex) builds. Build is now network-free. See pitfalls #11 and `_notes/04_Debug_Log/2026-06-06-build-hang-next-font-google.md`.
 - **Agent closeout automation**: `npm run agent:closeout` now runs track sweep, Obsidian consistency checks, and a cleanup/knowledge guard. Local/generated artifacts (`scratch/`, `data/`, lint output files, `.antigravitycli/`, `.superpowers/`, `.claude/settings.local.json`, `HH-Project manager/`) are ignored and should stay local-only unless a track explicitly promotes them into docs or app assets.
 
 ---
