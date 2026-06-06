@@ -8,7 +8,7 @@
 3. [[agents-index]] — รายชื่อ agents, triggers, และ skill files
 4. [[output-guidelines]] — วิธีการตอบ / สื่อสารของ agent (terse, no filler)
 
-## Quick Rules (สรุปสำหรับ Gemini)
+## Quick Rules (สรุปสำหรับทุก agent)
 - `import pool from '@/lib/db/client'` — default export เท่านั้น
 - `name_en` + `name_th` ใน `users` — ไม่มี `name` column
 - Points/balance UPDATE ต้องอยู่ใน `BEGIN...COMMIT` block ก่อน `client.release()`

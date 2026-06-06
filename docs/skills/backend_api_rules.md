@@ -14,7 +14,7 @@ load-when: "API Route, NextAuth, Zod, middleware, auth"
 ## Core Rules
 
 1. **Auth check ทุก route** — `const session = await auth(); if (!session) return apiError('Unauthorized', 401);`
-2. **Cast SessionUser เสมอ** — `const u = session.user as unknown as SessionUser;` ห้าม NextAuth type augmentation
+2. **Typed SessionUser เสมอ** — ใช้ NextAuth module augmentation เมื่อมีแล้ว หรือ bridge แบบ `const u = session.user as unknown as SessionUser;` ใน API routes ได้ แต่ห้าม `as any`
 3. **Zod validation ก่อนใช้ body** — parse ด้วย `schema.safeParse()` → return `apiValidationError(result.error)` ถ้า fail
 4. **Response ด้วย `apiSuccess` / `apiError`** เท่านั้น — ห้าม `Response.json()` ตรง
 5. **`buildWarehouseScopeClause`** บังคับทุก GET list endpoint
@@ -69,7 +69,7 @@ try { assertRole(u, ['manager', 'admin']); } catch { return apiError('Forbidden'
 ## Transaction Pattern
 
 ```typescript
-import { pool } from '@/lib/db/client';
+import pool from '@/lib/db/client';
 
 const client = await pool.connect();
 try {

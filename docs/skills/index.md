@@ -21,7 +21,7 @@
    -> ให้ไปอ่านกฎที่: `[[backend_api_rules|docs/skills/backend_api_rules.md]]` (ข้อควรระวัง: ต้องใช้ `apiError()` / `apiSuccess()` ในการตอบกลับเสมอ)
 3. **[Database_SQL]**: สำหรับงานเชื่อมต่อ PostgreSQL (raw `pg`), การทำ Pagination, จัดการ Stock Ledger, หรือการเขียน Query
    -> ให้ไปอ่านกฎที่: `[[database_sql_rules|docs/skills/database_sql_rules.md]]` (ข้อควรระวัง: บังคับใช้ Parameterized queries `$1, $2` เท่านั้น ห้ามต่อ String)
-4. **[QA_Audit]**: สำหรับงานตรวจสอบโค้ดตามแผน `plan.md` (หน้าที่ของ Billy), การรัน Lint/Build, หรือการสร้าง `rework-plan.md`
+4. **[QA_Audit]**: สำหรับงานตรวจสอบโค้ดตามแผน `plan.md` (Auditor role), การรัน Lint/Build, หรือการสร้าง `rework-plan.md` หลัง validate ใน QA-Reviewer role
    -> ให้ไปอ่านกฎที่: `[[qa_audit_rules|docs/skills/qa_audit_rules.md]]`
 5. **[Vercel_Rules]**: สำหรับงานตรวจสอบความเข้ากันได้กับการติดตั้งบน Vercel, การจัดการ Async Waterfall, การทำ Bundle Optimization, และการหลีกเลี่ยง traps ของ Serverless Environment
    -> ให้ไปอ่านกฎที่: `[[vercel_rules|docs/skills/vercel_rules.md]]`
@@ -33,7 +33,7 @@
 เมื่อได้รับคำสั่ง (เช่น `Architect: ...` หรือ `QA: ...`) ให้คุณทำงานตามลำดับนี้เสมอ:
 1. **Analyze (วิเคราะห์):** ตรวจสอบว่าคำสั่งนี้อยู่ในหมวดหมู่ไหนจาก Skill Modules Index (เป็นงาน Frontend, Backend, DB หรือ QA?)
 2. **Load On-Demand (โหลดเฉพาะกิจ):** ใช้คำสั่งอ่านไฟล์ (File Read Tool) เพื่อเข้าไปอ่านเฉพาะไฟล์ `.md` ที่เกี่ยวข้องกับหมวดหมู่นั้นเท่านั้น
-3. **Execute (ลงมือทำ):** นำมาตรฐานและ Technical Standards ที่ได้จากไฟล์ย่อยนั้น มาใช้เขียนโค้ด, วางแผน (Chen), หรือตรวจสอบโค้ด (Billy)
+3. **Execute (ลงมือทำ):** นำมาตรฐานและ Technical Standards ที่ได้จากไฟล์ย่อยนั้น มาใช้เขียนโค้ด, วางแผน (Architect role), หรือตรวจสอบโค้ด (Auditor role)
 
 # Constraints (ข้อห้ามเด็ดขาด)
 - ห้ามดึงไฟล์ Skill Modules มาอ่านพร้อมกันทีเดียวหลายไฟล์เด็ดขาด

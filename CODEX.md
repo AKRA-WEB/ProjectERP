@@ -34,6 +34,7 @@ npx tsc --noEmit
 npm run test
 npm run check:notes
 npm run qa:verify
+npm run agent:closeout
 npm run build
 npm run track:sweep
 ```
@@ -47,7 +48,23 @@ npm run track:sweep
 - Keep edits surgical and scoped to the user request or active track.
 - Use `apply_patch` for manual text edits.
 - If a sandbox blocks a required command, rerun that command with the proper approval request instead of silently skipping it.
-- Do not mark a track `Verified` unless acceptance criteria and verification evidence actually pass.
+- Implementer mode (`Go`) marks work `Completed`, never `Verified`.
+- Auditor mode (`QA: <track>`) writes `conductor/qa-reports/<track>.md` only.
+- QA Reviewer mode (`QA-Review: <track>`) validates findings and may write `rework-plan.md`, set `Rework Required`, or mark `Verified`.
+- Do not mark a track `Verified` unless QA-Review confirms acceptance criteria and verification evidence actually pass.
+
+## Execution Loop (Go)
+
+Execute **ONE track** and stop.
+
+1. Create/use a dedicated branch (`feat/<track-id>`) unless the user explicitly says otherwise.
+2. Read `plan.md` or `rework-plan.md` fully before editing.
+3. Complete the scoped tasks, add/adjust real behavior tests for changed logic, and write `execution-summary.md`.
+4. Update required knowledge files (`current-state.md`, `docs/SCHEMA.md` for schema changes, pitfalls/module notes when relevant).
+5. Run `npm run qa:verify` and manually verify every `manual-interim` hard-rule in `docs/skills/universal_agent_rules.md §3`.
+6. If checks pass, set the track to `Completed` in `plan.md` and `conductor/index.md`; do not run into the next track.
+7. Run `npm run agent:closeout` after status/docs updates to catch tracked scratch/data/lint artifacts and missing knowledge updates.
+8. If checks fail after retries, leave the status as `Active`/`Rework Required` and report blockers with evidence.
 
 ## Obsidian / Markdown Integration
 

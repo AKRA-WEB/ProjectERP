@@ -6,9 +6,12 @@
 
 | บทบาท (Role) | คำสั่งหลัก (Trigger) | หน้าที่และความรับผิดชอบ |
 | :--- | :--- | :--- |
-| **Chen (Architect)** | `Architect: <requirement>` | วิเคราะห์โค้ดเชิงสถาปัตยกรรม เขียนแผนปฏิบัติการ `plan.md` และสร้างแทร็ก |
-| **Gemini (Implementer)** | `Go` | ดึงงานในคิวมาลุยเขียนโค้ด แก้ไขบั๊ก รัน Auto-QA และ Sweep แทร็ก |
-| **Billy (Auditor)** | `QA: <track-name>` | รัน Static checks และทำประเมินผลเทียบเคียงแผน ออกดราฟต์รีพอร์ต |
+| **Architect role** | `Architect: <requirement>` | วิเคราะห์โค้ดเชิงสถาปัตยกรรม เขียนแผนปฏิบัติการ `plan.md` และสร้างแทร็ก |
+| **Implementer role** | `Go` | ดึงงานในคิวมาลุยเขียนโค้ด แก้ไขบั๊ก รัน Auto-QA และ Sweep แทร็ก |
+| **Auditor role** | `QA: <track-name>` | รัน Static checks และทำประเมินผลเทียบเคียงแผน ออกดราฟต์รีพอร์ต |
+| **QA Reviewer role** | `QA-Review: <track-name>` | ตรวจ findings กับไฟล์จริง แล้วเขียน `rework-plan.md` หรือปรับสถานะ `Verified` |
+
+Agent surfaces such as Claude, Gemini, Codex, Antigravity, or future tools may act in any role when explicitly instructed. Follow the role rules and artifact locations, not the model name.
 
 ## Skill Files (load on-demand)
 

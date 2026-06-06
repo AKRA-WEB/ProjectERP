@@ -17,8 +17,9 @@ You are a **Senior Full-stack Engineer** in the BUYMORE ERP project. You operate
 |---------|--------|
 | **`Init`** | Run Pre-Flight Checklist, sync git, sweep tracks, and report readiness. |
 | **`Architect: <req>`** | Enter **Architect Mode** → design plan.md → update index.md. |
-| **`Go`** | Enter **Implementer Mode** → execute first track → Auto-QA → Verify → STOP. |
-| **`QA: <track>`** | Enter **Auditor Mode** → lint/build → audit vs plan.md → write rework report. |
+| **`Go`** | Enter **Implementer Mode** → execute first Active/Rework track → Auto-QA → mark `Completed` → STOP. |
+| **`QA: <track>`** | Enter **Auditor Mode** → lint/build → audit vs plan.md → write `conductor/qa-reports/<track>.md` only. |
+| **`QA-Review: <track>`** | Enter **QA Reviewer Mode** → validate QA report → write `rework-plan.md` or mark `Verified`. |
 
 ---
 
@@ -30,6 +31,7 @@ npm run lint         # ESLint
 npm run test         # Vitest (single run)
 npx tsc --noEmit     # TypeScript check
 npm run qa:verify    # lint + tsc --noEmit + test + check:notes — must pass
+npm run agent:closeout # sweep + notes + cleanup/knowledge guard — run before final response
 npm run migrate      # run SQL migrations
 npm run migrate:seed # seed dev data
 npm run track:sweep  # archive verified tracks
@@ -41,21 +43,23 @@ npm run track:sweep  # archive verified tracks
 
 Execute **ONE track**. Never auto-proceed.
 
-1. Complete `plan.md` tasks → write `execution-summary.md`.
-2. **Knowledge Elevation (Context Protection):**
+1. Create/use a dedicated branch (`feat/<track-id>`) unless the user explicitly says otherwise.
+2. Complete `plan.md` / `rework-plan.md` tasks → write `execution-summary.md`.
+3. **Knowledge Elevation (Context Protection):**
    - Update `_notes/02_Agent_Memory/current-state.md` with:
      - New DB tables/columns (also update `docs/SCHEMA.md`).
      - New API routes (must be mentioned to pass `check:notes`).
      - Update "Migration Numbers" to match latest.
    - Update `_notes/02_Agent_Memory/pitfalls.md` with any new lessons.
    - Update `_notes/00_Project_Map/modules/` for the relevant module.
-3. Auto-QA: `npm run qa:verify` (0 errors) + deep audit vs `docs/skills/qa_audit_rules.md`.
+4. Auto-QA: `npm run qa:verify` (0 errors) + deep audit vs `docs/skills/qa_audit_rules.md`.
    - `check:notes` must pass with 0 errors and valid links.
    - **No gaming the gate:** no `eslint-disable local-rules/*`, no empty `catch {}` (must log + surface), no `.skip`/deleting tests. New logic needs a test that asserts behavior — `qa:verify` green with no new tests ≠ done.
    - Verify every `manual-interim` Hard-Rule by hand — see rule→gate→status map in `docs/skills/universal_agent_rules.md §3` (philosophy: `agent-principles.md` Part B).
-4. **Fail:** write `rework-plan.md` → set `Rework Required` → fix 🔴🟡 items → retry (max 3).
-5. **Pass:** set status to `Verified` → `npm run track:sweep`.
-6. STOP. Print SESSION REPORT.
+5. **Fail:** fix implementation issues and retry (max 3). If still failing, leave status `Active`/`Rework Required` and report blockers with evidence.
+6. **Pass:** set status to `Completed` in `plan.md` + `conductor/index.md`; do **not** mark `Verified` in Implementer mode.
+7. Closeout hygiene: run `npm run agent:closeout` after status/docs updates. This catches tracked scratch/data/lint artifacts and missing knowledge updates.
+8. STOP. Print SESSION REPORT and wait for `QA: <track>`.
 
 ---
 
@@ -104,7 +108,7 @@ Read `docs/skills/index.md` first. Load only what's relevant:
 - **Framework:** Next.js 15 App Router — `app/app/` for pages, `app/api/` for routes
 - **Database:** PostgreSQL via `pool` from `lib/db` (or `@/lib/db/client`)
 - **UI:** Tailwind CSS + `components/ui/index.ts`
-- **Auth:** NextAuth v5 — import `auth` from `@/auth` or `@/lib/auth`
+- **Auth:** NextAuth v5 — import `auth` from `@/auth`
 - **i18n:** `useT()` from `lib/i18n/index.tsx`, keys in `lib/i18n/en.json` and `lib/i18n/th.json`
 - **Thai locale:** Buddhist era = Gregorian + 543. Use `formatDate()` from `lib/utils.ts`.
 - **Stock integrity:** Insert-only `stock_ledger`. Trigger `sync_stock_balances()` fires automatically.

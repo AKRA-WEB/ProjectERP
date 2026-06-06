@@ -13,6 +13,13 @@
 2. **Master Schema:** ใช้ [docs/SCHEMA.md](file:///C:/dev/projectERP/docs/SCHEMA.md) เป็น Source of Truth สำหรับ Database เสมอ (ห้ามเดาชื่อ Column)
 3. **Workflow Guide:** ทำความเข้าใจวงจรทำงานที่ [docs/AI_WORKFLOW_GUIDE.md](file:///C:/dev/projectERP/docs/AI_WORKFLOW_GUIDE.md)
 
+### 🧭 Agent-Specific Mirrors
+* **Claude:** [CLAUDE.md](file:///C:/dev/projectERP/CLAUDE.md)
+* **Gemini:** [GEMINI.md](file:///C:/dev/projectERP/GEMINI.md)
+* **Codex:** [CODEX.md](file:///C:/dev/projectERP/CODEX.md)
+
+ไฟล์ทั้งสามต้องอิงกฎกลางชุดเดียวกัน และห้ามขัดกับ `docs/AI_WORKFLOW_GUIDE.md` / `docs/skills/universal_agent_rules.md`
+
 ### 🔄 Command Triggers (โหมดการทำงาน)
 * **`Init`**: เตรียมความพร้อมระบบ (Checklist + Memory)
 * **`Architect: <req>`**: เข้าสู่ **Architect Mode** (วางแผนงานลงใน `plan.md`)
@@ -48,6 +55,11 @@ NEXTAUTH_URL=http://localhost:3000
   ```bash
   npm run lint
   ```
+* **รัน Agent Closeout หลังจบงาน:**
+  ```bash
+  npm run agent:closeout
+  ```
+  คำสั่งนี้กวาด track ที่ Verified แล้ว, ตรวจ Obsidian links/migration memory, และบล็อกไฟล์ local artifacts (`scratch/`, `data/`, lint output, requirement draft folders, `.claude/settings.local.json`) ไม่ให้กลับเข้ามาใน git
 * **รันสร้างโครงสร้าง DB (Database Migration):**
   ```bash
   npm run migrate

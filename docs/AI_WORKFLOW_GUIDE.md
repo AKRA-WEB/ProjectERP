@@ -28,8 +28,8 @@ graph TD
     User([USER]) -->|1. Architect Command| Agent_A[AI Agent: Planner/Architect Profile]
     Agent_A -->|2. Create plan.md| Plan[conductor/tracks/Plan]
     Plan -->|3. Go command| Agent_B[AI Agent: Implementer Profile]
-    Agent_B -->|4. Code + Auto-QA + Verify| Code[Modified Codebase]
-    Agent_B -->|5. Sweep & Stop| Stop([STOP & Wait for next Go])
+    Agent_B -->|4. Code + Auto-QA + Complete| Code[Modified Codebase]
+    Agent_B -->|5. Completed & Stop| Stop([STOP & Wait for QA])
 ```
 
 ### 1️⃣ Planner / Architect Profile (โปรไฟล์ผู้วางแผนและออกแบบระบบ)
@@ -97,6 +97,7 @@ graph TD
    - รันตรวจสอบความถูกต้องผ่าน `npm run qa:verify` (Linter + TypeScript + Tests + check:notes)
    - `check:notes` ต้องผ่าน 100% (ห้ามมี undocumented routes หรือ migration mismatch)
    - ตรวจสอบความถูกต้องกับ `docs/skills/qa_audit_rules.md`
+   - หลังอัปเดตสถานะ/เอกสารแล้วต้องรัน `npm run agent:closeout` เพื่อกวาด track, ตรวจ Obsidian links, และบล็อกไฟล์ scratch/data/lint artifacts ที่เผลอถูก track
    │
    ├─► [มีข้อผิดพลาด/มีจุดเสีย/Lints/TypeScript Error/Tests Fail/Doc Missing]
    │    │
@@ -106,10 +107,10 @@ graph TD
    └─► [สะอาด 100% - ไม่มี Error และยกระดับความรู้ลง Obsidian ครบถ้วน]
         │
         ▼
-7. ปิดงานและ Sweep:
-   - ปรับสถานะ Track ใน index.md และ frontmatter ของ plan.md เป็น `Verified` เมื่อผ่านจริง หรือ `Completed` เฉพาะเมื่อรอ QA ตาม board policy
-   - เขียนไฟล์ 'execution-summary.md' ตามรูปแบบที่กำหนด
-   - รันคำสั่งกวาดเก็บแทร็ก `npm run track:sweep`
+7. ปิดงาน Implementer และหยุด:
+   - ปรับสถานะ Track ใน index.md และ frontmatter ของ plan.md เป็น `Completed` เมื่อ implementation + `qa:verify` ผ่าน
+   - ห้าม Implementer ตั้งสถานะ `Verified`; `Verified` ทำได้เฉพาะหลังคำสั่ง `QA-Review: <track>` ตรวจหลักฐานแล้วเท่านั้น
+   - เขียนไฟล์ `execution-summary.md` ตามรูปแบบที่กำหนด
    │
    ▼
 8. 🚨 กฎเหล็กการหยุดทำงาน (STRICT STOP CONDITION):
@@ -124,11 +125,11 @@ graph TD
 
 ### 🔹 คำสั่ง: `QA: <track-name>`
 * **ผู้รับผิดชอบ:** AI Agent ที่ทำหน้าที่ตรวจสอบ
-* **หน้าที่:** รันเครื่องมือตรวจสอบ static checks, ประเมินความถูกต้องตามสเปกใน `plan.md` และสร้าง Draft QA Report ที่ `conductor/qa-reports/<track-name>.md`
+* **หน้าที่:** รันเครื่องมือตรวจสอบ static checks, ประเมินความถูกต้องตามสเปกใน `plan.md` และสร้าง Draft QA Report ที่ `conductor/qa-reports/<track-name>.md` เท่านั้น ห้ามเขียน `rework-plan.md` หรือปรับสถานะ track ใน Auditor draft mode
 
 ### 🔹 คำสั่ง: `QA-Review: <track-name>`
 * **ผู้รับผิดชอบ:** AI Agent ที่รับบทบาทเป็น Architect/Planner
-* **หน้าที่:** คัดกรองจุดตรวจสอบของ QA Auditor -> ยืนยันหรือคัดออกผลตรวจสอบ -> ร่างแผนแก้ไข `rework-plan.md` และเปลี่ยนสถานะ Track เป็น `Rework Required` ในสารบัญงาน เพื่อส่งต่อให้โปรไฟล์ Implementer รันวงจรแก้รอบใหม่
+* **หน้าที่:** คัดกรองจุดตรวจสอบของ QA Auditor -> ยืนยันหรือคัดออกผลตรวจสอบ -> ร่างแผนแก้ไข `rework-plan.md` และเปลี่ยนสถานะ Track เป็น `Rework Required` หรือเมื่อไม่มี Must Fix เหลือให้เปลี่ยนสถานะเป็น `Verified` แล้วรัน `npm run track:sweep`
 
 ---
 

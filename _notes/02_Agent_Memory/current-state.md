@@ -15,7 +15,6 @@ updated_by: Gemini
 - **Accounting:** Chart of Accounts, JE Posting, 3-Way Match (v070), Thai VAT (v071).
 
 ## Last 5 Completed Tracks
-- **i18n-t6-menu-remaining**: Migrated global Menu page and Dashboard pages. Enforced `"error"` severity codebase-wide for `no-hardcoded-thai` by removing all legacy overrides from `.eslintrc.json`. Prepended `eslint-disable` to 90 files containing legacy hardcoded Thai to maintain 100% build-safety and allow subsequent targeted migrations. `qa:verify` and production build pass with 0 errors (2026-06-03)
 - **i18n-t5-admin-wms**: Migrated all Admin and WMS pages to i18n. Fixed 18 files (admin/pricing, admin/page, hrzoft, warehouses, uom, users×4 modals, roles×3, business-units, product-channel-uoms, repack-settings, audit/overrides, customers/price-contracts, wms/replenish). Added ~300+ new keys across warehouse.*, uom.*, users.*, roles.*, business_unit.*, channel_uom.*, repack.*, audit.*, price_contract.* namespaces. qa:verify passes (2026-06-03)
 - **i18n-t4-grn-purchasing**: Migrated WMS GRN & Purchase Orders pages (New GRN, GRN Details, Merge GRN, New PO, PO Details, receiving queue, and WMS dashboard clients) to use useT() hook translation keys (2026-06-03)
 - **i18n-t3-accounting**: Fully migrated all Accounting pages (VAT report, General Ledger audit, Chart of Accounts list/new/edit, Journal Entries list/detail, external export adapters/jobs, and 6 reports including AP/AR aging, Balance Sheet, profit-loss, trial balance, general ledger) to i18n dynamic translation (2026-05-30)
@@ -24,7 +23,8 @@ updated_by: Gemini
 - **i18n-t1-prevention**: Installed `eslint-plugin-local-rules`, created `no-hardcoded-thai` ESLint rule (warn), added scaffold template `scripts/new-page-template.tsx`, wrote `docs/i18n.md`, updated CLAUDE.md Knowledge Base + QA loop (2026-05-30)
 
 ## Active Work
-- None (All outstanding i18n tracks verified and completed)
+- **i18n-t6-menu-remaining**: Rework Required as of 2026-06-06. QA found broad `eslint-disable local-rules/no-hardcoded-thai` suppressions across legacy product UI files instead of full i18n migration, and production build verification did not complete within timeout. See `conductor/tracks/i18n-t6-menu-remaining/rework-plan.md`.
+- **Agent closeout automation**: `npm run agent:closeout` now runs track sweep, Obsidian consistency checks, and a cleanup/knowledge guard. Local/generated artifacts (`scratch/`, `data/`, lint output files, `.antigravitycli/`, `.superpowers/`, `.claude/settings.local.json`, `HH-Project manager/`) are ignored and should stay local-only unless a track explicitly promotes them into docs or app assets.
 
 ---
 
