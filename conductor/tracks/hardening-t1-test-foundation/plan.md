@@ -2,10 +2,10 @@
 track: hardening-t1-test-foundation
 phase: hardening-stabilization
 sequence: 1
-status: Planned
+status: Completed
 owner: Chen
 created: 2026-06-06
-updated: 2026-06-06
+updated: 2026-06-13
 depends_on: []
 estimate: M
 tags: [testing, vitest, quality-gate, critical]
@@ -59,42 +59,42 @@ Vitest 4, @testing-library/react, jsdom.
 
 ### Task 1: Relocate the orphan test
 
-- [ ] **1.1** Read `scratch/sanity.test.ts`. If it asserts nothing meaningful, delete it; else move to `__tests__/sanity.test.ts`.
-- [ ] **1.2** `npm run test` — confirm it still collects.
+- [x] **1.1** Read `scratch/sanity.test.ts`. File was already absent, so no orphan scratch test remained to move.
+- [x] **1.2** `npm run test` — confirmed Vitest collects the new co-located tests.
 
 ### Task 2: Test `lib/authz.ts` (warehouse scope — security-critical)
 
-- [ ] **2.1** Read `lib/authz.ts` fully. Note the 4 branches of `buildWarehouseScopeClause` (admin→null, no BU+no WH→FALSE, BU+WH, BU-only, WH-only) and `hasPermission`/`assertRole`/`assertWarehouseAccess`.
-- [ ] **2.2** Write `lib/authz.test.ts` covering:
+- [x] **2.1** Read `lib/authz.ts` fully. Note the 4 branches of `buildWarehouseScopeClause` (admin→null, no BU+no WH→FALSE, BU+WH, BU-only, WH-only) and `hasPermission`/`assertRole`/`assertWarehouseAccess`.
+- [x] **2.2** Write `lib/authz.test.ts` covering:
   - admin → `null` (no restriction)
   - staff, no BU, no WH → `clause === 'FALSE'` (deny-all, not allow-all)
   - WH-only → `= ANY($N::uuid[])` with correct param
   - BU+WH → both conditions, correct `$N`/`$N+1` offsets
   - `hasPermission`: admin bypass true; staff with/without perm
   - `assertRole` throws `{ status: 403 }` when role not allowed
-- [ ] **2.3** `npx vitest run lib/authz.test.ts` → green.
+- [x] **2.3** `npx vitest run lib/authz.test.ts` → green.
 
 ### Task 3: Test pricing logic
 
-- [ ] **3.1** Read `lib/pricing/resolve.ts` + `lib/pricing/enforce-min-price.ts`. Map inputs→outputs (channel/tier/contract resolution; min-price hard-stop boundary `<` vs `<=`).
-- [ ] **3.2** Write `lib/pricing/resolve.test.ts` — cover each resolution branch + fallback/no-match.
-- [ ] **3.3** Write `lib/pricing/enforce-min-price.test.ts` — assert exact boundary: price == min allowed, price just below blocked. (Min-price is a financial hard-stop — boundary correctness matters.)
+- [x] **3.1** Read `lib/pricing/resolve.ts` + `lib/pricing/enforce-min-price.ts`. Map inputs→outputs (channel/tier/contract resolution; min-price hard-stop boundary `<` vs `<=`).
+- [x] **3.2** Write `lib/pricing/resolve.test.ts` — cover each resolution branch + fallback/no-match.
+- [x] **3.3** Write `lib/pricing/enforce-min-price.test.ts` — assert exact boundary: price == min allowed, price just below blocked. (Min-price is a financial hard-stop — boundary correctness matters.)
 
 ### Task 4: Test credit status
 
-- [ ] **4.1** Read `lib/credit/check-credit-status.ts`. Identify on-hold conditions (over limit, aging exceeded).
-- [ ] **4.2** Write `lib/credit/check-credit-status.test.ts` — under limit OK, at limit boundary, over limit hold, aging-days threshold.
+- [x] **4.1** Read `lib/credit/check-credit-status.ts`. Identify on-hold conditions (over limit, aging exceeded).
+- [x] **4.2** Write `lib/credit/check-credit-status.test.ts` — under limit OK, at limit boundary, over limit hold, aging-days threshold.
 
 ### Task 5: Test formatters
 
-- [ ] **5.1** Read `lib/utils.ts` `formatCurrency`/`formatDate`. Confirm Buddhist era (+543) + THB rules.
-- [ ] **5.2** Write `lib/utils.test.ts` — THB formatting, Buddhist year conversion, null/edge inputs.
+- [x] **5.1** Read `lib/utils.ts` `formatCurrency`/`formatDate`. Confirm Buddhist era (+543) + THB rules.
+- [x] **5.2** Write `lib/utils.test.ts` — THB formatting, Buddhist year conversion, null/edge inputs.
 
 ### Task 6: Verify whole suite
 
-- [ ] **6.1** `npm run test` — all files, 0 failures, count > 1.
-- [ ] **6.2** `npx tsc --noEmit` — clean.
-- [ ] **6.3** Commit:
+- [x] **6.1** `npm run test` — all files, 0 failures, count > 1.
+- [x] **6.2** `npx tsc --noEmit` — clean.
+- [x] **6.3** Commit:
 ```bash
 git add lib/**/*.test.ts __tests__/
 git commit -m "test(hardening): add unit tests for authz, pricing, credit, formatters"

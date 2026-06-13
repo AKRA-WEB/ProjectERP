@@ -1,5 +1,5 @@
 ---
-updated: 2026-06-12
+updated: 2026-06-13
 updated_by: Codex
 ---
 
@@ -15,14 +15,14 @@ updated_by: Codex
 - **Accounting:** Chart of Accounts, JE Posting, 3-Way Match (v070), Thai VAT (v071).
 
 ## Last 5 Completed Tracks
+- **hardening-t1-test-foundation**: Added the first real Vitest foundation for pure business logic: authz scope/permission checks, pricing resolution, min-price enforcement, credit hold status, and formatter behavior. `npm run qa:verify` passes with 5 test files / 33 tests (2026-06-13).
 - **i18n-t5-admin-wms**: Migrated all Admin and WMS pages to i18n. Fixed 18 files (admin/pricing, admin/page, hrzoft, warehouses, uom, users×4 modals, roles×3, business-units, product-channel-uoms, repack-settings, audit/overrides, customers/price-contracts, wms/replenish). Added ~300+ new keys across warehouse.*, uom.*, users.*, roles.*, business_unit.*, channel_uom.*, repack.*, audit.*, price_contract.* namespaces. qa:verify passes (2026-06-03)
 - **i18n-t4-grn-purchasing**: Migrated WMS GRN & Purchase Orders pages (New GRN, GRN Details, Merge GRN, New PO, PO Details, receiving queue, and WMS dashboard clients) to use useT() hook translation keys (2026-06-03)
 - **i18n-t3-accounting**: Fully migrated all Accounting pages (VAT report, General Ledger audit, Chart of Accounts list/new/edit, Journal Entries list/detail, external export adapters/jobs, and 6 reports including AP/AR aging, Balance Sheet, profit-loss, trial balance, general ledger) to i18n dynamic translation (2026-05-30)
 - **i18n-t2-keys**: Added ~65 missing translation keys to en.json and th.json in perfect 1-to-1 sync, covering modules for accounting, GRN, WMS, admin, and menu categories (2026-05-30)
 
-- **i18n-t1-prevention**: Installed `eslint-plugin-local-rules`, created `no-hardcoded-thai` ESLint rule (warn), added scaffold template `scripts/new-page-template.tsx`, wrote `docs/i18n.md`, updated CLAUDE.md Knowledge Base + QA loop (2026-05-30)
-
 ## Active Work
+- **Hardening T2 / CI Gate (unblocked, planned)**: `hardening-t1-test-foundation` is completed, so T2 can now enforce `qa:verify` through local/CI gates in the next implementer run.
 - **Phase 1 Reset / D1 Sales Lifecycle Foundation (planning only)**: Legacy ProjectERP is now treated as a technical baseline, not Phase 1 business source of truth. Added `conductor/tracks/d1-legacy-gap-audit/legacy-gap-audit.md` and `conductor/tracks/d1-sales-lifecycle-foundation/plan.md`. D1 decision lock: additive bridge, `/api/d1/...` namespace, `CUSTOMER_CONFIRMED` candidate lock, manual session completion, D1-prefixed physical tables (`d1_sales_orders`, `d1_sales_order_lines`, version/history/event tables). No runtime code or DB migration has been implemented yet.
 - **Hardening T7 / Scale Tooling Foundation (planning only)**: Added `conductor/tracks/hardening-t7-scale-tooling-foundation/plan.md` for API contract inventory/OpenAPI, Playwright smoke harness, observability readiness, and domain-boundary audit. Depends on `hardening-t1-test-foundation` and `hardening-t2-ci-gate`; no runtime code, dependencies, or DB migration has been implemented yet.
 - **i18n-t6-menu-remaining**: Rework Required as of 2026-06-06. QA found broad `eslint-disable local-rules/no-hardcoded-thai` suppressions across legacy product UI files instead of full i18n migration, and production build verification did not complete within timeout. See `conductor/tracks/i18n-t6-menu-remaining/rework-plan.md`.
