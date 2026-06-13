@@ -19,6 +19,12 @@
 | --- | --- | --- |
 | hardening-t1-test-foundation | Planned | [plan](tracks/hardening-t1-test-foundation/plan.md) |
 
+## Phase 1 Reset — Internal-first Planning
+
+| Track | Status | Plan | Reference |
+| --- | --- | --- | --- |
+| d1-sales-lifecycle-foundation | Planned | [plan](tracks/d1-sales-lifecycle-foundation/plan.md) | [legacy gap audit](tracks/d1-legacy-gap-audit/legacy-gap-audit.md) |
+
 ## Phase 6 — Hardening & Stabilization (from full audit 2026-06-06)
 
 > Source: [full-audit-2026-06-06](qa-reports/full-audit-2026-06-06.md). Execute in priority order. T1 first (unblocks the gate). T3 can run in parallel.
@@ -31,6 +37,7 @@
 | H4 | hardening-t4-route-guard-and-errors | 🟡 Medium | H1 | Planned | [plan](tracks/hardening-t4-route-guard-and-errors/plan.md) |
 | H6 | hardening-t6-deep-verification-audit | 🟡 Medium | H1 | Planned | [plan](tracks/hardening-t6-deep-verification-audit/plan.md) |
 | H5 | hardening-t5-repo-hygiene-and-types | 🟢 Low | H1 | Planned | [plan](tracks/hardening-t5-repo-hygiene-and-types/plan.md) |
+| H7 | hardening-t7-scale-tooling-foundation | 🟡 Medium | H1, H2 | Planned | [plan](tracks/hardening-t7-scale-tooling-foundation/plan.md) |
 
 > Note: **M4** (108 i18n suppressions) is owned by existing track [i18n-t6-menu-remaining](tracks/i18n-t6-menu-remaining/plan.md) — see Rework Required below.
 

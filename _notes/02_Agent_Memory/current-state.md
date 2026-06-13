@@ -1,6 +1,6 @@
 ---
-updated: 2026-06-06
-updated_by: Claude
+updated: 2026-06-12
+updated_by: Codex
 ---
 
 # Project Current State — Anti-Context-Loss Briefing
@@ -23,6 +23,8 @@ updated_by: Claude
 - **i18n-t1-prevention**: Installed `eslint-plugin-local-rules`, created `no-hardcoded-thai` ESLint rule (warn), added scaffold template `scripts/new-page-template.tsx`, wrote `docs/i18n.md`, updated CLAUDE.md Knowledge Base + QA loop (2026-05-30)
 
 ## Active Work
+- **Phase 1 Reset / D1 Sales Lifecycle Foundation (planning only)**: Legacy ProjectERP is now treated as a technical baseline, not Phase 1 business source of truth. Added `conductor/tracks/d1-legacy-gap-audit/legacy-gap-audit.md` and `conductor/tracks/d1-sales-lifecycle-foundation/plan.md`. D1 decision lock: additive bridge, `/api/d1/...` namespace, `CUSTOMER_CONFIRMED` candidate lock, manual session completion, D1-prefixed physical tables (`d1_sales_orders`, `d1_sales_order_lines`, version/history/event tables). No runtime code or DB migration has been implemented yet.
+- **Hardening T7 / Scale Tooling Foundation (planning only)**: Added `conductor/tracks/hardening-t7-scale-tooling-foundation/plan.md` for API contract inventory/OpenAPI, Playwright smoke harness, observability readiness, and domain-boundary audit. Depends on `hardening-t1-test-foundation` and `hardening-t2-ci-gate`; no runtime code, dependencies, or DB migration has been implemented yet.
 - **i18n-t6-menu-remaining**: Rework Required as of 2026-06-06. QA found broad `eslint-disable local-rules/no-hardcoded-thai` suppressions across legacy product UI files instead of full i18n migration, and production build verification did not complete within timeout. See `conductor/tracks/i18n-t6-menu-remaining/rework-plan.md`.
 - **Self-hosted fonts (build fix, merged to chore `be859a6`)**: `app/layout.tsx` uses `next/font/local` with IBM Plex woff2 vendored in `app/fonts/` (Sans Thai 300–700, Mono 400–600). Replaced `next/font/google` which fetched fonts at build time and hung sandboxed (Codex) builds. Build is now network-free. See pitfalls #11 and `_notes/04_Debug_Log/2026-06-06-build-hang-next-font-google.md`.
 - **Agent closeout automation**: `npm run agent:closeout` now runs track sweep, Obsidian consistency checks, and a cleanup/knowledge guard. Local/generated artifacts (`scratch/`, `data/`, lint output files, `.antigravitycli/`, `.superpowers/`, `.claude/settings.local.json`, `HH-Project manager/`) are ignored and should stay local-only unless a track explicitly promotes them into docs or app assets.
