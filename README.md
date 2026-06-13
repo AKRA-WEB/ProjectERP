@@ -55,6 +55,11 @@ NEXTAUTH_URL=http://localhost:3000
   ```bash
   npm run lint
   ```
+* **ติดตั้ง Git Hooks สำหรับ QA Gate หลัง `npm install`:**
+  ```bash
+  npx simple-git-hooks
+  ```
+  Hook นี้รัน `npm run qa:verify` ก่อน push เพื่อกัน lint, TypeScript, test, หรือ notes check ที่ไม่ผ่านหลุดเข้า remote
 * **รัน Agent Closeout หลังจบงาน:**
   ```bash
   npm run agent:closeout

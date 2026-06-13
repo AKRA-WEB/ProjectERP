@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { DirectionalTransition } from '@/components/ui/directional-transition';
 import { ArrowLeft, Filter, Home, Package, Boxes, ClipboardList, ScanLine } from 'lucide-react';
-import { useT } from '@/lib/i18n';
+import { useT, type DictKey } from '@/lib/i18n';
 
 interface PendingPO {
   id: string;
@@ -43,8 +43,7 @@ interface QueueResponse {
   inbound_orders: PendingIO[];
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function timeSince(dateStr: string, t: (key: any) => string): string {
+function timeSince(dateStr: string, t: (key: DictKey) => string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
   const hrs = Math.floor(mins / 60);

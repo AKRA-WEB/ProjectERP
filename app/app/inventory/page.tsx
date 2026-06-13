@@ -14,7 +14,9 @@ export default async function InventoryPage() {
   };
   try {
     initialData = await getInventoryPage(u, { page: 1, limit: 30 });
-  } catch {}
+  } catch (error) {
+    console.error('Failed to preload inventory page data:', error);
+  }
 
   return <InventoryClient initialData={initialData} />;
 }

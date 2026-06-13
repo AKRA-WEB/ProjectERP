@@ -16,6 +16,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   eslint: {
+    // Builds stay fast; lint is enforced by `npm run qa:verify`, pre-push hooks, and CI.
     ignoreDuringBuilds: true,
   },
   experimental: {

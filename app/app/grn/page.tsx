@@ -29,7 +29,9 @@ export default async function GRNPage({
       getWarehouses(),
       getGRNQueueCounts(u),
     ]);
-  } catch {}
+  } catch (error) {
+    console.error('Failed to preload GRN page data:', error);
+  }
 
   return (
     <GRNClient

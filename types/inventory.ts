@@ -118,8 +118,19 @@ export interface PurchaseOrder {
   created_at: string;
   updated_at: string;
   lines?: POLineItem[];
-  grns?: any[];
-  invoices?: any[];
+  grns?: GRNDetail[];
+  invoices?: ApInvoiceSummary[];
+}
+
+export interface ApInvoiceSummary {
+  id: string;
+  invoice_number: string;
+  invoice_date: string;
+  due_date: string;
+  amount: number;
+  paid_amount?: number | string;
+  is_paid: boolean;
+  status?: string;
 }
 
 export interface PickList {

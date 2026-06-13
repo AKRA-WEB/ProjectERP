@@ -32,7 +32,7 @@
 | # | Track | Priority | Depends On | Status | Plan |
 | --- | --- | --- | --- | --- | --- |
 | H1 | hardening-t1-test-foundation | 🔴 Critical | — | Completed | [plan](tracks/hardening-t1-test-foundation/plan.md) |
-| H2 | hardening-t2-ci-gate | 🟠 High | H1 | Planned | [plan](tracks/hardening-t2-ci-gate/plan.md) |
+| H2 | hardening-t2-ci-gate | 🟠 High | H1 | Completed | [plan](tracks/hardening-t2-ci-gate/plan.md) |
 | H3 | hardening-t3-db-tls-security | 🟠 High | — | Planned | [plan](tracks/hardening-t3-db-tls-security/plan.md) |
 | H4 | hardening-t4-route-guard-and-errors | 🟡 Medium | H1 | Planned | [plan](tracks/hardening-t4-route-guard-and-errors/plan.md) |
 | H6 | hardening-t6-deep-verification-audit | 🟡 Medium | H1 | Planned | [plan](tracks/hardening-t6-deep-verification-audit/plan.md) |

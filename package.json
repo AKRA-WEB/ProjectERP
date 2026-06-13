@@ -9,12 +9,18 @@
     "lint": "next lint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "qa:verify": "npm run lint && npx tsc --noEmit && npm run test && npm run check:notes",
+    "check:test-floor": "npx tsx scripts/check-test-floor.ts",
+    "check:local-rule-suppressions": "npx tsx scripts/check-local-rule-suppressions.ts",
+    "qa:verify": "npm run lint && npx tsc --noEmit && npm run test && npm run check:test-floor && npm run check:local-rule-suppressions && npm run check:notes",
     "agent:closeout": "npm run track:sweep && npm run check:notes && npx tsx scripts/agent-closeout.ts",
     "check:notes": "npx tsx scripts/check-notes.ts",
     "track:sweep": "npx tsx scripts/archive-track.ts --sweep",
     "migrate": "npx tsx --env-file=.env lib/db/run-migrate.ts",
-    "migrate:seed": "node -r dotenv/config lib/db/seed.js"
+    "migrate:seed": "node -r dotenv/config lib/db/seed.js",
+    "prepare": "simple-git-hooks"
+  },
+  "simple-git-hooks": {
+    "pre-push": "npm run qa:verify"
   },
   "dependencies": {
     "@auth/core": "^0.41.2",
@@ -49,6 +55,7 @@
     "eslint-plugin-local-rules": "^3.0.2",
     "jsdom": "^29.1.1",
     "postcss": "^8",
+    "simple-git-hooks": "^2.13.1",
     "tailwindcss": "^3.4.1",
     "typescript": "^5",
     "vitest": "^4.1.7",

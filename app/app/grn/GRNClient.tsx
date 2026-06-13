@@ -336,7 +336,9 @@ export function GRNClient({ initialGRNs, initialStatusCounts, initialWarehouses,
     try {
       const counts = await get<Record<string, number>>('/api/grn/status-counts');
       setTabCounts(counts);
-    } catch {}
+    } catch (error) {
+      console.error('Failed to refresh GRN status counts:', error);
+    }
   }, []);
 
   const fetchGRNs = useCallback(async () => {

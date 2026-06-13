@@ -58,7 +58,9 @@ async function archiveTrack(trackId: string, rootDir: string): Promise<boolean> 
   // Clean target directory if it exists
   try {
     await fs.rm(archiveTrackPath, { recursive: true, force: true });
-  } catch {}
+  } catch (err) {
+    console.warn(`⚠️ Warning: could not clean archive target for ${trackId}:`, err);
+  }
 
   await fs.rename(activeTrackPath, archiveTrackPath);
   console.log(`🟢 Physically moved track folder to conductor/archive/tracks/${trackId}`);
@@ -141,7 +143,8 @@ async function main() {
     let subdirs: string[] = [];
     try {
       subdirs = await fs.readdir(tracksDir);
-    } catch {
+    } catch (err) {
+      console.warn('⚠️ Warning: could not read active tracks directory:', err);
       console.log('ℹ️ No active tracks directory found. Nothing to sweep.');
       return;
     }
@@ -159,7 +162,12 @@ async function main() {
           await archiveTrack(subdir, rootDir);
           archivedCount++;
         }
-      } catch {}
+      } catch (err) {
+        const fsErr = err as { code?: string };
+        if (fsErr.code !== 'ENOENT') {
+          console.warn(`⚠️ Warning: could not inspect track "${subdir}" during sweep:`, err);
+        }
+      }
     }
 
     if (archivedCount === 0) {

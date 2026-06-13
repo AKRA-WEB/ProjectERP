@@ -15,7 +15,9 @@ export default async function DashboardPage() {
     let initialData = null;
     try {
       initialData = await getAuditorDashboardData();
-    } catch {}
+    } catch (error) {
+      console.error('Failed to preload auditor dashboard data:', error);
+    }
     return <AuditorDashboardClient initialData={initialData} session={session} />;
   }
 
@@ -23,7 +25,9 @@ export default async function DashboardPage() {
   let initialWarehouses: Awaited<ReturnType<typeof getWarehouses>> = [];
   try {
     [initialKpi, initialWarehouses] = await Promise.all([getKPI(), getWarehouses()]);
-  } catch {}
+  } catch (error) {
+    console.error('Failed to preload dashboard data:', error);
+  }
 
   return <DashboardClient initialKpi={initialKpi} initialWarehouses={initialWarehouses} session={session} />;
 }

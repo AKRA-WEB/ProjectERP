@@ -5,7 +5,9 @@
   ],
   "plugins": ["local-rules"],
   "rules": {
-    "local-rules/no-hardcoded-thai": "error"
+    "@typescript-eslint/no-explicit-any": "error",
+    "no-empty": ["error", { "allowEmptyCatch": false }],
+    "local-rules/no-hardcoded-thai": "error",
+    "local-rules/no-unbounded-query": "error"
   }
 }
-

@@ -12,7 +12,9 @@ export default async function APPage() {
   };
   try {
     initialData = await getAPInvoicePage({ page: 1, limit: 25 });
-  } catch {}
+  } catch (error) {
+    console.error('Failed to preload AP page data:', error);
+  }
 
   return <APClient initialData={initialData} />;
 }

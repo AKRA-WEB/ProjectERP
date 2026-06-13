@@ -68,8 +68,7 @@ export default function NewSalesQuotationPage() {
     if (field === 'product_id') {
       const p = products.find(p => p.id === value);
       if (p) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        newLines[index].unit_price = Number((p as any).selling_price || p.unit_cost || 0);
+        newLines[index].unit_price = Number(p.selling_price || p.unit_cost || 0);
       }
     }
     

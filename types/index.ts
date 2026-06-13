@@ -3,7 +3,17 @@ export * from './api';
 export * from './hr';
 export * from './inventory';
 
-import type { PriceChannel } from './db';
+import type { AccountType, NormalBalanceType, PriceChannel } from './db';
+import type {
+  DoStatus,
+  PosPaymentMethod,
+  PosSessionStatus,
+  PosTransactionStatus,
+  SiStatus,
+  SoStatus,
+  SqStatus,
+  SrStatus,
+} from './api';
 
 // Remaining types not yet classified or for cross-module features (Sales, POS, Accounting)
 // ... keeping them here for now until further splitting ...
@@ -17,7 +27,7 @@ export interface PosSession {
   opened_by: string;
   opened_by_name: string;
   closed_by: string | null;
-  status: any; // PosSessionStatus;
+  status: PosSessionStatus;
   opening_float: number;
   closing_float: number | null;
   shift_id?: string | null;
@@ -81,7 +91,7 @@ export interface PosPickingSlip {
   printed_by: string;
   picked_at: string | null;
   picked_by: string | null;
-  lines: any;
+  lines: PosTransactionLine[];
   created_at: string;
   updated_at: string;
 }
@@ -133,11 +143,11 @@ export interface PosTransaction {
   discount_amount: number;
   vat_amount: number;
   total: number;
-  payment_method: any; // PosPaymentMethod;
+  payment_method: PosPaymentMethod;
   cash_tendered: number | null;
   card_amount: number | null;
   change_given: number;
-  status: any; // PosTransactionStatus;
+  status: PosTransactionStatus;
   voided_by: string | null;
   voided_by_name?: string | null;
   voided_at: string | null;
@@ -159,7 +169,7 @@ export interface SalesQuotation {
   customer_name_th: string;
   warehouse_id: string;
   warehouse_name_th: string;
-  status: any; // SqStatus;
+  status: SqStatus;
   channel: PriceChannel;
   valid_until: string | null;
   subtotal: number;
@@ -195,7 +205,7 @@ export interface SalesOrder {
   customer_name_th: string;
   warehouse_id: string;
   warehouse_name_th: string;
-  status: any; // SoStatus;
+  status: SoStatus;
   channel: PriceChannel;
   expected_delivery: string | null;
   payment_terms_days: number;
@@ -237,7 +247,7 @@ export interface DeliveryOrder {
   customer_name_th: string;
   warehouse_id: string;
   warehouse_name_th: string;
-  status: any; // DoStatus;
+  status: DoStatus;
   shipping_address: string | null;
   shipped_at: string | null;
   delivered_at: string | null;
@@ -271,7 +281,7 @@ export interface SalesInvoice {
   do_number: string | null;
   customer_id: string;
   customer_name_th: string;
-  status: any; // SiStatus;
+  status: SiStatus;
   channel: PriceChannel;
   invoice_date: string;
   due_date: string;
@@ -294,7 +304,7 @@ export interface InvoiceVersion {
   invoice_id: string;
   version_no: number;
   barcode: string;
-  change_summary: any;
+  change_summary: Record<string, unknown>;
   created_at: string;
   created_by: string;
   created_by_name?: string;
@@ -309,7 +319,7 @@ export interface SalesReturn {
   customer_name_th: string;
   warehouse_id: string;
   warehouse_name_th: string;
-  status: any; // SrStatus;
+  status: SrStatus;
   reason: string | null;
   received_at: string | null;
   restocked_at: string | null;
@@ -368,11 +378,11 @@ export interface JournalEntry {
   fiscal_period_id: string;
   period_name?: string;
   entry_date: string;
-  entry_type: any; // JournalEntryType;
+  entry_type: string;
   reference_type: string | null;
   reference_id: string | null;
   description: string;
-  status: any; // JournalEntryStatus;
+  status: 'draft' | 'posted' | 'void';
   total_debit: number;
   total_credit: number;
   posted_by: string | null;
@@ -389,11 +399,11 @@ export interface TrialBalanceRow {
   account_code: string;
   account_name_th: string;
   account_name_en: string;
-  account_type: any; // AccountType;
+  account_type: AccountType;
   total_debit: number;
   total_credit: number;
   balance: number;
-  normal_balance: any; // NormalBalanceType;
+  normal_balance: NormalBalanceType;
 }
 
 export interface GeneralLedgerRow {
@@ -484,4 +494,3 @@ export interface ApPayment {
 
 export type { PriceResolution } from '@/lib/pricing/resolve';
 export { resolvePrice } from '@/lib/pricing/resolve';
-

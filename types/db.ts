@@ -79,6 +79,7 @@ export interface Product {
   category_id: string | null;
   category_name?: string | null;
   unit_cost: number | string;
+  selling_price?: number | string | null;
   uom_id: string | null;
   uom_code: string | null;
   reorder_point: number | string | null;

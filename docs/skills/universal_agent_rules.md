@@ -60,16 +60,16 @@ Regardless of model name, an AI acts in one of these three modes:
 
 | # | Rule | Enforcement | Status |
 |---|------|-------------|--------|
-| 1 | No `as any` (use interfaces / `as unknown as T` only for NextAuth bridge) | `@typescript-eslint/no-explicit-any: error` | manual-interim → T2 |
+| 1 | No `as any` (use interfaces / `as unknown as T` only for NextAuth bridge) | `@typescript-eslint/no-explicit-any: error` | ✅ enforced |
 | 2 | `stock_ledger` INSERT-ONLY (no UPDATE/DELETE) | code review + grep | manual-interim → T2 |
 | 3 | SQL parameterized only (`$1,$2`) — no value interpolation | code review | manual-interim → T2 |
-| 4 | List queries require `LIMIT` + `OFFSET` | `local-rules/no-unbounded-query` (to build) | manual-interim → T2 |
+| 4 | List queries require `LIMIT` + `OFFSET` | `local-rules/no-unbounded-query` baseline gate; existing debt owned by H7/API audit | ✅ enforced for new debt |
 | 5 | Every API route: `const session = await auth()` + scope | code review | manual-interim → T2 |
 | 6 | Response via `apiSuccess`/`apiError` only — no `Response.json()` | code review | manual-interim → T2 |
 | 7 | Thai locale via `formatDate()`/`formatCurrency()` (Buddhist era) | code review | manual-interim → T2 |
-| 8 | New/changed business logic has a test that **asserts behavior** | coverage floor + CI | manual-interim → T1/T2 |
-| 9 | No inline/file-level `eslint-disable local-rules/*` in completed work | CI grep gate | manual-interim → T2 |
-| 10 | No silent `catch {}` — must log + surface error (see principle B5) | `no-empty` + review | manual-interim → T2 |
+| 8 | New/changed business logic has a test that **asserts behavior** | `scripts/check-test-floor.ts` + CI | ✅ enforced |
+| 9 | No inline/file-level `eslint-disable local-rules/*` in completed work | `scripts/check-local-rule-suppressions.ts` baseline gate; existing i18n debt owned by `i18n-t6-menu-remaining` | ✅ enforced for new debt |
+| 10 | No silent `catch {}` — must log + surface error (see principle B5) | `no-empty` + review | ✅ enforced |
 | 11 | No `// TODO`/`// FIXME`/`// BUG` in completed work | grep gate | manual-interim → T2 |
 | 12 | No hardcoded Thai outside `*Th` data props | `local-rules/no-hardcoded-thai: error` | ✅ enforced |
 | 13 | No hardcoded VAT (`0.07`) — use `VAT_RATE` from `lib/constants.ts` | code review | manual-interim → T2 |

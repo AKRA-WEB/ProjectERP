@@ -25,12 +25,12 @@ interface ExcelRow {
 function readExcel(filePath: string): ExcelRow[] {
   const wb = XLSX.readFile(filePath);
   const ws = wb.Sheets[wb.SheetNames[0]];
-  const raw = XLSX.utils.sheet_to_json<any[]>(ws, { header: 1 });
+  const raw = XLSX.utils.sheet_to_json<unknown[]>(ws, { header: 1 });
 
   return raw
     .slice(1)
-    .filter((r: any[]) => r[0] && r[1])
-    .map((r: any[]) => ({
+    .filter((r) => r[0] && r[1])
+    .map((r) => ({
       sku: String(r[0]).trim(),
       name_th: String(r[1]).trim(),
       name_en: r[2] ? String(r[2]).trim() : String(r[1]).trim(),
