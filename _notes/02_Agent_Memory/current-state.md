@@ -66,6 +66,6 @@ updated_by: Codex
 
 ---
 
-## Migration Numbers (latest: 072)
-    Next migration = `073_<name>.sql`
-    Latest: `072_grn_reversal.sql`
+## Migration Numbers (latest: 074)
+    Next migration = `075_<name>.sql`
+    Latest: `074_hr_employee_ops_constraints.sql`

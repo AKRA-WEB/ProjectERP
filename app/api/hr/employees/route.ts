@@ -70,15 +70,13 @@ export async function GET(req: NextRequest) {
         u.id, u.employee_id, u.name_th, u.name_en, u.email, u.role,
         u.department_id, d.name_th AS department_name_th, d.name_en AS department_name_en,
         u.position_id, p.name_th AS position_name_th, p.name_en AS position_name_en,
-        u.salary_grade_id, sg.name_th AS salary_grade_name,
-        u.base_salary, u.employment_type, u.employee_status,
+        u.employment_type, u.employee_status,
         u.hired_date, u.resignation_date, u.phone, u.created_at,
-        (SELECT w.name FROM user_warehouse_assignments uwa JOIN warehouses w ON w.id = uwa.warehouse_id 
+        (SELECT w.name FROM user_warehouse_assignments uwa JOIN warehouses w ON w.id = uwa.warehouse_id
          WHERE uwa.user_id = u.id AND uwa.is_active = TRUE LIMIT 1) AS branch_name
       FROM users u
       LEFT JOIN departments d ON d.id = u.department_id
       LEFT JOIN positions p ON p.id = u.position_id
-      LEFT JOIN salary_grades sg ON sg.id = u.salary_grade_id
       ${where}
       ORDER BY u.name_en
       LIMIT $${idx} OFFSET $${idx + 1}
@@ -101,9 +99,6 @@ export async function GET(req: NextRequest) {
     position_id: string | null;
     position_name_th: string | null;
     position_name_en: string | null;
-    salary_grade_id: string | null;
-    salary_grade_name: string | null;
-    base_salary: string | number | null;
     employment_type: string;
     employee_status: string;
     hired_date: string | null;
@@ -113,10 +108,8 @@ export async function GET(req: NextRequest) {
     branch_name: string | null;
   }
 
-  const canSeeSalary = u.role === 'admin' || u.role === 'manager';
   const data = (rows as EmployeeRow[]).map((r) => ({
     ...r,
-    base_salary: canSeeSalary ? r.base_salary : null,
     hire_date: r.hired_date
   }));
 

@@ -184,3 +184,138 @@ export interface PayrollRun {
   created_at: string;
   lines?: PayrollLine[];
 }
+
+// --- HR Employee 360 types ---
+
+export interface HrEmergencyContact {
+  id: string;
+  employee_id: string;
+  contact_name: string;
+  relationship: string;
+  phone: string;
+  alt_phone: string | null;
+  address: string | null;
+  is_primary: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface HrEmployeeDocument {
+  id: string;
+  employee_id: string;
+  doc_type: string;
+  filename: string;
+  storage_url: string;
+  issued_date: string | null;
+  expiry_date: string | null;
+  status: 'pending_review' | 'verified' | 'rejected' | 'expired';
+  uploaded_by_user_id: string | null;
+  verified_by_user_id: string | null;
+  verified_at: string | null;
+  rejected_reason: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface HrLeaveBalanceSummary {
+  leave_balance_id: string;
+  leave_type_id: string;
+  leave_type_name_th: string;
+  year: number;
+  days_entitled: number;
+  days_used: number;
+  days_remaining: number;
+}
+
+export interface HrAttendanceSummary {
+  month: string;
+  present_days: number;
+  late_days: number;
+  absent_days: number;
+  half_days: number;
+  ot_hours: number;
+  pending_adjustments: number;
+}
+
+export interface HrPayrollSummary {
+  latest_run_id: string;
+  latest_run_number: string;
+  period_month: number;
+  period_year: number;
+  gross_pay: number | null;
+  net_pay: number | null;
+}
+
+export interface HrEmployeeAuditEvent {
+  id: string;
+  event_type: string;
+  event_payload_json: Record<string, unknown>;
+  actor_name_th: string | null;
+  created_at: string;
+}
+
+export interface HrEmployeeProfileEmployee {
+  id: string;
+  employee_id: string | null;
+  name_th: string;
+  name_en: string;
+  email: string;
+  phone: string | null;
+  role: string;
+  department_id: string | null;
+  department_name_th: string | null;
+  position_id: string | null;
+  position_name_th: string | null;
+  employment_type: 'full_time' | 'part_time' | 'contract';
+  employee_status: 'active' | 'inactive' | 'resigned';
+  hired_date: string | null;
+  resignation_date: string | null;
+  base_salary: number | null;
+  salary_grade_name: string | null;
+}
+
+export interface HrEmployeeProfileResponse {
+  employee: HrEmployeeProfileEmployee;
+  emergency_contacts: HrEmergencyContact[];
+  documents: HrEmployeeDocument[];
+  leave_balances: HrLeaveBalanceSummary[];
+  attendance_summary: HrAttendanceSummary;
+  payroll_summary: HrPayrollSummary | null;
+  audit_events: HrEmployeeAuditEvent[];
+}
+
+export interface LeaveBalanceAdjustment {
+  id: string;
+  employee_id: string;
+  leave_type_id: string;
+  leave_type_name_th: string | null;
+  year: number;
+  adjustment_kind: 'entitlement' | 'used_correction';
+  delta_days: number;
+  balance_before: number;
+  balance_after: number;
+  reason: string;
+  adjusted_by_user_id: string;
+  adjusted_by_name_th: string | null;
+  created_at: string;
+}
+
+export interface AttendanceAdjustmentRequest {
+  id: string;
+  request_number: string;
+  employee_id: string;
+  employee_name_th: string | null;
+  attendance_record_id: string | null;
+  work_date: string;
+  requested_clock_in: string | null;
+  requested_clock_out: string | null;
+  requested_status: string | null;
+  requested_ot_hours: number | null;
+  reason: string;
+  status: 'submitted' | 'approved' | 'rejected' | 'cancelled';
+  reviewed_by_user_id: string | null;
+  reviewed_at: string | null;
+  review_note: string | null;
+  created_at: string;
+  updated_at: string;
+}

@@ -2,7 +2,7 @@
 module: HR
 type: module-summary
 status: Completed
-updated: 2026-05-19
+updated: 2026-06-28
 ---
 
 # HR — Human Resources
@@ -42,10 +42,14 @@ Employee → Leave Request → Attendance → Payroll Run
 - **Workflow:** 4-step stepper (`draft` → `processing` → `approved` → `paid`).
 - **Features:** 5-card financial KPI strip (Gross, SSO, PVF, Tax, Net). Detail table with footer totals and searchable lines. Integrated with General Ledger for automated accounting entries upon payment.
 
-## Key Tables
-- `employees` · `departments`
-- `leave_requests` · `attendance_records`
-- `payroll_runs` · `payroll_run_lines`
+## Key Tables (v073)
+- `users` (employee records) · `departments` · `positions` · `salary_grades`
+- `employee_emergency_contacts` — NEW: per-employee contacts, partial unique primary
+- `employee_documents` — EXTENDED: status, review metadata columns
+- `hr_employee_audit_events` — NEW: append-only operational audit
+- `leave_balances` · `leave_requests` · `leave_balance_adjustments` — NEW: audit trail for balance edits
+- `attendance_records` · `attendance_adjustment_requests` — NEW: staff request / manager approve flow; seq_hra sequence
+- `payroll_runs` · `payroll_lines`
 
 ## Business Rules
 - `users` table: `name_en` + `name_th` — ไม่มี `name` column
@@ -63,6 +67,14 @@ Employee → Leave Request → Attendance → Payroll Run
 | `/api/hr/leave-requests/calendar` | GET | Monthly team leave grid data |
 | `/api/hr/leave-requests/stats` | GET | Pending and upcoming leave counts |
 | `/api/hr/payroll-runs/[id]` | GET/PATCH | Payroll detail and workflow actions |
+| `/api/hr/employees/[id]/profile` | GET | Employee 360 aggregate (contacts, docs, leave, attendance, payroll, audit) |
+| `/api/hr/employees/[id]/emergency-contacts` | GET/POST | Employee emergency contacts |
+| `/api/hr/employees/[id]/emergency-contacts/[contactId]` | PATCH/DELETE | Contact update/delete |
+| `/api/hr/employees/[id]/documents` | GET/POST | Employee document upload |
+| `/api/hr/employees/[id]/documents/[documentId]` | PATCH | Document verify/reject/update |
+| `/api/hr/leave-balances/adjustments` | GET/POST | Leave balance adjustments with audit |
+| `/api/hr/attendance-adjustments` | GET/POST | Attendance adjustment requests |
+| `/api/hr/attendance-adjustments/[id]` | PATCH | Approve/reject attendance adjustment |
 
 ## SQL Patterns Used
 - **Wraparound Anniversaries:** Finding events across year-end boundaries using `TO_CHAR(MM-DD)`.

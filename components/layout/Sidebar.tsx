@@ -361,6 +361,7 @@ export function Sidebar({ open, onClose, userRole, permissions, collapsed, onTog
         label: t('nav.hr_time'),
         items: [
           { href: '/app/hr/attendance', label: t('page.attendance'), icon: Clock, permission: 'hr:employees:view' },
+          { href: '/app/hr/attendance/adjustments', label: t('nav.hr_attendance_adjustments'), icon: CalendarRange, permission: 'hr:employees:view' },
           { href: '/app/hr/shifts', label: t('nav.hr_shifts'), icon: CalendarRange, permission: 'hr:employees:view' },
           { href: '/app/hr/overtime', label: t('nav.hr_overtime'), icon: Timer, permission: 'hr:employees:view' },
         ]

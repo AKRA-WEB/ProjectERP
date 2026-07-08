@@ -17,13 +17,21 @@
 
 | Track | Status | Plan |
 | --- | --- | --- |
-| hardening-t1-test-foundation | Completed | [plan](tracks/hardening-t1-test-foundation/plan.md) |
+| hr-payroll-compensation-governance | Active | [plan](tracks/hr-payroll-compensation-governance/plan.md) |
 
 ## Phase 1 Reset — Internal-first Planning
 
 | Track | Status | Plan | Reference |
 | --- | --- | --- | --- |
 | d1-sales-lifecycle-foundation | Planned | [plan](tracks/d1-sales-lifecycle-foundation/plan.md) | [legacy gap audit](tracks/d1-legacy-gap-audit/legacy-gap-audit.md) |
+
+> D1-D7 implementation is intentionally paused until Project Manager workflow sign-off. See [_notes/01_Decisions/2026-06-28-prioritize-hr-before-d1-d7.md](../_notes/01_Decisions/2026-06-28-prioritize-hr-before-d1-d7.md).
+
+## HR Priority While D1-D7 Await Workflow Sign-Off
+
+| Track | Status | Plan |
+| --- | --- | --- |
+| hr-payroll-compensation-governance | Active | [plan](tracks/hr-payroll-compensation-governance/plan.md) |
 
 ## Phase 6 — Hardening & Stabilization (from full audit 2026-06-06)
 
@@ -128,6 +136,7 @@ Master plan: [erp-v2-orion-roadmap](tracks/erp-v2-orion-roadmap/plan.md)
 
 | Track | Status | Created | Last Updated |
 |-------|--------|---------|--------------|
+| [HR Employee Operations Foundation](./archive/tracks/hr-employee-ops-foundation/plan.md) | Verified | 2026-06-28 | 2026-06-28 |
 | [i18n Track 5 — Admin + WMS Fix](./archive/tracks/i18n-t5-admin-wms/plan.md) | Verified | 2026-05-30 | 2026-06-03 |
 | [i18n Track 4 — GRN + Purchase Orders Fix](./archive/tracks/i18n-t4-grn-purchasing/plan.md) | Verified | 2026-06-03 | 2026-06-03 |
 | [i18n Track 3 — Accounting Module Fix](./archive/tracks/i18n-t3-accounting/plan.md) | Verified | 2026-05-30 | 2026-05-30 |
